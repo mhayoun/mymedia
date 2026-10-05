@@ -7,7 +7,7 @@ What you will create:
 
 | What | Why | Cost |
 |---|---|---|
-| A GitHub account | Free hosting of the app (GitHub Pages) | Free |
+| A GitHub account + Vercel | Stores the code / hosts the app | Free |
 | A Google Cloud project | Lets the app ask Google for access to *each user's own* Drive | Free |
 | (Phase 2) a Claude API key | AI classification of difficult photos | Pay per use |
 
@@ -17,44 +17,24 @@ What you will create:
 
 ---
 
-## Part A – Create a GitHub account
+## Part A – GitHub account (stores the code)
 
-1. Open **https://github.com/signup**.
-2. Type your **email** → **Continue**.
-3. Choose a **password** → **Continue**.
-4. Choose a **username** (for example `moshe-media`). Write it down: your app
-   address will be `https://USERNAME.github.io/mymedia/`.
-   → **Continue**.
-5. Answer the email-preferences question (either answer is fine) → **Continue**.
-6. Solve the puzzle → **Create account**.
-7. Open your mailbox, find the code from GitHub, and type it on the page.
-8. If GitHub asks questions about how you will use it, click **Skip personalization**.
+Done: account **mhayoun**, repository **https://github.com/mhayoun/mymedia**.
 
-## Part B – Publish the app on GitHub Pages
+## Part B – Hosting on Vercel
 
-The easiest way: let Claude do it.
+Done: the app is published at **https://mymedia-kappa.vercel.app**
+(Vercel account `m0583212851-1839`, project `mymedia`). Vercel only serves
+the program files; no code runs on a server and no data goes through Vercel.
 
-1. In the terminal where Claude Code runs, type (one line at a time; the `!`
-   runs the command for you):
-   ```
-   ! sudo apt install -y gh
-   ! gh auth login
-   ```
-2. `gh auth login` asks questions. Answer with the arrow keys and **Enter**:
-   - *Where do you use GitHub?* → **GitHub.com**
-   - *Preferred protocol?* → **HTTPS**
-   - *Authenticate Git with your GitHub credentials?* → **Yes**
-   - *How would you like to authenticate?* → **Login with a web browser**
-   - It shows an **8-character code**. Press **Enter**, the browser opens,
-     type the code → **Continue** → **Authorize github**.
-3. Tell Claude: **"publish the app on GitHub"**. Claude creates the
-   repository `mymedia`, uploads the code and switches on GitHub Pages.
-4. After about 2 minutes the app is at `https://USERNAME.github.io/mymedia/`.
-   It shows *"the Google client ID is missing"* – that is normal, Part C fixes it.
-
-> The repository is **public** (required for free GitHub Pages). It contains
-> only the program, never your photos or data. The Google client ID you add
-> in Part D is not a secret.
+**Optional – automatic publishing from GitHub.** Today Claude publishes each
+new version from this computer. To make Vercel publish by itself every time
+the code changes on GitHub:
+1. Open **https://vercel.com/m0583212851-1839s-projects/mymedia/settings/git**.
+2. Click **Connect Git Repository** → **GitHub**.
+3. If GitHub asks to install the **Vercel** app: choose the account **mhayoun** →
+   **Only select repositories** → pick **mymedia** → **Install** (or **Save**).
+4. Back on Vercel, choose **mhayoun/mymedia** → **Connect**.
 
 ## Part C – Google Cloud project
 
@@ -106,9 +86,9 @@ The easiest way: let Claude do it.
 2. **Application type**: **Web application**.
 3. **Name**: `MyMedia web`.
 4. Under **Authorized JavaScript origins** click **Add URI** and type exactly
-   (replace USERNAME, no `/mymedia` at the end, no slash at the end):
+   (exactly, no slash at the end):
    ```
-   https://USERNAME.github.io
+   https://mymedia-kappa.vercel.app
    ```
    Click **Add URI** again and add (only needed to test on this computer):
    ```
@@ -120,24 +100,14 @@ The easiest way: let Claude do it.
 
 ## Part D – Give the client ID to the app
 
-1. Open `https://github.com/USERNAME/mymedia`.
-2. Click the folder **public**, then the file **config.json**.
-3. Click the **pencil** icon (Edit this file), top right of the file.
-4. Replace `PASTE-YOUR-CLIENT-ID.apps.googleusercontent.com` with the client ID
-   you copied. Keep the quotes:
-   ```json
-   {
-     "googleClientId": "123456789012-abcdefg.apps.googleusercontent.com"
-   }
-   ```
-5. Click **Commit changes…** → **Commit changes**.
-6. Wait 2 minutes (the **Actions** tab shows a green check when done).
-
-(Or simply paste the client ID to Claude and ask it to do this step.)
+Paste the client ID to Claude and say **"set the client ID and publish"**.
+Claude puts it in `public/config.json`, saves it to GitHub and publishes the
+new version (about 1 minute). The client ID is not a secret: it is visible to
+anyone who opens the app, and only works from the address in Part C6.
 
 ## Part E – First sign-in
 
-1. Open `https://USERNAME.github.io/mymedia/`.
+1. Open `https://mymedia-kappa.vercel.app`.
 2. Click **כניסה עם Google** (Sign in with Google) and choose your account.
 3. Google shows **"Google hasn't verified this app"**. This is expected (it
    is your own app). Click **Advanced** → **Go to MyMedia (unsafe)**.
@@ -174,7 +144,7 @@ If the Google window does not open: allow pop-ups for the site
 
 ## Part G – Family and friends
 
-Send them the link `https://USERNAME.github.io/mymedia/`. Each person signs
+Send them the link `https://mymedia-kappa.vercel.app`. Each person signs
 in with **their own** Google account and sees **their own** Drive. They see
 the same "unverified app" warning once (Part E, step 3).
 Limit: 100 different Google accounts in total.
@@ -189,8 +159,8 @@ Will be completed in Phase 2 (classification).
 
 | Problem | Fix |
 |---|---|
-| "The Google client ID is missing" | Part D not done, or not finished deploying (wait 2 min, reload). |
-| Google error `redirect_uri_mismatch` or `origin_mismatch` | The origin in Part C6 must be exactly `https://USERNAME.github.io` (no path, no final `/`). Changes take up to 5 minutes. |
+| "The Google client ID is missing" | Part D not done yet. |
+| Google error `redirect_uri_mismatch` or `origin_mismatch` | The origin in Part C6 must be exactly `https://mymedia-kappa.vercel.app` (no final `/`). Changes take up to 5 minutes. |
 | Google error "access blocked: app in testing" | Part C5 not done. |
 | The Drive box was not ticked | The app asks again; sign in and tick the box. |
 | "Reconnect" banner | Click **Reconnect**. On iPhone this can happen about once a day; your work is kept. |
