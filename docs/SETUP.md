@@ -66,14 +66,19 @@ Vercel is connected to the GitHub repository: every change saved to
    your Google Drive files"*. (Not `drive.file`, not `drive.readonly`.)
 5. Click **Update** at the bottom of the panel, then **Save** at the bottom of the page.
 
-### C5. Put the app "In production" (important!)
+### C5. Choose who may sign in (Test users)
+Leave the app in **Testing** status and list the people allowed to use it:
 1. In the left menu click **Audience**.
-2. Under **Publishing status** click **Publish app** → **Confirm**.
-3. The status now shows **In production**. Google may show a message that
-   verification is needed – **ignore it**: MyMedia is for you and your family
-   (fewer than 100 users), so no verification is required.
+2. Check that **Publishing status** says **Testing**. Do *not* click "Publish app".
+3. Under **Test users** click **Add users**, type your Gmail address
+   (and those of family members, one per line, up to 100) → **Save**.
 
-> ⚠️ Why this matters: in "Testing" mode Google disconnects everyone **every 7 days**.
+Only the listed accounts can sign in; anyone else sees "access blocked".
+To add a family member later, come back here and add their address.
+
+> Note: Google's "7-day limit" in Testing status applies only to apps that
+> keep a long-term key on a server ("refresh token"). MyMedia has no server
+> and doesn't use one, so Testing status does not disconnect you.
 
 ### C6. Create the client ID
 1. In the left menu click **Clients** → **Create client**.
@@ -138,10 +143,12 @@ If the Google window does not open: allow pop-ups for the site
 
 ## Part G – Family and friends
 
-Send them the link `https://mymedia-keep.vercel.app`. Each person signs
-in with **their own** Google account and sees **their own** Drive. They see
-the same "unverified app" warning once (Part E, step 3).
-Limit: 100 different Google accounts in total.
+1. Add their Gmail address to **Test users** (Part C5).
+2. Send them the link `https://mymedia-keep.vercel.app`.
+
+Each person signs in with **their own** Google account and sees **their own**
+Drive. They see the same "unverified app" warning once (Part E, step 3).
+Limit: 100 test users.
 
 ## Part H – Claude API key (needed from Phase 2)
 
@@ -155,7 +162,7 @@ Will be completed in Phase 2 (classification).
 |---|---|
 | "The Google client ID is missing" | Part D not done yet. |
 | Google error `redirect_uri_mismatch` or `origin_mismatch` | The origin in Part C6 must be exactly `https://mymedia-keep.vercel.app` (no final `/`). Changes take up to 5 minutes. |
-| Google error "access blocked: app in testing" | Part C5 not done. |
+| Google error "access blocked" / "app is being tested" | That Google account is not in the **Test users** list (Part C5). |
 | The Drive box was not ticked | The app asks again; sign in and tick the box. |
 | "Reconnect" banner | Click **Reconnect**. On iPhone this can happen about once a day; your work is kept. |
 | `mymedia.json cannot be read` | Someone edited the file by hand. In Drive: right-click it → **File information** → **Manage versions** → download/restore the previous version. |
