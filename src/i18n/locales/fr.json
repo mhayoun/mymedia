@@ -1,0 +1,133 @@
+{
+  "app": { "name": "MyMedia", "tagline": "Vos photos et vidéos, organisées dans votre Google Drive" },
+  "common": {
+    "cancel": "Annuler", "ok": "OK", "save": "Enregistrer", "close": "Fermer", "create": "Créer",
+    "rename": "Renommer", "delete": "Supprimer", "back": "Retour", "next": "Suivant", "previous": "Précédent",
+    "loading": "Chargement…", "retry": "Réessayer", "name": "Nom", "all": "Tout", "more": "Plus d'actions"
+  },
+  "auth": {
+    "signIn": "Se connecter avec Google",
+    "signInHint": "MyMedia communique uniquement avec votre propre Google Drive. Rien n'est stocké sur un autre serveur.",
+    "switchAccount": "Utiliser un autre compte",
+    "signOut": "Se déconnecter sur cet appareil",
+    "reconnectTitle": "La connexion Google doit être renouvelée",
+    "reconnectText": "Votre travail est conservé et reprendra après la reconnexion.",
+    "reconnect": "Se reconnecter",
+    "scopeDenied": "MyMedia a besoin d'accéder à votre Google Drive. Reconnectez-vous et cochez l'autorisation Drive.",
+    "popupBlocked": "La fenêtre Google n'a pas pu s'ouvrir. Autorisez les fenêtres pop-up pour ce site et réessayez.",
+    "configMissing": "L'application n'est pas encore configurée : l'ID client Google manque dans config.json (voir le guide d'installation)."
+  },
+  "setup": {
+    "title": "Bienvenue dans MyMedia",
+    "noRoot": "Aucun dossier « {{name}} » n'a été trouvé dans votre Google Drive. MyMedia va le créer.",
+    "rootName": "Nom du dossier principal",
+    "categories": "Catégories à créer",
+    "addCategory": "Ajouter une catégorie",
+    "create": "Créer les dossiers",
+    "creating": "Création…",
+    "defaultCategories": ["Famille", "Oiseaux", "Travail", "Autre"],
+    "rootMissingTitle": "Le dossier principal a disparu",
+    "rootMissingText": "Le dossier « {{name}} » a été supprimé ou mis à la corbeille dans Google Drive. Restaurez-le depuis la corbeille de Drive, ou créez-en un nouveau.",
+    "restored": "Je l'ai restauré",
+    "createNew": "Créer un nouveau dossier"
+  },
+  "nav": {
+    "allMedia": "Tous les médias",
+    "unfiled": "Sans catégorie",
+    "categories": "Catégories",
+    "albums": "Albums",
+    "newCategory": "Nouvelle catégorie",
+    "newAlbum": "Nouvel album",
+    "menu": "Menu",
+    "settings": "Paramètres",
+    "noAlbums": "Pas encore d'album"
+  },
+  "folders": {
+    "newCategoryTitle": "Nouvelle catégorie",
+    "newAlbumTitle": "Nouvel album dans « {{parent}} »",
+    "renameTitle": "Renommer « {{name}} »",
+    "deleteTitle": "Supprimer « {{name}} » ?",
+    "deleteText_one": "Le dossier et son fichier ({{count}}) vont dans la corbeille de Google Drive. Vous pouvez les restaurer pendant 30 jours.",
+    "deleteText_other": "Le dossier et ses {{count}} fichiers vont dans la corbeille de Google Drive. Vous pouvez les restaurer pendant 30 jours.",
+    "invalidName": "Veuillez saisir un nom.",
+    "exists": "Un dossier portant ce nom existe déjà ici."
+  },
+  "gallery": {
+    "loadNew": "Charger les nouveaux fichiers",
+    "viewGrid": "Grille",
+    "viewAlbums": "Par album",
+    "sort": "Trier",
+    "sortNewest": "Plus récents",
+    "sortOldest": "Plus anciens",
+    "sortName": "Nom",
+    "type": "Type",
+    "typeAll": "Photos et vidéos",
+    "typePhoto": "Photos",
+    "typeVideo": "Vidéos",
+    "empty": "Aucun média ici pour le moment.",
+    "emptyHint": "Ajoutez des photos ou des vidéos dans le dossier « {{name}} » de Google Drive, puis appuyez sur « Charger les nouveaux fichiers ».",
+    "count_one": "{{count}} élément",
+    "count_other": "{{count}} éléments",
+    "noAlbum": "Sans album",
+    "video": "Vidéo"
+  },
+  "sync": {
+    "scanning": "Lecture de vos dossiers Drive… {{done}} fichiers trouvés",
+    "checking": "Recherche de nouveaux fichiers…",
+    "applying": "Chargement des modifications {{done}} / {{total}}",
+    "metadata": "Enregistrement des informations…",
+    "cancel": "Annuler",
+    "lastSync": "Mis à jour {{time}}",
+    "never": "Pas encore chargé",
+    "offline": "Hors ligne – affichage des miniatures enregistrées"
+  },
+  "viewer": {
+    "info": "Informations",
+    "date": "Date",
+    "size": "Taille",
+    "dimensions": "Dimensions",
+    "duration": "Durée",
+    "category": "Catégorie",
+    "album": "Album",
+    "origin": "Origine",
+    "description": "Description",
+    "descriptionPlaceholder": "Ajouter une description…",
+    "original": "Charger en pleine qualité",
+    "openInDrive": "Ouvrir dans Google Drive",
+    "downloading": "Téléchargement {{percent}}",
+    "cannotPlay": "Cette vidéo ne peut pas être lue dans ce navigateur.",
+    "cannotShow": "Ce format de photo ne peut pas être affiché en pleine qualité dans ce navigateur."
+  },
+  "origin": {
+    "camera": "Appareil photo / téléphone",
+    "whatsapp": "WhatsApp",
+    "web": "Web",
+    "import": "Import externe",
+    "unknown": "Inconnue"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "account": "Compte",
+    "signedInAs": "Connecté en tant que {{email}}",
+    "rootFolder": "Dossier principal",
+    "rootFolderHint": "Renommer change le nom du dossier dans Google Drive.",
+    "loading": "Chargement des nouveaux fichiers",
+    "syncMode": "Mode",
+    "syncAuto": "Automatique",
+    "syncManual": "Manuel (bouton « Charger les nouveaux fichiers »)",
+    "syncInterval": "Vérifier toutes les (minutes)",
+    "syncAutoHint": "Vérifie à l'ouverture de l'application, puis régulièrement tant qu'elle est ouverte.",
+    "rescan": "Relire tout le dossier",
+    "rescanHint": "Utile seulement si quelque chose semble incorrect.",
+    "storage": "Enregistré sur cet appareil",
+    "clearThumbs": "Effacer les miniatures enregistrées",
+    "version": "Version {{version}}"
+  },
+  "errors": {
+    "syncFailed": "Le chargement depuis Google Drive a échoué. Il sera réessayé.",
+    "metaUnreadable": "Le fichier mymedia.json de votre Drive est illisible. Il n'a pas été modifié. Restaurez une version précédente depuis Google Drive (clic droit → Gérer les versions).",
+    "generic": "Une erreur s'est produite : {{message}}"
+  },
+  "languages": { "he": "עברית", "fr": "Français", "en": "English" }
+}
