@@ -135,7 +135,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   padding: 10px 14px; border-block-end: 1px solid var(--border);
 }
-.toolbar h1 { font-size: 1.15rem; margin: 0; margin-inline-end: auto; display: flex; align-items: center; gap: 4px; min-width: 0; }
+.toolbar h1 { font-size: 1.15rem; margin: 0; display: flex; align-items: center; gap: 4px; min-width: 0; }
 .toolbar h1 bdi { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .toolbar .count { color: var(--text-2); font-weight: normal; font-size: 0.9rem; margin-inline-start: 8px; }
 .toolbar select { inline-size: auto; padding: 6px 8px; }

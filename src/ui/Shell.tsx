@@ -94,8 +94,8 @@ export function Shell() {
       <div className="body">
         <Sidebar lib={lib} people={people} onNewCategory={() => setDialog({ kind: 'newCategory' })} />
         <main className="main">
-          <Toolbar lib={lib} people={people} onDialog={setDialog} />
-          {filters.categoryId !== PEOPLE && <FilterBar people={people} count={items.length} />}
+          <Toolbar lib={lib} people={people} count={items.length} onDialog={setDialog} />
+          {filters.categoryId !== PEOPLE && <FilterBar people={people} />}
           {filters.categoryId === PEOPLE ? (
             <PeopleView people={people} />
           ) : lib.ready && items.length === 0 ? (
@@ -308,8 +308,9 @@ function Banners() {
   )
 }
 
-function Toolbar({ lib, people, onDialog }: { lib: Library; people: People; onDialog: (d: DialogState) => void }) {
+function Toolbar({ lib, people, count, onDialog }: { lib: Library; people: People; count: number; onDialog: (d: DialogState) => void }) {
   const { t } = useTranslation()
+  const fmt = useFormat()
   const filters = useApp((s) => s.filters)
   const setFilters = useApp((s) => s.setFilters)
   const settings = useApp((s) => s.settings)
@@ -360,13 +361,15 @@ function Toolbar({ lib, people, onDialog }: { lib: Library; people: People; onDi
   const showTitle = special || !!folder
   return (
     <div className="toolbar">
-      {showTitle ? (
+      {showTitle && (
         <h1>
           <bdi>{title}</bdi>
         </h1>
-      ) : (
-        <span className="grow" />
       )}
+      <span className="result-count" title={t('gallery.count', { count })}>
+        {fmt.number(count)}
+      </span>
+      <span className="grow" />
       {folder && (
         <span className="row">
           <button
