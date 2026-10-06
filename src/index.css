@@ -198,6 +198,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .drawer h2 { margin: 0; font-size: 1.2rem; }
 .drawer section { border-block-start: 1px solid var(--border); padding-block: 14px; }
 .drawer h3 { margin: 0 0 10px; font-size: 1rem; }
+.drawer h4 { margin: 14px 0 6px; font-size: 0.92rem; color: var(--text-2); }
 .radio-row { display: flex; align-items: center; gap: 8px; margin-block-end: 6px; cursor: pointer; }
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 

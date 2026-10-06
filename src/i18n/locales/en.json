@@ -216,5 +216,80 @@
     "examples": "Photos",
     "accuracy": "Correct",
     "confused": "Confused with"
+  },
+  "compress": {
+    "button": "Compress",
+    "titleFor": "Compress “{{name}}”",
+    "planning": "Checking {{count}} files…",
+    "toDo_one": "{{count}} file will be compressed.",
+    "toDo_other": "{{count}} files will be compressed.",
+    "estimate": "Estimated size: {{before}} → {{after}} (about {{saved}} saved).",
+    "nothing": "Nothing to compress here.",
+    "skip": {
+      "alreadyCompressed_one": "{{count}} already compressed (skipped)",
+      "alreadyCompressed_other": "{{count}} already compressed (skipped)",
+      "compressedByApp_one": "{{count}} already compressed by MyMedia",
+      "compressedByApp_other": "{{count}} already compressed by MyMedia",
+      "tooSmall_one": "{{count}} too small",
+      "tooSmall_other": "{{count}} too small",
+      "noGain_one": "{{count}} would not get smaller enough",
+      "noGain_other": "{{count}} would not get smaller enough",
+      "videoNotHere_one": "{{count}} video: compress it on a computer (Chrome or Edge)",
+      "videoNotHere_other": "{{count}} videos: compress them on a computer (Chrome or Edge)",
+      "format_one": "{{count}} HEIC/PNG photo (conversion to JPEG is off)",
+      "format_other": "{{count}} HEIC/PNG photos (conversion to JPEG is off)"
+    },
+    "start": "Compress",
+    "progress": "Compressing {{done}} / {{total}}",
+    "savedSoFar": "Saved so far: {{saved}}",
+    "background": "You can close this window: compression continues in the background (progress at the top).",
+    "done_one": "Done: {{count}} file compressed, {{saved}} saved.",
+    "done_other": "Done: {{count}} files compressed, {{saved}} saved.",
+    "autoDone_one": "{{count}} new file compressed automatically: {{saved}} saved.",
+    "autoDone_other": "{{count}} new files compressed automatically: {{saved}} saved.",
+    "status": "Compression",
+    "statusDone": "Compressed: {{before}} → {{after}}",
+    "statusLabel": {
+      "compressed": "Compressed by MyMedia",
+      "already": "Already compressed",
+      "none": "Kept unchanged (not enough gain)",
+      "not": "Not compressed"
+    },
+    "settingsTitle": "Compression",
+    "autoTitle": "Automatic (new files found in Drive)",
+    "autoPhotos": "Compress new photos bigger than",
+    "autoVideos": "Compress new videos bigger than",
+    "autoHint": "Files you already had stay as they are: use the Compress button on an album to compress them. Videos are compressed only on a computer.",
+    "originsTitle": "Automatic compression for photos from:",
+    "photosTitle": "Photos",
+    "quality": "JPEG quality",
+    "maxDimension": "Maximum size (longest side)",
+    "pixels": "{{n}} px",
+    "unchanged": "Unchanged",
+    "convert": "Convert HEIC and PNG photos to JPEG",
+    "videosTitle": "Videos",
+    "videoHeight": "Maximum resolution",
+    "videoQuality": "Quality",
+    "vq": {
+      "low": "Low (smallest)",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "videoHint": "Video compression needs a computer with Chrome or Edge. On phones, videos wait until the app is opened on a computer.",
+    "keepTitle": "The original",
+    "keep": {
+      "version": "Replace it (Drive keeps the old version about 30 days)",
+      "folder": "Copy it to the “_Originals” folder",
+      "both": "Keep it forever in the file’s version history"
+    },
+    "keepHint": {
+      "version": "Saves the most space. The original can be recovered for about 30 days: in Drive, right-click the file → File information → Manage versions.",
+      "folder": "The original is copied to MyMedia/_Originals/… before compression. No space is saved until you delete that folder.",
+      "both": "The original stays as an older version of the same file, without time limit. No space is saved."
+    },
+    "limitsTitle": "Limits",
+    "minSize": "Never compress files smaller than",
+    "minGain": "Keep the file unchanged if it saves less than",
+    "defaults": "Restore default settings"
   }
 }

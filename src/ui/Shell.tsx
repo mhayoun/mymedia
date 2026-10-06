@@ -1,12 +1,15 @@
-import { Brain, FolderPlus, LayoutGrid, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Brain, FolderPlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
 import { useFormat } from '../i18n/format'
 import { app, useApp } from '../store'
 import { createAlbum, createCategory, deleteFolder, renameFolder } from '../sync/folders'
+import { cancelCompression } from '../compress/engine'
+import { subtreeIds } from '../lib/tree'
 import { stopIndexer } from '../ml/indexer'
 import { cancelSync, syncNow } from '../sync/engine'
+import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog, PromptDialog } from './Dialog'
 import { Gallery } from './Gallery'
 import { useAuthError, useAuthStatus, useAutoSync, useOnline } from './hooks'
@@ -22,6 +25,7 @@ type DialogState =
   | { kind: 'newAlbum'; parentId: string; parentName: string }
   | { kind: 'rename'; id: string; name: string }
   | { kind: 'delete'; id: string; name: string; count: number }
+  | { kind: 'compress'; title: string; folderId: string | null }
   | null
 
 export function Shell() {
@@ -65,6 +69,7 @@ export function Shell() {
       </div>
       {settingsOpen && <SettingsPanel />}
       {statsOpen && <StatsDialog lib={lib} />}
+      <Toast />
 
       {dialog?.kind === 'newCategory' && rootId && (
         <PromptDialog
@@ -96,6 +101,19 @@ export function Shell() {
           onClose={() => setDialog(null)}
         />
       )}
+      {dialog?.kind === 'compress' && (
+        <CompressDialog
+          title={dialog.title}
+          items={(dialog.folderId
+            ? (() => {
+                const ids = subtreeIds(dialog.folderId, lib.folders.values())
+                return lib.items.filter((i) => ids.has(i.rec.folderId))
+              })()
+            : items
+          ).map((i) => i.rec)}
+          onClose={() => setDialog(null)}
+        />
+      )}
       {dialog?.kind === 'delete' && (
         <ConfirmDialog
           title={t('folders.deleteTitle', { name: dialog.name })}
@@ -118,6 +136,7 @@ function TopBar() {
   const sync = useApp((s) => s.sync)
   const lastSyncAt = useApp((s) => s.lastSyncAt)
   const indexing = useApp((s) => s.indexing)
+  const compressing = useApp((s) => s.compressing)
   const set = useApp((s) => s.set)
   const online = useOnline()
 
@@ -135,7 +154,17 @@ function TopBar() {
           <WifiOff size={18} />
         </span>
       )}
-      {indexing && !sync && (
+      {compressing && (
+        <>
+          <span className="sync-info" aria-live="polite">
+            <Minimize2 size={14} /> {t('compress.progress', { done: fmt.number(compressing.done + 1), total: fmt.number(compressing.total) })}
+          </span>
+          <button className="icon-btn small" onClick={cancelCompression} aria-label={t('common.cancel')} title={t('common.cancel')}>
+            <X size={16} />
+          </button>
+        </>
+      )}
+      {indexing && !sync && !compressing && (
         <>
           <span className="sync-info" aria-live="polite" title={t('classify.learningHint')}>
             <Brain size={14} /> {t('classify.learning', { done: fmt.number(indexing.done), total: fmt.number(indexing.total) })}
@@ -270,6 +299,14 @@ function Toolbar({ lib, count, onDialog }: { lib: Library; count: number; onDial
           </button>
         </span>
       )}
+      <button
+        className="icon-btn small"
+        title={t('compress.button')}
+        aria-label={t('compress.button')}
+        onClick={() => onDialog({ kind: 'compress', title: t('compress.titleFor', { name: title }), folderId: folder?.id ?? null })}
+      >
+        <Minimize2 size={18} />
+      </button>
       <div className="segmented" role="group" aria-label={t('gallery.viewGrid')}>
         <button aria-pressed={settings.view === 'grid'} onClick={() => updateSettings({ view: 'grid' })} title={t('gallery.viewGrid')}>
           <LayoutGrid size={16} />
@@ -298,6 +335,27 @@ function Toolbar({ lib, count, onDialog }: { lib: Library; count: number; onDial
         <option value="photo">{t('gallery.typePhoto')}</option>
         <option value="video">{t('gallery.typeVideo')}</option>
       </select>
+    </div>
+  )
+}
+
+function Toast() {
+  const { t } = useTranslation()
+  const fmt = useFormat()
+  const toast = useApp((s) => s.toast)
+  const set = useApp((s) => s.set)
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(() => set({ toast: null }), 8000)
+    return () => clearTimeout(timer)
+  }, [toast, set])
+  if (!toast) return null
+  return (
+    <div className="toast" role="status">
+      {t(toast.key, { count: toast.count, saved: toast.bytes != null ? fmt.bytes(toast.bytes) : undefined })}
+      <button className="icon-btn small" onClick={() => set({ toast: null })} aria-label={t('common.close')}>
+        <X size={16} />
+      </button>
     </div>
   )
 }

@@ -89,3 +89,31 @@ birds), then put a few new bird photos **directly in `MyMedia`** or directly in
 - [ ] A correction is learned: after correcting a few photos of a species, similar new photos are suggested correctly.
 - [ ] Videos are classified too (from 3 frames: start, middle, end).
 - [ ] Files in folders starting with `_` are never used nor classified.
+
+## Phase 3 – Compression (§6)
+
+### Automatic (new files found in Drive)
+- [ ] Add a big photo (e.g. 10 MB) to an album in Drive → **Load new files** → message "1 new file compressed automatically: … saved"; in Drive the file is now about 1–2 MB, **same name, same place**.
+- [ ] Its EXIF is kept: in Drive → File information, date taken and camera are still shown; the photo is upright (not rotated).
+- [ ] A WhatsApp photo (`IMG-…-WA…`) is not compressed.
+- [ ] A photo smaller than the threshold (Settings, default 3 MB) is not compressed automatically.
+- [ ] Files you had before Phase 3 are not compressed automatically.
+- [ ] A big video (> 50 MB) is compressed automatically **on a computer only**; on a phone it waits.
+
+### Manual
+- [ ] Select an album or category → **Compress** icon (two arrows) → the window shows how many files, the estimated size before → after, and what is skipped and why (already compressed, too small…).
+- [ ] **Compress** → progress (also at the top of the screen, with × to cancel) → "Done: N files compressed, X saved".
+- [ ] Large view → information panel → Compression status ("Compressed: 9.7 MB → 1.5 MB") and a **Compress** button for one file.
+- [ ] iPhone HEIC photo → becomes a `.jpg`, with date / camera / GPS kept.
+- [ ] Video (computer, Chrome or Edge) → becomes 1080p MP4, **with its sound**.
+- [ ] Compressing again the same album → "already compressed by MyMedia" (never compressed twice, even after moving or renaming the file).
+- [ ] Album, description, classification of a compressed file are unchanged.
+
+### Originals (Settings → Compression → The original)
+- [ ] **Replace** (default): in Drive, right-click the file → File information → **Manage versions**: the original version is there (about 30 days).
+- [ ] **Copy to _Originals**: the original appears in `MyMedia/_Originals/<category>/<album>/`; that folder never appears as a category in MyMedia.
+- [ ] **Keep forever in version history**: Manage versions → the original is marked "Keep forever".
+
+### Settings
+- [ ] Quality 70/80/85/90 %, maximum size 2048/3000/4000 px/unchanged, HEIC/PNG → JPEG, video 720p/1080p and quality, origins for automatic compression, minimum size, minimum gain, "Restore default settings".
+- [ ] A file that would not shrink by at least 15 % is left unchanged ("Kept unchanged (not enough gain)").

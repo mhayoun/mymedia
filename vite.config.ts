@@ -20,6 +20,8 @@ export default defineConfig({
       injectRegister: 'auto',
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        // HEIC decoder (3 MB): downloaded only when an iPhone photo is compressed.
+        globIgnores: ['**/heic-to-*.js'],
       },
       manifest: {
         name: 'MyMedia',

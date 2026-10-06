@@ -6,6 +6,8 @@ import { db } from '../db/db'
 import { renameFile } from '../drive/api'
 import { changeLanguage, LANGUAGES } from '../i18n'
 import { signOut } from '../session'
+import { DEFAULT_COMPRESS, type CompressSettings, type KeepOriginal } from '../lib/compressPlan'
+import { ORIGINS } from '../lib/media'
 import { useApp, type Language } from '../store'
 import { rebuildIndex } from '../ml/indexer'
 import { syncNow } from '../sync/engine'
@@ -25,6 +27,9 @@ export function SettingsPanel() {
   const fmt = useFormat()
   const indexing = useApp((s) => s.indexing)
   const close = () => set({ settingsOpen: false })
+
+  const c = settings.compress
+  const setC = (patch: Partial<CompressSettings>) => updateSettings({ compress: { ...c, ...patch } })
 
   const setLanguage = (lang: Language) => {
     updateSettings({ language: lang })
@@ -129,6 +134,119 @@ export function SettingsPanel() {
               ? t('classify.learning', { done: fmt.number(indexing.done), total: fmt.number(indexing.total) })
               : t('classify.rebuildHint')}
           </p>
+        </section>
+
+        <section>
+          <h3>{t('compress.settingsTitle')}</h3>
+          <h4>{t('compress.autoTitle')}</h4>
+          <label className="radio-row">
+            <input type="checkbox" checked={c.autoPhotos} onChange={(e) => setC({ autoPhotos: e.target.checked })} />
+            {t('compress.autoPhotos')}
+            <select value={c.autoPhotoMinMB} onChange={(e) => setC({ autoPhotoMinMB: Number(e.target.value) })} style={{ inlineSize: 'auto' }}>
+              {[1, 2, 3, 5, 10].map((v) => (
+                <option key={v} value={v}>{fmt.bytes(v * 1024 * 1024)}</option>
+              ))}
+            </select>
+          </label>
+          <label className="radio-row">
+            <input type="checkbox" checked={c.autoVideos} onChange={(e) => setC({ autoVideos: e.target.checked })} />
+            {t('compress.autoVideos')}
+            <select value={c.autoVideoMinMB} onChange={(e) => setC({ autoVideoMinMB: Number(e.target.value) })} style={{ inlineSize: 'auto' }}>
+              {[20, 50, 100, 200].map((v) => (
+                <option key={v} value={v}>{fmt.bytes(v * 1024 * 1024)}</option>
+              ))}
+            </select>
+          </label>
+          <p className="hint">{t('compress.autoHint')}</p>
+          <div className="hint">{t('compress.originsTitle')}</div>
+          <div className="row" style={{ marginBlockEnd: 10 }}>
+            {ORIGINS.map((o) => (
+              <label key={o} className="radio-row">
+                <input type="checkbox" checked={c.origins[o]} onChange={(e) => setC({ origins: { ...c.origins, [o]: e.target.checked } })} />
+                {t(`origin.${o}`)}
+              </label>
+            ))}
+          </div>
+
+          <h4>{t('compress.photosTitle')}</h4>
+          <div className="row">
+            <label className="field" style={{ flex: 1 }}>
+              {t('compress.quality')}
+              <select value={c.quality} onChange={(e) => setC({ quality: Number(e.target.value) })}>
+                {[0.7, 0.8, 0.85, 0.9].map((v) => (
+                  <option key={v} value={v}>{fmt.percent(v)}</option>
+                ))}
+              </select>
+            </label>
+            <label className="field" style={{ flex: 1 }}>
+              {t('compress.maxDimension')}
+              <select value={c.maxDimension} onChange={(e) => setC({ maxDimension: Number(e.target.value) })}>
+                {[2048, 3000, 4000].map((v) => (
+                  <option key={v} value={v}>{t('compress.pixels', { n: fmt.number(v) })}</option>
+                ))}
+                <option value={0}>{t('compress.unchanged')}</option>
+              </select>
+            </label>
+          </div>
+          <label className="radio-row">
+            <input type="checkbox" checked={c.convertToJpeg} onChange={(e) => setC({ convertToJpeg: e.target.checked })} />
+            {t('compress.convert')}
+          </label>
+
+          <h4>{t('compress.videosTitle')}</h4>
+          <div className="row">
+            <label className="field" style={{ flex: 1 }}>
+              {t('compress.videoHeight')}
+              <select value={c.videoHeight} onChange={(e) => setC({ videoHeight: Number(e.target.value) as 720 | 1080 })}>
+                <option value={720}>720p</option>
+                <option value={1080}>1080p</option>
+              </select>
+            </label>
+            <label className="field" style={{ flex: 1 }}>
+              {t('compress.videoQuality')}
+              <select value={c.videoQuality} onChange={(e) => setC({ videoQuality: e.target.value as CompressSettings['videoQuality'] })}>
+                {(['low', 'medium', 'high'] as const).map((v) => (
+                  <option key={v} value={v}>{t(`compress.vq.${v}`)}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p className="hint">{t('compress.videoHint')}</p>
+
+          <h4>{t('compress.keepTitle')}</h4>
+          {(['version', 'folder', 'both'] as KeepOriginal[]).map((k) => (
+            <label key={k} className="radio-row" style={{ alignItems: 'flex-start' }}>
+              <input type="radio" name="keepOriginal" checked={c.keepOriginal === k} onChange={() => setC({ keepOriginal: k })} />
+              <span>
+                {t(`compress.keep.${k}`)}
+                <br />
+                <span className="hint">{t(`compress.keepHint.${k}`)}</span>
+              </span>
+            </label>
+          ))}
+
+          <h4>{t('compress.limitsTitle')}</h4>
+          <div className="row">
+            <label className="field" style={{ flex: 1 }}>
+              {t('compress.minSize')}
+              <select value={c.minSizeKB} onChange={(e) => setC({ minSizeKB: Number(e.target.value) })}>
+                {[200, 500, 1000].map((v) => (
+                  <option key={v} value={v}>{fmt.bytes(v * 1024)}</option>
+                ))}
+              </select>
+            </label>
+            <label className="field" style={{ flex: 1 }}>
+              {t('compress.minGain')}
+              <select value={c.minGain} onChange={(e) => setC({ minGain: Number(e.target.value) })}>
+                {[0.1, 0.15, 0.2, 0.3].map((v) => (
+                  <option key={v} value={v}>{fmt.percent(v)}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <button className="btn ghost" onClick={() => updateSettings({ compress: DEFAULT_COMPRESS })}>
+            {t('compress.defaults')}
+          </button>
         </section>
 
         <section>

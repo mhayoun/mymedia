@@ -29,7 +29,7 @@ export class SyncCancelled extends Error {}
 let running: Promise<void> | null = null
 let abort: AbortController | null = null
 
-function toRecord(f: DriveFile): MediaRecord | null {
+export function toRecord(f: DriveFile): MediaRecord | null {
   const type = mediaTypeOf(f.mimeType, f.name)
   const folderId = f.parents?.[0]
   if (!type || !folderId) return null
@@ -299,8 +299,8 @@ export function syncNow(options: { full?: boolean } = {}): Promise<void> {
       await reconcileMeta(rootId)
       await saveMeta()
       app().set({ lastSyncAt: Date.now() })
-      // Learn from new files and classify them, in the background.
-      void import('../ml/indexer').then((m) => m.startIndexer())
+      // In the background: compress new big files, then learn and classify.
+      void import('../background').then((m) => m.afterSync())
     } catch (e) {
       if (signal.aborted) return
       console.error('[MyMedia] sync failed', e)

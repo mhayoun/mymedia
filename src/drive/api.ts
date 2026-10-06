@@ -313,3 +313,99 @@ export async function moveFile(id: string, toFolderId: string, fromFolderId: str
     body: '{}',
   })
 }
+
+const MULTIPART_MAX = 5 * 1024 * 1024
+
+/** PUT with upload progress (fetch cannot report upload progress). */
+function putWithProgress(url: string, blob: Blob, onProgress?: (p: number) => void, signal?: AbortSignal): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('PUT', url)
+    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress?.(e.loaded / e.total)
+    xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve(xhr.responseText) : reject(new DriveError(xhr.status, `upload failed ${xhr.status}`)))
+    xhr.onerror = () => reject(new Error('upload failed (network)'))
+    xhr.onabort = () => reject(new DOMException('aborted', 'AbortError'))
+    signal?.addEventListener('abort', () => xhr.abort(), { once: true })
+    xhr.send(blob)
+  })
+}
+
+/**
+ * Replaces the content of an existing file (same id: classification, album,
+ * description stay attached to it). Drive keeps the previous content as an
+ * older version of the file.
+ */
+export async function uploadNewContent(
+  id: string,
+  blob: Blob,
+  metadata: { name?: string; mimeType?: string; appProperties?: Record<string, string> },
+  onProgress?: (p: number) => void,
+  signal?: AbortSignal,
+): Promise<DriveFile> {
+  const query = `supportsAllDrives=true&fields=${encodeURIComponent(FILE_FIELDS)}`
+  if (blob.size <= MULTIPART_MAX) {
+    const { body, boundary } = multipartBody(metadata, blob, metadata.mimeType ?? blob.type)
+    const res = await request(`${UPLOAD}/files/${id}?uploadType=multipart&${query}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+      body,
+    }, signal)
+    onProgress?.(1)
+    return res.json()
+  }
+  const init = await request(`${UPLOAD}/files/${id}?uploadType=resumable&${query}`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json; charset=UTF-8',
+      'X-Upload-Content-Type': metadata.mimeType ?? blob.type,
+      'X-Upload-Content-Length': String(blob.size),
+    },
+    body: JSON.stringify(metadata),
+  }, signal)
+  const location = init.headers.get('Location')
+  if (!location) throw new Error('Drive did not return an upload address')
+  return JSON.parse(await putWithProgress(location, blob, onProgress, signal)) as DriveFile
+}
+
+/** Server-side copy of a file into another folder. */
+export async function copyFile(id: string, name: string, parentId: string): Promise<DriveFile> {
+  const res = await request(`${API}/files/${id}/copy?supportsAllDrives=true&fields=id,name,parents`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, parents: [parentId] }),
+  })
+  return res.json()
+}
+
+/** Marks the version before the current one "keep forever" (no automatic deletion after 30 days). */
+export async function keepPreviousVersion(id: string): Promise<void> {
+  const r = await getJson<{ revisions: { id: string; modifiedTime: string }[] }>(
+    `${API}/files/${id}/revisions?fields=revisions(id,modifiedTime)&pageSize=1000`,
+  )
+  const list = (r.revisions ?? []).sort((a, b) => a.modifiedTime.localeCompare(b.modifiedTime))
+  const previous = list[list.length - 2]
+  if (!previous) return
+  await request(`${API}/files/${id}/revisions/${previous.id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ keepForever: true }),
+  })
+}
+
+/** Finds (or creates) a chain of folders below parentId, e.g. ["_Originals", "Birds", "דוכיפת"]. */
+export async function ensureFolderPath(parentId: string, names: string[]): Promise<string> {
+  let current = parentId
+  for (const name of names) {
+    let found: DriveFile | null = null
+    await listFiles(
+      `name = '${q(name)}' and '${q(current)}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false`,
+      (files) => {
+        found ??= files[0] ?? null
+      },
+      undefined,
+      'id,name',
+    )
+    current = (found as DriveFile | null)?.id ?? (await createFolder(name, current)).id
+  }
+  return current
+}

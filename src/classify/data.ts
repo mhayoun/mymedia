@@ -64,6 +64,7 @@ export function isCategory(folderId: string, data: ClassifyData): boolean {
 export function isCandidate(rec: MediaRecord, data: ClassifyData): boolean {
   if (data.meta.get(rec.id)?.keepHere) return false
   if (rec.folderId === data.rootId) return true
+  if (inReservedFolder(rec.folderId, data)) return false
   return isCategory(rec.folderId, data) && albumsUnder(rec.folderId, data).length > 0
 }
 

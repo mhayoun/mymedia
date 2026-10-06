@@ -1,6 +1,7 @@
 // Global app state (zustand). Device settings are persisted in localStorage.
 
 import { create } from 'zustand'
+import { DEFAULT_COMPRESS, type CompressSettings } from './lib/compressPlan'
 
 export type Language = 'he' | 'fr' | 'en'
 export type ViewMode = 'grid' | 'albums'
@@ -19,6 +20,7 @@ export interface Settings {
   thresholdHigh: number
   /** Confidence above which a suggestion is shown without "To check". */
   thresholdMedium: number
+  compress: CompressSettings
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -31,6 +33,7 @@ export const DEFAULT_SETTINGS: Settings = {
   classifyAuto: true,
   thresholdHigh: 0.85,
   thresholdMedium: 0.6,
+  compress: DEFAULT_COMPRESS,
 }
 
 const SETTINGS_KEY = 'mymedia.settings'
@@ -38,7 +41,11 @@ const SETTINGS_KEY = 'mymedia.settings'
 function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY)
-    if (raw) return { ...DEFAULT_SETTINGS, ...(JSON.parse(raw) as Partial<Settings>) }
+    if (raw) {
+      const saved = JSON.parse(raw) as Partial<Settings>
+      const compress = { ...DEFAULT_COMPRESS, ...saved.compress, origins: { ...DEFAULT_COMPRESS.origins, ...saved.compress?.origins } }
+      return { ...DEFAULT_SETTINGS, ...saved, compress }
+    }
   } catch {
     // ignore: defaults
   }
@@ -76,6 +83,10 @@ interface AppState {
   /** Background learning progress (fingerprints of media). */
   indexing: { done: number; total: number } | null
   statsOpen: boolean
+  /** Compression in progress. */
+  compressing: { done: number; total: number; name: string; fileProgress: number; saved: number } | null
+  /** Short message shown at the bottom of the screen (i18n key + values). */
+  toast: { key: string; count?: number; bytes?: number } | null
   lastSyncAt: number | null
   error: string | null
   filters: Filters
@@ -95,6 +106,8 @@ export const useApp = create<AppState>((set, get) => ({
   sync: null,
   indexing: null,
   statsOpen: false,
+  compressing: null,
+  toast: null,
   lastSyncAt: null,
   error: null,
   filters: { categoryId: null, albumId: null, type: 'all' },

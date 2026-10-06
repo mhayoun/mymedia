@@ -214,5 +214,80 @@
     "examples": "Photos",
     "accuracy": "Justes",
     "confused": "Confondu avec"
+  },
+  "compress": {
+    "button": "Compresser",
+    "titleFor": "Compresser « {{name}} »",
+    "planning": "Vérification de {{count}} fichiers…",
+    "toDo_one": "{{count}} fichier sera compressé.",
+    "toDo_other": "{{count}} fichiers seront compressés.",
+    "estimate": "Taille estimée : {{before}} → {{after}} (environ {{saved}} gagnés).",
+    "nothing": "Rien à compresser ici.",
+    "skip": {
+      "alreadyCompressed_one": "{{count}} déjà compressé (ignoré)",
+      "alreadyCompressed_other": "{{count}} déjà compressés (ignorés)",
+      "compressedByApp_one": "{{count}} déjà compressé par MyMedia",
+      "compressedByApp_other": "{{count}} déjà compressés par MyMedia",
+      "tooSmall_one": "{{count}} trop petit",
+      "tooSmall_other": "{{count}} trop petits",
+      "noGain_one": "{{count}} ne deviendrait pas assez plus léger",
+      "noGain_other": "{{count}} ne deviendraient pas assez plus légers",
+      "videoNotHere_one": "{{count}} vidéo : à compresser sur un ordinateur (Chrome ou Edge)",
+      "videoNotHere_other": "{{count}} vidéos : à compresser sur un ordinateur (Chrome ou Edge)",
+      "format_one": "{{count}} photo HEIC/PNG (conversion en JPEG désactivée)",
+      "format_other": "{{count}} photos HEIC/PNG (conversion en JPEG désactivée)"
+    },
+    "start": "Compresser",
+    "progress": "Compression {{done}} / {{total}}",
+    "savedSoFar": "Gagné jusqu'ici : {{saved}}",
+    "background": "Vous pouvez fermer cette fenêtre : la compression continue en arrière-plan (progression en haut).",
+    "done_one": "Terminé : {{count}} fichier compressé, {{saved}} gagnés.",
+    "done_other": "Terminé : {{count}} fichiers compressés, {{saved}} gagnés.",
+    "autoDone_one": "{{count}} nouveau fichier compressé automatiquement : {{saved}} gagnés.",
+    "autoDone_other": "{{count}} nouveaux fichiers compressés automatiquement : {{saved}} gagnés.",
+    "status": "Compression",
+    "statusDone": "Compressé : {{before}} → {{after}}",
+    "statusLabel": {
+      "compressed": "Compressé par MyMedia",
+      "already": "Déjà compressé",
+      "none": "Laissé tel quel (gain insuffisant)",
+      "not": "Non compressé"
+    },
+    "settingsTitle": "Compression",
+    "autoTitle": "Automatique (nouveaux fichiers trouvés dans Drive)",
+    "autoPhotos": "Compresser les nouvelles photos de plus de",
+    "autoVideos": "Compresser les nouvelles vidéos de plus de",
+    "autoHint": "Les fichiers que vous aviez déjà restent tels quels : utilisez le bouton Compresser sur un album pour les compresser. Les vidéos ne sont compressées que sur un ordinateur.",
+    "originsTitle": "Compression automatique pour les photos venant de :",
+    "photosTitle": "Photos",
+    "quality": "Qualité JPEG",
+    "maxDimension": "Taille maximale (plus grand côté)",
+    "pixels": "{{n}} px",
+    "unchanged": "Inchangée",
+    "convert": "Convertir les photos HEIC et PNG en JPEG",
+    "videosTitle": "Vidéos",
+    "videoHeight": "Résolution maximale",
+    "videoQuality": "Qualité",
+    "vq": {
+      "low": "Basse (plus léger)",
+      "medium": "Moyenne",
+      "high": "Haute"
+    },
+    "videoHint": "La compression des vidéos demande un ordinateur avec Chrome ou Edge. Sur téléphone, les vidéos attendent que l'application soit ouverte sur un ordinateur.",
+    "keepTitle": "L'original",
+    "keep": {
+      "version": "Le remplacer (Drive garde l'ancienne version environ 30 jours)",
+      "folder": "Le copier dans le dossier « _Originals »",
+      "both": "Le garder pour toujours dans l'historique des versions du fichier"
+    },
+    "keepHint": {
+      "version": "Gagne le plus de place. L'original est récupérable environ 30 jours : dans Drive, clic droit sur le fichier → Informations sur le fichier → Gérer les versions.",
+      "folder": "L'original est copié dans MyMedia/_Originals/… avant la compression. Aucune place n'est gagnée tant que vous ne supprimez pas ce dossier.",
+      "both": "L'original reste comme ancienne version du même fichier, sans limite de temps. Aucune place n'est gagnée."
+    },
+    "limitsTitle": "Limites",
+    "minSize": "Ne jamais compresser les fichiers de moins de",
+    "minGain": "Laisser le fichier tel quel s'il gagne moins de",
+    "defaults": "Rétablir les réglages par défaut"
   }
 }

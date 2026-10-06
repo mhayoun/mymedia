@@ -12,6 +12,7 @@ import { updateMeta } from '../sync/metaStore'
 import { cachedThumbUrl } from '../sync/thumbs'
 import { chooseFolder } from '../classify/engine'
 import { AlbumSelect } from './AlbumSelect'
+import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog } from './Dialog'
 import { useLibraryContext } from './libraryContext'
 import type { LibraryItem } from './useLibrary'
@@ -253,6 +254,7 @@ function InfoPanel({ item }: { item: LibraryItem }) {
   const lib = useLibraryContext()
   const { rec, meta, place } = item
   const [moving, setMoving] = useState(false)
+  const [compressOpen, setCompressOpen] = useState(false)
   const [description, setDescription] = useState(meta?.description ?? '')
 
   const saveDescription = () => {
@@ -309,7 +311,19 @@ function InfoPanel({ item }: { item: LibraryItem }) {
             </dd>
           </>
         )}
+        <dt>{t('compress.status')}</dt>
+        <dd>
+          {meta?.compression?.status === 'compressed' && meta.compression.sizeBefore
+            ? t('compress.statusDone', { before: fmt.bytes(meta.compression.sizeBefore), after: fmt.bytes(meta.compression.sizeAfter ?? rec.size) })
+            : t(`compress.statusLabel.${meta?.compression?.status ?? (rec.appProperties?.mymedia_compressed ? 'compressed' : 'not')}`)}
+        </dd>
       </dl>
+      {!rec.appProperties?.mymedia_compressed && (
+        <button className="btn" style={{ marginBlockEnd: 12 }} onClick={() => setCompressOpen(true)}>
+          {t('compress.button')}
+        </button>
+      )}
+      {compressOpen && <CompressDialog title={t('compress.titleFor', { name: rec.name })} items={[rec]} onClose={() => setCompressOpen(false)} />}
       {lib && (
         <label className="field">
           {t('classify.moveTo')}
