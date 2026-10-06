@@ -1,4 +1,4 @@
-import { Brain, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
+import { Brain, CircleHelp, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -22,6 +22,7 @@ import { StatsDialog } from './StatsDialog'
 import { AUTO, filterItems, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
 import { clearSharedFiles, hasSharedFiles, readSharedFiles } from '../import/shared'
 import { FacesIntro } from './FacesIntro'
+import { HelpPanel } from './HelpPanel'
 import { FilterBar } from './FilterBar'
 import { SelectionBar } from './SelectionBar'
 import { PeopleContext, PersonDialogContext } from './peopleContext'
@@ -45,6 +46,7 @@ export function Shell() {
   const filters = useApp((s) => s.filters)
   const sort = useApp((s) => s.settings.sort)
   const settingsOpen = useApp((s) => s.settingsOpen)
+  const helpOpen = useApp((s) => s.helpOpen)
   const statsOpen = useApp((s) => s.statsOpen)
   const compressOffer = useApp((s) => s.compressOffer)
   const [dialog, setDialog] = useState<DialogState>(null)
@@ -112,6 +114,7 @@ export function Shell() {
         </main>
       </div>
       {settingsOpen && <SettingsPanel />}
+      {helpOpen && <HelpPanel />}
       {statsOpen && <StatsDialog lib={lib} />}
       {compressOffer && (
         <CompressDialog mode="offer" title={t('compress.offerTitle')} planned={compressOffer} onClose={() => useApp.getState().set({ compressOffer: null })} />
@@ -267,6 +270,9 @@ function TopBar() {
         </>
       )}
 
+      <button className="icon-btn only-desktop" onClick={() => set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
+        <CircleHelp />
+      </button>
       <button className="icon-btn" onClick={() => set({ settingsOpen: true })} aria-label={t('nav.settings')}>
         {user?.photo ? <img className="avatar" src={user.photo} alt="" referrerPolicy="no-referrer" /> : <SettingsIcon />}
       </button>

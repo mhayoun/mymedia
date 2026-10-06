@@ -1,4 +1,4 @@
-import { Folder, FolderOpen, Images, Inbox, Plus, Sparkles, Users, Wand2 } from 'lucide-react'
+import { CircleHelp, Folder, FolderOpen, Images, Inbox, Plus, Sparkles, Users, Wand2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '../store'
 import { FaceImg } from './FaceImg'
@@ -109,6 +109,14 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
             ))}
           </>
         )}
+        <h2 />
+        <button
+          className="nav-item"
+          onClick={() => set({ helpOpen: true, sidebarOpen: false })}
+        >
+          <CircleHelp size={18} />
+          <span className="label">{t('nav.help')}</span>
+        </button>
       </nav>
     </>
   )

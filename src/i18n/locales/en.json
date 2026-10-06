@@ -60,7 +60,8 @@
     "newAlbum": "New album",
     "menu": "Menu",
     "settings": "Settings",
-    "noAlbums": "No albums yet"
+    "noAlbums": "No albums yet",
+    "help": "Help"
   },
   "folders": {
     "newCategoryTitle": "New category",

@@ -229,10 +229,10 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   .scrim.open { display: block; position: fixed; inset: 0; z-index: 39; background: rgb(0 0 0 / 0.35); }
   .viewer { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
   .info-panel { inline-size: 100%; max-block-size: 45vh; }
-  .toolbar { padding: 8px 10px; gap: 6px; flex-wrap: nowrap; }
-  .toolbar select { padding: 6px 4px; font-size: 0.9rem; min-inline-size: 0; }
-  .toolbar .btn { padding: 7px 9px; }
-  .toolbar .segmented button { padding: 6px 8px; }
+  .toolbar { padding: 8px 6px; gap: 4px; flex-wrap: nowrap; }
+  .toolbar select { padding: 6px 2px; font-size: 0.88rem; min-inline-size: 0; max-inline-size: 84px; }
+  .toolbar .btn { padding: 7px 8px; }
+  .toolbar .segmented button { padding: 6px 7px; }
   .toolbar h1 { font-size: 1rem; max-inline-size: 30vw; }
 }
 
@@ -339,3 +339,9 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   .topbar { gap: 4px; }
   .topbar .btn { padding: 8px 10px; }
 }
+
+/* ---------- Help ---------- */
+.drawer.help { inline-size: min(560px, 100%); }
+.drawer.help ul { margin: 0; padding-inline-start: 20px; display: grid; gap: 8px; }
+.drawer.help li { line-height: 1.5; }
+.help-tagline { font-size: 1.05rem; color: var(--text-2); margin-block: 0 8px; }

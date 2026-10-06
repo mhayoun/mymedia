@@ -110,6 +110,7 @@ interface AppState {
   selection: string[] | null
   sidebarOpen: boolean
   settingsOpen: boolean
+  helpOpen: boolean
   set: (patch: Partial<Omit<AppState, 'set' | 'updateSettings' | 'setFilters'>>) => void
   updateSettings: (patch: Partial<Settings>) => void
   setFilters: (patch: Partial<Filters>) => void
@@ -134,6 +135,7 @@ export const useApp = create<AppState>((set, get) => ({
   selection: null,
   sidebarOpen: false,
   settingsOpen: false,
+  helpOpen: false,
   set: (patch) => set(patch),
   updateSettings: (patch) => {
     const settings = { ...get().settings, ...patch }
