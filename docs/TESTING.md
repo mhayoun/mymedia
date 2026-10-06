@@ -39,7 +39,7 @@ requirements document. Each phase adds its own section.
 - [ ] Grid view and **By album** view (headers "Category / Album" with counts).
 - [ ] Sort newest / oldest / name.
 - [ ] Filter photos / videos.
-- [ ] Videos show a ▶ badge with their duration.
+- [ ] Videos show a ▶ badge with their duration **and a picture from the video** (Drive's thumbnail, or else a frame taken about 1 second into the video – also for videos Drive shows without a preview).
 - [ ] Click a photo → large view; arrows, keyboard ← →, swipe on the phone; **Esc** closes.
 - [ ] **Load full quality** downloads the original (HEIC: may say "cannot be shown in full quality" on Windows/Android; the large preview still works).
 - [ ] Video → ▶ → download progress → plays (if the format is not supported, the "Open in Google Drive" link works).

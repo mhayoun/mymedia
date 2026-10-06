@@ -257,6 +257,14 @@ export async function downloadBlob(id: string, onProgress?: (p: number) => void,
   return new Blob(chunks, { type: res.headers.get('Content-Type') ?? undefined })
 }
 
+/** Reads bytes [start, end) of a file (HTTP Range request). */
+export async function downloadRange(id: string, start: number, end: number): Promise<Uint8Array> {
+  const res = await request(`${API}/files/${id}?alt=media&supportsAllDrives=true`, {
+    headers: { Range: `bytes=${start}-${end - 1}` },
+  })
+  return new Uint8Array(await res.arrayBuffer())
+}
+
 function multipartBody(metadata: object, content: string, contentType: string): { body: string; boundary: string } {
   const boundary = `mymedia-${Math.random().toString(36).slice(2)}`
   const body =

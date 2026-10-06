@@ -4,6 +4,7 @@
 import { db, type MediaRecord } from '../db/db'
 import { downloadBlob, getFile } from '../drive/api'
 import { sizedThumbnailLink } from '../lib/media'
+import { videoFrameThumbnail } from './videoFrame'
 
 const THUMB_SIZE = 400
 const MAX_PARALLEL = 6
@@ -83,6 +84,7 @@ async function produce(rec: MediaRecord): Promise<Blob | null> {
   } catch {
     // fall through
   }
+  if (rec.type === 'video') return videoFrameThumbnail(rec, THUMB_SIZE)
   if (rec.type === 'photo' && rec.size > 0 && rec.size <= LOCAL_RESIZE_MAX_BYTES) {
     try {
       return await resizeLocally(await downloadBlob(rec.id))

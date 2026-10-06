@@ -16,6 +16,7 @@
     "dexie-react-hooks": "^4.4.0",
     "i18next": "^26.4.2",
     "lucide-react": "^1.52.0",
+    "mediabunny": "^1.61.3",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-i18next": "^17.0.15",
