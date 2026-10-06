@@ -88,7 +88,7 @@
     "typeVideo": "סרטונים",
     "empty": "אין כאן עדיין מדיה.",
     "emptyHint": "יש להוסיף תמונות או סרטונים לתיקייה \"{{name}}\" ב-Google Drive, ואז ללחוץ על “טעינת קבצים חדשים”.",
-    "count_one": "פריט אחד",
+    "count_one": "{{count}} פריט",
     "count_two": "{{count}} פריטים",
     "count_other": "{{count}} פריטים",
     "noAlbum": "ללא אלבום",

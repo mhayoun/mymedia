@@ -87,8 +87,8 @@
     "typeVideo": "Vidéos",
     "empty": "Aucun média ici pour le moment.",
     "emptyHint": "Ajoutez des photos ou des vidéos dans le dossier « {{name}} » de Google Drive, puis appuyez sur « Charger les nouveaux fichiers ».",
-    "count_one": "{{count}} élément",
-    "count_other": "{{count}} éléments",
+    "count_one": "{{count}} média",
+    "count_other": "{{count}} médias",
     "noAlbum": "Sans album",
     "video": "Vidéo"
   },

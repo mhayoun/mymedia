@@ -326,7 +326,6 @@ interface ToolbarProps {
  */
 function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarProps) {
   const { t } = useTranslation()
-  const fmt = useFormat()
   const filters = useApp((s) => s.filters)
   const setFilters = useApp((s) => s.setFilters)
   const settings = useApp((s) => s.settings)
@@ -411,7 +410,15 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
           </button>
         </span>
       )}
-      <div className="segmented" role="group" aria-label={t('gallery.viewGrid')}>
+      <button
+        className="btn only-mobile view-toggle"
+        onClick={() => updateSettings({ view: settings.view === 'grid' ? 'albums' : 'grid' })}
+        aria-label={settings.view === 'grid' ? t('gallery.viewAlbums') : t('gallery.viewGrid')}
+        title={settings.view === 'grid' ? t('gallery.viewAlbums') : t('gallery.viewGrid')}
+      >
+        {settings.view === 'grid' ? <LayoutGrid size={16} /> : <Rows3 size={16} />}
+      </button>
+      <div className="segmented only-desktop" role="group" aria-label={t('gallery.viewGrid')}>
         <button aria-pressed={settings.view === 'grid'} onClick={() => updateSettings({ view: 'grid' })} title={t('gallery.viewGrid')}>
           <LayoutGrid size={16} />
           <span className="only-desktop">{t('gallery.viewGrid')}</span>
@@ -440,8 +447,7 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
         <option value="video">{t('gallery.typeVideo')}</option>
       </select>
       <span className="result-count" title={t('gallery.count', { count })}>
-        <span className="only-desktop">{t('gallery.count', { count })}</span>
-        <span className="only-mobile-inline">{fmt.number(count)}</span>
+        {t('gallery.count', { count })}
       </span>
       <span className="grow" />
       <button className="btn primary" onClick={onAdd} title={t('import.button')}>
