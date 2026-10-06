@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { db, hasDb, type MediaRecord } from '../db/db'
 import type { MediaMeta } from '../lib/metadata'
 import { isReservedFolderName, placementOf, subtreeIds, type FolderNode, type Placement } from '../lib/tree'
+import { compressionState, matchesQuery, searchText } from '../lib/search'
 import { useApp, type Filters, type SortMode } from '../store'
 
 export const UNFILED = '__unfiled'
@@ -101,8 +102,33 @@ export function sortItems(items: LibraryItem[], sort: SortMode): LibraryItem[] {
 }
 
 export function filterItems(lib: Library, filters: Filters, rootId: string, personMedia?: Set<string>): LibraryItem[] {
+  return applyExtraFilters(placeFilter(lib, filters, rootId, personMedia), filters, lib)
+}
+
+/** Search words, origin, classification and compression filters. */
+function applyExtraFilters(items: LibraryItem[], f: Filters, lib: Library): LibraryItem[] {
+  if (f.type !== 'all') items = items.filter((i) => i.rec.type === f.type)
+  if (f.origin) items = items.filter((i) => (i.meta?.origin ?? 'unknown') === f.origin)
+  if (f.compression) items = items.filter((i) => compressionState(i.rec.appProperties, i.meta) === f.compression)
+  if (f.status) {
+    const waiting = new Set(lib.toClassify.map((i) => i.rec.id))
+    items = items.filter((i) =>
+      f.status === 'toCheck'
+        ? !!i.meta?.toCheck
+        : f.status === 'auto'
+          ? !!i.meta?.auto
+          : f.status === 'toClassify'
+            ? waiting.has(i.rec.id)
+            : !waiting.has(i.rec.id) && !!i.place.categoryId,
+    )
+  }
+  if (f.query?.trim()) items = items.filter((i) => matchesQuery(searchText(i.rec.name, i.meta, i.place.category, i.place.album), f.query!))
+  return items
+}
+
+function placeFilter(lib: Library, filters: Filters, rootId: string, personMedia?: Set<string>): LibraryItem[] {
   let items = lib.items
-  if (filters.personId && personMedia) return items.filter((i) => personMedia.has(i.rec.id) && (filters.type === 'all' || i.rec.type === filters.type))
+  if (filters.personId && personMedia) return items.filter((i) => personMedia.has(i.rec.id))
   if (filters.categoryId === TO_CLASSIFY) items = lib.toClassify
   else if (filters.categoryId === AUTO) items = lib.autoItems
   else if (filters.categoryId === UNFILED) items = items.filter((i) => i.rec.folderId === rootId)
@@ -111,7 +137,6 @@ export function filterItems(lib: Library, filters: Filters, rootId: string, pers
     items = items.filter((i) => ids.has(i.rec.folderId))
   } else if (filters.categoryId) items = items.filter((i) => i.place.categoryId === filters.categoryId)
   else items = items.filter((i) => !i.place.categoryId || !isReservedFolderName(i.place.category ?? ''))
-  if (filters.type !== 'all') items = items.filter((i) => i.rec.type === filters.type)
   return items
 }
 

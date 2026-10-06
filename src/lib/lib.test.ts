@@ -120,3 +120,33 @@ describe('changes', () => {
     expect(planChanges([{ fileId: 'root', removed: true }], 'root', known, media).rootRemoved).toBe(true)
   })
 })
+
+describe('search', async () => {
+  const { matchesQuery, searchText, compressionState } = await import('./search')
+  const meta = { id: 'x', name: 'x', type: 'photo' as const, origin: 'camera' as const, updatedAt: 1, description: 'Anniversaire de Noa', people: ['Noa', 'Eli'], species: { he: 'נחליאלי לבן', la: 'Motacilla alba' } }
+  const text = searchText('IMG_1.jpg', meta, 'Birds', 'נַחְלִיאֵלִי לבן')
+  it('finds by description, person, album, species in any language', () => {
+    expect(matchesQuery(text, 'anniversaire')).toBe(true)
+    expect(matchesQuery(text, 'noa eli')).toBe(true)
+    expect(matchesQuery(text, 'נחליאלי')).toBe(true)
+    expect(matchesQuery(text, 'motacilla')).toBe(true)
+    expect(matchesQuery(text, 'noa dan')).toBe(false)
+  })
+  it('knows the compression state', () => {
+    expect(compressionState({ mymedia_compressed: '1' }, undefined)).toBe('compressed')
+    expect(compressionState(undefined, { ...meta, compression: { status: 'already' } })).toBe('already')
+    expect(compressionState(undefined, meta)).toBe('not')
+  })
+})
+
+describe('export', async () => {
+  const { toCsv, EXPORT_COLUMNS } = await import('./exportList')
+  const headers = Object.fromEntries(EXPORT_COLUMNS.map((c) => [c, c.toUpperCase()])) as never
+  const row = { name: 'a.jpg', date: '05/10/2026', category: 'ציפורים', album: 'נחליאלי לבן', description: 'Il a dit "bonjour"; puis…', people: 'Noa, Eli', species: '', origin: 'Camera', size: '1,5 Mo', link: 'https://x' }
+  it('writes UTF-8 CSV with BOM, quoting when needed', () => {
+    const csv = toCsv(headers, [row], ';')
+    expect(csv.startsWith('﻿NAME;DATE;')).toBe(true)
+    expect(csv).toContain('ציפורים;נחליאלי לבן;"Il a dit ""bonjour""; puis…";Noa, Eli;')
+    expect(toCsv(headers, [row], ',')).toContain(',"Noa, Eli",')
+  })
+})

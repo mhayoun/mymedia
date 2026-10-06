@@ -32,6 +32,13 @@ export default defineConfig({
         start_url: base,
         scope: base,
         display: 'standalone',
+        // Android: MyMedia appears in the Share menu of the gallery, WhatsApp…
+        share_target: {
+          action: `${base}share-target`,
+          method: 'POST',
+          enctype: 'multipart/form-data',
+          params: { files: [{ name: 'media', accept: ['image/*', 'video/*', '.heic', '.heif', '.mov'] }] },
+        },
         background_color: '#101418',
         theme_color: '#1f6feb',
         icons: [

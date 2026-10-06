@@ -412,5 +412,71 @@
     "settingsTitle": "פנים",
     "stats": "{{named}} אנשים עם שם, {{groups}} קבוצות פנים.",
     "inThisPhoto": "אנשים בתמונה הזו"
+  },
+  "filters": {
+    "search": "חיפוש",
+    "searchPlaceholder": "חיפוש: שם, תיאור, אלבום, אדם, מין…",
+    "button": "סינון",
+    "statusTitle": "מיון",
+    "clear": "ניקוי הסינון",
+    "status": {
+      "classified": "ממוינים",
+      "toClassify": "לא ממוינים",
+      "toCheck": "לבדיקה",
+      "auto": "מוינו אוטומטית"
+    },
+    "compression": {
+      "compressed": "דחוסים",
+      "already": "כבר דחוסים",
+      "not": "לא דחוסים"
+    }
+  },
+  "select": {
+    "button": "בחירה",
+    "title": "בחירה",
+    "all": "לבחור הכול",
+    "moveTo": "העברה אל…",
+    "newAlbum": "אלבום חדש",
+    "person": "אדם",
+    "working": "מבצע… {{done}} / {{total}}",
+    "newAlbumTitle_one": "אלבום חדש עם הקובץ שנבחר",
+    "newAlbumTitle_two": "אלבום חדש עם {{count}} הקבצים שנבחרו",
+    "newAlbumTitle_other": "אלבום חדש עם {{count}} הקבצים שנבחרו",
+    "descriptionTitle_one": "תיאור הקובץ שנבחר",
+    "descriptionTitle_two": "תיאור {{count}} הקבצים שנבחרו",
+    "descriptionTitle_other": "תיאור {{count}} הקבצים שנבחרו",
+    "personTitle_one": "מי בתמונה הזו?",
+    "personTitle_two": "מי ב-{{count}} התמונות האלה?",
+    "personTitle_other": "מי ב-{{count}} התמונות האלה?",
+    "compressTitle_one": "דחיסת הקובץ שנבחר",
+    "compressTitle_two": "דחיסת {{count}} הקבצים שנבחרו",
+    "compressTitle_other": "דחיסת {{count}} הקבצים שנבחרו",
+    "deleteTitle_one": "למחוק את הקובץ שנבחר?",
+    "deleteTitle_two": "למחוק את {{count}} הקבצים שנבחרו?",
+    "deleteTitle_other": "למחוק את {{count}} הקבצים שנבחרו?"
+  },
+  "export": {
+    "button": "ייצוא",
+    "title": "ייצוא הרשימה",
+    "titleFor": "ייצוא “{{name}}”",
+    "intro_one": "קובץ אחד יופיע ברשימה.",
+    "intro_two": "{{count}} קבצים יופיעו ברשימה.",
+    "intro_other": "{{count}} קבצים יופיעו ברשימה.",
+    "xlsx": "Excel ‏(.xlsx)",
+    "csv": "CSV (נפתח ב-Excel, ב-Google Sheets…)",
+    "columns": "עמודות: {{list}}.",
+    "download": "הורדה",
+    "col": {
+      "name": "שם הקובץ",
+      "date": "תאריך",
+      "category": "קטגוריה",
+      "album": "אלבום",
+      "description": "תיאור",
+      "people": "אנשים",
+      "species": "מין",
+      "origin": "מקור",
+      "size": "גודל",
+      "link": "קישור ל-Google Drive"
+    }
   }
 }

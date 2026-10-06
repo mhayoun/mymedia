@@ -45,7 +45,10 @@ export interface MediaMeta {
   auto?: boolean
   /** The user said this media stays where it is (no more suggestions). */
   keepHere?: boolean
+  /** Names of the people recognised in the media (faces) and added by hand. */
   people?: string[]
+  /** People added by hand (photos where the face is not visible or not found). */
+  peopleManual?: string[]
   compression?: CompressionInfo | null
   /** Epoch ms of the last change; the newest version of an item wins on merge. */
   updatedAt: number

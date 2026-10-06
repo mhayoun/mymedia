@@ -387,5 +387,65 @@
     "settingsTitle": "Faces",
     "stats": "{{named}} people named, {{groups}} groups of faces.",
     "inThisPhoto": "People in this photo"
+  },
+  "filters": {
+    "search": "Search",
+    "searchPlaceholder": "Search: name, description, album, person, species…",
+    "button": "Filters",
+    "statusTitle": "Classification",
+    "clear": "Clear filters",
+    "status": {
+      "classified": "Classified",
+      "toClassify": "Not classified",
+      "toCheck": "To check",
+      "auto": "Classified automatically"
+    },
+    "compression": {
+      "compressed": "Compressed",
+      "already": "Already compressed",
+      "not": "Not compressed"
+    }
+  },
+  "select": {
+    "button": "Select",
+    "title": "Selection",
+    "all": "Select all",
+    "moveTo": "Move to…",
+    "newAlbum": "New album",
+    "person": "Person",
+    "working": "Working… {{done}} / {{total}}",
+    "newAlbumTitle_one": "New album with the selected file",
+    "newAlbumTitle_other": "New album with the {{count}} selected files",
+    "descriptionTitle_one": "Description of the selected file",
+    "descriptionTitle_other": "Description of the {{count}} selected files",
+    "personTitle_one": "Who is in this photo?",
+    "personTitle_other": "Who is in these {{count}} photos?",
+    "compressTitle_one": "Compress the selected file",
+    "compressTitle_other": "Compress the {{count}} selected files",
+    "deleteTitle_one": "Delete the selected file?",
+    "deleteTitle_other": "Delete the {{count}} selected files?"
+  },
+  "export": {
+    "button": "Export",
+    "title": "Export the list",
+    "titleFor": "Export “{{name}}”",
+    "intro_one": "{{count}} file will be listed.",
+    "intro_other": "{{count}} files will be listed.",
+    "xlsx": "Excel (.xlsx)",
+    "csv": "CSV (opens in Excel, Google Sheets…)",
+    "columns": "Columns: {{list}}.",
+    "download": "Download",
+    "col": {
+      "name": "File name",
+      "date": "Date",
+      "category": "Category",
+      "album": "Album",
+      "description": "Description",
+      "people": "People",
+      "species": "Species",
+      "origin": "Origin",
+      "size": "Size",
+      "link": "Google Drive link"
+    }
   }
 }

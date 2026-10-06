@@ -13,7 +13,27 @@ interface Props {
   lib: Library
   /** Initial destination folder (album, category or root). */
   destId: string
+  /** Files already chosen (received from the Share menu). */
+  initialFiles?: File[]
   onClose: () => void
+}
+
+const RECENT_KEY = 'mymedia.recentDestinations'
+
+function recentDestinations(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]') as string[]
+  } catch {
+    return []
+  }
+}
+
+function rememberDestination(id: string) {
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify([id, ...recentDestinations().filter((x) => x !== id)].slice(0, 6)))
+  } catch {
+    // a convenience only
+  }
 }
 
 function FilePreview({ item }: { item: ImportItem }) {
@@ -32,7 +52,7 @@ function FilePreview({ item }: { item: ImportItem }) {
 }
 
 /** "Add photos/videos": choose files or a folder, check dates and sizes, upload. */
-export function ImportDialog({ lib, destId: initialDest, onClose }: Props) {
+export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }: Props) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
@@ -49,13 +69,20 @@ export function ImportDialog({ lib, destId: initialDest, onClose }: Props) {
   const folderInput = useRef<HTMLInputElement>(null)
   const canPickFolder = typeof window !== 'undefined' && 'webkitdirectory' in document.createElement('input') && !/Android|iPhone|iPad/i.test(navigator.userAgent)
 
-  const destName = (() => {
-    if (destId === rootId) return useApp.getState().settings.rootName
-    const p = placementOf(destId, lib.folders, rootId)
+  const nameOf = (id: string) => {
+    if (id === rootId) return useApp.getState().settings.rootName
+    const p = placementOf(id, lib.folders, rootId)
     return [p.category, p.album].filter(Boolean).join(' / ')
-  })()
+  }
+  const destName = nameOf(destId)
+  const recent = recentDestinations().filter((id) => id !== destId && (id === rootId || lib.folders.has(id)))
 
-  async function onFiles(list: FileList | null) {
+  useEffect(() => {
+    if (initialFiles?.length) void onFiles(initialFiles)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function onFiles(list: FileList | File[] | null) {
     const files = mediaFiles([...(list ?? [])])
     if (!files.length) return
     setPhase('analyze')
@@ -73,6 +100,7 @@ export function ImportDialog({ lib, destId: initialDest, onClose }: Props) {
   const duplicates = items.filter((i) => i.duplicate).length
 
   async function start() {
+    rememberDestination(destId)
     setPhase('upload')
     const r = await runImport(selected, destId, { compress, keepFolders }, (key, o) => setOutcomes((prev) => ({ ...prev, [key]: o })))
     setResult(r)
@@ -143,6 +171,16 @@ export function ImportDialog({ lib, destId: initialDest, onClose }: Props) {
           />
         )}
       </div>
+
+      {(phase === 'pick' || phase === 'choose') && recent.length > 0 && (
+        <div className="chip-list">
+          {recent.map((id) => (
+            <button key={id} className="chip-btn" onClick={() => setDestId(id)}>
+              <bdi>{nameOf(id)}</bdi>
+            </button>
+          ))}
+        </div>
+      )}
 
       {phase === 'pick' && (
         <>

@@ -73,7 +73,33 @@ export function Gallery({ items }: { items: LibraryItem[] }) {
     virtualizer.measure()
   }, [cell, rows, virtualizer])
 
-  const open = useCallback((id: string) => set({ viewerId: id }), [set])
+  const selection = useApp((s) => s.selection)
+  const selected = useMemo(() => (selection ? new Set(selection) : null), [selection])
+  const lastPicked = useRef<string | null>(null)
+  const open = useCallback(
+    (id: string, e: { shiftKey: boolean }) => {
+      const current = useApp.getState().selection
+      if (!current) return set({ viewerId: id })
+      const next = new Set(current)
+      if (e.shiftKey && lastPicked.current) {
+        // Shift-click: everything between the last picked media and this one.
+        const a = orderedIds.indexOf(lastPicked.current)
+        const b = orderedIds.indexOf(id)
+        for (const x of orderedIds.slice(Math.min(a, b), Math.max(a, b) + 1)) next.add(x)
+      } else if (next.has(id)) next.delete(id)
+      else next.add(id)
+      lastPicked.current = id
+      set({ selection: [...next] })
+    },
+    [set, orderedIds],
+  )
+  const startSelection = useCallback(
+    (id: string) => {
+      lastPicked.current = id
+      set({ selection: [id] })
+    },
+    [set],
+  )
 
   return (
     <>
@@ -103,7 +129,7 @@ export function Gallery({ items }: { items: LibraryItem[] }) {
                 style={{ top: v.start + GAP, gridTemplateColumns: `repeat(${cols}, ${cell}px)` }}
               >
                 {row.items.map((it) => (
-                  <Thumb key={it.rec.id} rec={it.rec} onOpen={open} />
+                  <Thumb key={it.rec.id} rec={it.rec} onOpen={open} selected={selected ? selected.has(it.rec.id) : undefined} onLongPress={startSelection} />
                 ))}
               </div>
             )

@@ -89,6 +89,8 @@ export async function updatePeople(mediaIds: string[]): Promise<void> {
       ),
     ].sort()
     const meta = await d.meta.get(mediaId)
+    if (meta?.peopleManual) names.push(...meta.peopleManual.filter((n) => !names.includes(n)))
+    names.sort()
     if (meta && JSON.stringify(meta.people ?? []) !== JSON.stringify(names)) {
       await d.meta.put({ ...meta, people: names.length ? names : undefined, updatedAt: Date.now() })
       changed = true

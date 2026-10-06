@@ -385,5 +385,65 @@
     "settingsTitle": "Visages",
     "stats": "{{named}} personnes nommées, {{groups}} groupes de visages.",
     "inThisPhoto": "Personnes sur cette photo"
+  },
+  "filters": {
+    "search": "Rechercher",
+    "searchPlaceholder": "Rechercher : nom, description, album, personne, espèce…",
+    "button": "Filtres",
+    "statusTitle": "Classement",
+    "clear": "Effacer les filtres",
+    "status": {
+      "classified": "Classés",
+      "toClassify": "Non classés",
+      "toCheck": "À vérifier",
+      "auto": "Classés automatiquement"
+    },
+    "compression": {
+      "compressed": "Compressés",
+      "already": "Déjà compressés",
+      "not": "Non compressés"
+    }
+  },
+  "select": {
+    "button": "Sélectionner",
+    "title": "Sélection",
+    "all": "Tout sélectionner",
+    "moveTo": "Déplacer vers…",
+    "newAlbum": "Nouvel album",
+    "person": "Personne",
+    "working": "En cours… {{done}} / {{total}}",
+    "newAlbumTitle_one": "Nouvel album avec le fichier choisi",
+    "newAlbumTitle_other": "Nouvel album avec les {{count}} fichiers choisis",
+    "descriptionTitle_one": "Description du fichier choisi",
+    "descriptionTitle_other": "Description des {{count}} fichiers choisis",
+    "personTitle_one": "Qui est sur cette photo ?",
+    "personTitle_other": "Qui est sur ces {{count}} photos ?",
+    "compressTitle_one": "Compresser le fichier choisi",
+    "compressTitle_other": "Compresser les {{count}} fichiers choisis",
+    "deleteTitle_one": "Supprimer le fichier choisi ?",
+    "deleteTitle_other": "Supprimer les {{count}} fichiers choisis ?"
+  },
+  "export": {
+    "button": "Exporter",
+    "title": "Exporter la liste",
+    "titleFor": "Exporter « {{name}} »",
+    "intro_one": "{{count}} fichier sera dans la liste.",
+    "intro_other": "{{count}} fichiers seront dans la liste.",
+    "xlsx": "Excel (.xlsx)",
+    "csv": "CSV (s'ouvre dans Excel, Google Sheets…)",
+    "columns": "Colonnes : {{list}}.",
+    "download": "Télécharger",
+    "col": {
+      "name": "Nom du fichier",
+      "date": "Date",
+      "category": "Catégorie",
+      "album": "Album",
+      "description": "Description",
+      "people": "Personnes",
+      "species": "Espèce",
+      "origin": "Origine",
+      "size": "Taille",
+      "link": "Lien Google Drive"
+    }
   }
 }

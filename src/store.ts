@@ -78,6 +78,11 @@ export interface Filters {
   type: 'all' | 'photo' | 'video'
   /** Only media showing this person. */
   personId?: string | null
+  /** Search words (name, description, album, people, species). */
+  query?: string
+  origin?: import('./lib/media').Origin | null
+  status?: 'classified' | 'toClassify' | 'toCheck' | 'auto' | null
+  compression?: import('./lib/search').CompressionState | null
 }
 
 interface AppState {
@@ -101,6 +106,8 @@ interface AppState {
   error: string | null
   filters: Filters
   viewerId: string | null
+  /** Selected media in selection mode; null = not selecting. */
+  selection: string[] | null
   sidebarOpen: boolean
   settingsOpen: boolean
   set: (patch: Partial<Omit<AppState, 'set' | 'updateSettings' | 'setFilters'>>) => void
@@ -124,6 +131,7 @@ export const useApp = create<AppState>((set, get) => ({
   error: null,
   filters: { categoryId: null, albumId: null, type: 'all' },
   viewerId: null,
+  selection: null,
   sidebarOpen: false,
   settingsOpen: false,
   set: (patch) => set(patch),

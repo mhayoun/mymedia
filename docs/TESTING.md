@@ -147,3 +147,28 @@ birds), then put a few new bird photos **directly in `MyMedia`** or directly in
 - [ ] Settings → Faces → untick **Face recognition** → the People section disappears and no more faces are searched; tick again → back.
 - [ ] Settings → Faces → **Delete all face data** → confirmation → people and names are gone, `mymedia-faces.json` is deleted from Drive; photos untouched.
 - [ ] Compressing a photo keeps its faces and names.
+
+## Phase 5 – Selection, search, filters, export, Share menu (§3, §8)
+
+### Search & filters
+- [ ] Search box: a file name, a word of a description, an album or species name (Hebrew with or without vowel points), a person's name → only matching media. Accents and capitals are ignored.
+- [ ] **Filters**: origin (camera / WhatsApp / web / import / unknown), classification (classified / not classified / to check / classified automatically), compression (compressed / already compressed / not compressed), person. Each active filter shows as a chip with × to remove it.
+- [ ] Filters combine with the category / album chosen in the side menu, and with Photos / Videos.
+
+### Multi-select
+- [ ] **Select** (or long press on a photo on the phone, Ctrl/⌘-click on a computer) → tick marks; Shift-click selects a range; **Select all**; **×** or Esc leaves.
+- [ ] **Move to…** an album: the files move in Drive.
+- [ ] **New album** with the selection: the album is created in the current category and the files move into it.
+- [ ] **Description**: the same description on all selected files.
+- [ ] **Person**: a name added by hand (photos where the face is not visible); then searchable and shown in the export.
+- [ ] **Compress** the selection (list with sizes, as in Phase 3).
+- [ ] **Export** the selection; **Delete** (Drive trash, after confirmation).
+
+### Export
+- [ ] **Export** (toolbar) → Excel or CSV of the media shown (current album / filters / search), headers in the interface language: file name, date, category, album, description, people, species, origin, size, Drive link.
+- [ ] Excel file in Hebrew: the sheet is right-to-left and Hebrew is readable. CSV opens correctly in Excel (UTF-8; ";" separator in French).
+
+### Share menu (Android, installed app)
+- [ ] After installing the update (if MyMedia does not appear in the Share menu, uninstall and reinstall the app from Chrome), Gallery / WhatsApp → select photos → **Share** → **MyMedia**.
+- [ ] MyMedia opens on **Add photos and videos** with the shared files, their real dates and the duplicates detected; tap a recent destination (e.g. Family / David) or **Another folder…**, then **Upload**.
+- [ ] iPhone: not available (Apple does not allow it for web apps) — use **Add** inside MyMedia.

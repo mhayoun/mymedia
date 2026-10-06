@@ -29,6 +29,8 @@ export function Modal({ title, onClose, children, wide }: ModalProps) {
 interface PromptProps {
   title: string
   initial?: string
+  /** Values proposed while typing. */
+  suggestions?: string[]
   label?: string
   confirmLabel?: string
   validate?: (value: string) => string | null
@@ -36,7 +38,7 @@ interface PromptProps {
   onClose: () => void
 }
 
-export function PromptDialog({ title, initial = '', label, confirmLabel, validate, onSubmit, onClose }: PromptProps) {
+export function PromptDialog({ title, initial = '', suggestions, label, confirmLabel, validate, onSubmit, onClose }: PromptProps) {
   const { t } = useTranslation()
   const [value, setValue] = useState(initial)
   const [error, setError] = useState<string | null>(null)
@@ -67,7 +69,14 @@ export function PromptDialog({ title, initial = '', label, confirmLabel, validat
       <form onSubmit={submit}>
         <label className="field">
           {label ?? t('common.name')}
-          <input ref={input} type="text" value={value} dir="auto" onChange={(e) => setValue(e.target.value)} />
+          <input ref={input} type="text" value={value} dir="auto" list={suggestions ? 'prompt-suggestions' : undefined} onChange={(e) => setValue(e.target.value)} />
+          {suggestions && (
+            <datalist id="prompt-suggestions">
+              {suggestions.map((s) => (
+                <option key={s} value={s} />
+              ))}
+            </datalist>
+          )}
         </label>
         {error && <div className="error-text">{error}</div>}
         <div className="actions">

@@ -1,4 +1,4 @@
-import { Brain, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
+import { Brain, CheckSquare, FileSpreadsheet, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -20,7 +20,11 @@ import { LibraryContext } from './libraryContext'
 import { ReviewView } from './ReviewView'
 import { StatsDialog } from './StatsDialog'
 import { AUTO, filterItems, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
+import { clearSharedFiles, hasSharedFiles, readSharedFiles } from '../import/shared'
+import { ExportDialog } from './ExportDialog'
 import { FacesIntro } from './FacesIntro'
+import { FilterBar } from './FilterBar'
+import { SelectionBar } from './SelectionBar'
 import { PeopleContext, PersonDialogContext } from './peopleContext'
 import { PeopleView } from './PeopleView'
 import { PersonDialog } from './PersonDialog'
@@ -32,7 +36,8 @@ type DialogState =
   | { kind: 'rename'; id: string; name: string }
   | { kind: 'delete'; id: string; name: string; count: number }
   | { kind: 'compress'; title: string; folderId: string | null }
-  | { kind: 'import'; destId: string }
+  | { kind: 'import'; destId: string; files?: File[] }
+  | { kind: 'export'; title: string }
   | null
 
 export function Shell() {
@@ -46,8 +51,18 @@ export function Shell() {
   const compressOffer = useApp((s) => s.compressOffer)
   const [dialog, setDialog] = useState<DialogState>(null)
   const [personOpen, setPersonOpen] = useState<string | null>(null)
+  const selection = useApp((s) => s.selection)
   const people = usePeople()
   useAutoSync()
+
+  // Files shared to MyMedia from another app (Android Share menu).
+  useEffect(() => {
+    if (!rootId || !hasSharedFiles()) return
+    readSharedFiles().then((files) => {
+      if (files.length) setDialog({ kind: 'import', destId: rootId, files })
+      else void clearSharedFiles()
+    })
+  }, [rootId])
 
   const personMedia = filters.personId ? people.byId.get(filters.personId)?.mediaIds : undefined
   const items = useMemo(
@@ -64,13 +79,14 @@ export function Shell() {
     <LibraryContext.Provider value={lib}>
     <PeopleContext.Provider value={people}>
     <PersonDialogContext.Provider value={setPersonOpen}>
-    <div className="shell">
+    <div className={`shell ${selection ? 'selecting' : ''}`}>
       <TopBar />
       <Banners />
       <div className="body">
         <Sidebar lib={lib} people={people} onNewCategory={() => setDialog({ kind: 'newCategory' })} />
         <main className="main">
           <Toolbar lib={lib} people={people} count={filters.categoryId === PEOPLE ? people.named.length + people.unnamed.length : items.length} onDialog={setDialog} />
+          {filters.categoryId !== PEOPLE && <FilterBar people={people} />}
           {filters.categoryId === PEOPLE ? (
             <PeopleView people={people} />
           ) : lib.ready && items.length === 0 ? (
@@ -133,7 +149,17 @@ export function Shell() {
           onClose={() => setDialog(null)}
         />
       )}
-      {dialog?.kind === 'import' && <ImportDialog lib={lib} destId={dialog.destId} onClose={() => setDialog(null)} />}
+      {dialog?.kind === 'import' && (
+        <ImportDialog
+          lib={lib}
+          destId={dialog.destId}
+          initialFiles={dialog.files}
+          onClose={() => {
+            if (dialog.files) void clearSharedFiles()
+            setDialog(null)
+          }}
+        />
+      )}
       {dialog?.kind === 'delete' && (
         <ConfirmDialog
           title={t('folders.deleteTitle', { name: dialog.name })}
@@ -144,6 +170,10 @@ export function Shell() {
           onClose={() => setDialog(null)}
         />
       )}
+      {filters.categoryId !== PEOPLE && rootId && (
+        <SelectionBar lib={lib} people={people} items={items} parentId={filters.albumId ?? (filters.categoryId && lib.folders.has(filters.categoryId) ? filters.categoryId : rootId)} />
+      )}
+      {dialog?.kind === 'export' && <ExportDialog title={dialog.title} items={items} onClose={() => setDialog(null)} />}
       {personOpen && <PersonDialog people={people} personId={personOpen} onClose={() => setPersonOpen(null)} />}
       <FacesIntro people={people} />
     </div>
@@ -258,6 +288,7 @@ function Banners() {
 
 function Toolbar({ lib, people, count, onDialog }: { lib: Library; people: People; count: number; onDialog: (d: DialogState) => void }) {
   const { t } = useTranslation()
+  const selection = useApp((s) => s.selection)
   const filters = useApp((s) => s.filters)
   const setFilters = useApp((s) => s.setFilters)
   const settings = useApp((s) => s.settings)
@@ -354,6 +385,18 @@ function Toolbar({ lib, people, count, onDialog }: { lib: Library; people: Peopl
       >
         <Minimize2 size={18} />
         <span className="only-desktop">{t('compress.button')}</span>
+      </button>
+      <button className="btn" title={t('export.button')} onClick={() => onDialog({ kind: 'export', title: t('export.titleFor', { name: title }) })}>
+        <FileSpreadsheet size={18} />
+        <span className="only-desktop">{t('export.button')}</span>
+      </button>
+      <button
+        className={`btn ${selection ? 'primary' : ''}`}
+        title={t('select.button')}
+        onClick={() => useApp.getState().set({ selection: selection ? null : [] })}
+      >
+        <CheckSquare size={18} />
+        <span className="only-desktop">{t('select.button')}</span>
       </button>
       <div className="segmented" role="group" aria-label={t('gallery.viewGrid')}>
         <button aria-pressed={settings.view === 'grid'} onClick={() => updateSettings({ view: 'grid' })} title={t('gallery.viewGrid')}>

@@ -296,3 +296,27 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .info-faces { display: flex; flex-wrap: wrap; gap: 8px; margin-block-end: 14px; }
 .info-faces button { display: grid; justify-items: center; gap: 2px; border: none; background: none; cursor: pointer; font-size: 0.82rem; max-inline-size: 72px; }
 .info-faces button span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-inline-size: 72px; }
+
+/* ---------- Search & filters ---------- */
+.filter-bar { padding: 8px 14px; border-block-end: 1px solid var(--border); display: grid; gap: 8px; }
+.filter-bar .search { display: flex; align-items: center; gap: 6px; flex: 1 1 220px; max-inline-size: 420px; border: 1px solid var(--border); border-radius: 8px; padding-inline: 10px 4px; background: var(--surface); color: var(--text-2); }
+.filter-bar .search input { border: none; padding-inline: 0; background: transparent; outline: none; }
+.filter-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px 12px; align-items: end; }
+.filter-panel .field { margin: 0; }
+.badge-count { background: var(--accent-text); color: var(--accent); border-radius: 999px; padding: 0 6px; font-size: 0.78rem; font-weight: 700; }
+
+/* ---------- Selection ---------- */
+.selection-footer {
+  position: fixed; inset-inline: 0; inset-block-end: 0; z-index: 30; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: var(--surface); border-block-start: 1px solid var(--border); box-shadow: var(--shadow);
+}
+.selection-footer .grow { flex: 1; }
+.selection-footer select { inline-size: auto; max-inline-size: 180px; }
+.cell .check {
+  position: absolute; inset-block-start: 6px; inset-inline-start: 6px; inline-size: 24px; block-size: 24px; border-radius: 50%;
+  border: 2px solid #fff; background: rgb(0 0 0 / 0.25); display: grid; place-items: center; color: #fff;
+}
+.cell.selected { outline: 3px solid var(--accent); outline-offset: -3px; }
+.cell.selected .check { background: var(--accent); border-color: var(--accent); }
+.cell.selected img { transform: scale(0.92); transition: transform 0.1s; }
+.selecting .gallery-scroll { padding-block-end: 70px; }
