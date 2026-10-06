@@ -279,7 +279,10 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 
 /* ---------- People ---------- */
 .face { display: inline-grid; place-items: center; flex: none; border-radius: 50%; overflow: hidden; background: var(--surface-2); color: var(--text-2); }
+.face { position: relative; }
 .face img { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+/* Whole thumbnail zoomed on the face (physical left/top: the shift is computed in x/y). */
+.face img.zoomed { position: absolute; left: 0; top: 0; }
 .people-view section { padding: 4px 16px 16px; }
 .people-view h2 { font-size: 1rem; margin: 14px 0 10px; }
 .people-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
