@@ -170,7 +170,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   background: linear-gradient(rgb(0 0 0 / 0.55), transparent); }
 .viewer .top .name { margin-inline-end: auto; align-self: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-inline: 8px; }
 .viewer .icon-btn { color: #fff; }
-.viewer .btn { color: var(--text); }
+.viewer .btn:not(.primary):not(.danger) { color: var(--text); }
 .viewer .icon-btn:hover { background: rgb(255 255 255 / 0.15); }
 .viewer .nav { position: absolute; inset-block-start: 50%; transform: translateY(-50%); z-index: 2; background: rgb(0 0 0 / 0.35); }
 .viewer .nav.prev { inset-inline-start: 8px; }
@@ -186,7 +186,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 
 /* ---------- Dialogs & drawers ---------- */
 .modal-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.45); z-index: 80; display: grid; place-items: center; padding: 16px; }
-.modal { background: var(--surface); border-radius: 14px; padding: 20px; inline-size: min(420px, 100%); box-shadow: var(--shadow); }
+.modal { color: var(--text); background: var(--surface); border-radius: 14px; padding: 20px; inline-size: min(420px, 100%); box-shadow: var(--shadow); }
 .modal h2 { margin: 0 0 12px; font-size: 1.15rem; }
 .modal .actions { display: flex; justify-content: flex-end; gap: 8px; margin-block-start: 16px; }
 .drawer-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.35); z-index: 60; }

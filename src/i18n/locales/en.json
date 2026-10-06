@@ -1,9 +1,24 @@
 {
-  "app": { "name": "MyMedia", "tagline": "Your photos and videos, organized in your Google Drive" },
+  "app": {
+    "name": "MyMedia",
+    "tagline": "Your photos and videos, organized in your Google Drive"
+  },
   "common": {
-    "cancel": "Cancel", "ok": "OK", "save": "Save", "close": "Close", "create": "Create",
-    "rename": "Rename", "delete": "Delete", "back": "Back", "next": "Next", "previous": "Previous",
-    "loading": "Loading…", "retry": "Try again", "name": "Name", "all": "All", "more": "More actions"
+    "cancel": "Cancel",
+    "ok": "OK",
+    "save": "Save",
+    "close": "Close",
+    "create": "Create",
+    "rename": "Rename",
+    "delete": "Delete",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "loading": "Loading…",
+    "retry": "Try again",
+    "name": "Name",
+    "all": "All",
+    "more": "More actions"
   },
   "auth": {
     "signIn": "Sign in with Google",
@@ -25,7 +40,12 @@
     "addCategory": "Add a category",
     "create": "Create the folders",
     "creating": "Creating…",
-    "defaultCategories": ["Family", "Birds", "Work", "Other"],
+    "defaultCategories": [
+      "Family",
+      "Birds",
+      "Work",
+      "Other"
+    ],
     "rootMissingTitle": "The main folder is gone",
     "rootMissingText": "The \"{{name}}\" folder was deleted or moved to the trash in Google Drive. Restore it from the Drive trash, or create a new one.",
     "restored": "I restored it",
@@ -98,7 +118,10 @@
     "openInDrive": "Open in Google Drive",
     "downloading": "Downloading {{percent}}",
     "cannotPlay": "This video cannot be played in this browser.",
-    "cannotShow": "This photo format cannot be shown in full quality in this browser."
+    "cannotShow": "This photo format cannot be shown in full quality in this browser.",
+    "delete": "Delete",
+    "deleteTitle": "Delete “{{name}}”?",
+    "deleteText": "The file goes to the Google Drive trash. You can restore it from there for 30 days."
   },
   "origin": {
     "camera": "Camera / phone",
@@ -131,5 +154,9 @@
     "metaUnreadable": "mymedia.json in your Drive cannot be read. It was not changed. Restore a previous version from Google Drive (right-click → Manage versions).",
     "generic": "Something went wrong: {{message}}"
   },
-  "languages": { "he": "עברית", "fr": "Français", "en": "English" }
+  "languages": {
+    "he": "עברית",
+    "fr": "Français",
+    "en": "English"
+  }
 }

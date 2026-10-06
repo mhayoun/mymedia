@@ -1,9 +1,24 @@
 {
-  "app": { "name": "MyMedia", "tagline": "התמונות והסרטונים שלך, מסודרים ב-Google Drive שלך" },
+  "app": {
+    "name": "MyMedia",
+    "tagline": "התמונות והסרטונים שלך, מסודרים ב-Google Drive שלך"
+  },
   "common": {
-    "cancel": "ביטול", "ok": "אישור", "save": "שמירה", "close": "סגירה", "create": "יצירה",
-    "rename": "שינוי שם", "delete": "מחיקה", "back": "חזרה", "next": "הבא", "previous": "הקודם",
-    "loading": "טוען…", "retry": "ניסיון חוזר", "name": "שם", "all": "הכול", "more": "פעולות נוספות"
+    "cancel": "ביטול",
+    "ok": "אישור",
+    "save": "שמירה",
+    "close": "סגירה",
+    "create": "יצירה",
+    "rename": "שינוי שם",
+    "delete": "מחיקה",
+    "back": "חזרה",
+    "next": "הבא",
+    "previous": "הקודם",
+    "loading": "טוען…",
+    "retry": "ניסיון חוזר",
+    "name": "שם",
+    "all": "הכול",
+    "more": "פעולות נוספות"
   },
   "auth": {
     "signIn": "כניסה עם Google",
@@ -25,7 +40,12 @@
     "addCategory": "הוספת קטגוריה",
     "create": "יצירת התיקיות",
     "creating": "יוצר…",
-    "defaultCategories": ["משפחה", "ציפורים", "עבודה", "אחר"],
+    "defaultCategories": [
+      "משפחה",
+      "ציפורים",
+      "עבודה",
+      "אחר"
+    ],
     "rootMissingTitle": "התיקייה הראשית נעלמה",
     "rootMissingText": "התיקייה \"{{name}}\" נמחקה או הועברה לאשפה ב-Google Drive. אפשר לשחזר אותה מהאשפה של Drive, או ליצור תיקייה חדשה.",
     "restored": "שחזרתי אותה",
@@ -98,7 +118,10 @@
     "openInDrive": "פתיחה ב-Google Drive",
     "downloading": "מוריד {{percent}}",
     "cannotPlay": "אי אפשר להפעיל את הסרטון הזה בדפדפן זה.",
-    "cannotShow": "אי אפשר להציג תמונה בפורמט הזה באיכות מלאה בדפדפן זה."
+    "cannotShow": "אי אפשר להציג תמונה בפורמט הזה באיכות מלאה בדפדפן זה.",
+    "delete": "מחיקה",
+    "deleteTitle": "למחוק את “{{name}}”?",
+    "deleteText": "הקובץ יועבר לאשפה של Google Drive. אפשר לשחזר אותו משם במשך 30 יום."
   },
   "origin": {
     "camera": "מצלמה / טלפון",
@@ -131,5 +154,9 @@
     "metaUnreadable": "אי אפשר לקרוא את הקובץ mymedia.json ב-Drive שלך. הוא לא שונה. אפשר לשחזר גרסה קודמת מ-Google Drive (קליק ימני ← ניהול גרסאות).",
     "generic": "משהו השתבש: {{message}}"
   },
-  "languages": { "he": "עברית", "fr": "Français", "en": "English" }
+  "languages": {
+    "he": "עברית",
+    "fr": "Français",
+    "en": "English"
+  }
 }

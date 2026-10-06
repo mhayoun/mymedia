@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, ExternalLink, Info, Maximize2, Play, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ExternalLink, Info, Maximize2, Play, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { db } from '../db/db'
@@ -7,8 +7,10 @@ import { useFormat } from '../i18n/format'
 import { ORIGINS, sizedThumbnailLink, type Origin } from '../lib/media'
 import { ALBUM_SEPARATOR } from '../lib/tree'
 import { useApp } from '../store'
+import { trashMedia } from '../sync/media'
 import { updateMeta } from '../sync/metaStore'
 import { cachedThumbUrl } from '../sync/thumbs'
+import { ConfirmDialog } from './Dialog'
 import type { LibraryItem } from './useLibrary'
 
 const PREVIEW_SIZE = 2048
@@ -26,6 +28,7 @@ export function Viewer({ ids, items }: Props) {
   const item = byId.get(viewerId)
   const index = ids.indexOf(viewerId)
   const [showInfo, setShowInfo] = useState(() => window.innerWidth > 800)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const rtl = i18n.dir() === 'rtl'
 
   const close = useCallback(() => set({ viewerId: null }), [set])
@@ -40,6 +43,7 @@ export function Viewer({ ids, items }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).closest('input, textarea, select')) return
+      if (document.querySelector('.modal-backdrop')) return // a dialog handles its own keys
       if (e.key === 'Escape') close()
       // In Hebrew the "next" photo is on the left.
       if (e.key === 'ArrowRight') go(rtl ? -1 : 1)
@@ -78,6 +82,9 @@ export function Viewer({ ids, items }: Props) {
               <ExternalLink />
             </a>
           )}
+          <button className="icon-btn" onClick={() => setConfirmDelete(true)} aria-label={t('viewer.delete')} title={t('viewer.delete')}>
+            <Trash2 />
+          </button>
           <button className="icon-btn" onClick={() => setShowInfo((v) => !v)} aria-label={t('viewer.info')} aria-pressed={showInfo}>
             <Info />
           </button>
@@ -95,6 +102,21 @@ export function Viewer({ ids, items }: Props) {
         {item.rec.type === 'photo' ? <PhotoStage key={item.rec.id} item={item} /> : <VideoStage key={item.rec.id} item={item} />}
       </div>
       {showInfo && <InfoPanel key={item.rec.id} item={item} />}
+      {confirmDelete && (
+        <ConfirmDialog
+          title={t('viewer.deleteTitle', { name: item.rec.name })}
+          text={t('viewer.deleteText')}
+          confirmLabel={t('viewer.delete')}
+          danger
+          onConfirm={async () => {
+            // Show the next item (or the previous one at the end) once deleted.
+            const after = ids[index + 1] ?? ids[index - 1] ?? null
+            await trashMedia(item.rec.id)
+            set({ viewerId: after })
+          }}
+          onClose={() => setConfirmDelete(false)}
+        />
+      )}
     </div>
   )
 }

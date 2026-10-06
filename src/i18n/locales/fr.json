@@ -1,9 +1,24 @@
 {
-  "app": { "name": "MyMedia", "tagline": "Vos photos et vidéos, organisées dans votre Google Drive" },
+  "app": {
+    "name": "MyMedia",
+    "tagline": "Vos photos et vidéos, organisées dans votre Google Drive"
+  },
   "common": {
-    "cancel": "Annuler", "ok": "OK", "save": "Enregistrer", "close": "Fermer", "create": "Créer",
-    "rename": "Renommer", "delete": "Supprimer", "back": "Retour", "next": "Suivant", "previous": "Précédent",
-    "loading": "Chargement…", "retry": "Réessayer", "name": "Nom", "all": "Tout", "more": "Plus d'actions"
+    "cancel": "Annuler",
+    "ok": "OK",
+    "save": "Enregistrer",
+    "close": "Fermer",
+    "create": "Créer",
+    "rename": "Renommer",
+    "delete": "Supprimer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "loading": "Chargement…",
+    "retry": "Réessayer",
+    "name": "Nom",
+    "all": "Tout",
+    "more": "Plus d'actions"
   },
   "auth": {
     "signIn": "Se connecter avec Google",
@@ -25,7 +40,12 @@
     "addCategory": "Ajouter une catégorie",
     "create": "Créer les dossiers",
     "creating": "Création…",
-    "defaultCategories": ["Famille", "Oiseaux", "Travail", "Autre"],
+    "defaultCategories": [
+      "Famille",
+      "Oiseaux",
+      "Travail",
+      "Autre"
+    ],
     "rootMissingTitle": "Le dossier principal a disparu",
     "rootMissingText": "Le dossier « {{name}} » a été supprimé ou mis à la corbeille dans Google Drive. Restaurez-le depuis la corbeille de Drive, ou créez-en un nouveau.",
     "restored": "Je l'ai restauré",
@@ -96,7 +116,10 @@
     "openInDrive": "Ouvrir dans Google Drive",
     "downloading": "Téléchargement {{percent}}",
     "cannotPlay": "Cette vidéo ne peut pas être lue dans ce navigateur.",
-    "cannotShow": "Ce format de photo ne peut pas être affiché en pleine qualité dans ce navigateur."
+    "cannotShow": "Ce format de photo ne peut pas être affiché en pleine qualité dans ce navigateur.",
+    "delete": "Supprimer",
+    "deleteTitle": "Supprimer « {{name}} » ?",
+    "deleteText": "Le fichier va dans la corbeille de Google Drive. Vous pouvez le restaurer pendant 30 jours."
   },
   "origin": {
     "camera": "Appareil photo / téléphone",
@@ -129,5 +152,9 @@
     "metaUnreadable": "Le fichier mymedia.json de votre Drive est illisible. Il n'a pas été modifié. Restaurez une version précédente depuis Google Drive (clic droit → Gérer les versions).",
     "generic": "Une erreur s'est produite : {{message}}"
   },
-  "languages": { "he": "עברית", "fr": "Français", "en": "English" }
+  "languages": {
+    "he": "עברית",
+    "fr": "Français",
+    "en": "English"
+  }
 }
