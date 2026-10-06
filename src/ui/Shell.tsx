@@ -86,15 +86,19 @@ export function Shell() {
     <PeopleContext.Provider value={people}>
     <PersonDialogContext.Provider value={setPersonOpen}>
     <div className={`shell ${selection ? 'selecting' : ''}`}>
-      <TopBar
-        onAdd={() => setDialog({ kind: 'import', destId: currentFolderId ?? rootId! })}
-        onCompress={() => setDialog({ kind: 'compress', title: t('compress.titleFor', { name: currentTitle }), folderId: currentFolderId })}
-      />
+      <TopBar />
       <Banners />
       <div className="body">
         <Sidebar lib={lib} people={people} onNewCategory={() => setDialog({ kind: 'newCategory' })} />
         <main className="main">
-          <Toolbar lib={lib} people={people} count={items.length} onDialog={setDialog} />
+          <Toolbar
+            lib={lib}
+            people={people}
+            count={items.length}
+            onDialog={setDialog}
+            onAdd={() => setDialog({ kind: 'import', destId: currentFolderId ?? rootId! })}
+            onCompress={() => setDialog({ kind: 'compress', title: t('compress.titleFor', { name: currentTitle }), folderId: currentFolderId })}
+          />
           {filters.categoryId !== PEOPLE && <FilterBar people={people} />}
           {filters.categoryId === PEOPLE ? (
             <PeopleView people={people} />
@@ -191,7 +195,7 @@ export function Shell() {
   )
 }
 
-function TopBar({ onAdd, onCompress }: { onAdd: () => void; onCompress: () => void }) {
+function TopBar() {
   const { t } = useTranslation()
   const fmt = useFormat()
   const user = useApp((s) => s.user)
@@ -262,14 +266,7 @@ function TopBar({ onAdd, onCompress }: { onAdd: () => void; onCompress: () => vo
           </button>
         </>
       )}
-      <button className="btn primary" onClick={onAdd} disabled={!online} title={t('import.button')}>
-        <ImagePlus size={16} />
-        <span className="only-desktop">{t('import.button')}</span>
-      </button>
-      <button className="btn" onClick={onCompress} disabled={!online} title={t('compress.button')}>
-        <Minimize2 size={16} />
-        <span className="only-desktop">{t('compress.button')}</span>
-      </button>
+
       <button className="icon-btn" onClick={() => set({ settingsOpen: true })} aria-label={t('nav.settings')}>
         {user?.photo ? <img className="avatar" src={user.photo} alt="" referrerPolicy="no-referrer" /> : <SettingsIcon />}
       </button>
@@ -308,7 +305,20 @@ function Banners() {
   )
 }
 
-function Toolbar({ lib, people, count, onDialog }: { lib: Library; people: People; count: number; onDialog: (d: DialogState) => void }) {
+interface ToolbarProps {
+  lib: Library
+  people: People
+  count: number
+  onDialog: (d: DialogState) => void
+  onAdd: () => void
+  onCompress: () => void
+}
+
+/**
+ * One row: [title + folder actions] [view, sort, type] … count … [Add, Compress].
+ * Logical order: in Hebrew the whole row is mirrored automatically.
+ */
+function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarProps) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const filters = useApp((s) => s.filters)
@@ -366,10 +376,7 @@ function Toolbar({ lib, people, count, onDialog }: { lib: Library; people: Peopl
           <bdi>{title}</bdi>
         </h1>
       )}
-      <span className="result-count" title={t('gallery.count', { count })}>
-        {fmt.number(count)}
-      </span>
-      <span className="grow" />
+
       {folder && (
         <span className="row">
           <button
@@ -426,6 +433,19 @@ function Toolbar({ lib, people, count, onDialog }: { lib: Library; people: Peopl
         <option value="photo">{t('gallery.typePhoto')}</option>
         <option value="video">{t('gallery.typeVideo')}</option>
       </select>
+      <span className="grow" />
+      <span className="result-count" title={t('gallery.count', { count })}>
+        {fmt.number(count)}
+      </span>
+      <span className="grow" />
+      <button className="btn primary" onClick={onAdd} title={t('import.button')}>
+        <ImagePlus size={16} />
+        <span className="only-desktop">{t('import.button')}</span>
+      </button>
+      <button className="btn" onClick={onCompress} title={t('compress.button')}>
+        <Minimize2 size={16} />
+        <span className="only-desktop">{t('compress.button')}</span>
+      </button>
     </div>
   )
 }

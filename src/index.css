@@ -229,7 +229,11 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   .scrim.open { display: block; position: fixed; inset: 0; z-index: 39; background: rgb(0 0 0 / 0.35); }
   .viewer { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
   .info-panel { inline-size: 100%; max-block-size: 45vh; }
-  .toolbar { padding: 8px 10px; }
+  .toolbar { padding: 8px 10px; gap: 6px; flex-wrap: nowrap; }
+  .toolbar select { padding: 6px 4px; font-size: 0.9rem; min-inline-size: 0; }
+  .toolbar .btn { padding: 7px 9px; }
+  .toolbar .segmented button { padding: 6px 8px; }
+  .toolbar h1 { font-size: 1rem; max-inline-size: 30vw; }
 }
 
 /* ---------- Classification review ---------- */
