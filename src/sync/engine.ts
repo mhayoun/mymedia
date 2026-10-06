@@ -46,7 +46,8 @@ export function toRecord(f: DriveFile): MediaRecord | null {
     md5: f.md5Checksum,
     createdTime: created,
     modifiedTime: f.modifiedTime ?? created,
-    takenAt: parseExifDate(img?.time) ?? dateFromFileName(f.name) ?? created,
+    // EXIF, else the date MyMedia found when it uploaded the file, else the file name, else Drive's date.
+    takenAt: parseExifDate(img?.time) ?? f.appProperties?.mymedia_taken ?? dateFromFileName(f.name) ?? created,
     width: img?.width ?? vid?.width,
     height: img?.height ?? vid?.height,
     durationMs: vid?.durationMillis ? Number(vid.durationMillis) : undefined,

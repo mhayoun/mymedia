@@ -4,6 +4,7 @@
 
 import { afterLoadCompression } from './compress/engine'
 import { startIndexer } from './ml/indexer'
+import { fixVideoDates } from './sync/videoDates'
 
 let running: Promise<void> | null = null
 
@@ -14,6 +15,7 @@ export function afterSync(): Promise<void> {
     } catch (e) {
       console.error('[MyMedia] automatic compression failed', e)
     }
+    await fixVideoDates().catch((e) => console.warn('[MyMedia] video dates', e))
     await startIndexer()
   })().finally(() => {
     running = null

@@ -23,11 +23,13 @@ function photoWorker(): Worker {
   return worker
 }
 
-function isHeic(rec: MediaRecord): boolean {
+type Named = Pick<MediaRecord, 'name' | 'mimeType'>
+
+function isHeic(rec: Named): boolean {
   return /hei[cf]/i.test(rec.mimeType) || /\.hei[cf]$/i.test(rec.name)
 }
 
-export async function compressPhoto(rec: MediaRecord, original: Blob, s: CompressSettings): Promise<Blob> {
+export async function compressPhoto(rec: Named, original: Blob, s: CompressSettings): Promise<Blob> {
   const bytes = new Uint8Array(await original.arrayBuffer())
   let source: Blob | ImageBitmap = original
   let exif: Uint8Array | null
@@ -67,21 +69,27 @@ export function canCompressVideo(): Promise<boolean> {
   return videoCheck
 }
 
-/** Re-encodes a video to H.264/AAC MP4, reading the original directly from Drive. */
+/**
+ * Re-encodes a video to H.264/AAC MP4. The original is either a Drive file
+ * (read piece by piece) or a local file being imported.
+ */
 export async function compressVideo(
-  rec: MediaRecord,
+  from: MediaRecord | Blob,
   s: CompressSettings,
   onProgress: (p: number) => void,
   signal: AbortSignal,
 ): Promise<Blob> {
-  const { ALL_FORMATS, BufferTarget, Conversion, CustomSource, Input, Mp4OutputFormat, Output } = await import('mediabunny')
+  const { ALL_FORMATS, BlobSource, BufferTarget, Conversion, CustomSource, Input, Mp4OutputFormat, Output } = await import('mediabunny')
   const input = new Input({
     formats: ALL_FORMATS,
-    source: new CustomSource({
-      getSize: () => rec.size,
-      read: (start, end) => downloadRange(rec.id, start, end),
-      prefetchProfile: 'network',
-    }),
+    source:
+      from instanceof Blob
+        ? new BlobSource(from)
+        : new CustomSource({
+            getSize: () => from.size,
+            read: (start, end) => downloadRange(from.id, start, end),
+            prefetchProfile: 'network',
+          }),
   })
   const target = new BufferTarget()
   const output = new Output({ format: new Mp4OutputFormat({ fastStart: 'in-memory' }), target })
@@ -115,5 +123,20 @@ export async function compressVideo(
     return new Blob([target.buffer!], { type: 'video/mp4' })
   } finally {
     input.dispose()
+  }
+}
+
+/** Duration of a local video file in milliseconds, or undefined. */
+export async function localVideoDuration(file: Blob): Promise<number | undefined> {
+  try {
+    const { ALL_FORMATS, BlobSource, Input } = await import('mediabunny')
+    const input = new Input({ formats: ALL_FORMATS, source: new BlobSource(file) })
+    try {
+      return Math.round((await input.computeDuration()) * 1000)
+    } finally {
+      input.dispose()
+    }
+  } catch {
+    return undefined
   }
 }

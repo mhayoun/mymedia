@@ -221,3 +221,50 @@ export function estimateJpegQuality(b: Uint8Array): number | null {
   }
   return null
 }
+
+/** Date the photo was taken (EXIF DateTimeOriginal, else DateTime) as "YYYY-MM-DDTHH:mm:ss", or null. */
+export function exifDateTime(tiff: Uint8Array): string | null {
+  if (tiff.length < 8) return null
+  const le = tiff[0] === 0x49
+  const r16 = (o: number) => (le ? tiff[o] | (tiff[o + 1] << 8) : (tiff[o] << 8) | tiff[o + 1])
+  const r32 = (o: number) =>
+    le ? (tiff[o] | (tiff[o + 1] << 8) | (tiff[o + 2] << 16) | (tiff[o + 3] << 24)) >>> 0 : u32(tiff, o)
+  const entries = (ifd: number) => {
+    const out = new Map<number, number>() // tag → offset of its 12-byte entry
+    if (ifd + 2 > tiff.length) return out
+    const n = r16(ifd)
+    for (let k = 0; k < n && ifd + 2 + k * 12 + 12 <= tiff.length; k++) out.set(r16(ifd + 2 + k * 12), ifd + 2 + k * 12)
+    return out
+  }
+  const ascii = (entry: number) => {
+    const count = r32(entry + 4)
+    const at = count > 4 ? r32(entry + 8) : entry + 8
+    if (at + count > tiff.length) return null
+    return String.fromCharCode(...tiff.subarray(at, at + count)).replace(/\0+$/, '')
+  }
+  const ifd0 = entries(r32(4))
+  const exifPtr = ifd0.get(0x8769)
+  const exif = exifPtr !== undefined ? entries(r32(exifPtr + 8)) : new Map<number, number>()
+  for (const entry of [exif.get(0x9003), exif.get(0x9004), ifd0.get(0x0132)]) {
+    if (entry === undefined) continue
+    const m = /^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/.exec(ascii(entry) ?? '')
+    if (m && m[1] !== '0000') return `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}`
+  }
+  return null
+}
+
+/** Pixel size of a JPEG from its frame header, or null. */
+export function jpegDimensions(b: Uint8Array): { width: number; height: number } | null {
+  if (!isJpeg(b)) return null
+  let i = 2
+  while (i + 9 < b.length) {
+    if (b[i] !== 0xff) return null
+    const marker = b[i + 1]
+    const len = (b[i + 2] << 8) | b[i + 3]
+    const isSof = marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc
+    if (isSof) return { height: (b[i + 5] << 8) | b[i + 6], width: (b[i + 7] << 8) | b[i + 8] }
+    if (marker === 0xda) return null
+    i += 2 + len
+  }
+  return null
+}

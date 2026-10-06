@@ -1,4 +1,4 @@
-import { Brain, FolderPlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
+import { Brain, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -11,6 +11,7 @@ import { stopIndexer } from '../ml/indexer'
 import { cancelSync, syncNow } from '../sync/engine'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog, PromptDialog } from './Dialog'
+import { ImportDialog } from './ImportDialog'
 import { Gallery } from './Gallery'
 import { useAuthError, useAuthStatus, useAutoSync, useOnline } from './hooks'
 import { SettingsPanel } from './SettingsPanel'
@@ -26,6 +27,7 @@ type DialogState =
   | { kind: 'rename'; id: string; name: string }
   | { kind: 'delete'; id: string; name: string; count: number }
   | { kind: 'compress'; title: string; folderId: string | null }
+  | { kind: 'import'; destId: string }
   | null
 
 export function Shell() {
@@ -119,6 +121,7 @@ export function Shell() {
           onClose={() => setDialog(null)}
         />
       )}
+      {dialog?.kind === 'import' && <ImportDialog lib={lib} destId={dialog.destId} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'delete' && (
         <ConfirmDialog
           title={t('folders.deleteTitle', { name: dialog.name })}
@@ -304,6 +307,14 @@ function Toolbar({ lib, count, onDialog }: { lib: Library; count: number; onDial
           </button>
         </span>
       )}
+      <button
+        className="btn primary"
+        title={t('import.button')}
+        onClick={() => onDialog({ kind: 'import', destId: folder?.id ?? useApp.getState().rootId! })}
+      >
+        <ImagePlus size={18} />
+        <span className="only-desktop">{t('import.button')}</span>
+      </button>
       <button
         className="icon-btn small"
         title={t('compress.button')}

@@ -310,5 +310,33 @@
       "auto": "Les compresser automatiquement",
       "off": "Ne rien faire"
     }
+  },
+  "import": {
+    "button": "Ajouter",
+    "title": "Ajouter des photos et vidéos",
+    "to": "Vers :",
+    "changeDest": "Autre dossier…",
+    "intro": "Choisissez des photos et vidéos sur cet appareil, une clé USB ou une carte SD. MyMedia les envoie dans Google Drive avec leur vraie date.",
+    "chooseFiles": "Choisir des photos / vidéos",
+    "chooseFolder": "Choisir un dossier entier",
+    "dateHint": "La date vient de la photo (EXIF) ou de l'enregistrement de la vidéo, sinon du nom du fichier, sinon du fichier lui-même — pas de la date d'envoi.",
+    "analyzing": "Lecture des dates et recherche des doublons… {{done}} / {{total}}",
+    "source": {
+      "exif": "date de la photo",
+      "video": "date d'enregistrement",
+      "name": "date du nom",
+      "file": "date du fichier"
+    },
+    "duplicate": "déjà dans Drive",
+    "duplicatesHint_one": "{{count}} fichier est déjà dans votre Drive (même contenu) : décoché.",
+    "duplicatesHint_other": "{{count}} fichiers sont déjà dans votre Drive (même contenu) : décochés.",
+    "compress": "Compresser avant l'envoi (envoi plus rapide, moins de place)",
+    "keepFolders": "Garder les sous-dossiers comme albums",
+    "compressing": "compression",
+    "uploading": "envoi",
+    "uploadN_one": "Envoyer {{count}} fichier",
+    "uploadN_other": "Envoyer {{count}} fichiers",
+    "done_one": "Terminé : {{count}} fichier ajouté ({{before}} → {{after}} dans Drive).",
+    "done_other": "Terminé : {{count}} fichiers ajoutés ({{before}} → {{after}} dans Drive)."
   }
 }

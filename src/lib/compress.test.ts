@@ -116,3 +116,26 @@ describe('compression plan', () => {
     expect(planCompression({ ...video, width: 1920, height: 1080, size: 40_000_000 }, DEFAULT_COMPRESS, manual)).toEqual({ ok: false, reason: 'alreadyCompressed' })
   })
 })
+
+describe('media dates', () => {
+  it('reads the date a photo was taken', async () => {
+    const { exifDateTime, jpegDimensions } = await import('./jpeg')
+    expect(exifDateTime(jpegExif(fx('dated.jpg'))!)).toBe('2025-12-24T18:30:00')
+    expect(exifDateTime(jpegExif(fx('q95.jpg'))!)).toBeNull()
+    expect(jpegDimensions(fx('dated.jpg'))).toEqual({ width: 60, height: 40 })
+  })
+
+  it('reads the recording date of a video, header at the start or the end', async () => {
+    const { mp4CreationTime } = await import('./mp4')
+    for (const name of ['video-end.mp4', 'video-start.mov']) {
+      const b = fx(name)
+      let reads = 0
+      const date = await mp4CreationTime(async (s, e) => {
+        reads++
+        return b.subarray(s, e)
+      }, b.length)
+      expect(date?.toISOString(), name).toBe('2024-07-14T09:15:00.000Z')
+      expect(reads).toBeLessThan(10)
+    }
+  })
+})

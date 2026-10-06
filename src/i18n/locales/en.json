@@ -312,5 +312,33 @@
       "auto": "Compress them automatically",
       "off": "Do nothing"
     }
+  },
+  "import": {
+    "button": "Add",
+    "title": "Add photos and videos",
+    "to": "To:",
+    "changeDest": "Another folder…",
+    "intro": "Choose photos and videos from this device, a USB stick or an SD card. MyMedia uploads them to Google Drive with their real date.",
+    "chooseFiles": "Choose photos / videos",
+    "chooseFolder": "Choose a whole folder",
+    "dateHint": "The date is taken from the photo (EXIF) or the video recording, else from the file name, else from the file itself — not the upload date.",
+    "analyzing": "Reading dates and checking for duplicates… {{done}} / {{total}}",
+    "source": {
+      "exif": "photo date",
+      "video": "recording date",
+      "name": "date from name",
+      "file": "file date"
+    },
+    "duplicate": "already in Drive",
+    "duplicatesHint_one": "{{count}} file is already in your Drive (same content): unticked.",
+    "duplicatesHint_other": "{{count}} files are already in your Drive (same content): unticked.",
+    "compress": "Compress before upload (faster upload, less space)",
+    "keepFolders": "Keep the sub-folders as albums",
+    "compressing": "compressing",
+    "uploading": "uploading",
+    "uploadN_one": "Upload {{count}} file",
+    "uploadN_other": "Upload {{count}} files",
+    "done_one": "Done: {{count}} file added ({{before}} → {{after}} in Drive).",
+    "done_other": "Done: {{count}} files added ({{before}} → {{after}} in Drive)."
   }
 }

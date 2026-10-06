@@ -118,3 +118,15 @@ birds), then put a few new bird photos **directly in `MyMedia`** or directly in
 ### Settings
 - [ ] Quality 70/80/85/90 %, maximum size 2048/3000/4000 px/unchanged, HEIC/PNG → JPEG, video 720p/1080p and quality, origins for automatic compression, minimum size, minimum gain, "Restore default settings".
 - [ ] A file that would not shrink by at least 15 % is left unchanged ("Kept unchanged (not enough gain)").
+
+## Upload from the app, with the real date (§3, brought forward from Phase 5)
+
+- [ ] Open an album (e.g. Family / David) → **Add** → **Choose photos / videos** (on a phone: the gallery opens; select several).
+- [ ] The list shows each file with **its real date** and where it comes from: "photo date" (EXIF), "recording date" (video), "date from name" (`IMG-20240501-WA0003.jpg`), or "file date".
+- [ ] A file already in Drive (same content) is marked **already in Drive** and unticked.
+- [ ] Size now → ≈ size after compression; "Compress before upload" can be unticked.
+- [ ] **Upload N files** → each row shows compression / upload progress, then ✓ and the final size.
+- [ ] In MyMedia, the new files are sorted at their **real date** (not today). In Drive, File information → "Created" shows that date.
+- [ ] Computer: **Choose a whole folder** (also from a USB stick / SD card) → sub-folders become albums under the destination ("Keep the sub-folders as albums").
+- [ ] **Another folder…** changes the destination before uploading.
+- [ ] Videos already copied into Drive earlier: after **Load new files**, they move to their real recording date in the gallery (sort "Newest first").

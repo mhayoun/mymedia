@@ -409,3 +409,51 @@ export async function ensureFolderPath(parentId: string, names: string[]): Promi
   }
   return current
 }
+
+/** Creates a media file in a folder, with its real dates (resumable upload above 5 MB). */
+export async function createMediaFile(
+  blob: Blob,
+  metadata: {
+    name: string
+    parents: string[]
+    mimeType: string
+    createdTime?: string
+    modifiedTime?: string
+    appProperties?: Record<string, string>
+  },
+  onProgress?: (p: number) => void,
+  signal?: AbortSignal,
+): Promise<DriveFile> {
+  const query = `supportsAllDrives=true&fields=${encodeURIComponent(FILE_FIELDS)}`
+  if (blob.size <= MULTIPART_MAX) {
+    const { body, boundary } = multipartBody(metadata, blob, metadata.mimeType)
+    const res = await request(`${UPLOAD}/files?uploadType=multipart&${query}`, {
+      method: 'POST',
+      headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+      body,
+    }, signal)
+    onProgress?.(1)
+    return res.json()
+  }
+  const init = await request(`${UPLOAD}/files?uploadType=resumable&${query}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json; charset=UTF-8',
+      'X-Upload-Content-Type': metadata.mimeType,
+      'X-Upload-Content-Length': String(blob.size),
+    },
+    body: JSON.stringify(metadata),
+  }, signal)
+  const location = init.headers.get('Location')
+  if (!location) throw new Error('Drive did not return an upload address')
+  return JSON.parse(await putWithProgress(location, blob, onProgress, signal)) as DriveFile
+}
+
+/** Sets hidden app properties on a file (its content is not touched). */
+export async function setAppProperties(id: string, appProperties: Record<string, string>): Promise<void> {
+  await request(`${API}/files/${id}?supportsAllDrives=true&fields=id`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ appProperties }),
+  })
+}

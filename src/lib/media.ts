@@ -107,3 +107,9 @@ export function sizedThumbnailLink(link: string, size: number): string {
   if (/=s\d+(-[a-z]+)?$/i.test(link)) return link.replace(/=s\d+(-[a-z]+)?$/i, `=s${size}`)
   return `${link}=s${size}`
 }
+
+/** A Date as local "YYYY-MM-DDTHH:mm:ss" (the format used for dates taken). */
+export function localIso(d: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
+}
