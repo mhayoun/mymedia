@@ -1,6 +1,7 @@
 // Global app state (zustand). Device settings are persisted in localStorage.
 
 import { create } from 'zustand'
+import type { Outcome, Planned } from './compress/engine'
 import { DEFAULT_COMPRESS, type CompressSettings } from './lib/compressPlan'
 
 export type Language = 'he' | 'fr' | 'en'
@@ -85,6 +86,10 @@ interface AppState {
   statsOpen: boolean
   /** Compression in progress. */
   compressing: { done: number; total: number; name: string; fileProgress: number; saved: number } | null
+  /** New files proposed for compression after a load (the user ticks which ones). */
+  compressOffer: Planned[] | null
+  /** Result of each file in the current/last compression run. */
+  compressOutcome: Record<string, Outcome>
   /** Short message shown at the bottom of the screen (i18n key + values). */
   toast: { key: string; count?: number; bytes?: number } | null
   lastSyncAt: number | null
@@ -107,6 +112,8 @@ export const useApp = create<AppState>((set, get) => ({
   indexing: null,
   statsOpen: false,
   compressing: null,
+  compressOffer: null,
+  compressOutcome: {},
   toast: null,
   lastSyncAt: null,
   error: null,

@@ -103,8 +103,8 @@ function outputName(rec: MediaRecord): { name: string; mimeType: string } {
   return { name: isJpegMime(rec.mimeType, rec.name) ? rec.name : rec.name.replace(/\.[^.]+$/, '') + '.jpg', mimeType: 'image/jpeg' }
 }
 
-/** Compresses one media. Returns the bytes saved (0 when kept unchanged). */
-async function compressOne(rec: MediaRecord, signal: AbortSignal, onFile: (p: number) => void): Promise<number> {
+/** Compresses one media. Returns its new size, or null when it was kept unchanged. */
+async function compressOne(rec: MediaRecord, signal: AbortSignal, onFile: (p: number) => void): Promise<number | null> {
   const s = app().settings.compress
   let blob: Blob
   if (rec.type === 'photo') {
@@ -118,7 +118,7 @@ async function compressOne(rec: MediaRecord, signal: AbortSignal, onFile: (p: nu
   if (blob.size > rec.size * (1 - s.minGain)) {
     await setCompression(rec.id, { status: 'none', sizeBefore: rec.size, date: new Date().toISOString() })
     await markMetaDirty()
-    return 0
+    return null
   }
 
   const rootId = app().rootId!
@@ -156,12 +156,16 @@ async function compressOne(rec: MediaRecord, signal: AbortSignal, onFile: (p: nu
   const meta = await d.meta.get(rec.id)
   if (meta) await d.meta.put({ ...meta, name, compression: { status: 'compressed', sizeBefore: rec.size, sizeAfter: blob.size, date: new Date().toISOString() }, updatedAt: Date.now() })
   await markMetaDirty()
-  return rec.size - blob.size
+  return blob.size
 }
 
-/** Runs a list of planned compressions with progress; returns { count, saved }. */
+export type Outcome = { status: 'done'; after: number } | { status: 'nogain' } | { status: 'error' } | { status: 'pending' }
+
+/** Runs compressions one after another; each file's outcome is published as it finishes. */
 function runQueue(items: MediaRecord[]): Promise<{ count: number; saved: number }> {
   let result = { count: 0, saved: 0 }
+  const outcome = (id: string, o: Outcome) => app().set({ compressOutcome: { ...app().compressOutcome, [id]: o } })
+  for (const rec of items) outcome(rec.id, { status: 'pending' })
   const job = async () => {
     abort = new AbortController()
     const signal = abort.signal
@@ -170,13 +174,18 @@ function runQueue(items: MediaRecord[]): Promise<{ count: number; saved: number 
       if (signal.aborted) break
       app().set({ compressing: { done, total: items.length, name: rec.name, fileProgress: 0, saved: result.saved } })
       try {
-        const saved = await compressOne(rec, signal, (p) =>
+        const after = await compressOne(rec, signal, (p) =>
           app().set({ compressing: { done, total: items.length, name: rec.name, fileProgress: p, saved: result.saved } }),
         )
-        if (saved > 0) result = { count: result.count + 1, saved: result.saved + saved }
+        if (after === null) outcome(rec.id, { status: 'nogain' })
+        else {
+          outcome(rec.id, { status: 'done', after })
+          result = { count: result.count + 1, saved: result.saved + rec.size - after }
+        }
       } catch (e) {
         if (signal.aborted) break
         console.error('[MyMedia] compression failed', rec.name, e)
+        outcome(rec.id, { status: 'error' })
       }
       done++
     }
@@ -191,25 +200,51 @@ function runQueue(items: MediaRecord[]): Promise<{ count: number; saved: number 
   return run.then(() => result)
 }
 
-/** Automatic compression of new big files (called after each load from Drive). */
-export async function autoCompress(): Promise<void> {
+/** Files proposed at this session and set aside with "Later". */
+const later = new Set<string>()
+
+/** New big files worth compressing (automatic rules), not yet decided by the user. */
+export async function findRecommendations(): Promise<Planned[]> {
   const s = app().settings.compress
-  if (!s.autoPhotos && !s.autoVideos) return
+  if (s.autoMode === 'off' || (!s.autoPhotos && !s.autoVideos)) return []
   const d = db()
   const since = await autoSince()
-  const candidates = (await d.media.toArray()).filter((m) => m.createdTime >= since && !m.appProperties?.mymedia_compressed)
+  const candidates = (await d.media.toArray()).filter(
+    (m) => m.createdTime >= since && !m.appProperties?.mymedia_compressed && !later.has(m.id),
+  )
   const metas = new Map((await d.meta.bulkGet(candidates.map((c) => c.id))).filter(Boolean).map((m) => [m!.id, m!]))
   const fresh = candidates.filter((c) => !metas.get(c.id)?.compression?.status)
-  if (!fresh.length) return
+  if (!fresh.length) return []
   const planned = await planMany(fresh, 'auto')
   await recordSkips(planned)
-  const todo = planned.filter((p) => p.plan.ok).map((p) => p.rec)
-  if (!todo.length) return
-  const { count, saved } = await runQueue(todo)
-  if (count) app().set({ toast: { key: 'compress.autoDone', count, bytes: saved } })
+  return planned.filter((p) => p.plan.ok)
 }
 
-/** Manual compression of the given media (after the user confirmed the estimate). */
+/** After each load from Drive: propose (or, if chosen in Settings, run) compression of new big files. */
+export async function afterLoadCompression(): Promise<void> {
+  const recs = await findRecommendations()
+  if (!recs.length) return
+  if (app().settings.compress.autoMode === 'auto') {
+    const { count, saved } = await runQueue(recs.map((p) => p.rec))
+    if (count) app().set({ toast: { key: 'compress.autoDone', count, bytes: saved } })
+  } else if (!app().compressOffer) {
+    app().set({ compressOffer: recs })
+  }
+}
+
+/** "Later": not proposed again until the app is reopened. */
+export function postpone(ids: string[]) {
+  for (const id of ids) later.add(id)
+  app().set({ compressOffer: null })
+}
+
+/** Files the user unticked in the proposal: never proposed again (the Compress button still works). */
+export async function decline(ids: string[]) {
+  for (const id of ids) await setCompression(id, { status: 'declined' })
+  if (ids.length) await markMetaDirty()
+}
+
+/** Compresses the chosen media (after the user saw the list and the estimate). */
 export async function compressNow(planned: Planned[]): Promise<{ count: number; saved: number }> {
   await recordSkips(planned)
   return runQueue(planned.filter((p) => p.plan.ok).map((p) => p.rec))

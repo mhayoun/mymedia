@@ -92,16 +92,17 @@ birds), then put a few new bird photos **directly in `MyMedia`** or directly in
 
 ## Phase 3 – Compression (§6)
 
-### Automatic (new files found in Drive)
-- [ ] Add a big photo (e.g. 10 MB) to an album in Drive → **Load new files** → message "1 new file compressed automatically: … saved"; in Drive the file is now about 1–2 MB, **same name, same place**.
-- [ ] Its EXIF is kept: in Drive → File information, date taken and camera are still shown; the photo is upright (not rotated).
-- [ ] A WhatsApp photo (`IMG-…-WA…`) is not compressed.
-- [ ] A photo smaller than the threshold (Settings, default 3 MB) is not compressed automatically.
-- [ ] Files you had before Phase 3 are not compressed automatically.
-- [ ] A big video (> 50 MB) is compressed automatically **on a computer only**; on a phone it waits.
+### New files found in Drive
+- [ ] Add 2 big photos (e.g. 10 MB) to an album in Drive → **Load new files** → a window **"New files to compress"** lists them: name, size now → estimated size after, % saved, each with a tick box, and the total for the selection.
+- [ ] Untick one → **Compress 1 file** → the row shows the real new size (✓ 1.4 MB); the unticked file is not proposed again at the next load.
+- [ ] **Later** → the window closes; the files are proposed again the next time the app is opened.
+- [ ] In Drive the compressed file is now about 1–2 MB, **same name, same place**; File information still shows date taken and camera; the photo is upright.
+- [ ] A WhatsApp photo (`IMG-…-WA…`) or a photo under 3 MB is not proposed. Files you had before Phase 3 are not proposed.
+- [ ] Settings → Compression → "When big new files are found in Drive": **Compress them automatically** → no window, a message "N new files compressed automatically"; **Do nothing** → no window.
+- [ ] A big video (> 50 MB) is proposed **on a computer only**.
 
 ### Manual
-- [ ] Select an album or category → **Compress** icon (two arrows) → the window shows how many files, the estimated size before → after, and what is skipped and why (already compressed, too small…).
+- [ ] Select an album or category → **Compress** icon (two arrows) → the same list with tick boxes (size now → estimated after), and below it what is skipped and why (already compressed, too small…).
 - [ ] **Compress** → progress (also at the top of the screen, with × to cancel) → "Done: N files compressed, X saved".
 - [ ] Large view → information panel → Compression status ("Compressed: 9.7 MB → 1.5 MB") and a **Compress** button for one file.
 - [ ] iPhone HEIC photo → becomes a `.jpg`, with date / camera / GPS kept.

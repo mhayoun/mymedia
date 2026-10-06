@@ -7,7 +7,9 @@ export type KeepOriginal = 'version' | 'folder' | 'both'
 export type VideoQuality = 'low' | 'medium' | 'high'
 
 export interface CompressSettings {
-  /** Compress new photos found in Drive automatically when bigger than autoPhotoMinMB. */
+  /** New big files found in Drive: propose a list (ask), compress silently (auto), or nothing (off). */
+  autoMode: 'ask' | 'auto' | 'off'
+  /** New photos found in Drive are considered when bigger than autoPhotoMinMB. */
   autoPhotos: boolean
   autoPhotoMinMB: number
   /** Same for videos (only on a computer able to encode H.264). */
@@ -31,6 +33,7 @@ export interface CompressSettings {
 }
 
 export const DEFAULT_COMPRESS: CompressSettings = {
+  autoMode: 'ask',
   autoPhotos: true,
   autoPhotoMinMB: 3,
   autoVideos: true,

@@ -253,12 +253,13 @@
       "compressed": "Compressed by MyMedia",
       "already": "Already compressed",
       "none": "Kept unchanged (not enough gain)",
-      "not": "Not compressed"
+      "not": "Not compressed",
+      "declined": "Not proposed (you unticked it)"
     },
     "settingsTitle": "Compression",
-    "autoTitle": "Automatic (new files found in Drive)",
-    "autoPhotos": "Compress new photos bigger than",
-    "autoVideos": "Compress new videos bigger than",
+    "autoTitle": "When big new files are found in Drive",
+    "autoPhotos": "Consider photos bigger than",
+    "autoVideos": "Consider videos bigger than",
     "autoHint": "Files you already had stay as they are: use the Compress button on an album to compress them. Videos are compressed only on a computer.",
     "originsTitle": "Automatic compression for photos from:",
     "photosTitle": "Photos",
@@ -290,6 +291,26 @@
     "limitsTitle": "Limits",
     "minSize": "Never compress files smaller than",
     "minGain": "Keep the file unchanged if it saves less than",
-    "defaults": "Restore default settings"
+    "defaults": "Restore default settings",
+    "offerTitle": "New files to compress",
+    "offerIntro": "These new files are big. Tick the ones to compress:",
+    "chooseIntro": "Tick the files to compress:",
+    "selectAll": "Select all",
+    "selectNone": "Select none",
+    "selection_one": "{{count}} file selected",
+    "selection_other": "{{count}} files selected",
+    "savedEstimate": "(about {{saved}} saved)",
+    "later": "Later",
+    "startN_one": "Compress {{count}} file",
+    "startN_other": "Compress {{count}} files",
+    "uncheckedHint": "Unticked files will not be proposed again (you can still compress them later with the Compress button).",
+    "waiting": "waiting…",
+    "keptUnchanged": "kept unchanged (not enough gain)",
+    "failed": "failed",
+    "autoMode": {
+      "ask": "Show me the list and let me choose (recommended)",
+      "auto": "Compress them automatically",
+      "off": "Do nothing"
+    }
   }
 }

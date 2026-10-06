@@ -139,6 +139,12 @@ export function SettingsPanel() {
         <section>
           <h3>{t('compress.settingsTitle')}</h3>
           <h4>{t('compress.autoTitle')}</h4>
+          {(['ask', 'auto', 'off'] as const).map((m) => (
+            <label key={m} className="radio-row">
+              <input type="radio" name="autoMode" checked={c.autoMode === m} onChange={() => setC({ autoMode: m })} />
+              {t(`compress.autoMode.${m}`)}
+            </label>
+          ))}
           <label className="radio-row">
             <input type="checkbox" checked={c.autoPhotos} onChange={(e) => setC({ autoPhotos: e.target.checked })} />
             {t('compress.autoPhotos')}

@@ -1,8 +1,8 @@
-// Work done in the background after each load from Drive, in this order:
-// compress new big files first (so their fingerprint is made only once),
-// then learn new fingerprints and classify.
+// Work done in the background after each load from Drive: look for new big
+// files to compress (a list is proposed to the user), then learn new
+// fingerprints and classify. A file compressed later keeps its fingerprint.
 
-import { autoCompress } from './compress/engine'
+import { afterLoadCompression } from './compress/engine'
 import { startIndexer } from './ml/indexer'
 
 let running: Promise<void> | null = null
@@ -10,7 +10,7 @@ let running: Promise<void> | null = null
 export function afterSync(): Promise<void> {
   running ??= (async () => {
     try {
-      await autoCompress()
+      await afterLoadCompression()
     } catch (e) {
       console.error('[MyMedia] automatic compression failed', e)
     }

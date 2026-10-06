@@ -323,7 +323,7 @@ function InfoPanel({ item }: { item: LibraryItem }) {
           {t('compress.button')}
         </button>
       )}
-      {compressOpen && <CompressDialog title={t('compress.titleFor', { name: rec.name })} items={[rec]} onClose={() => setCompressOpen(false)} />}
+      {compressOpen && <CompressDialog mode="manual" title={t('compress.titleFor', { name: rec.name })} items={[rec]} onClose={() => setCompressOpen(false)} />}
       {lib && (
         <label className="field">
           {t('classify.moveTo')}

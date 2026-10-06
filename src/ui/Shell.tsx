@@ -36,6 +36,7 @@ export function Shell() {
   const sort = useApp((s) => s.settings.sort)
   const settingsOpen = useApp((s) => s.settingsOpen)
   const statsOpen = useApp((s) => s.statsOpen)
+  const compressOffer = useApp((s) => s.compressOffer)
   const [dialog, setDialog] = useState<DialogState>(null)
   useAutoSync()
 
@@ -69,6 +70,9 @@ export function Shell() {
       </div>
       {settingsOpen && <SettingsPanel />}
       {statsOpen && <StatsDialog lib={lib} />}
+      {compressOffer && (
+        <CompressDialog mode="offer" title={t('compress.offerTitle')} planned={compressOffer} onClose={() => useApp.getState().set({ compressOffer: null })} />
+      )}
       <Toast />
 
       {dialog?.kind === 'newCategory' && rootId && (
@@ -103,6 +107,7 @@ export function Shell() {
       )}
       {dialog?.kind === 'compress' && (
         <CompressDialog
+          mode="manual"
           title={dialog.title}
           items={(dialog.folderId
             ? (() => {

@@ -251,12 +251,13 @@
       "compressed": "Compressé par MyMedia",
       "already": "Déjà compressé",
       "none": "Laissé tel quel (gain insuffisant)",
-      "not": "Non compressé"
+      "not": "Non compressé",
+      "declined": "Non proposé (vous l'avez décoché)"
     },
     "settingsTitle": "Compression",
-    "autoTitle": "Automatique (nouveaux fichiers trouvés dans Drive)",
-    "autoPhotos": "Compresser les nouvelles photos de plus de",
-    "autoVideos": "Compresser les nouvelles vidéos de plus de",
+    "autoTitle": "Quand de gros nouveaux fichiers arrivent dans Drive",
+    "autoPhotos": "Photos de plus de",
+    "autoVideos": "Vidéos de plus de",
     "autoHint": "Les fichiers que vous aviez déjà restent tels quels : utilisez le bouton Compresser sur un album pour les compresser. Les vidéos ne sont compressées que sur un ordinateur.",
     "originsTitle": "Compression automatique pour les photos venant de :",
     "photosTitle": "Photos",
@@ -288,6 +289,26 @@
     "limitsTitle": "Limites",
     "minSize": "Ne jamais compresser les fichiers de moins de",
     "minGain": "Laisser le fichier tel quel s'il gagne moins de",
-    "defaults": "Rétablir les réglages par défaut"
+    "defaults": "Rétablir les réglages par défaut",
+    "offerTitle": "Nouveaux fichiers à compresser",
+    "offerIntro": "Ces nouveaux fichiers sont volumineux. Cochez ceux à compresser :",
+    "chooseIntro": "Cochez les fichiers à compresser :",
+    "selectAll": "Tout cocher",
+    "selectNone": "Tout décocher",
+    "selection_one": "{{count}} fichier choisi",
+    "selection_other": "{{count}} fichiers choisis",
+    "savedEstimate": "(environ {{saved}} gagnés)",
+    "later": "Plus tard",
+    "startN_one": "Compresser {{count}} fichier",
+    "startN_other": "Compresser {{count}} fichiers",
+    "uncheckedHint": "Les fichiers décochés ne seront plus proposés (vous pourrez toujours les compresser avec le bouton Compresser).",
+    "waiting": "en attente…",
+    "keptUnchanged": "laissé tel quel (gain insuffisant)",
+    "failed": "échec",
+    "autoMode": {
+      "ask": "Me montrer la liste et me laisser choisir (recommandé)",
+      "auto": "Les compresser automatiquement",
+      "off": "Ne rien faire"
+    }
   }
 }

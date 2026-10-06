@@ -12,7 +12,7 @@ export interface SpeciesNames {
 }
 
 export interface CompressionInfo {
-  status: 'compressed' | 'already' | 'none'
+  status: 'compressed' | 'already' | 'none' | 'declined'
   sizeBefore?: number
   sizeAfter?: number
   date?: string
