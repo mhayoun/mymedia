@@ -1,8 +1,9 @@
-import { Search, SlidersHorizontal, X } from 'lucide-react'
+import { CheckSquare, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ORIGINS, type Origin } from '../lib/media'
 import type { CompressionState } from '../lib/search'
+import { useFormat } from '../i18n/format'
 import { useApp, type Filters } from '../store'
 import type { People } from './usePeople'
 
@@ -11,8 +12,11 @@ const STATUSES: Status[] = ['classified', 'toClassify', 'toCheck', 'auto']
 const COMPRESSIONS: CompressionState[] = ['compressed', 'already', 'not']
 
 /** Search box + extra filters (origin, classification, compression, person), with removable chips. */
-export function FilterBar({ people }: { people: People }) {
+export function FilterBar({ people, count }: { people: People; count: number }) {
   const { t } = useTranslation()
+  const fmt = useFormat()
+  const selection = useApp((s) => s.selection)
+  const set = useApp((s) => s.set)
   const filters = useApp((s) => s.filters)
   const setFilters = useApp((s) => s.setFilters)
   const [query, setQuery] = useState(filters.query ?? '')
@@ -49,11 +53,21 @@ export function FilterBar({ people }: { people: People }) {
             </button>
           )}
         </label>
-        <button className={`btn ${open || active ? 'primary' : ''}`} onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+        <button className={`btn ${open || active ? 'primary' : ''}`} onClick={() => setOpen((v) => !v)} aria-expanded={open} title={t('filters.button')}>
           <SlidersHorizontal size={16} />
           <span className="only-desktop">{t('filters.button')}</span>
           {active > 0 && <span className="badge-count">{active}</span>}
         </button>
+        <button className={`btn ${selection ? 'primary' : ''}`} onClick={() => set({ selection: selection ? null : [] })} title={t('select.button')}>
+          <CheckSquare size={16} />
+          <span className="only-desktop">{t('select.button')}</span>
+        </button>
+        <span className="result-count" title={t('gallery.count', { count })}>
+          {fmt.number(count)}
+        </span>
+      </div>
+      {chips.length > 0 && (
+        <div className="row">
         {chips.map((c) => (
           <span key={c.key} className="chip">
             {c.label}
@@ -62,7 +76,8 @@ export function FilterBar({ people }: { people: People }) {
             </button>
           </span>
         ))}
-      </div>
+        </div>
+      )}
       {open && (
         <div className="filter-panel">
           <label className="field">

@@ -103,6 +103,8 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .topbar .sync-info { color: var(--text-2); font-size: 0.85rem; }
 .avatar { inline-size: 32px; block-size: 32px; border-radius: 50%; }
 .only-mobile { display: none; }
+.only-mobile-inline { display: none; }
+.sync-info { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 
 .banner {
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
@@ -215,6 +217,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 /* ---------- Small screens ---------- */
 @media (max-width: 800px) {
   .only-mobile { display: inline-grid; }
+  .only-mobile-inline { display: inline; }
   .only-desktop { display: none !important; }
   .body { grid-template-columns: 1fr; }
   .sidebar {
@@ -302,7 +305,8 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 
 /* ---------- Search & filters ---------- */
 .filter-bar { padding: 8px 14px; border-block-end: 1px solid var(--border); display: grid; gap: 8px; }
-.filter-bar .search { display: flex; align-items: center; gap: 6px; flex: 1 1 220px; max-inline-size: 420px; border: 1px solid var(--border); border-radius: 8px; padding-inline: 10px 4px; background: var(--surface); color: var(--text-2); }
+.filter-bar > .row:first-child { flex-wrap: nowrap; }
+.filter-bar .search { display: flex; align-items: center; gap: 6px; flex: 1 1 120px; min-inline-size: 0; max-inline-size: 420px; border: 1px solid var(--border); border-radius: 8px; padding-inline: 10px 4px; background: var(--surface); color: var(--text-2); }
 .filter-bar .search input { border: none; padding-inline: 0; background: transparent; outline: none; }
 .filter-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px 12px; align-items: end; }
 .filter-panel .field { margin: 0; }
@@ -323,3 +327,12 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .cell.selected .check { background: var(--accent); border-color: var(--accent); }
 .cell.selected img { transform: scale(0.92); transition: transform 0.1s; }
 .selecting .gallery-scroll { padding-block-end: 70px; }
+
+.toolbar .grow, .grow { flex: 1; }
+.result-count { color: var(--text-2); font-variant-numeric: tabular-nums; white-space: nowrap; padding-inline: 4px; }
+.filter-bar .search input { min-inline-size: 0; }
+@media (max-width: 800px) {
+  .topbar { gap: 4px; }
+  .topbar .btn { padding: 8px 10px; }
+  .topbar .title span { display: none; }
+}

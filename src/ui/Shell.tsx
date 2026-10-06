@@ -1,4 +1,4 @@
-import { Brain, CheckSquare, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
+import { Brain, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -63,6 +63,14 @@ export function Shell() {
   }, [rootId])
 
   const personMedia = filters.personId ? people.byId.get(filters.personId)?.mediaIds : undefined
+  // Folder shown (album or category), used by Add and Compress in the top bar.
+  const specialView = [UNFILED, TO_CLASSIFY, AUTO, PEOPLE].includes(filters.categoryId ?? '') || !!filters.personId
+  const currentFolderId = filters.albumId ?? (!specialView && filters.categoryId && lib.folders.has(filters.categoryId) ? filters.categoryId : null)
+  const currentTitle = currentFolderId
+    ? (lib.folders.get(currentFolderId)?.name ?? '')
+    : filters.personId
+      ? (people.byId.get(filters.personId)?.name ?? t('faces.unnamed'))
+      : t('nav.allMedia')
   const items = useMemo(
     () => (rootId ? sortItems(filterItems(lib, filters, rootId, personMedia ?? new Set()), sort) : []),
     [lib, filters, rootId, sort, personMedia],
@@ -78,13 +86,16 @@ export function Shell() {
     <PeopleContext.Provider value={people}>
     <PersonDialogContext.Provider value={setPersonOpen}>
     <div className={`shell ${selection ? 'selecting' : ''}`}>
-      <TopBar />
+      <TopBar
+        onAdd={() => setDialog({ kind: 'import', destId: currentFolderId ?? rootId! })}
+        onCompress={() => setDialog({ kind: 'compress', title: t('compress.titleFor', { name: currentTitle }), folderId: currentFolderId })}
+      />
       <Banners />
       <div className="body">
         <Sidebar lib={lib} people={people} onNewCategory={() => setDialog({ kind: 'newCategory' })} />
         <main className="main">
-          <Toolbar lib={lib} people={people} count={filters.categoryId === PEOPLE ? people.named.length + people.unnamed.length : items.length} onDialog={setDialog} />
-          {filters.categoryId !== PEOPLE && <FilterBar people={people} />}
+          <Toolbar lib={lib} people={people} onDialog={setDialog} />
+          {filters.categoryId !== PEOPLE && <FilterBar people={people} count={items.length} />}
           {filters.categoryId === PEOPLE ? (
             <PeopleView people={people} />
           ) : lib.ready && items.length === 0 ? (
@@ -180,7 +191,7 @@ export function Shell() {
   )
 }
 
-function TopBar() {
+function TopBar({ onAdd, onCompress }: { onAdd: () => void; onCompress: () => void }) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const user = useApp((s) => s.user)
@@ -208,7 +219,9 @@ function TopBar() {
       {compressing && (
         <>
           <span className="sync-info" aria-live="polite">
-            <Minimize2 size={14} /> {t('compress.progress', { done: fmt.number(compressing.done + 1), total: fmt.number(compressing.total) })}
+            <Minimize2 size={14} />
+            <span className="only-desktop"> {t('compress.progress', { done: fmt.number(compressing.done + 1), total: fmt.number(compressing.total) })}</span>
+            <span className="only-mobile-inline">{fmt.number(compressing.done + 1)}/{fmt.number(compressing.total)}</span>
           </span>
           <button className="icon-btn small" onClick={cancelCompression} aria-label={t('common.cancel')} title={t('common.cancel')}>
             <X size={16} />
@@ -218,7 +231,9 @@ function TopBar() {
       {indexing && !sync && !compressing && (
         <>
           <span className="sync-info" aria-live="polite" title={t('classify.learningHint')}>
-            <Brain size={14} /> {t('classify.learning', { done: fmt.number(indexing.done), total: fmt.number(indexing.total) })}
+            <Brain size={14} />
+            <span className="only-desktop"> {t('classify.learning', { done: fmt.number(indexing.done), total: fmt.number(indexing.total) })}</span>
+            <span className="only-mobile-inline">{fmt.number(indexing.done)}/{fmt.number(indexing.total)}</span>
           </span>
           <button className="icon-btn small" onClick={stopIndexer} aria-label={t('classify.pause')} title={t('classify.pause')}>
             <Pause size={16} />
@@ -228,7 +243,9 @@ function TopBar() {
       {sync ? (
         <>
           <span className="sync-info" aria-live="polite">
-            <RefreshCw size={14} className="spin" /> {t(sync.step, { done: fmt.number(sync.done), total: fmt.number(sync.total) })}
+            <RefreshCw size={14} className="spin" />
+            <span className="only-desktop"> {t(sync.step, { done: fmt.number(sync.done), total: fmt.number(sync.total) })}</span>
+            <span className="only-mobile-inline">{sync.total ? `${fmt.number(sync.done)}/${fmt.number(sync.total)}` : sync.done ? fmt.number(sync.done) : ''}</span>
           </span>
           <button className="icon-btn small" onClick={cancelSync} aria-label={t('sync.cancel')} title={t('sync.cancel')}>
             <X size={18} />
@@ -239,12 +256,20 @@ function TopBar() {
           <span className="sync-info only-desktop">
             {lastSyncAt ? t('sync.lastSync', { time: fmt.time(lastSyncAt) }) : ''}
           </span>
-          <button className="btn" onClick={() => void syncNow()} disabled={!online}>
+          <button className="btn" onClick={() => void syncNow()} disabled={!online} title={t('gallery.loadNew')}>
             <RefreshCw size={16} />
             <span className="only-desktop">{t('gallery.loadNew')}</span>
           </button>
         </>
       )}
+      <button className="btn primary" onClick={onAdd} disabled={!online} title={t('import.button')}>
+        <ImagePlus size={16} />
+        <span className="only-desktop">{t('import.button')}</span>
+      </button>
+      <button className="btn" onClick={onCompress} disabled={!online} title={t('compress.button')}>
+        <Minimize2 size={16} />
+        <span className="only-desktop">{t('compress.button')}</span>
+      </button>
       <button className="icon-btn" onClick={() => set({ settingsOpen: true })} aria-label={t('nav.settings')}>
         {user?.photo ? <img className="avatar" src={user.photo} alt="" referrerPolicy="no-referrer" /> : <SettingsIcon />}
       </button>
@@ -283,9 +308,8 @@ function Banners() {
   )
 }
 
-function Toolbar({ lib, people, count, onDialog }: { lib: Library; people: People; count: number; onDialog: (d: DialogState) => void }) {
+function Toolbar({ lib, people, onDialog }: { lib: Library; people: People; onDialog: (d: DialogState) => void }) {
   const { t } = useTranslation()
-  const selection = useApp((s) => s.selection)
   const filters = useApp((s) => s.filters)
   const setFilters = useApp((s) => s.setFilters)
   const settings = useApp((s) => s.settings)
@@ -333,12 +357,16 @@ function Toolbar({ lib, people, count, onDialog }: { lib: Library; people: Peopl
     )
   }
 
+  const showTitle = special || !!folder
   return (
     <div className="toolbar">
-      <h1>
-        <bdi>{title}</bdi>
-        <span className="count">{t('gallery.count', { count })}</span>
-      </h1>
+      {showTitle ? (
+        <h1>
+          <bdi>{title}</bdi>
+        </h1>
+      ) : (
+        <span className="grow" />
+      )}
       {folder && (
         <span className="row">
           <button
@@ -367,30 +395,6 @@ function Toolbar({ lib, people, count, onDialog }: { lib: Library; people: Peopl
           </button>
         </span>
       )}
-      <button
-        className="btn primary"
-        title={t('import.button')}
-        onClick={() => onDialog({ kind: 'import', destId: folder?.id ?? useApp.getState().rootId! })}
-      >
-        <ImagePlus size={18} />
-        <span className="only-desktop">{t('import.button')}</span>
-      </button>
-      <button
-        className="btn"
-        title={t('compress.button')}
-        onClick={() => onDialog({ kind: 'compress', title: t('compress.titleFor', { name: title }), folderId: folder?.id ?? null })}
-      >
-        <Minimize2 size={18} />
-        <span className="only-desktop">{t('compress.button')}</span>
-      </button>
-      <button
-        className={`btn ${selection ? 'primary' : ''}`}
-        title={t('select.button')}
-        onClick={() => useApp.getState().set({ selection: selection ? null : [] })}
-      >
-        <CheckSquare size={18} />
-        <span className="only-desktop">{t('select.button')}</span>
-      </button>
       <div className="segmented" role="group" aria-label={t('gallery.viewGrid')}>
         <button aria-pressed={settings.view === 'grid'} onClick={() => updateSettings({ view: 'grid' })} title={t('gallery.viewGrid')}>
           <LayoutGrid size={16} />
