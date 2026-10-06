@@ -270,7 +270,7 @@ function TopBar() {
         </>
       )}
 
-      <button className="icon-btn only-desktop" onClick={() => set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
+      <button className="icon-btn" onClick={() => set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
         <CircleHelp />
       </button>
       <button className="icon-btn" onClick={() => set({ settingsOpen: true })} aria-label={t('nav.settings')}>

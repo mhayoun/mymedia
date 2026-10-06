@@ -336,8 +336,13 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .result-count { color: var(--text-2); font-variant-numeric: tabular-nums; white-space: nowrap; padding-inline: 4px; }
 .filter-bar .search input { min-inline-size: 0; }
 @media (max-width: 800px) {
-  .topbar { gap: 4px; }
-  .topbar .btn { padding: 8px 10px; }
+  .topbar { gap: 2px; padding-inline: 4px 6px; }
+  .topbar .btn { padding: 7px 9px; }
+  .topbar .icon-btn { inline-size: 34px; block-size: 34px; }
+  .topbar .icon-btn.small { inline-size: 26px; block-size: 26px; }
+  .topbar .title { font-size: 1rem; gap: 6px; }
+  .topbar .title img { inline-size: 24px; block-size: 24px; }
+  .topbar .avatar { inline-size: 28px; block-size: 28px; }
 }
 
 /* ---------- Help ---------- */
