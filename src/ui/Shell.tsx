@@ -316,12 +316,12 @@ function Toolbar({ lib, count, onDialog }: { lib: Library; count: number; onDial
         <span className="only-desktop">{t('import.button')}</span>
       </button>
       <button
-        className="icon-btn small"
+        className="btn"
         title={t('compress.button')}
-        aria-label={t('compress.button')}
         onClick={() => onDialog({ kind: 'compress', title: t('compress.titleFor', { name: title }), folderId: folder?.id ?? null })}
       >
         <Minimize2 size={18} />
+        <span className="only-desktop">{t('compress.button')}</span>
       </button>
       <div className="segmented" role="group" aria-label={t('gallery.viewGrid')}>
         <button aria-pressed={settings.view === 'grid'} onClick={() => updateSettings({ view: 'grid' })} title={t('gallery.viewGrid')}>
