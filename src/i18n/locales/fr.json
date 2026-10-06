@@ -402,7 +402,8 @@
       "compressed": "Compressés",
       "already": "Déjà compressés",
       "not": "Non compressés"
-    }
+    },
+    "album": "Album"
   },
   "select": {
     "button": "Sélectionner",

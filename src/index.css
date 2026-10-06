@@ -338,5 +338,4 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 @media (max-width: 800px) {
   .topbar { gap: 4px; }
   .topbar .btn { padding: 8px 10px; }
-  .topbar .title span { display: none; }
 }

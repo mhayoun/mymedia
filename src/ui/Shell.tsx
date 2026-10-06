@@ -99,7 +99,7 @@ export function Shell() {
             onAdd={() => setDialog({ kind: 'import', destId: currentFolderId ?? rootId! })}
             onCompress={() => setDialog({ kind: 'compress', title: t('compress.titleFor', { name: currentTitle }), folderId: currentFolderId })}
           />
-          {filters.categoryId !== PEOPLE && <FilterBar people={people} />}
+          {filters.categoryId !== PEOPLE && <FilterBar people={people} lib={lib} />}
           {filters.categoryId === PEOPLE ? (
             <PeopleView people={people} />
           ) : lib.ready && items.length === 0 ? (
@@ -433,9 +433,9 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
         <option value="photo">{t('gallery.typePhoto')}</option>
         <option value="video">{t('gallery.typeVideo')}</option>
       </select>
-      <span className="grow" />
       <span className="result-count" title={t('gallery.count', { count })}>
-        {fmt.number(count)}
+        <span className="only-desktop">{t('gallery.count', { count })}</span>
+        <span className="only-mobile-inline">{fmt.number(count)}</span>
       </span>
       <span className="grow" />
       <button className="btn primary" onClick={onAdd} title={t('import.button')}>

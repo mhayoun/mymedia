@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ORIGINS, type Origin } from '../lib/media'
 import type { CompressionState } from '../lib/search'
 import { useApp, type Filters } from '../store'
+import type { FolderInfo, Library } from './useLibrary'
 import type { People } from './usePeople'
 
 type Status = NonNullable<Filters['status']>
@@ -11,7 +12,15 @@ const STATUSES: Status[] = ['classified', 'toClassify', 'toCheck', 'auto']
 const COMPRESSIONS: CompressionState[] = ['compressed', 'already', 'not']
 
 /** Search box + extra filters (origin, classification, compression, person), with removable chips. */
-export function FilterBar({ people }: { people: People }) {
+/** Categories and their albums, albums indented. */
+function folderOptions(list: FolderInfo[], depth = 0): { id: string; label: string; categoryId: string }[] {
+  return list.flatMap((f) => [
+    { id: f.id, label: '\u2003'.repeat(depth) + f.name, categoryId: '' },
+    ...folderOptions(f.children, depth + 1),
+  ])
+}
+
+export function FilterBar({ people, lib }: { people: People; lib: Library }) {
   const { t } = useTranslation()
   const selection = useApp((s) => s.selection)
   const set = useApp((s) => s.set)
@@ -75,6 +84,30 @@ export function FilterBar({ people }: { people: People }) {
       )}
       {open && (
         <div className="filter-panel">
+          <label className="field">
+            {t('filters.album')}
+            <select
+              value={filters.albumId ?? (filters.categoryId && lib.folders.has(filters.categoryId) ? filters.categoryId : '')}
+              onChange={(e) => {
+                const id = e.target.value
+                if (!id) return setFilters({ categoryId: null, albumId: null })
+                // Find the category of the chosen folder.
+                let f = lib.folders.get(id)
+                while (f && lib.folders.get(f.parentId)) f = lib.folders.get(f.parentId)
+                const categoryId = f?.id ?? id
+                setFilters({ categoryId, albumId: categoryId === id ? null : id, personId: null })
+              }}
+            >
+              <option value="">{t('common.all')}</option>
+              {lib.categories.map((c) => (
+                <optgroup key={c.id} label={c.name}>
+                  {folderOptions([c]).map((o) => (
+                    <option key={o.id} value={o.id}>{o.label}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </label>
           <label className="field">
             {t('viewer.origin')}
             <select value={filters.origin ?? ''} onChange={(e) => setFilters({ origin: (e.target.value || null) as Origin | null })}>
