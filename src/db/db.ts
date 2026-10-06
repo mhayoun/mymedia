@@ -45,6 +45,37 @@ export interface EmbeddingRecord {
   failed?: boolean
 }
 
+/** A face found in a media file. */
+export interface FaceRecord {
+  /** `${mediaId}#${n}` */
+  id: string
+  mediaId: string
+  /** Version (md5) of the media when the face was found. */
+  version: string
+  /** Position in the picture, 0..1: x, y, width, height. */
+  box: [number, number, number, number]
+  score: number
+  emb: Int8Array
+  /** Group (person) of this face; null = removed from its group by the user. */
+  personId: string | null
+  /** 'auto' = grouped by MyMedia, 'manual' = decided by the user. */
+  by: 'auto' | 'manual'
+  /** A named person this face probably is (waiting for confirmation). */
+  suggested?: string
+  /** People this face is NOT (the user removed it from them). */
+  rejected?: string[]
+  updatedAt: number
+}
+
+/** A group of faces of the same person; named or not yet. */
+export interface PersonRecord {
+  id: string
+  name?: string
+  updatedAt: number
+  /** This group was merged into another one. */
+  mergedInto?: string
+}
+
 export interface KvRecord {
   key: string
   value: unknown
@@ -56,6 +87,11 @@ export class MyMediaDB extends Dexie {
   meta!: Table<MediaMeta, string>
   thumbs!: Table<ThumbRecord, string>
   embeddings!: Table<EmbeddingRecord, string>
+  faces!: Table<FaceRecord, string>
+  faceCrops!: Table<{ id: string; blob: Blob }, string>
+  /** Media already searched for faces: id → version. */
+  faceScans!: Table<{ id: string; version: string }, string>
+  persons!: Table<PersonRecord, string>
   kv!: Table<KvRecord, string>
 
   constructor(name: string) {
@@ -68,6 +104,7 @@ export class MyMediaDB extends Dexie {
       kv: '&key',
     })
     this.version(2).stores({ embeddings: '&id' })
+    this.version(3).stores({ faces: '&id, mediaId, personId', faceCrops: '&id', faceScans: '&id', persons: '&id' })
   }
 
   async getKv<T>(key: string): Promise<T | undefined> {

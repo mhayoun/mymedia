@@ -1,6 +1,7 @@
 // App side of the ML worker.
 
 import type { LabelStats, Prediction } from '../lib/classifier'
+import type { FoundFace } from './faceModel'
 import type { PackedSet, Query, Request } from './protocol'
 
 let worker: Worker | null = null
@@ -19,7 +20,13 @@ function call<T>(req: Request, transfer: Transferable[] = []): Promise<T> {
     }
     const base = import.meta.env.BASE_URL
     const abs = (path: string) => new URL(`${base}${path}`, location.href).href
-    void call({ type: 'init', modelUrl: abs('models/dinov2-small/model_quantized.onnx'), wasmUrl: abs('ort/ort-wasm-simd-threaded.wasm') })
+    void call({
+      type: 'init',
+      modelUrl: abs('models/dinov2-small/model_quantized.onnx'),
+      wasmUrl: abs('ort/ort-wasm-simd-threaded.wasm'),
+      faceDetUrl: abs('models/faces/yunet_2023mar.onnx'),
+      faceRecUrl: abs('models/faces/sface_2021dec.onnx'),
+    })
   }
   const id = nextId++
   return new Promise<T>((resolve, reject) => {
@@ -43,4 +50,9 @@ export function calibrateTau(set: PackedSet): Promise<number> {
 
 export function evaluateSet(set: PackedSet, tau: number): Promise<LabelStats[]> {
   return call({ type: 'evaluate', set, tau })
+}
+
+/** Faces in each image (detection + fingerprint), computed on the device. */
+export function findFacesIn(images: Blob[]): Promise<FoundFace[][]> {
+  return call({ type: 'faces', images })
 }

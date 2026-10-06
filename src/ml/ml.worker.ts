@@ -4,6 +4,7 @@
 
 import * as ort from 'onnxruntime-web/wasm'
 import { average, calibrate, evaluate, predict, quantize, type LabeledVec, type Vec } from '../lib/classifier'
+import { findFaces, initFaceModels } from './faceModel'
 import type { PackedSet, Request } from './protocol'
 
 const SIZE = 224
@@ -13,7 +14,7 @@ const STD = [0.229, 0.224, 0.225]
 const MODEL_CACHE = 'mymedia-models-v1'
 
 let session: Promise<ort.InferenceSession> | null = null
-let config: { modelUrl: string; wasmUrl: string } | null = null
+let config: { modelUrl: string; wasmUrl: string; faceDetUrl: string; faceRecUrl: string } | null = null
 
 async function cachedFetch(url: string): Promise<ArrayBuffer> {
   try {
@@ -94,8 +95,21 @@ function unpack(set: PackedSet): LabeledVec[] {
 async function handle(req: Request): Promise<unknown> {
   switch (req.type) {
     case 'init':
-      config = { modelUrl: req.modelUrl, wasmUrl: req.wasmUrl }
+      config = { modelUrl: req.modelUrl, wasmUrl: req.wasmUrl, faceDetUrl: req.faceDetUrl, faceRecUrl: req.faceRecUrl }
       return true
+    case 'faces': {
+      if (!config) throw new Error('ML worker not initialised')
+      initFaceModels(cachedFetch, config.faceDetUrl, config.faceRecUrl, config.wasmUrl)
+      const all = []
+      for (const image of req.images) {
+        try {
+          all.push(await findFaces(image))
+        } catch {
+          all.push([])
+        }
+      }
+      return all
+    }
     case 'embed': {
       const vecs: Vec[] = []
       for (const blob of req.images) {

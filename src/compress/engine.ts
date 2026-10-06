@@ -153,6 +153,12 @@ async function compressOne(rec: MediaRecord, signal: AbortSignal, onFile: (p: nu
   const emb = await d.embeddings.get(rec.id)
   await d.media.put({ ...fresh, folderId: rec.folderId })
   if (emb?.vec) await d.embeddings.put({ ...emb, version: mediaVersion(fresh) })
+  // Same picture, same faces: keep them for the new version too.
+  if (await d.faceScans.get(rec.id)) {
+    await d.faceScans.put({ id: rec.id, version: mediaVersion(fresh) })
+    await d.faces.where('mediaId').equals(rec.id).modify({ version: mediaVersion(fresh), updatedAt: Date.now() })
+    await d.setKv('facesDirty', true)
+  }
   const meta = await d.meta.get(rec.id)
   if (meta) await d.meta.put({ ...meta, name, compression: { status: 'compressed', sizeBefore: rec.size, sizeAfter: blob.size, date: new Date().toISOString() }, updatedAt: Date.now() })
   await markMetaDirty()

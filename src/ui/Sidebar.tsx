@@ -1,22 +1,26 @@
-import { Folder, FolderOpen, Images, Inbox, Plus, Sparkles, Wand2 } from 'lucide-react'
+import { Folder, FolderOpen, Images, Inbox, Plus, Sparkles, Users, Wand2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '../store'
-import { AUTO, TO_CLASSIFY, UNFILED, type FolderInfo, type Library } from './useLibrary'
+import { FaceImg } from './FaceImg'
+import { AUTO, PEOPLE, TO_CLASSIFY, UNFILED, type FolderInfo, type Library } from './useLibrary'
+import type { People } from './usePeople'
 
 interface Props {
   lib: Library
+  people: People
   onNewCategory: () => void
 }
 
-export function Sidebar({ lib, onNewCategory }: Props) {
+export function Sidebar({ lib, people, onNewCategory }: Props) {
   const { t } = useTranslation()
   const filters = useApp((s) => s.filters)
   const setFilters = useApp((s) => s.setFilters)
   const open = useApp((s) => s.sidebarOpen)
   const set = useApp((s) => s.set)
 
+  const facesEnabled = useApp((s) => s.settings.facesEnabled)
   const select = (categoryId: string | null, albumId: string | null) => {
-    setFilters({ categoryId, albumId })
+    setFilters({ categoryId, albumId, personId: null })
     set({ sidebarOpen: false })
   }
   const total = lib.items.length
@@ -25,7 +29,7 @@ export function Sidebar({ lib, onNewCategory }: Props) {
     <>
       <div className={`scrim ${open ? 'open' : ''}`} onClick={() => set({ sidebarOpen: false })} />
       <nav className={`sidebar ${open ? 'open' : ''}`} aria-label={t('nav.categories')}>
-        <button className="nav-item" aria-current={!filters.categoryId} onClick={() => select(null, null)}>
+        <button className="nav-item" aria-current={!filters.categoryId && !filters.personId} onClick={() => select(null, null)}>
           <Images size={18} />
           <span className="label">{t('nav.allMedia')}</span>
           <span className="count">{total}</span>
@@ -76,6 +80,35 @@ export function Sidebar({ lib, onNewCategory }: Props) {
           <Plus size={18} />
           <span className="label">{t('nav.newCategory')}</span>
         </button>
+        {facesEnabled && (
+          <>
+            <h2>{t('faces.people')}</h2>
+            <button className="nav-item" aria-current={filters.categoryId === PEOPLE} onClick={() => select(PEOPLE, null)}>
+              <Users size={18} />
+              <span className="label">{t('faces.allPeople')}</span>
+              {people.toConfirm.length + people.unnamed.length > 0 && (
+                <span className="count">{t('faces.toReview', { count: people.toConfirm.length + people.unnamed.length })}</span>
+              )}
+            </button>
+            {people.named.map((p) => (
+              <button
+                key={p.id}
+                className="nav-item"
+                aria-current={filters.personId === p.id}
+                onClick={() => {
+                  setFilters({ personId: p.id, categoryId: null, albumId: null })
+                  set({ sidebarOpen: false })
+                }}
+              >
+                <FaceImg face={p.cover} size={22} />
+                <span className="label">
+                  <bdi>{p.name}</bdi>
+                </span>
+                <span className="count">{p.mediaIds.size}</span>
+              </button>
+            ))}
+          </>
+        )}
       </nav>
     </>
   )

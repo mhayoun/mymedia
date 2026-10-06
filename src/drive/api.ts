@@ -457,3 +457,8 @@ export async function setAppProperties(id: string, appProperties: Record<string,
     body: JSON.stringify({ appProperties }),
   })
 }
+
+/** Permanent deletion, only for MyMedia's own data files and after the user confirmed. */
+export async function deleteFilePermanently(id: string): Promise<void> {
+  await request(`${API}/files/${id}?supportsAllDrives=true`, { method: 'DELETE' })
+}

@@ -16,7 +16,8 @@ export interface Query {
 }
 
 export type Request =
-  | { type: 'init'; modelUrl: string; wasmUrl: string }
+  | { type: 'init'; modelUrl: string; wasmUrl: string; faceDetUrl: string; faceRecUrl: string }
+  | { type: 'faces'; images: Blob[] }
   | { type: 'embed'; images: Blob[] }
   | { type: 'predict'; set: PackedSet; queries: Query[]; tau: number }
   | { type: 'calibrate'; set: PackedSet }

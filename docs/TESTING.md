@@ -130,3 +130,20 @@ birds), then put a few new bird photos **directly in `MyMedia`** or directly in
 - [ ] Computer: **Choose a whole folder** (also from a USB stick / SD card) → sub-folders become albums under the destination ("Keep the sub-folders as albums").
 - [ ] **Another folder…** changes the destination before uploading.
 - [ ] Videos already copied into Drive earlier: after **Load new files**, they move to their real recording date in the gallery (sort "Newest first").
+
+## Phase 4 – Faces (§5)
+
+- [ ] First opening after the update: a window **"Face recognition is on"** explains what it does, that everything stays on the device and in your Drive, with a switch to turn it off and **Delete all face data**. It is shown only once.
+- [ ] After **Load new files**, the top bar shows "Learning x / y": faces are searched for at the same time (first time: one-off download of the face models, 38 MB per device).
+- [ ] Side menu → **People → All people**: **Faces to name** shows one picture per group of faces of the same person, with the number of photos.
+- [ ] Open a group → type a name (e.g. "Noa") → **Save** → the person appears in the side menu with their photo count.
+- [ ] Click the name in the side menu (or **See the N photos**) → only their photos are shown.
+- [ ] A new photo of that person (after Load new files) is named automatically.
+- [ ] **Is it Noa?** cards (uncertain faces): **Yes** adds the face to Noa, **No** never asks again for that face.
+- [ ] Two groups of the same person: open one → **Same person as…** → choose the other (or type the same name) → merged.
+- [ ] A wrong face in a group: tick it → **Not Noa** (leaves the group) or **Another person** (new group) or **Move to…** another person.
+- [ ] Large view → information panel → **People in this photo**: faces with names; click one → that person's window.
+- [ ] `mymedia-faces.json` appears in the `MyMedia` folder; on a second device the people and names are already there (faces are not searched again).
+- [ ] Settings → Faces → untick **Face recognition** → the People section disappears and no more faces are searched; tick again → back.
+- [ ] Settings → Faces → **Delete all face data** → confirmation → people and names are gone, `mymedia-faces.json` is deleted from Drive; photos untouched.
+- [ ] Compressing a photo keeps its faces and names.

@@ -12,6 +12,8 @@ export const UNFILED = '__unfiled'
 export const TO_CLASSIFY = '__toClassify'
 /** Media moved automatically and not yet reviewed. */
 export const AUTO = '__auto'
+/** The "People" screen. */
+export const PEOPLE = '__people'
 
 export interface LibraryItem {
   rec: MediaRecord
@@ -98,8 +100,9 @@ export function sortItems(items: LibraryItem[], sort: SortMode): LibraryItem[] {
   return out
 }
 
-export function filterItems(lib: Library, filters: Filters, rootId: string): LibraryItem[] {
+export function filterItems(lib: Library, filters: Filters, rootId: string, personMedia?: Set<string>): LibraryItem[] {
   let items = lib.items
+  if (filters.personId && personMedia) return items.filter((i) => personMedia.has(i.rec.id) && (filters.type === 'all' || i.rec.type === filters.type))
   if (filters.categoryId === TO_CLASSIFY) items = lib.toClassify
   else if (filters.categoryId === AUTO) items = lib.autoItems
   else if (filters.categoryId === UNFILED) items = items.filter((i) => i.rec.folderId === rootId)

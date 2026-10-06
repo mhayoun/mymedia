@@ -14,7 +14,9 @@ import { chooseFolder } from '../classify/engine'
 import { AlbumSelect } from './AlbumSelect'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog } from './Dialog'
+import { FaceImg } from './FaceImg'
 import { useLibraryContext } from './libraryContext'
+import { useOpenPerson, usePeopleContext } from './peopleContext'
 import type { LibraryItem } from './useLibrary'
 
 const PREVIEW_SIZE = 2048
@@ -255,6 +257,9 @@ function InfoPanel({ item }: { item: LibraryItem }) {
   const { rec, meta, place } = item
   const [moving, setMoving] = useState(false)
   const [compressOpen, setCompressOpen] = useState(false)
+  const people = usePeopleContext()
+  const openPerson = useOpenPerson()
+  const faces = people?.facesOfMedia.get(rec.id) ?? []
   const [description, setDescription] = useState(meta?.description ?? '')
 
   const saveDescription = () => {
@@ -318,6 +323,22 @@ function InfoPanel({ item }: { item: LibraryItem }) {
             : t(`compress.statusLabel.${meta?.compression?.status ?? (rec.appProperties?.mymedia_compressed ? 'compressed' : 'not')}`)}
         </dd>
       </dl>
+      {faces.length > 0 && (
+        <>
+          <div className="hint">{t('faces.inThisPhoto')}</div>
+          <div className="info-faces">
+            {faces.map((f) => {
+              const p = f.personId ? people?.byId.get(f.personId) : undefined
+              return (
+                <button key={f.id} onClick={() => p && openPerson(p.id)} disabled={!p} title={p?.name ?? t('faces.nameIt')}>
+                  <FaceImg face={f} size={48} />
+                  <span>{p?.name ? <bdi>{p.name}</bdi> : '?'}</span>
+                </button>
+              )
+            })}
+          </div>
+        </>
+      )}
       {!rec.appProperties?.mymedia_compressed && (
         <button className="btn" style={{ marginBlockEnd: 12 }} onClick={() => setCompressOpen(true)}>
           {t('compress.button')}

@@ -22,6 +22,8 @@ export interface Settings {
   /** Confidence above which a suggestion is shown without "To check". */
   thresholdMedium: number
   compress: CompressSettings
+  /** Face recognition (on the device only). */
+  facesEnabled: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -35,6 +37,7 @@ export const DEFAULT_SETTINGS: Settings = {
   thresholdHigh: 0.85,
   thresholdMedium: 0.6,
   compress: DEFAULT_COMPRESS,
+  facesEnabled: true,
 }
 
 const SETTINGS_KEY = 'mymedia.settings'
@@ -73,6 +76,8 @@ export interface Filters {
   /** "unfiled" = media directly in the root folder. */
   albumId: string | null
   type: 'all' | 'photo' | 'video'
+  /** Only media showing this person. */
+  personId?: string | null
 }
 
 interface AppState {

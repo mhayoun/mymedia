@@ -19,7 +19,12 @@ import { Sidebar } from './Sidebar'
 import { LibraryContext } from './libraryContext'
 import { ReviewView } from './ReviewView'
 import { StatsDialog } from './StatsDialog'
-import { AUTO, filterItems, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
+import { AUTO, filterItems, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
+import { FacesIntro } from './FacesIntro'
+import { PeopleContext, PersonDialogContext } from './peopleContext'
+import { PeopleView } from './PeopleView'
+import { PersonDialog } from './PersonDialog'
+import { usePeople, type People } from './usePeople'
 
 type DialogState =
   | { kind: 'newCategory' }
@@ -40,11 +45,14 @@ export function Shell() {
   const statsOpen = useApp((s) => s.statsOpen)
   const compressOffer = useApp((s) => s.compressOffer)
   const [dialog, setDialog] = useState<DialogState>(null)
+  const [personOpen, setPersonOpen] = useState<string | null>(null)
+  const people = usePeople()
   useAutoSync()
 
+  const personMedia = filters.personId ? people.byId.get(filters.personId)?.mediaIds : undefined
   const items = useMemo(
-    () => (rootId ? sortItems(filterItems(lib, filters, rootId), sort) : []),
-    [lib, filters, rootId, sort],
+    () => (rootId ? sortItems(filterItems(lib, filters, rootId, personMedia ?? new Set()), sort) : []),
+    [lib, filters, rootId, sort, personMedia],
   )
 
   const siblingsHaveName = (parentId: string, name: string, exceptId?: string) =>
@@ -54,14 +62,18 @@ export function Shell() {
 
   return (
     <LibraryContext.Provider value={lib}>
+    <PeopleContext.Provider value={people}>
+    <PersonDialogContext.Provider value={setPersonOpen}>
     <div className="shell">
       <TopBar />
       <Banners />
       <div className="body">
-        <Sidebar lib={lib} onNewCategory={() => setDialog({ kind: 'newCategory' })} />
+        <Sidebar lib={lib} people={people} onNewCategory={() => setDialog({ kind: 'newCategory' })} />
         <main className="main">
-          <Toolbar lib={lib} count={items.length} onDialog={setDialog} />
-          {lib.ready && items.length === 0 ? (
+          <Toolbar lib={lib} people={people} count={filters.categoryId === PEOPLE ? people.named.length + people.unnamed.length : items.length} onDialog={setDialog} />
+          {filters.categoryId === PEOPLE ? (
+            <PeopleView people={people} />
+          ) : lib.ready && items.length === 0 ? (
             <EmptyState />
           ) : filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO ? (
             <ReviewView lib={lib} items={items} mode={filters.categoryId === AUTO ? 'auto' : 'classify'} />
@@ -132,7 +144,11 @@ export function Shell() {
           onClose={() => setDialog(null)}
         />
       )}
+      {personOpen && <PersonDialog people={people} personId={personOpen} onClose={() => setPersonOpen(null)} />}
+      <FacesIntro people={people} />
     </div>
+    </PersonDialogContext.Provider>
+    </PeopleContext.Provider>
     </LibraryContext.Provider>
   )
 }
@@ -240,14 +256,15 @@ function Banners() {
   )
 }
 
-function Toolbar({ lib, count, onDialog }: { lib: Library; count: number; onDialog: (d: DialogState) => void }) {
+function Toolbar({ lib, people, count, onDialog }: { lib: Library; people: People; count: number; onDialog: (d: DialogState) => void }) {
   const { t } = useTranslation()
   const filters = useApp((s) => s.filters)
   const setFilters = useApp((s) => s.setFilters)
   const settings = useApp((s) => s.settings)
   const updateSettings = useApp((s) => s.updateSettings)
 
-  const special = filters.categoryId === UNFILED || filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO
+  const special =
+    filters.categoryId === UNFILED || filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO || filters.categoryId === PEOPLE || !!filters.personId
   const folderId = filters.albumId ?? (!special ? filters.categoryId : null)
   const folder = folderId ? lib.folders.get(folderId) : undefined
   const folderCount = useMemo(() => {
@@ -262,8 +279,12 @@ function Toolbar({ lib, count, onDialog }: { lib: Library; count: number; onDial
     return find(lib.categories) ?? 0
   }, [folder, lib])
 
-  const title =
-    filters.categoryId === UNFILED
+  const person = filters.personId ? people.byId.get(filters.personId) : undefined
+  const title = person
+    ? (person.name ?? t('faces.unnamed'))
+    : filters.categoryId === PEOPLE
+      ? t('faces.people')
+      : filters.categoryId === UNFILED
       ? t('nav.unfiled')
       : filters.categoryId === TO_CLASSIFY
         ? t('classify.toClassify')
@@ -272,6 +293,17 @@ function Toolbar({ lib, count, onDialog }: { lib: Library; count: number; onDial
           : folder
             ? folder.name
             : t('nav.allMedia')
+
+
+  if (filters.categoryId === PEOPLE) {
+    return (
+      <div className="toolbar">
+        <h1>
+          <bdi>{title}</bdi>
+        </h1>
+      </div>
+    )
+  }
 
   return (
     <div className="toolbar">

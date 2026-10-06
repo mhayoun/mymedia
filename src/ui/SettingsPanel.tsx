@@ -12,7 +12,9 @@ import { useApp, type Language } from '../store'
 import { rebuildIndex } from '../ml/indexer'
 import { syncNow } from '../sync/engine'
 import { useFormat } from '../i18n/format'
-import { PromptDialog } from './Dialog'
+import { ConfirmDialog, PromptDialog } from './Dialog'
+import { deleteAllFaceData } from '../faces/store'
+import { usePeopleContext } from './peopleContext'
 
 export function SettingsPanel() {
   const { t } = useTranslation()
@@ -24,6 +26,8 @@ export function SettingsPanel() {
   const [renaming, setRenaming] = useState(false)
   const [cleared, setCleared] = useState(false)
   const [rebuilt, setRebuilt] = useState(false)
+  const [deleteFaces, setDeleteFaces] = useState(false)
+  const people = usePeopleContext()
   const fmt = useFormat()
   const indexing = useApp((s) => s.indexing)
   const close = () => set({ settingsOpen: false })
@@ -134,6 +138,23 @@ export function SettingsPanel() {
               ? t('classify.learning', { done: fmt.number(indexing.done), total: fmt.number(indexing.total) })
               : t('classify.rebuildHint')}
           </p>
+        </section>
+
+        <section>
+          <h3>{t('faces.settingsTitle')}</h3>
+          <label className="radio-row">
+            <input type="checkbox" checked={settings.facesEnabled} onChange={(e) => updateSettings({ facesEnabled: e.target.checked })} />
+            {t('faces.enable')}
+          </label>
+          <p className="hint">{t('faces.introPrivacy')}</p>
+          {people && people.ready && (
+            <p className="hint">
+              {t('faces.stats', { named: people.named.length, groups: people.named.length + people.unnamed.length + people.single.length })}
+            </p>
+          )}
+          <button className="btn" onClick={() => setDeleteFaces(true)}>
+            {t('faces.deleteAll')}
+          </button>
         </section>
 
         <section>
@@ -295,6 +316,16 @@ export function SettingsPanel() {
         </section>
       </aside>
 
+      {deleteFaces && (
+        <ConfirmDialog
+          title={t('faces.deleteAllTitle')}
+          text={t('faces.deleteAllText')}
+          confirmLabel={t('common.delete')}
+          danger
+          onConfirm={deleteAllFaceData}
+          onClose={() => setDeleteFaces(false)}
+        />
+      )}
       {renaming && rootId && (
         <PromptDialog
           title={t('folders.renameTitle', { name: settings.rootName })}
