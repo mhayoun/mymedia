@@ -1,3 +1,4 @@
+// Not shown in the app for now (the user asked to hide the export); kept for later.
 import { FileSpreadsheet } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'

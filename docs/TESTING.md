@@ -162,11 +162,10 @@ birds), then put a few new bird photos **directly in `MyMedia`** or directly in
 - [ ] **Description**: the same description on all selected files.
 - [ ] **Person**: a name added by hand (photos where the face is not visible); then searchable and shown in the export.
 - [ ] **Compress** the selection (list with sizes, as in Phase 3).
-- [ ] **Export** the selection; **Delete** (Drive trash, after confirmation).
+- [ ] **Delete** the selection (Drive trash, after confirmation).
 
 ### Export
-- [ ] **Export** (toolbar) → Excel or CSV of the media shown (current album / filters / search), headers in the interface language: file name, date, category, album, description, people, species, origin, size, Drive link.
-- [ ] Excel file in Hebrew: the sheet is right-to-left and Hebrew is readable. CSV opens correctly in Excel (UTF-8; ";" separator in French).
+- (Hidden for now at the user's request.)
 
 ### Share menu (Android, installed app)
 - [ ] After installing the update (if MyMedia does not appear in the Share menu, uninstall and reinstall the app from Chrome), Gallery / WhatsApp → select photos → **Share** → **MyMedia**.

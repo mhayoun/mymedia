@@ -1,4 +1,4 @@
-import { CheckSquare, FileSpreadsheet, FolderInput, FolderPlus, Minimize2, Pencil, Trash2, UserPlus, X } from 'lucide-react'
+import { CheckSquare, FolderInput, FolderPlus, Minimize2, Pencil, Trash2, UserPlus, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder } from '../classify/engine'
@@ -9,11 +9,10 @@ import { addPersonByHand, setDescription, trashMedia } from '../sync/media'
 import { AlbumSelect } from './AlbumSelect'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog, PromptDialog } from './Dialog'
-import { ExportDialog } from './ExportDialog'
 import type { Library, LibraryItem } from './useLibrary'
 import type { People } from './usePeople'
 
-type Action = 'newAlbum' | 'description' | 'person' | 'compress' | 'delete' | 'export' | null
+type Action = 'newAlbum' | 'description' | 'person' | 'compress' | 'delete' | null
 
 /** Actions on the selected media (bottom bar). */
 export function SelectionBar({ lib, people, items, parentId }: { lib: Library; people: People; items: LibraryItem[]; parentId: string }) {
@@ -83,9 +82,6 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
             <button className="btn" onClick={() => setAction('compress')}>
               <Minimize2 size={16} /> <span className="only-desktop">{t('compress.button')}</span>
             </button>
-            <button className="btn" onClick={() => setAction('export')}>
-              <FileSpreadsheet size={16} /> <span className="only-desktop">{t('export.button')}</span>
-            </button>
             <button className="btn" onClick={() => setAction('delete')}>
               <Trash2 size={16} /> <span className="only-desktop">{t('common.delete')}</span>
             </button>
@@ -133,7 +129,6 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
       {action === 'compress' && (
         <CompressDialog mode="manual" title={t('select.compressTitle', { count: ids.length })} items={selectedItems.map((i) => i.rec)} onClose={() => setAction(null)} />
       )}
-      {action === 'export' && <ExportDialog title={t('export.title')} items={selectedItems} onClose={() => setAction(null)} />}
       {action === 'delete' && (
         <ConfirmDialog
           title={t('select.deleteTitle', { count: ids.length })}

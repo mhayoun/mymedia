@@ -1,4 +1,4 @@
-import { Brain, CheckSquare, FileSpreadsheet, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
+import { Brain, CheckSquare, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -21,7 +21,6 @@ import { ReviewView } from './ReviewView'
 import { StatsDialog } from './StatsDialog'
 import { AUTO, filterItems, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
 import { clearSharedFiles, hasSharedFiles, readSharedFiles } from '../import/shared'
-import { ExportDialog } from './ExportDialog'
 import { FacesIntro } from './FacesIntro'
 import { FilterBar } from './FilterBar'
 import { SelectionBar } from './SelectionBar'
@@ -37,7 +36,6 @@ type DialogState =
   | { kind: 'delete'; id: string; name: string; count: number }
   | { kind: 'compress'; title: string; folderId: string | null }
   | { kind: 'import'; destId: string; files?: File[] }
-  | { kind: 'export'; title: string }
   | null
 
 export function Shell() {
@@ -173,7 +171,6 @@ export function Shell() {
       {filters.categoryId !== PEOPLE && rootId && (
         <SelectionBar lib={lib} people={people} items={items} parentId={filters.albumId ?? (filters.categoryId && lib.folders.has(filters.categoryId) ? filters.categoryId : rootId)} />
       )}
-      {dialog?.kind === 'export' && <ExportDialog title={dialog.title} items={items} onClose={() => setDialog(null)} />}
       {personOpen && <PersonDialog people={people} personId={personOpen} onClose={() => setPersonOpen(null)} />}
       <FacesIntro people={people} />
     </div>
@@ -385,10 +382,6 @@ function Toolbar({ lib, people, count, onDialog }: { lib: Library; people: Peopl
       >
         <Minimize2 size={18} />
         <span className="only-desktop">{t('compress.button')}</span>
-      </button>
-      <button className="btn" title={t('export.button')} onClick={() => onDialog({ kind: 'export', title: t('export.titleFor', { name: title }) })}>
-        <FileSpreadsheet size={18} />
-        <span className="only-desktop">{t('export.button')}</span>
       </button>
       <button
         className={`btn ${selection ? 'primary' : ''}`}
