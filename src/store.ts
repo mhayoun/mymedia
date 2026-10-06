@@ -13,6 +13,12 @@ export interface Settings {
   syncIntervalMin: number
   view: ViewMode
   sort: SortMode
+  /** Move recognized media automatically when the model is confident. */
+  classifyAuto: boolean
+  /** Confidence (0..1) above which media are moved automatically. */
+  thresholdHigh: number
+  /** Confidence above which a suggestion is shown without "To check". */
+  thresholdMedium: number
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -22,6 +28,9 @@ export const DEFAULT_SETTINGS: Settings = {
   syncIntervalMin: 15,
   view: 'grid',
   sort: 'newest',
+  classifyAuto: true,
+  thresholdHigh: 0.85,
+  thresholdMedium: 0.6,
 }
 
 const SETTINGS_KEY = 'mymedia.settings'
@@ -64,6 +73,9 @@ interface AppState {
   rootId: string | null
   settings: Settings
   sync: SyncProgress | null
+  /** Background learning progress (fingerprints of media). */
+  indexing: { done: number; total: number } | null
+  statsOpen: boolean
   lastSyncAt: number | null
   error: string | null
   filters: Filters
@@ -81,6 +93,8 @@ export const useApp = create<AppState>((set, get) => ({
   rootId: null,
   settings: loadSettings(),
   sync: null,
+  indexing: null,
+  statsOpen: false,
   lastSyncAt: null,
   error: null,
   filters: { categoryId: null, albumId: null, type: 'all' },

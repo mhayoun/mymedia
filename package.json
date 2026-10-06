@@ -8,7 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "predev": "node scripts/prepare-assets.mjs",
+    "prebuild": "node scripts/prepare-assets.mjs"
   },
   "dependencies": {
     "@tanstack/react-virtual": "^3.14.13",
@@ -17,6 +19,7 @@
     "i18next": "^26.4.2",
     "lucide-react": "^1.52.0",
     "mediabunny": "^1.61.3",
+    "onnxruntime-web": "^1.30.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-i18next": "^17.0.15",

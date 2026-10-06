@@ -18,6 +18,12 @@ export interface CompressionInfo {
   date?: string
 }
 
+export interface Suggestion {
+  /** Destination folder (album, or category for media at the root). */
+  folderId: string
+  confidence: number
+}
+
 export interface MediaMeta {
   id: string
   name: string
@@ -33,6 +39,12 @@ export interface MediaMeta {
   species?: SpeciesNames | null
   confidence?: number | null
   toCheck?: boolean
+  /** Proposed destinations, best first (waiting for the user). */
+  suggestions?: Suggestion[]
+  /** Moved automatically by the learned model, not yet reviewed. */
+  auto?: boolean
+  /** The user said this media stays where it is (no more suggestions). */
+  keepHere?: boolean
   people?: string[]
   compression?: CompressionInfo | null
   /** Epoch ms of the last change; the newest version of an item wins on merge. */

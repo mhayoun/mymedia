@@ -299,6 +299,8 @@ export function syncNow(options: { full?: boolean } = {}): Promise<void> {
       await reconcileMeta(rootId)
       await saveMeta()
       app().set({ lastSyncAt: Date.now() })
+      // Learn from new files and classify them, in the background.
+      void import('../ml/indexer').then((m) => m.startIndexer())
     } catch (e) {
       if (signal.aborted) return
       console.error('[MyMedia] sync failed', e)

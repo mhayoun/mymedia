@@ -42,9 +42,9 @@ export function cachedThumbUrl(id: string): string | undefined {
   return url
 }
 
-async function fetchThumbLink(link: string): Promise<Blob | null> {
+async function fetchThumbLink(link: string, size = THUMB_SIZE): Promise<Blob | null> {
   try {
-    const res = await fetch(sizedThumbnailLink(link, THUMB_SIZE), { credentials: 'omit', referrerPolicy: 'no-referrer' })
+    const res = await fetch(sizedThumbnailLink(link, size), { credentials: 'omit', referrerPolicy: 'no-referrer' })
     if (!res.ok) return null
     const blob = await res.blob()
     return blob.type.startsWith('image/') ? blob : null
@@ -53,10 +53,10 @@ async function fetchThumbLink(link: string): Promise<Blob | null> {
   }
 }
 
-async function resizeLocally(blob: Blob): Promise<Blob | null> {
+async function resizeLocally(blob: Blob, size: number): Promise<Blob | null> {
   try {
     const bitmap = await createImageBitmap(blob)
-    const scale = Math.min(1, THUMB_SIZE / Math.max(bitmap.width, bitmap.height))
+    const scale = Math.min(1, size / Math.max(bitmap.width, bitmap.height))
     const w = Math.max(1, Math.round(bitmap.width * scale))
     const h = Math.max(1, Math.round(bitmap.height * scale))
     const canvas = new OffscreenCanvas(w, h)
@@ -68,9 +68,10 @@ async function resizeLocally(blob: Blob): Promise<Blob | null> {
   }
 }
 
-async function produce(rec: MediaRecord): Promise<Blob | null> {
+/** Drive's own preview image of a file (works for HEIC and videos too), or null. */
+export async function driveThumbnail(rec: MediaRecord, size = THUMB_SIZE): Promise<Blob | null> {
   if (rec.thumbnailLink) {
-    const b = await fetchThumbLink(rec.thumbnailLink)
+    const b = await fetchThumbLink(rec.thumbnailLink, size)
     if (b) return b
   }
   // Links expire after a few hours: ask Drive for a fresh one.
@@ -78,21 +79,30 @@ async function produce(rec: MediaRecord): Promise<Blob | null> {
     const f = await getFile(rec.id, 'id,thumbnailLink')
     if (f.thumbnailLink) {
       await db().media.update(rec.id, { thumbnailLink: f.thumbnailLink })
-      const b = await fetchThumbLink(f.thumbnailLink)
-      if (b) return b
+      rec.thumbnailLink = f.thumbnailLink
+      return await fetchThumbLink(f.thumbnailLink, size)
     }
   } catch {
-    // fall through
-  }
-  if (rec.type === 'video') return videoFrameThumbnail(rec, THUMB_SIZE)
-  if (rec.type === 'photo' && rec.size > 0 && rec.size <= LOCAL_RESIZE_MAX_BYTES) {
-    try {
-      return await resizeLocally(await downloadBlob(rec.id))
-    } catch {
-      return null
-    }
+    // no preview available
   }
   return null
+}
+
+/** The original photo reduced to `size` pixels (not possible for HEIC in most browsers). */
+export async function localPhotoPreview(rec: MediaRecord, size = THUMB_SIZE): Promise<Blob | null> {
+  if (rec.type !== 'photo' || rec.size <= 0 || rec.size > LOCAL_RESIZE_MAX_BYTES) return null
+  try {
+    return await resizeLocally(await downloadBlob(rec.id), size)
+  } catch {
+    return null
+  }
+}
+
+async function produce(rec: MediaRecord): Promise<Blob | null> {
+  const b = await driveThumbnail(rec)
+  if (b) return b
+  if (rec.type === 'video') return videoFrameThumbnail(rec, THUMB_SIZE)
+  return localPhotoPreview(rec)
 }
 
 function pump() {

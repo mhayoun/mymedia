@@ -60,3 +60,32 @@ requirements document. Each phase adds its own section.
 - [ ] Install the app (phone and computer) – see the setup guide, Part F.
 - [ ] Browse a few albums, then switch on airplane mode and reopen the app → the gallery and already-seen thumbnails are shown, with the offline icon.
 - [ ] Back online → loading resumes by itself.
+
+## Phase 2a – Classification by folder, file name and learning (§4, §4b)
+
+Preparation: in Drive, have a few albums with **at least 3 photos each** (your
+birds), then put a few new bird photos **directly in `MyMedia`** or directly in
+`Birds` (not in an album).
+
+### Learning (§4b)
+- [ ] After **Load new files**, the top bar shows "Learning x / y" (first time on 5,000 photos: about 25 minutes on a computer, longer on a phone). The app stays usable meanwhile.
+- [ ] The ⏸ button next to it pauses the learning; it continues at the next load.
+- [ ] `mymedia-index.json` and `mymedia-index.bin` appear in the `MyMedia` folder.
+- [ ] On a second device, learning is much faster (it reuses those files).
+- [ ] Settings → **Learning statistics**: number of media learned, overall accuracy, albums with fewer than 3 photos, accuracy per album and "confused with".
+- [ ] Settings → **Rebuild learning** starts again from zero (progress visible).
+
+### Classification
+- [ ] A new photo named like an album (e.g. `נחליאלי לבן.jpg` at the root) goes straight into that album (Classified by: **File name**).
+- [ ] A new photo with a meaningful name that matches no album (e.g. `mom_birthday.jpg`) gets that text as description.
+- [ ] Automatic names (`IMG_1234`, `IMG-20260105-WA0001`, `PXL_…`, `Screenshot_…`) are ignored.
+- [ ] A recognised photo (≥ 85 %, album with ≥ 3 photos) is moved by itself → menu **Classified automatically**: card "Moved to …"; **Correct** or **Correct to…** (check in drive.google.com that the file really moved).
+- [ ] A less certain photo appears in **To classify** with the suggested album and %, plus 3 alternatives: tap the suggestion → moved; or **Other album…**; or **Keep here** (no more suggestions).
+- [ ] Below 60 % the card shows **To check**.
+- [ ] **Accept N suggestions ≥ 60 %** moves them all.
+- [ ] Settings → untick "Move files automatically…" → new photos only get suggestions.
+- [ ] Settings → change the two thresholds → the next classification uses them.
+- [ ] Large view → information panel: "Classified by" (Folder / File name / Learning / You, with %), and **Move to** any album.
+- [ ] A correction is learned: after correcting a few photos of a species, similar new photos are suggested correctly.
+- [ ] Videos are classified too (from 3 frames: start, middle, end).
+- [ ] Files in folders starting with `_` are never used nor classified.

@@ -10,7 +10,10 @@ import { useApp } from '../store'
 import { trashMedia } from '../sync/media'
 import { updateMeta } from '../sync/metaStore'
 import { cachedThumbUrl } from '../sync/thumbs'
+import { chooseFolder } from '../classify/engine'
+import { AlbumSelect } from './AlbumSelect'
 import { ConfirmDialog } from './Dialog'
+import { useLibraryContext } from './libraryContext'
 import type { LibraryItem } from './useLibrary'
 
 const PREVIEW_SIZE = 2048
@@ -247,7 +250,9 @@ function VideoStage({ item }: { item: LibraryItem }) {
 function InfoPanel({ item }: { item: LibraryItem }) {
   const { t } = useTranslation()
   const fmt = useFormat()
+  const lib = useLibraryContext()
   const { rec, meta, place } = item
+  const [moving, setMoving] = useState(false)
   const [description, setDescription] = useState(meta?.description ?? '')
 
   const saveDescription = () => {
@@ -293,7 +298,37 @@ function InfoPanel({ item }: { item: LibraryItem }) {
             </dd>
           </>
         )}
+        {meta?.source && (
+          <>
+            <dt>{t('classify.source')}</dt>
+            <dd>
+              {t(`classify.sources.${meta.source}`)}
+              {meta.confidence != null && meta.source !== 'folder' && meta.source !== 'manual' ? ` · ${fmt.percent(meta.confidence)}` : ''}
+              {meta.auto && <span className="tag auto">{t('classify.autoTag')}</span>}
+              {meta.toCheck && <span className="tag warn">{t('classify.toCheck')}</span>}
+            </dd>
+          </>
+        )}
       </dl>
+      {lib && (
+        <label className="field">
+          {t('classify.moveTo')}
+          <AlbumSelect
+            categories={lib.categories}
+            placeholder={t('classify.otherAlbum')}
+            disabled={moving}
+            exclude={rec.folderId}
+            onChoose={async (folderId) => {
+              setMoving(true)
+              try {
+                await chooseFolder(rec.id, folderId)
+              } finally {
+                setMoving(false)
+              }
+            }}
+          />
+        </label>
+      )}
       <label className="field">
         {t('viewer.origin')}
         <select

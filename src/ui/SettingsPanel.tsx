@@ -7,7 +7,9 @@ import { renameFile } from '../drive/api'
 import { changeLanguage, LANGUAGES } from '../i18n'
 import { signOut } from '../session'
 import { useApp, type Language } from '../store'
+import { rebuildIndex } from '../ml/indexer'
 import { syncNow } from '../sync/engine'
+import { useFormat } from '../i18n/format'
 import { PromptDialog } from './Dialog'
 
 export function SettingsPanel() {
@@ -19,6 +21,9 @@ export function SettingsPanel() {
   const set = useApp((s) => s.set)
   const [renaming, setRenaming] = useState(false)
   const [cleared, setCleared] = useState(false)
+  const [rebuilt, setRebuilt] = useState(false)
+  const fmt = useFormat()
+  const indexing = useApp((s) => s.indexing)
   const close = () => set({ settingsOpen: false })
 
   const setLanguage = (lang: Language) => {
@@ -77,6 +82,53 @@ export function SettingsPanel() {
             {t('settings.rescan')}
           </button>
           <p className="hint">{t('settings.rescanHint')}</p>
+        </section>
+
+        <section>
+          <h3>{t('classify.settingsTitle')}</h3>
+          <label className="radio-row">
+            <input type="checkbox" checked={settings.classifyAuto} onChange={(e) => updateSettings({ classifyAuto: e.target.checked })} />
+            {t('classify.autoSetting')}
+          </label>
+          <p className="hint">{t('classify.autoSettingHint')}</p>
+          <div className="row" style={{ marginBlockEnd: 8 }}>
+            <label className="field" style={{ flex: 1 }}>
+              {t('classify.thresholdHigh')}
+              <select value={settings.thresholdHigh} onChange={(e) => updateSettings({ thresholdHigh: Number(e.target.value) })}>
+                {[0.75, 0.8, 0.85, 0.9, 0.95].map((v) => (
+                  <option key={v} value={v}>{fmt.percent(v)}</option>
+                ))}
+              </select>
+            </label>
+            <label className="field" style={{ flex: 1 }}>
+              {t('classify.thresholdMedium')}
+              <select value={settings.thresholdMedium} onChange={(e) => updateSettings({ thresholdMedium: Number(e.target.value) })}>
+                {[0.4, 0.5, 0.6, 0.7].map((v) => (
+                  <option key={v} value={v}>{fmt.percent(v)}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="row">
+            <button className="btn" onClick={() => set({ statsOpen: true, settingsOpen: false })}>
+              {t('stats.title')}
+            </button>
+            <button
+              className="btn"
+              disabled={rebuilt}
+              onClick={() => {
+                setRebuilt(true)
+                void rebuildIndex()
+              }}
+            >
+              {t('classify.rebuild')}
+            </button>
+          </div>
+          <p className="hint">
+            {indexing
+              ? t('classify.learning', { done: fmt.number(indexing.done), total: fmt.number(indexing.total) })
+              : t('classify.rebuildHint')}
+          </p>
         </section>
 
         <section>

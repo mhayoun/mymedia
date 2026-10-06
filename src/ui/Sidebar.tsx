@@ -1,7 +1,7 @@
-import { Folder, FolderOpen, Images, Inbox, Plus } from 'lucide-react'
+import { Folder, FolderOpen, Images, Inbox, Plus, Sparkles, Wand2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '../store'
-import { UNFILED, type FolderInfo, type Library } from './useLibrary'
+import { AUTO, TO_CLASSIFY, UNFILED, type FolderInfo, type Library } from './useLibrary'
 
 interface Props {
   lib: Library
@@ -30,6 +30,20 @@ export function Sidebar({ lib, onNewCategory }: Props) {
           <span className="label">{t('nav.allMedia')}</span>
           <span className="count">{total}</span>
         </button>
+        {lib.toClassify.length > 0 && (
+          <button className="nav-item" aria-current={filters.categoryId === TO_CLASSIFY} onClick={() => select(TO_CLASSIFY, null)}>
+            <Wand2 size={18} />
+            <span className="label">{t('classify.toClassify')}</span>
+            <span className="count">{lib.toClassify.length}</span>
+          </button>
+        )}
+        {lib.autoItems.length > 0 && (
+          <button className="nav-item" aria-current={filters.categoryId === AUTO} onClick={() => select(AUTO, null)}>
+            <Sparkles size={18} />
+            <span className="label">{t('classify.autoView')}</span>
+            <span className="count">{lib.autoItems.length}</span>
+          </button>
+        )}
         {lib.unfiledCount > 0 && (
           <button className="nav-item" aria-current={filters.categoryId === UNFILED} onClick={() => select(UNFILED, null)}>
             <Inbox size={18} />

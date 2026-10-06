@@ -265,30 +265,51 @@ export async function downloadRange(id: string, start: number, end: number): Pro
   return new Uint8Array(await res.arrayBuffer())
 }
 
-function multipartBody(metadata: object, content: string, contentType: string): { body: string; boundary: string } {
+function multipartBody(metadata: object, content: Blob | string, contentType: string): { body: Blob; boundary: string } {
   const boundary = `mymedia-${Math.random().toString(36).slice(2)}`
-  const body =
-    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n` +
-    `--${boundary}\r\nContent-Type: ${contentType}\r\n\r\n${content}\r\n--${boundary}--`
+  const body = new Blob([
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`,
+    `--${boundary}\r\nContent-Type: ${contentType}\r\n\r\n`,
+    content,
+    `\r\n--${boundary}--`,
+  ])
   return { body, boundary }
 }
 
-export async function createTextFile(name: string, parentId: string, content: string, mime = 'application/json'): Promise<DriveFile> {
-  const { body, boundary } = multipartBody({ name, parents: [parentId], mimeType: mime }, content, `${mime}; charset=UTF-8`)
-  const res = await request(`${UPLOAD}/files?uploadType=multipart&fields=id,name,modifiedTime,version&supportsAllDrives=true`, {
-    method: 'POST',
+const UPLOAD_FIELDS = 'id,name,modifiedTime,version'
+
+async function upload(method: 'POST' | 'PATCH', path: string, metadata: object, content: Blob | string, contentType: string) {
+  const { body, boundary } = multipartBody(metadata, content, contentType)
+  const res = await request(`${UPLOAD}/files${path}?uploadType=multipart&fields=${UPLOAD_FIELDS}&supportsAllDrives=true`, {
+    method,
     headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
     body,
   })
-  return res.json()
+  return res.json() as Promise<DriveFile>
 }
 
-export async function updateTextFile(id: string, content: string, mime = 'application/json'): Promise<DriveFile> {
-  const { body, boundary } = multipartBody({}, content, `${mime}; charset=UTF-8`)
-  const res = await request(`${UPLOAD}/files/${id}?uploadType=multipart&fields=id,name,modifiedTime,version&supportsAllDrives=true`, {
+export function createTextFile(name: string, parentId: string, content: string, mime = 'application/json'): Promise<DriveFile> {
+  return upload('POST', '', { name, parents: [parentId], mimeType: mime }, content, `${mime}; charset=UTF-8`)
+}
+
+export function updateTextFile(id: string, content: string, mime = 'application/json'): Promise<DriveFile> {
+  return upload('PATCH', `/${id}`, {}, content, `${mime}; charset=UTF-8`)
+}
+
+export function createBinaryFile(name: string, parentId: string, content: Blob, mime = 'application/octet-stream'): Promise<DriveFile> {
+  return upload('POST', '', { name, parents: [parentId], mimeType: mime }, content, mime)
+}
+
+export function updateBinaryFile(id: string, content: Blob, mime = 'application/octet-stream'): Promise<DriveFile> {
+  return upload('PATCH', `/${id}`, {}, content, mime)
+}
+
+/** Moves a file to another folder (same file, only its location changes). */
+export async function moveFile(id: string, toFolderId: string, fromFolderId: string): Promise<void> {
+  const params = new URLSearchParams({ addParents: toFolderId, removeParents: fromFolderId, supportsAllDrives: 'true', fields: 'id,parents' })
+  await request(`${API}/files/${id}?${params}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
-    body,
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
   })
-  return res.json()
 }

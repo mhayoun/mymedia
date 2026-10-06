@@ -35,6 +35,16 @@ export interface ThumbRecord {
   blob: Blob
 }
 
+/** Image fingerprint of a media file, for the learned classifier. */
+export interface EmbeddingRecord {
+  id: string
+  /** md5 (or modifiedTime) of the file when the fingerprint was made. */
+  version: string
+  vec?: Int8Array
+  /** The file could not be read (e.g. format not supported): not retried until it changes. */
+  failed?: boolean
+}
+
 export interface KvRecord {
   key: string
   value: unknown
@@ -45,6 +55,7 @@ export class MyMediaDB extends Dexie {
   folders!: Table<FolderNode, string>
   meta!: Table<MediaMeta, string>
   thumbs!: Table<ThumbRecord, string>
+  embeddings!: Table<EmbeddingRecord, string>
   kv!: Table<KvRecord, string>
 
   constructor(name: string) {
@@ -56,6 +67,7 @@ export class MyMediaDB extends Dexie {
       thumbs: '&id',
       kv: '&key',
     })
+    this.version(2).stores({ embeddings: '&id' })
   }
 
   async getKv<T>(key: string): Promise<T | undefined> {

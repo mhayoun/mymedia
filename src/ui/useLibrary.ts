@@ -8,6 +8,10 @@ import { isReservedFolderName, placementOf, subtreeIds, type FolderNode, type Pl
 import { useApp, type Filters, type SortMode } from '../store'
 
 export const UNFILED = '__unfiled'
+/** Media waiting at the root or directly in a category that has albums. */
+export const TO_CLASSIFY = '__toClassify'
+/** Media moved automatically and not yet reviewed. */
+export const AUTO = '__auto'
 
 export interface LibraryItem {
   rec: MediaRecord
@@ -26,6 +30,8 @@ export interface Library {
   folders: Map<string, FolderNode>
   categories: FolderInfo[]
   unfiledCount: number
+  toClassify: LibraryItem[]
+  autoItems: LibraryItem[]
 }
 
 export function useLibrary(): Library {
@@ -42,7 +48,8 @@ export function useLibrary(): Library {
   )
 
   return useMemo(() => {
-    if (!data || !rootId) return { ready: false, items: [], folders: new Map(), categories: [], unfiledCount: 0 }
+    if (!data || !rootId)
+      return { ready: false, items: [], folders: new Map(), categories: [], unfiledCount: 0, toClassify: [], autoItems: [] }
     const folders = new Map(data.folders.map((f) => [f.id, f]))
     const metas = new Map(data.meta.map((m) => [m.id, m]))
     const items: LibraryItem[] = []
@@ -70,7 +77,12 @@ export function useLibrary(): Library {
       .filter((f) => !isReservedFolderName(f.name))
       .map(build)
       .sort((a, b) => collator.compare(a.name, b.name))
-    return { ready: true, items, folders, categories, unfiledCount }
+    const categoriesWithAlbums = new Set(categories.filter((c) => c.children.length > 0).map((c) => c.id))
+    const toClassify = items.filter(
+      (i) => !i.meta?.keepHere && (i.rec.folderId === rootId || categoriesWithAlbums.has(i.rec.folderId)),
+    )
+    const autoItems = items.filter((i) => i.meta?.auto)
+    return { ready: true, items, folders, categories, unfiledCount, toClassify, autoItems }
   }, [data, rootId])
 }
 
@@ -88,7 +100,9 @@ export function sortItems(items: LibraryItem[], sort: SortMode): LibraryItem[] {
 
 export function filterItems(lib: Library, filters: Filters, rootId: string): LibraryItem[] {
   let items = lib.items
-  if (filters.categoryId === UNFILED) items = items.filter((i) => i.rec.folderId === rootId)
+  if (filters.categoryId === TO_CLASSIFY) items = lib.toClassify
+  else if (filters.categoryId === AUTO) items = lib.autoItems
+  else if (filters.categoryId === UNFILED) items = items.filter((i) => i.rec.folderId === rootId)
   else if (filters.albumId) {
     const ids = subtreeIds(filters.albumId, lib.folders.values())
     items = items.filter((i) => ids.has(i.rec.folderId))

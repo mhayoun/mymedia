@@ -1,17 +1,21 @@
-import { FolderPlus, LayoutGrid, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
+import { Brain, FolderPlus, LayoutGrid, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
 import { useFormat } from '../i18n/format'
 import { app, useApp } from '../store'
 import { createAlbum, createCategory, deleteFolder, renameFolder } from '../sync/folders'
+import { stopIndexer } from '../ml/indexer'
 import { cancelSync, syncNow } from '../sync/engine'
 import { ConfirmDialog, PromptDialog } from './Dialog'
 import { Gallery } from './Gallery'
 import { useAuthError, useAuthStatus, useAutoSync, useOnline } from './hooks'
 import { SettingsPanel } from './SettingsPanel'
 import { Sidebar } from './Sidebar'
-import { filterItems, sortItems, UNFILED, useLibrary, type Library } from './useLibrary'
+import { LibraryContext } from './libraryContext'
+import { ReviewView } from './ReviewView'
+import { StatsDialog } from './StatsDialog'
+import { AUTO, filterItems, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
 
 type DialogState =
   | { kind: 'newCategory' }
@@ -27,6 +31,7 @@ export function Shell() {
   const filters = useApp((s) => s.filters)
   const sort = useApp((s) => s.settings.sort)
   const settingsOpen = useApp((s) => s.settingsOpen)
+  const statsOpen = useApp((s) => s.statsOpen)
   const [dialog, setDialog] = useState<DialogState>(null)
   useAutoSync()
 
@@ -41,6 +46,7 @@ export function Shell() {
     )
 
   return (
+    <LibraryContext.Provider value={lib}>
     <div className="shell">
       <TopBar />
       <Banners />
@@ -48,10 +54,17 @@ export function Shell() {
         <Sidebar lib={lib} onNewCategory={() => setDialog({ kind: 'newCategory' })} />
         <main className="main">
           <Toolbar lib={lib} count={items.length} onDialog={setDialog} />
-          {lib.ready && items.length === 0 ? <EmptyState /> : <Gallery items={items} />}
+          {lib.ready && items.length === 0 ? (
+            <EmptyState />
+          ) : filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO ? (
+            <ReviewView lib={lib} items={items} mode={filters.categoryId === AUTO ? 'auto' : 'classify'} />
+          ) : (
+            <Gallery items={items} />
+          )}
         </main>
       </div>
       {settingsOpen && <SettingsPanel />}
+      {statsOpen && <StatsDialog lib={lib} />}
 
       {dialog?.kind === 'newCategory' && rootId && (
         <PromptDialog
@@ -94,6 +107,7 @@ export function Shell() {
         />
       )}
     </div>
+    </LibraryContext.Provider>
   )
 }
 
@@ -103,6 +117,7 @@ function TopBar() {
   const user = useApp((s) => s.user)
   const sync = useApp((s) => s.sync)
   const lastSyncAt = useApp((s) => s.lastSyncAt)
+  const indexing = useApp((s) => s.indexing)
   const set = useApp((s) => s.set)
   const online = useOnline()
 
@@ -119,6 +134,16 @@ function TopBar() {
         <span className="sync-info" title={t('sync.offline')}>
           <WifiOff size={18} />
         </span>
+      )}
+      {indexing && !sync && (
+        <>
+          <span className="sync-info" aria-live="polite" title={t('classify.learningHint')}>
+            <Brain size={14} /> {t('classify.learning', { done: fmt.number(indexing.done), total: fmt.number(indexing.total) })}
+          </span>
+          <button className="icon-btn small" onClick={stopIndexer} aria-label={t('classify.pause')} title={t('classify.pause')}>
+            <Pause size={16} />
+          </button>
+        </>
       )}
       {sync ? (
         <>
@@ -185,7 +210,8 @@ function Toolbar({ lib, count, onDialog }: { lib: Library; count: number; onDial
   const settings = useApp((s) => s.settings)
   const updateSettings = useApp((s) => s.updateSettings)
 
-  const folderId = filters.albumId ?? (filters.categoryId !== UNFILED ? filters.categoryId : null)
+  const special = filters.categoryId === UNFILED || filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO
+  const folderId = filters.albumId ?? (!special ? filters.categoryId : null)
   const folder = folderId ? lib.folders.get(folderId) : undefined
   const folderCount = useMemo(() => {
     if (!folder) return 0
@@ -200,7 +226,15 @@ function Toolbar({ lib, count, onDialog }: { lib: Library; count: number; onDial
   }, [folder, lib])
 
   const title =
-    filters.categoryId === UNFILED ? t('nav.unfiled') : folder ? folder.name : t('nav.allMedia')
+    filters.categoryId === UNFILED
+      ? t('nav.unfiled')
+      : filters.categoryId === TO_CLASSIFY
+        ? t('classify.toClassify')
+        : filters.categoryId === AUTO
+          ? t('classify.autoView')
+          : folder
+            ? folder.name
+            : t('nav.allMedia')
 
   return (
     <div className="toolbar">

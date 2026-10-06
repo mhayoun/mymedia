@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 dev-dist
 .vercel
+public/ort
+public/models
