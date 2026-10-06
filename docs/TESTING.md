@@ -44,6 +44,7 @@ requirements document. Each phase adds its own section.
 - [ ] **Load full quality** downloads the original (HEIC: may say "cannot be shown in full quality" on Windows/Android; the large preview still works).
 - [ ] Video → ▶ → download progress → plays (if the format is not supported, the "Open in Google Drive" link works).
 - [ ] Info panel: date, size, dimensions, category, album, origin, description.
+- [ ] 🗑 **Delete** in the large view → confirmation → the next photo is shown; the file is in the Google Drive **trash** (restorable 30 days) and gone from the app on all devices.
 - [ ] Change the **origin** and type a **description** → reload the app on another device → both are kept (saved in `mymedia.json`).
 - [ ] `mymedia.json` exists in the `MyMedia` folder and contains your media.
 - [ ] Scroll through a large folder (1,000+ files) → no freezing.
