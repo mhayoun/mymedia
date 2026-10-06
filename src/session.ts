@@ -4,6 +4,7 @@ import { auth } from './auth/google'
 import { isConfigured, loadConfig } from './config'
 import { loadUser, locateRoot, openCachedUser, syncNow } from './sync/engine'
 import { app } from './store'
+import { keepStreamTokenFresh } from './sync/stream'
 
 let sessionStarted = false
 
@@ -28,6 +29,7 @@ export async function boot(): Promise<BootResult> {
   auth.subscribe(() => {
     if (auth.status === 'signedIn' && !sessionStarted) void startSession()
   })
+  keepStreamTokenFresh()
 
   if (cached) {
     // Requests wait for a valid token; if it has expired, the Reconnect banner shows.

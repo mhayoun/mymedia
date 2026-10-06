@@ -42,7 +42,7 @@ requirements document. Each phase adds its own section.
 - [ ] Videos show a ▶ badge with their duration **and a picture from the video** (Drive's thumbnail, or else a frame taken about 1 second into the video – also for videos Drive shows without a preview).
 - [ ] Click a photo → large view; arrows, keyboard ← →, swipe on the phone; **Esc** closes.
 - [ ] **Load full quality** downloads the original (HEIC: may say "cannot be shown in full quality" on Windows/Android; the large preview still works).
-- [ ] Video → ▶ → download progress → plays (if the format is not supported, the "Open in Google Drive" link works).
+- [ ] Video → ▶ → starts within a few seconds (streamed: no full download first), seeking forward works; if the format is not supported, the "Open in Google Drive" link works.
 - [ ] Info panel: date, size, dimensions, category, album, origin, description.
 - [ ] 🗑 **Delete** in the large view → confirmation → the next photo is shown; the file is in the Google Drive **trash** (restorable 30 days) and gone from the app on all devices.
 - [ ] Change the **origin** and type a **description** → reload the app on another device → both are kept (saved in `mymedia.json`).

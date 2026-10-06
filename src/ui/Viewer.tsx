@@ -9,6 +9,7 @@ import { ALBUM_SEPARATOR } from '../lib/tree'
 import { useApp } from '../store'
 import { trashMedia } from '../sync/media'
 import { updateMeta } from '../sync/metaStore'
+import { streamUrl } from '../sync/stream'
 import { cachedThumbUrl } from '../sync/thumbs'
 import { chooseFolder } from '../classify/engine'
 import { AlbumSelect } from './AlbumSelect'
@@ -207,12 +208,13 @@ function VideoStage({ item }: { item: LibraryItem }) {
   const fmt = useFormat()
   const poster = cachedThumbUrl(item.rec.id)
   const [src, setSrc] = useObjectUrl()
+  const [stream, setStream] = useState<string | null>(null)
   const [progress, setProgress] = useState<number | null>(null)
   const [failed, setFailed] = useState(false)
   const abort = useRef<AbortController | null>(null)
   useEffect(() => () => abort.current?.abort(), [])
 
-  async function play() {
+  async function download() {
     abort.current = new AbortController()
     setProgress(0)
     try {
@@ -224,6 +226,28 @@ function VideoStage({ item }: { item: LibraryItem }) {
     }
   }
 
+  async function play() {
+    // Streaming plays at once; downloading everything first is the fallback.
+    const url = await streamUrl(item.rec)
+    if (url) setStream(url)
+    else await download()
+  }
+
+  if (stream && !failed)
+    return (
+      <video
+        src={stream}
+        poster={poster}
+        controls
+        autoPlay
+        playsInline
+        onError={() => {
+          // Streaming refused (e.g. token being renewed): download instead.
+          setStream(null)
+          void download()
+        }}
+      />
+    )
   if (src && !failed) return <video src={src} controls autoPlay playsInline onError={() => setFailed(true)} />
   return (
     <>

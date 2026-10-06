@@ -41,4 +41,38 @@ registerRoute(
   'POST',
 )
 
+// Video streaming: the video player cannot send the Google authorisation, so
+// it asks this worker (…/stream/<fileId>), which forwards each piece (HTTP
+// Range) to Drive with the user's access token. Playback starts at once and
+// seeking works, without downloading the whole file first.
+let driveToken: string | null = null
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'driveToken') {
+    driveToken = event.data.token
+    event.ports[0]?.postMessage('ok')
+  }
+})
+
+registerRoute(
+  ({ url }) => url.origin === self.location.origin && url.pathname.startsWith(new URL('stream/', self.registration.scope).pathname),
+  async ({ url, request }) => {
+    const id = url.pathname.split('/').pop()!
+    const size = Number(url.searchParams.get('size'))
+    const type = url.searchParams.get('type') ?? 'video/mp4'
+    if (!driveToken || !size) return new Response(null, { status: 401 })
+    const m = /bytes=(\d+)-(\d*)/.exec(request.headers.get('Range') ?? '')
+    const start = m ? Number(m[1]) : 0
+    const end = m && m[2] ? Math.min(Number(m[2]), size - 1) : size - 1
+    if (start >= size) return new Response(null, { status: 416, headers: { 'Content-Range': `bytes */${size}` } })
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media&supportsAllDrives=true`, {
+      headers: { Authorization: `Bearer ${driveToken}`, Range: `bytes=${start}-${end}` },
+    })
+    if (!res.ok) return new Response(null, { status: res.status })
+    const headers = new Headers({ 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Content-Length': String(end - start + 1) })
+    if (m) headers.set('Content-Range', `bytes ${start}-${end}/${size}`)
+    return new Response(res.body, { status: m ? 206 : 200, headers })
+  },
+)
+
 registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html')))
