@@ -15,6 +15,7 @@ import { useFormat } from '../i18n/format'
 import { ConfirmDialog, PromptDialog } from './Dialog'
 import { deleteAllFaceData } from '../faces/store'
 import { usePeopleContext } from './peopleContext'
+import { KatiaDialog } from './KatiaDialog'
 
 export function SettingsPanel() {
   const { t } = useTranslation()
@@ -27,6 +28,7 @@ export function SettingsPanel() {
   const [cleared, setCleared] = useState(false)
   const [rebuilt, setRebuilt] = useState(false)
   const [deleteFaces, setDeleteFaces] = useState(false)
+  const [katia, setKatia] = useState(false)
   const people = usePeopleContext()
   const fmt = useFormat()
   const indexing = useApp((s) => s.indexing)
@@ -277,6 +279,14 @@ export function SettingsPanel() {
         </section>
 
         <section>
+          <h3>{t('katia.settingsTitle')}</h3>
+          <button className="btn" onClick={() => setKatia(true)} disabled={!rootId}>
+            {t('katia.open')}
+          </button>
+          <p className="hint">{t('katia.settingsHint')}</p>
+        </section>
+
+        <section>
           <h3>{t('settings.rootFolder')}</h3>
           <div className="row">
             <bdi>{settings.rootName}</bdi>
@@ -316,6 +326,7 @@ export function SettingsPanel() {
         </section>
       </aside>
 
+      {katia && <KatiaDialog onClose={() => setKatia(false)} />}
       {deleteFaces && (
         <ConfirmDialog
           title={t('faces.deleteAllTitle')}

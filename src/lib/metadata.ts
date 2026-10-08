@@ -35,6 +35,8 @@ export interface MediaMeta {
   category?: string | null
   album?: string | null
   description?: string
+  /** Facebook group the photo was posted in (Facebook export, Katia). */
+  group?: string
   source?: ClassificationSource
   species?: SpeciesNames | null
   confidence?: number | null

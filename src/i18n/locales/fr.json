@@ -122,7 +122,8 @@
     "cannotShow": "Ce format de photo ne peut pas être affiché en pleine qualité dans ce navigateur.",
     "delete": "Supprimer",
     "deleteTitle": "Supprimer « {{name}} » ?",
-    "deleteText": "Le fichier va dans la corbeille de Google Drive. Vous pouvez le restaurer pendant 30 jours."
+    "deleteText": "Le fichier va dans la corbeille de Google Drive. Vous pouvez le restaurer pendant 30 jours.",
+    "group": "Groupe Facebook"
   },
   "origin": {
     "camera": "Appareil photo / téléphone",
@@ -328,7 +329,8 @@
       "exif": "date de la photo",
       "video": "date d'enregistrement",
       "name": "date du nom",
-      "file": "date du fichier"
+      "file": "date du fichier",
+      "facebook": "date du post Facebook"
     },
     "duplicate": "déjà dans Drive",
     "duplicatesHint_one": "{{count}} fichier est déjà dans votre Drive (même contenu) : décoché.",
@@ -456,5 +458,47 @@
     "usedUnlimited": "{{used}} utilisés",
     "free": "{{free}} libres",
     "mine": "MyMedia : {{size}}"
+  },
+  "facebook": {
+    "choose": "Export Facebook (ZIP)",
+    "hint": "Export Facebook : sur Facebook, « Télécharger vos informations », format HTML, puis choisissez le fichier ZIP reçu. Chaque photo garde la date et le texte de son post ; les photos déjà envoyées sont décochées.",
+    "reading": "Lecture du fichier ZIP…",
+    "notExport": "Ce ZIP n'est pas un export Facebook au format HTML (fichier group_posts_and_comments.html introuvable).",
+    "unreadable": "Impossible de lire ce fichier ZIP.",
+    "chooseGroups": "Quels groupes importer ?",
+    "noGroup": "(sans groupe)",
+    "photos_one": "{{count}} photo",
+    "photos_other": "{{count}} photos",
+    "speciesHint": "Si le texte d'un post contient le nom d'un album de la destination (une espèce), la photo va directement dans cet album. Les autres restent dans la destination, et MyMedia propose une espèce."
+  },
+  "katia": {
+    "settingsTitle": "Données de Katia",
+    "open": "Reprendre les données de Katia",
+    "settingsHint": "Déplacez d'abord dans Google Drive le dossier de Katia (birds / ציפורים) à l'intérieur du dossier MyMedia. MyMedia lit ensuite son myphotos.json : espèce, date, texte et groupe de chaque photo.",
+    "title": "Reprendre les données de Katia",
+    "searching": "Recherche de myphotos.json dans votre Drive…",
+    "error": "Une erreur s'est produite. Vérifiez la connexion et réessayez : ce qui est déjà fait reste fait.",
+    "notFound": "Aucun fichier myphotos.json de Katia n'a été trouvé dans votre Drive.",
+    "nothingToDo": "Les données de Katia sont déjà reprises : rien de plus à faire.",
+    "moveFirst": "Le dossier « {{name}} » de Katia n'est pas dans MyMedia. Dans Google Drive, faites-le glisser dans le dossier MyMedia, puis revenez ici.",
+    "found_one": "Dossier « {{name}} » : {{count}} photo décrite par Katia.",
+    "found_other": "Dossier « {{name}} » : {{count}} photos décrites par Katia.",
+    "toSpecies_one": "{{count}} photo rangée par espèce ({{albums}} albums)",
+    "toSpecies_other": "{{count}} photos rangées par espèce ({{albums}} albums)",
+    "toReview_one": "{{count}} photo sans espèce : elle reste dans la catégorie, MyMedia proposera une espèce (« À classer »)",
+    "toReview_other": "{{count}} photos sans espèce : elles restent dans la catégorie, MyMedia proposera une espèce (« À classer »)",
+    "dates_one": "{{count}} date corrigée",
+    "dates_other": "{{count}} dates corrigées",
+    "descriptions_one": "{{count}} description reprise",
+    "descriptions_other": "{{count}} descriptions reprises",
+    "unmatched_one": "{{count}} photo du dossier n'est pas dans myphotos.json (inchangée)",
+    "unmatched_other": "{{count}} photos du dossier ne sont pas dans myphotos.json (inchangées)",
+    "trashEmptied_one": "Mettre à la corbeille le dossier Katia qui sera vide",
+    "trashEmptied_other": "Mettre à la corbeille les {{count}} dossiers Katia qui seront vides",
+    "safe": "Les photos sont déplacées, jamais copiées ni supprimées. myphotos.json reste dans Drive. Une photo que vous avez déjà rangée vous-même dans MyMedia n'est pas déplacée.",
+    "start": "Ranger par espèce",
+    "running": "Rangement… {{done}} / {{total}}",
+    "done_one": "Terminé : {{count}} photo mise à jour.",
+    "done_other": "Terminé : {{count}} photos mises à jour."
   }
 }

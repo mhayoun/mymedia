@@ -296,6 +296,14 @@ function InfoPanel({ item }: { item: LibraryItem }) {
       <dl>
         <dt>{t('viewer.date')}</dt>
         <dd>{fmt.dateTime(rec.takenAt)}</dd>
+        {meta?.group && (
+          <>
+            <dt>{t('viewer.group')}</dt>
+            <dd>
+              <bdi>{meta.group}</bdi>
+            </dd>
+          </>
+        )}
         <dt>{t('viewer.size')}</dt>
         <dd>{fmt.bytes(rec.size)}</dd>
         {rec.width && rec.height ? (

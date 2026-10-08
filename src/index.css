@@ -72,6 +72,7 @@ input[type='text'], input[type='number'], select, textarea {
 textarea { resize: vertical; min-block-size: 70px; }
 label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .hint { color: var(--text-2); font-size: 0.87rem; }
+.clamp-1 { display: inline-block; max-inline-size: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
 .error-text { color: var(--danger); font-size: 0.9rem; }
 
 /* ---------- Centered screens (sign-in, setup) ---------- */

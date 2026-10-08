@@ -124,7 +124,8 @@
     "cannotShow": "This photo format cannot be shown in full quality in this browser.",
     "delete": "Delete",
     "deleteTitle": "Delete “{{name}}”?",
-    "deleteText": "The file goes to the Google Drive trash. You can restore it from there for 30 days."
+    "deleteText": "The file goes to the Google Drive trash. You can restore it from there for 30 days.",
+    "group": "Facebook group"
   },
   "origin": {
     "camera": "Camera / phone",
@@ -330,7 +331,8 @@
       "exif": "photo date",
       "video": "recording date",
       "name": "date from name",
-      "file": "file date"
+      "file": "file date",
+      "facebook": "Facebook post date"
     },
     "duplicate": "already in Drive",
     "duplicatesHint_one": "{{count}} file is already in your Drive (same content): unticked.",
@@ -458,5 +460,47 @@
     "usedUnlimited": "{{used}} used",
     "free": "{{free}} free",
     "mine": "MyMedia: {{size}}"
+  },
+  "facebook": {
+    "choose": "Facebook export (ZIP)",
+    "hint": "Facebook export: on Facebook, \"Download your information\", HTML format, then choose the ZIP file you received. Each photo keeps the date and text of its post; photos already sent are unticked.",
+    "reading": "Reading the ZIP file…",
+    "notExport": "This ZIP is not a Facebook export in HTML format (group_posts_and_comments.html not found).",
+    "unreadable": "This ZIP file cannot be read.",
+    "chooseGroups": "Which groups to import?",
+    "noGroup": "(no group)",
+    "photos_one": "{{count}} photo",
+    "photos_other": "{{count}} photos",
+    "speciesHint": "When the text of a post contains the name of an album of the destination (a species), the photo goes straight into that album. The others stay in the destination, and MyMedia suggests a species."
+  },
+  "katia": {
+    "settingsTitle": "Katia data",
+    "open": "Bring in the Katia data",
+    "settingsHint": "First move Katia's folder (birds / ציפורים) inside the MyMedia folder in Google Drive. MyMedia then reads its myphotos.json: species, date, text and group of each photo.",
+    "title": "Bring in the Katia data",
+    "searching": "Looking for myphotos.json in your Drive…",
+    "error": "Something went wrong. Check the connection and try again: what is done stays done.",
+    "notFound": "No Katia myphotos.json file was found in your Drive.",
+    "nothingToDo": "The Katia data is already in: nothing more to do.",
+    "moveFirst": "Katia's folder \"{{name}}\" is not in MyMedia. In Google Drive, drag it into the MyMedia folder, then come back here.",
+    "found_one": "Folder \"{{name}}\": {{count}} photo described by Katia.",
+    "found_other": "Folder \"{{name}}\": {{count}} photos described by Katia.",
+    "toSpecies_one": "{{count}} photo filed by species ({{albums}} albums)",
+    "toSpecies_other": "{{count}} photos filed by species ({{albums}} albums)",
+    "toReview_one": "{{count}} photo without a species: it stays in the category, MyMedia will suggest one (\"To classify\")",
+    "toReview_other": "{{count}} photos without a species: they stay in the category, MyMedia will suggest one (\"To classify\")",
+    "dates_one": "{{count}} date corrected",
+    "dates_other": "{{count}} dates corrected",
+    "descriptions_one": "{{count}} description brought in",
+    "descriptions_other": "{{count}} descriptions brought in",
+    "unmatched_one": "{{count}} photo of the folder is not in myphotos.json (unchanged)",
+    "unmatched_other": "{{count}} photos of the folder are not in myphotos.json (unchanged)",
+    "trashEmptied_one": "Move the Katia folder that will be empty to the trash",
+    "trashEmptied_other": "Move the {{count}} Katia folders that will be empty to the trash",
+    "safe": "Photos are moved, never copied or deleted. myphotos.json stays in Drive. A photo you already filed yourself in MyMedia is not moved.",
+    "start": "File by species",
+    "running": "Filing… {{done}} / {{total}}",
+    "done_one": "Done: {{count}} photo updated.",
+    "done_other": "Done: {{count}} photos updated."
   }
 }

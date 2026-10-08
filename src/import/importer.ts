@@ -13,10 +13,11 @@ import { exifDateTime, heicExif, jpegDimensions, jpegExif } from '../lib/jpeg'
 import { dateFromFileName, detectOrigin, localIso, mediaTypeOf, type MediaType } from '../lib/media'
 import { mp4CreationTime } from '../lib/mp4'
 import { app } from '../store'
+import type { FacebookPost } from './facebook'
 import { syncNow, toRecord } from '../sync/engine'
 import { markMetaDirty } from '../sync/metaStore'
 
-export type DateSource = 'exif' | 'video' | 'name' | 'file'
+export type DateSource = 'exif' | 'video' | 'name' | 'file' | 'facebook'
 
 export interface ImportItem {
   key: string
@@ -32,6 +33,8 @@ export interface ImportItem {
   duplicate: boolean
   /** Estimated size after compression, or null if it will be uploaded as is. */
   estimate: number | null
+  /** Text, group and species from a Facebook post. */
+  extra?: { description?: string; group?: string; species?: string }
 }
 
 export type ImportOutcome =
@@ -120,6 +123,28 @@ export async function analyze(files: File[], onProgress: (done: number) => void)
   return items
 }
 
+/**
+ * Facebook export: the date, text and group of each post. Files already in
+ * Drive under the same name (an earlier import of the same export) are
+ * marked as duplicates, so only new posts are proposed.
+ */
+export async function withFacebookPosts(items: ImportItem[], posts: Map<string, FacebookPost>): Promise<ImportItem[]> {
+  const names = new Set((await db().media.toArray()).map((m) => m.name))
+  return items.map((i) => {
+    const post = posts.get(i.file.name)
+    if (!post) return i
+    const own = i.dateSource === 'exif' || i.dateSource === 'video'
+    return {
+      ...i,
+      relDir: [],
+      takenAt: !own && post.date ? post.date : i.takenAt,
+      dateSource: !own && post.date ? 'facebook' : i.dateSource,
+      duplicate: i.duplicate || names.has(i.file.name),
+      extra: { description: post.description ?? undefined, group: post.group ?? undefined },
+    }
+  })
+}
+
 let abort: AbortController | null = null
 
 export function cancelImport() {
@@ -203,7 +228,10 @@ export async function runImport(
             type: item.type,
             takenAt: item.takenAt,
             origin: detected === 'unknown' ? 'import' : detected,
-            source: 'folder',
+            source: item.extra?.species ? 'manual' : 'folder',
+            description: item.extra?.description,
+            group: item.extra?.group,
+            species: item.extra?.species ? { he: item.extra.species } : undefined,
             compression: compressed
               ? { status: 'compressed', sizeBefore: item.file.size, sizeAfter: blob.size, date: new Date().toISOString() }
               : undefined,

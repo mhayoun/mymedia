@@ -11,11 +11,11 @@ export function compressionState(appProperties: Record<string, string> | undefin
   return 'not'
 }
 
-/** Everything a search can find for one media: name, description, album, people, species. */
+/** Everything a search can find for one media: name, description, group, album, people, species. */
 export function searchText(name: string, meta: MediaMeta | undefined, category: string | null, album: string | null): string {
   const s = meta?.species
   return nameKey(
-    [name, meta?.description, category, album, ...(meta?.people ?? []), s?.he, s?.fr, s?.en, s?.la].filter(Boolean).join(' '),
+    [name, meta?.description, meta?.group, category, album, ...(meta?.people ?? []), s?.he, s?.fr, s?.en, s?.la].filter(Boolean).join(' '),
   )
 }
 

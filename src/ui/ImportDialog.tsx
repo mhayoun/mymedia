@@ -1,7 +1,9 @@
-import { Check, FolderOpen, ImagePlus, Loader2, Play, X } from 'lucide-react'
+import { Check, FileArchive, FolderOpen, ImagePlus, Loader2, Play, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { analyze, cancelImport, mediaFiles, runImport, type ImportItem, type ImportOutcome } from '../import/importer'
+import { extractFiles, FacebookFormatError, readFacebookZip, type FacebookExport } from '../import/facebook'
+import { analyze, cancelImport, mediaFiles, runImport, withFacebookPosts, type ImportItem, type ImportOutcome } from '../import/importer'
+import { speciesInText } from '../lib/katia'
 import { useFormat } from '../i18n/format'
 import { placementOf } from '../lib/tree'
 import { useApp } from '../store'
@@ -57,7 +59,10 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
   const [destId, setDestId] = useState(initialDest)
-  const [phase, setPhase] = useState<'pick' | 'analyze' | 'choose' | 'upload' | 'done'>('pick')
+  const [phase, setPhase] = useState<'pick' | 'zip' | 'groups' | 'analyze' | 'choose' | 'upload' | 'done'>('pick')
+  const [fb, setFb] = useState<FacebookExport | null>(null)
+  const [fbGroups, setFbGroups] = useState<Set<string>>(new Set())
+  const [zipError, setZipError] = useState<string | null>(null)
   const [analyzed, setAnalyzed] = useState({ done: 0, total: 0 })
   const [items, setItems] = useState<ImportItem[]>([])
   const [checked, setChecked] = useState<Set<string>>(new Set())
@@ -67,6 +72,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const [result, setResult] = useState<{ count: number; before: number; after: number } | null>(null)
   const filesInput = useRef<HTMLInputElement>(null)
   const folderInput = useRef<HTMLInputElement>(null)
+  const zipInput = useRef<HTMLInputElement>(null)
   const canPickFolder = typeof window !== 'undefined' && 'webkitdirectory' in document.createElement('input') && !/Android|iPhone|iPad/i.test(navigator.userAgent)
 
   const nameOf = (id: string) => {
@@ -82,27 +88,62 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function onFiles(list: FileList | File[] | null) {
+  async function onFiles(list: FileList | File[] | null, posts?: FacebookExport['posts']) {
     const files = mediaFiles([...(list ?? [])])
     if (!files.length) return
     setPhase('analyze')
     setAnalyzed({ done: 0, total: files.length })
-    const result = await analyze(files, (done) => setAnalyzed({ done, total: files.length }))
+    let result = await analyze(files, (done) => setAnalyzed({ done, total: files.length }))
+    if (posts) result = await withFacebookPosts(result, posts)
     setItems(result)
     setChecked(new Set(result.filter((i) => !i.duplicate).map((i) => i.key)))
     setPhase('choose')
   }
 
+  async function onZip(file: File | undefined) {
+    if (!file) return
+    setZipError(null)
+    setPhase('zip')
+    try {
+      const read = await readFacebookZip(file)
+      const groups = [...read.groups.entries()].sort((a, b) => b[1] - a[1])
+      setFb(read)
+      setFbGroups(new Set(groups.slice(0, 1).map(([g]) => g)))
+      setPhase('groups')
+    } catch (e) {
+      console.error('[MyMedia] Facebook ZIP not read', e)
+      setZipError(e instanceof FacebookFormatError ? t('facebook.notExport') : t('facebook.unreadable'))
+      setPhase('pick')
+    }
+  }
+
+  async function fromGroups() {
+    if (!fb) return
+    setPhase('analyze')
+    const files = await extractFiles(fb, fbGroups, (done, total) => setAnalyzed({ done, total }))
+    await onFiles(files, fb.posts)
+  }
+
+  // Facebook posts: the species named in the text, when it is an album of the destination.
+  const albumNames = useMemo(() => [...lib.folders.values()].filter((f) => f.parentId === destId).map((f) => f.name), [lib.folders, destId])
+  const speciesOf = (i: ImportItem) => (i.extra ? speciesInText(i.extra.description ?? null, albumNames) : null)
+
   const selected = items.filter((i) => checked.has(i.key))
   const sizeBefore = selected.reduce((n, i) => n + i.file.size, 0)
   const sizeAfter = selected.reduce((n, i) => n + (compress && i.estimate !== null ? i.estimate : i.file.size), 0)
-  const hasFolders = items.some((i) => i.relDir.length > 0)
+  const hasFolders = !fb && items.some((i) => i.relDir.length > 0)
   const duplicates = items.filter((i) => i.duplicate).length
 
   async function start() {
     rememberDestination(destId)
     setPhase('upload')
-    const r = await runImport(selected, destId, { compress, keepFolders }, (key, o) => setOutcomes((prev) => ({ ...prev, [key]: o })))
+    const toSend = fb
+      ? selected.map((i) => {
+          const species = speciesOf(i)
+          return species ? { ...i, relDir: [species], extra: { ...i.extra, species } } : i
+        })
+      : selected
+    const r = await runImport(toSend, destId, { compress, keepFolders: keepFolders || !!fb }, (key, o) => setOutcomes((prev) => ({ ...prev, [key]: o })))
     setResult(r)
     setPhase('done')
   }
@@ -162,7 +203,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
         <strong>
           <bdi>{destName}</bdi>
         </strong>
-        {(phase === 'pick' || phase === 'choose') && (
+        {(phase === 'pick' || phase === 'groups' || phase === 'choose') && (
           <AlbumSelect
             categories={lib.categories}
             placeholder={t('import.changeDest')}
@@ -172,7 +213,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
         )}
       </div>
 
-      {(phase === 'pick' || phase === 'choose') && recent.length > 0 && (
+      {(phase === 'pick' || phase === 'groups' || phase === 'choose') && recent.length > 0 && (
         <div className="chip-list">
           {recent.map((id) => (
             <button key={id} className="chip-btn" onClick={() => setDestId(id)}>
@@ -194,8 +235,14 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
                 <FolderOpen size={18} /> {t('import.chooseFolder')}
               </button>
             )}
+            <button className="btn" onClick={() => zipInput.current?.click()}>
+              <FileArchive size={18} /> {t('facebook.choose')}
+            </button>
           </div>
+          {zipError && <p className="error-text">{zipError}</p>}
           <p className="hint">{t('import.dateHint')}</p>
+          <p className="hint">{t('facebook.hint')}</p>
+          <input ref={zipInput} type="file" hidden accept=".zip,application/zip" onChange={(e) => void onZip(e.target.files?.[0])} />
           <input ref={filesInput} type="file" multiple hidden accept="image/*,video/*,.heic,.heif,.mov" onChange={(e) => onFiles(e.target.files)} />
           <input
             ref={folderInput}
@@ -204,6 +251,45 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
             {...({ webkitdirectory: '', directory: '' } as Record<string, string>)}
             onChange={(e) => onFiles(e.target.files)}
           />
+        </>
+      )}
+
+      {phase === 'zip' && (
+        <p>
+          <Loader2 size={16} className="spin" /> {t('facebook.reading')}
+        </p>
+      )}
+
+      {phase === 'groups' && fb && (
+        <>
+          <p>{t('facebook.chooseGroups')}</p>
+          <ul className="compress-list">
+            {[...fb.groups.entries()]
+              .sort((a, b) => b[1] - a[1])
+              .map(([g, n]) => (
+                <li key={g} className={fbGroups.has(g) ? '' : 'off'}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={fbGroups.has(g)}
+                      onChange={() =>
+                        setFbGroups((cur) => {
+                          const next = new Set(cur)
+                          if (next.has(g)) next.delete(g)
+                          else next.add(g)
+                          return next
+                        })
+                      }
+                    />
+                    <span className="name">
+                      <bdi>{g || t('facebook.noGroup')}</bdi>
+                    </span>
+                  </label>
+                  <span className="sizes">{t('facebook.photos', { count: n })}</span>
+                </li>
+              ))}
+          </ul>
+          <p className="hint">{t('facebook.speciesHint')}</p>
         </>
       )}
 
@@ -227,10 +313,22 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
                     <br />
                     <span className="hint">
                       {fmt.dateTime(i.takenAt)} · {t(`import.source.${i.dateSource}`)}
-                      {i.relDir.length > 0 && keepFolders && (
+                      {i.relDir.length > 0 && keepFolders && !fb && (
                         <>
                           {' · '}
                           <bdi>{i.relDir.join(' / ')}</bdi>
+                        </>
+                      )}
+                      {fb && speciesOf(i) && (
+                        <>
+                          {' · '}
+                          <bdi>{speciesOf(i)}</bdi>
+                        </>
+                      )}
+                      {i.extra?.description && (
+                        <>
+                          <br />
+                          <bdi className="clamp-1">{i.extra.description}</bdi>
                         </>
                       )}
                     </span>
@@ -279,6 +377,16 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
             </button>
             <button className="btn primary" disabled={!selected.length} onClick={start}>
               {t('import.uploadN', { count: selected.length })}
+            </button>
+          </>
+        )}
+        {phase === 'groups' && (
+          <>
+            <button className="btn" onClick={onClose}>
+              {t('common.cancel')}
+            </button>
+            <button className="btn primary" disabled={!fbGroups.size} onClick={() => void fromGroups()}>
+              {t('common.next')}
             </button>
           </>
         )}

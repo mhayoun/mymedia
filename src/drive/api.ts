@@ -175,6 +175,20 @@ export async function findFolderInMyDrive(name: string): Promise<DriveFile | nul
   return found
 }
 
+/** Files with this exact name anywhere in My Drive (not trashed). */
+export async function findFilesByName(name: string): Promise<DriveFile[]> {
+  const out: DriveFile[] = []
+  await listFiles(`name = '${q(name)}' and trashed = false`, (files) => void out.push(...files), undefined, 'id,name,parents,modifiedTime')
+  return out
+}
+
+/** True when the folder holds nothing (trashed files aside). */
+export async function isFolderEmpty(id: string): Promise<boolean> {
+  let empty = true
+  await listFiles(childrenQuery([id]), (files) => void (empty &&= files.length === 0), undefined, 'id')
+  return empty
+}
+
 export async function findChildByName(parentId: string, name: string): Promise<DriveFile | null> {
   let found: DriveFile | null = null
   await listFiles(

@@ -124,7 +124,8 @@
     "cannotShow": "אי אפשר להציג תמונה בפורמט הזה באיכות מלאה בדפדפן זה.",
     "delete": "מחיקה",
     "deleteTitle": "למחוק את “{{name}}”?",
-    "deleteText": "הקובץ יועבר לאשפה של Google Drive. אפשר לשחזר אותו משם במשך 30 יום."
+    "deleteText": "הקובץ יועבר לאשפה של Google Drive. אפשר לשחזר אותו משם במשך 30 יום.",
+    "group": "קבוצת פייסבוק"
   },
   "origin": {
     "camera": "מצלמה / טלפון",
@@ -345,7 +346,8 @@
       "exif": "תאריך התמונה",
       "video": "תאריך ההקלטה",
       "name": "תאריך מהשם",
-      "file": "תאריך הקובץ"
+      "file": "תאריך הקובץ",
+      "facebook": "תאריך הפוסט בפייסבוק"
     },
     "duplicate": "כבר ב-Drive",
     "duplicatesHint_one": "קובץ אחד כבר נמצא ב-Drive שלך (אותו תוכן): הסימון בוטל.",
@@ -489,5 +491,47 @@
     "usedUnlimited": "{{used}} בשימוש",
     "free": "{{free}} פנויים",
     "mine": "MyMedia: {{size}}"
+  },
+  "facebook": {
+    "choose": "ייצוא מפייסבוק (ZIP)",
+    "hint": "ייצוא מפייסבוק: בפייסבוק, \"הורדת המידע שלך\", בפורמט HTML, ואז בחרו את קובץ ה‑ZIP שקיבלתם. כל תמונה שומרת את התאריך והטקסט של הפוסט שלה; תמונות שכבר נשלחו אינן מסומנות.",
+    "reading": "קורא את קובץ ה‑ZIP…",
+    "notExport": "קובץ ה‑ZIP הזה אינו ייצוא פייסבוק בפורמט HTML (הקובץ group_posts_and_comments.html לא נמצא).",
+    "unreadable": "לא ניתן לקרוא את קובץ ה‑ZIP הזה.",
+    "chooseGroups": "אילו קבוצות לייבא?",
+    "noGroup": "(ללא קבוצה)",
+    "photos_one": "תמונה אחת",
+    "photos_other": "{{count}} תמונות",
+    "speciesHint": "אם הטקסט של פוסט מכיל שם של אלבום ביעד (מין), התמונה נכנסת ישר לאלבום הזה. האחרות נשארות ביעד, ו‑MyMedia מציע מין."
+  },
+  "katia": {
+    "settingsTitle": "הנתונים של Katia",
+    "open": "ייבוא הנתונים של Katia",
+    "settingsHint": "קודם העבירו ב‑Google Drive את התיקייה של Katia (birds / ציפורים) לתוך התיקייה MyMedia. אחר כך MyMedia קורא את myphotos.json: המין, התאריך, הטקסט והקבוצה של כל תמונה.",
+    "title": "ייבוא הנתונים של Katia",
+    "searching": "מחפש את myphotos.json ב‑Drive שלך…",
+    "error": "אירעה שגיאה. בדקו את החיבור ונסו שוב: מה שכבר נעשה נשאר.",
+    "notFound": "לא נמצא קובץ myphotos.json של Katia ב‑Drive שלך.",
+    "nothingToDo": "הנתונים של Katia כבר יובאו: אין עוד מה לעשות.",
+    "moveFirst": "התיקייה \"{{name}}\" של Katia אינה בתוך MyMedia. ב‑Google Drive גררו אותה לתוך התיקייה MyMedia, ואז חזרו לכאן.",
+    "found_one": "תיקייה \"{{name}}\": תמונה אחת שתוארה ב‑Katia.",
+    "found_other": "תיקייה \"{{name}}\": {{count}} תמונות שתוארו ב‑Katia.",
+    "toSpecies_one": "תמונה אחת תסודר לפי מין ({{albums}} אלבומים)",
+    "toSpecies_other": "{{count}} תמונות יסודרו לפי מין ({{albums}} אלבומים)",
+    "toReview_one": "תמונה אחת בלי מין: נשארת בקטגוריה, MyMedia יציע מין (\"לסיווג\")",
+    "toReview_other": "{{count}} תמונות בלי מין: נשארות בקטגוריה, MyMedia יציע מין (\"לסיווג\")",
+    "dates_one": "תאריך אחד יתוקן",
+    "dates_other": "{{count}} תאריכים יתוקנו",
+    "descriptions_one": "תיאור אחד יובא",
+    "descriptions_other": "{{count}} תיאורים יובאו",
+    "unmatched_one": "תמונה אחת בתיקייה אינה ב‑myphotos.json (ללא שינוי)",
+    "unmatched_other": "{{count}} תמונות בתיקייה אינן ב‑myphotos.json (ללא שינוי)",
+    "trashEmptied_one": "להעביר לאשפה את תיקיית Katia שתתרוקן",
+    "trashEmptied_other": "להעביר לאשפה את {{count}} תיקיות Katia שיתרוקנו",
+    "safe": "התמונות מועברות, אף פעם לא מועתקות או נמחקות. myphotos.json נשאר ב‑Drive. תמונה שכבר סידרתם בעצמכם ב‑MyMedia לא תועבר.",
+    "start": "סידור לפי מין",
+    "running": "מסדר… {{done}} / {{total}}",
+    "done_one": "הסתיים: תמונה אחת עודכנה.",
+    "done_other": "הסתיים: {{count}} תמונות עודכנו."
   }
 }

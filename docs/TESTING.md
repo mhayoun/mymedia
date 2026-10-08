@@ -171,3 +171,20 @@ birds), then put a few new bird photos **directly in `MyMedia`** or directly in
 - [ ] After installing the update (if MyMedia does not appear in the Share menu, uninstall and reinstall the app from Chrome), Gallery / WhatsApp → select photos → **Share** → **MyMedia**.
 - [ ] MyMedia opens on **Add photos and videos** with the shared files, their real dates and the duplicates detected; tap a recent destination (e.g. Family / David) or **Another folder…**, then **Upload**.
 - [ ] iPhone: not available (Apple does not allow it for web apps) — use **Add** inside MyMedia.
+
+## Katia data and Facebook export
+
+### Katia data (one time)
+- [ ] In Google Drive, rename Katia's folder `birds` → `ציפורים`, then drag it into the `MyMedia` folder. In MyMedia → Refresh: **ציפורים** is a category, Katia's folders are its albums.
+- [ ] Settings → **Katia data** → **Bring in the Katia data**: the window shows how many photos go into species albums (with the list of species), how many stay in the category to be reviewed, dates corrected, descriptions.
+- [ ] Before moving the folder into MyMedia, the same button says to move it first.
+- [ ] **File by species** → progress → done. In Drive: `ציפורים/<species>` albums hold the photos; photos without species are directly in `ציפורים` and appear in **To classify** with suggestions; Katia's emptied folders are in the Drive trash (if ticked).
+- [ ] A Facebook photo shows the date of its post (not the upload date), its text as description, and **Facebook group** in the information panel. Searching the group name finds it.
+- [ ] Opening the window again says there is nothing more to do.
+
+### Facebook export (ZIP)
+- [ ] On Facebook: Settings → **Download your information** → format **HTML** → download the ZIP.
+- [ ] MyMedia → open the category **ציפורים** → **Add** → **Facebook export (ZIP)** → choose the ZIP → list of groups with their number of photos; the biggest group is ticked.
+- [ ] **Next** → list of photos with the post date ("Facebook post date"), the species found in the text (when it is an existing album name) and the text.
+- [ ] Photos already in Drive (same name or same content) are unticked: importing the same export again proposes only the new posts.
+- [ ] **Upload**: photos with a species go into that album, the others into `ציפורים` (then **To classify**).
