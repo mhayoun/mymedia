@@ -124,7 +124,8 @@
     "deleteTitle": "Supprimer « {{name}} » ?",
     "deleteText": "Le fichier va dans la corbeille de Google Drive. Vous pouvez le restaurer pendant 30 jours.",
     "group": "Groupe Facebook",
-    "imported": "Importée de"
+    "imported": "Importée de",
+    "loadingOriginal": "Pleine qualité… {{percent}}"
   },
   "origin": {
     "camera": "Appareil photo / téléphone",

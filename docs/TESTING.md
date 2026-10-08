@@ -202,3 +202,10 @@ birds), then put a few new bird photos **directly in `MyMedia`** or directly in
 - [ ] Upload: those photos keep their place (album/species), date and text; the info panel no longer says compressed; the picture is sharper. In Drive, the file's **Manage versions** shows the old reduced version.
 - [ ] Untick a line whose two pictures differ: that ZIP photo is not uploaded.
 - [ ] A ZIP photo that is the same picture as a Katia photo but not clearly bigger (< 5 %) shows **already in Drive (same picture)**, unticked: no duplicate is added.
+
+### Viewer: full quality
+- [ ] Opening a photo over 2 MB shows the preview at once, then "Full quality… 45 %" at the bottom, then the full-quality photo replaces the preview without a black flash.
+- [ ] Reopening the same photo: full quality at once, no percentage (kept on the device, last 60 photos).
+- [ ] Swiping to the next photo while it loads stops that download.
+- [ ] Photos under 2 MB: no button and no percentage (the preview already is the original). HEIC: no automatic download.
+- [ ] Phone in data saver mode: no automatic download; the **Load full quality** button is shown.

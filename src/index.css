@@ -176,6 +176,8 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .viewer .stage { position: relative; display: grid; place-items: center; min-width: 0; min-height: 0; overflow: hidden; }
 .viewer .stage img, .viewer .stage video { position: relative; z-index: 1; max-inline-size: 100%; max-block-size: 100vh; object-fit: contain; }
 /* The small thumbnail, behind the photo while it loads (never in front of it). */
+/* The full-quality photo decodes out of sight, then replaces the preview. */
+.viewer .stage img.loading-original { position: absolute; opacity: 0; pointer-events: none; }
 .viewer .stage .placeholder { position: absolute; z-index: 0; inset: 0; max-inline-size: none; max-block-size: none; inline-size: 100%; block-size: 100%; object-fit: contain; filter: blur(2px); opacity: 0.6; }
 .viewer .top { position: absolute; inset-block-start: 0; inset-inline: 0; display: flex; gap: 6px; padding: 8px; z-index: 2;
   background: linear-gradient(rgb(0 0 0 / 0.55), transparent); }

@@ -9,7 +9,7 @@ import { useApp } from '../store'
 import { trashMedia } from '../sync/media'
 import { updateMeta } from '../sync/metaStore'
 import { streamUrl } from '../sync/stream'
-import { loadPreview, prefetchPreviews } from '../sync/previews'
+import { loadOriginal, loadPreview, prefetchPreviews, previewIsOriginal, showable } from '../sync/previews'
 import { cachedThumbUrl } from '../sync/thumbs'
 import { chooseFolder } from '../classify/engine'
 import { AlbumSelect } from './AlbumSelect'
@@ -147,51 +147,64 @@ function PhotoStage({ item }: { item: LibraryItem }) {
   const placeholder = cachedThumbUrl(item.rec.id)
   const [preview, setPreview] = useObjectUrl()
   const [loaded, setLoaded] = useState(false)
-  useEffect(() => {
-    let alive = true
-    loadPreview(item.rec).then((b) => alive && b && setPreview(b))
-    return () => {
-      alive = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item.rec.id])
   const [original, setOriginal] = useObjectUrl()
+  const [originalShown, setOriginalShown] = useState(false)
   const [progress, setProgress] = useState<number | null>(null)
   const [failed, setFailed] = useState(false)
+  const abort = useRef<AbortController | null>(null)
+  // Small photos: the preview already is the original. HEIC: browsers cannot show it.
+  const wantOriginal = showable(item.rec) && !previewIsOriginal(item.rec)
 
-  async function loadOriginal() {
+  async function fetchOriginal() {
+    abort.current = new AbortController()
     setProgress(0)
     try {
-      setOriginal(await downloadBlob(item.rec.id, setProgress))
+      setOriginal(await loadOriginal(item.rec, setProgress, abort.current.signal))
+    } catch {
+      // cancelled (another photo) or offline: the preview stays
     } finally {
       setProgress(null)
     }
   }
 
+  useEffect(() => {
+    let alive = true
+    loadPreview(item.rec).then((b) => alive && b && setPreview(b))
+    // Full quality at once, except when the phone asks to save data.
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData
+    if (wantOriginal && !saveData) void fetchOriginal()
+    return () => {
+      alive = false
+      abort.current?.abort()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.rec.id])
+
+  const alt = item.meta?.description ?? item.rec.name
   return (
     <>
       {placeholder && !loaded && <img className="placeholder" src={placeholder} alt="" />}
-      {original && !failed ? (
+      {/* The preview stays until the full-quality photo is ready, then gives way to it. */}
+      {preview && !originalShown && <img src={preview} alt={alt} onLoad={() => setLoaded(true)} />}
+      {original && !failed && (
         <img
           src={original}
-          alt={item.meta?.description ?? item.rec.name}
-          onLoad={() => setLoaded(true)}
+          alt={alt}
+          className={originalShown ? '' : 'loading-original'}
+          onLoad={() => {
+            setLoaded(true)
+            setOriginalShown(true)
+          }}
           onError={() => setFailed(true)}
         />
-      ) : preview ? (
-        <img
-          src={preview}
-          alt={item.meta?.description ?? item.rec.name}
-          onLoad={() => setLoaded(true)}
-        />
-      ) : null}
+      )}
       <div className="status">
         {progress !== null ? (
-          <span>{t('viewer.downloading', { percent: fmt.percent(progress) })}</span>
+          <span>{t('viewer.loadingOriginal', { percent: fmt.percent(progress) })}</span>
         ) : failed ? (
           <span>{t('viewer.cannotShow')}</span>
-        ) : !original ? (
-          <button className="btn" onClick={loadOriginal}>
+        ) : wantOriginal && !original ? (
+          <button className="btn" onClick={fetchOriginal}>
             <Maximize2 size={16} /> {t('viewer.original')}
           </button>
         ) : null}

@@ -126,7 +126,8 @@
     "deleteTitle": "Delete “{{name}}”?",
     "deleteText": "The file goes to the Google Drive trash. You can restore it from there for 30 days.",
     "group": "Facebook group",
-    "imported": "Imported from"
+    "imported": "Imported from",
+    "loadingOriginal": "Full quality… {{percent}}"
   },
   "origin": {
     "camera": "Camera / phone",

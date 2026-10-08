@@ -126,7 +126,8 @@
     "deleteTitle": "למחוק את “{{name}}”?",
     "deleteText": "הקובץ יועבר לאשפה של Google Drive. אפשר לשחזר אותו משם במשך 30 יום.",
     "group": "קבוצת פייסבוק",
-    "imported": "יובא מ"
+    "imported": "יובא מ",
+    "loadingOriginal": "איכות מלאה… {{percent}}"
   },
   "origin": {
     "camera": "מצלמה / טלפון",
