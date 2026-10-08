@@ -6,7 +6,7 @@
 import { moveMedia } from '../classify/engine'
 import { db } from '../db/db'
 import { createFolder, downloadText, findFilesByName, getFile, isFolderEmpty, setAppProperties, trashFile } from '../drive/api'
-import { KATIA_INDEX_NAME, parseKatiaIndex, planKatiaImport, type KatiaPlan } from '../lib/katia'
+import { KATIA_INDEX_NAME, katiaProvenance, parseKatiaIndex, planKatiaImport, type KatiaPlan } from '../lib/katia'
 import { nameKey } from '../lib/filename'
 import { folderChain, subtreeIds } from '../lib/tree'
 import { app } from '../store'
@@ -99,6 +99,7 @@ export async function runKatiaImport(
       const patch = {
         ...(a.species ? { species: { he: a.species } } : {}),
         ...(a.group ? { group: a.group } : {}),
+        ...(a.folder ? { imported: { from: a.folder, on: '', via: 'katia' as const } } : {}),
         ...(a.description ? { description: a.description } : {}),
         ...(a.takenAt ? { takenAt: a.takenAt } : {}),
       }
@@ -120,4 +121,41 @@ export async function runKatiaImport(
     await syncNow()
   }
   return done
+}
+
+/**
+ * Data imported before Katia's folders were told apart from Facebook groups:
+ * photos of a folder imported into Katia show it as their "Facebook group".
+ * Moves it to the imports (once per device; the change syncs to the others).
+ */
+export async function repairKatiaProvenance(): Promise<void> {
+  const d = db()
+  const done = 'katiaProvenance:1'
+  if (await d.getKv<boolean>(done)) return
+  const rootId = app().rootId
+  if (!rootId) return
+  const folders = new Map((await d.folders.toArray()).map((f) => [f.id, f]))
+  let changed = 0
+  for (const f of await findFilesByName(KATIA_INDEX_NAME)) {
+    const folderId = f.parents?.[0]
+    if (!folderId || folderId === rootId || folderChain(folderId, folders, rootId) === null) continue
+    // file name + wrong group → the Katia folder it came from
+    const wrong = new Map<string, string>()
+    for (const e of parseKatiaIndex(await downloadText(f.id))) {
+      const p = katiaProvenance(e)
+      if (p.folder && e.group) wrong.set(`${e.file}\u0000${e.group}`, p.folder)
+    }
+    if (!wrong.size) continue
+    const ids = subtreeIds(folderId, folders.values())
+    const media = await d.media.where('folderId').anyOf([...ids]).toArray()
+    for (const m of media) {
+      const meta = await d.meta.get(m.id)
+      const folder = meta?.group ? wrong.get(`${m.name}\u0000${meta.group}`) : undefined
+      if (!meta || !folder) continue
+      await d.meta.put({ ...meta, group: undefined, imported: meta.imported ?? { from: folder, on: '', via: 'katia' }, updatedAt: Date.now() })
+      changed++
+    }
+  }
+  if (changed) await markMetaDirty()
+  await d.setKv(done, true)
 }

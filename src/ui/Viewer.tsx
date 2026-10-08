@@ -19,6 +19,7 @@ import { FaceImg } from './FaceImg'
 import { useLibraryContext } from './libraryContext'
 import { useOpenPerson, usePeopleContext } from './peopleContext'
 import type { LibraryItem } from './useLibrary'
+import { useProvenanceLabel } from './useProvenanceLabel'
 
 interface Props {
   ids: string[]
@@ -271,6 +272,7 @@ function VideoStage({ item }: { item: LibraryItem }) {
 }
 
 function InfoPanel({ item }: { item: LibraryItem }) {
+  const provenance = useProvenanceLabel()
   const { t } = useTranslation()
   const fmt = useFormat()
   const lib = useLibraryContext()
@@ -304,7 +306,7 @@ function InfoPanel({ item }: { item: LibraryItem }) {
           <>
             <dt>{t('viewer.imported')}</dt>
             <dd>
-              <bdi>{meta.imported.from || t('provenance.looseFiles')}</bdi> · {fmt.date(`${meta.imported.on}T12:00:00`)}
+              <bdi>{provenance.importLabel(meta.imported)}</bdi>
             </dd>
           </>
         )}

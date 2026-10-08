@@ -3,6 +3,7 @@
 // fingerprints and classify. A file compressed later keeps its fingerprint.
 
 import { afterLoadCompression } from './compress/engine'
+import { repairKatiaProvenance } from './import/katia'
 import { startIndexer } from './ml/indexer'
 import { fixVideoDates } from './sync/videoDates'
 
@@ -16,6 +17,7 @@ export function afterSync(): Promise<void> {
       console.error('[MyMedia] automatic compression failed', e)
     }
     await fixVideoDates().catch((e) => console.warn('[MyMedia] video dates', e))
+    await repairKatiaProvenance().catch((e) => console.warn('[MyMedia] Katia provenance', e))
     await startIndexer()
   })().finally(() => {
     running = null

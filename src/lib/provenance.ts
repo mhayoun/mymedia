@@ -6,16 +6,19 @@ import type { MediaMeta } from './metadata'
 /** One import: what was chosen ('' = files chosen one by one) and the day. */
 export interface ImportInfo {
   from: string
-  /** Local day "YYYY-MM-DD". */
+  /** Local day "YYYY-MM-DD" ('' when unknown). */
   on: string
+  /** Folder imported into Katia, the earlier app (photos reduced by it). */
+  via?: 'katia'
 }
 
 export interface ProvenanceEntry {
-  /** Filter key: "g:<group>" or "i:<day>|<from>". */
+  /** Filter key: "g:<group>" or "i:<day>|<via>|<from>". */
   key: string
   label: string
-  /** Import day (imports only). */
+  /** Import day (imports only; '' when unknown). */
   on?: string
+  via?: 'katia'
   count: number
 }
 
@@ -26,7 +29,7 @@ export interface Provenance {
 }
 
 export const groupKey = (group: string) => `g:${group}`
-export const importKey = (i: ImportInfo) => `i:${i.on}|${i.from}`
+export const importKey = (i: ImportInfo) => `i:${i.on}|${i.via ?? ''}|${i.from}`
 
 /** The filter keys a media matches. */
 export function provenanceKeys(meta: MediaMeta | undefined): string[] {
@@ -48,7 +51,7 @@ export function buildProvenance(metas: Iterable<MediaMeta | undefined>): Provena
     }
     if (m?.imported) {
       const key = importKey(m.imported)
-      const e = imports.get(key) ?? { key, label: m.imported.from, on: m.imported.on, count: 0 }
+      const e = imports.get(key) ?? { key, label: m.imported.from, on: m.imported.on, via: m.imported.via, count: 0 }
       e.count++
       imports.set(key, e)
     }

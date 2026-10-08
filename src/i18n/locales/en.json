@@ -509,6 +509,7 @@
     "title": "Provenance",
     "groups": "Facebook groups",
     "imports": "Imports",
-    "looseFiles": "Chosen files"
+    "looseFiles": "Chosen files",
+    "katiaFolder": "Katia folder"
   }
 }

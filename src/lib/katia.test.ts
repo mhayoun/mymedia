@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cleanSpecies, katiaDate, katiaDescription, parseKatiaIndex, planKatiaImport, speciesInText, type PlanMedia } from './katia'
+import { cleanSpecies, katiaProvenance, katiaDate, katiaDescription, parseKatiaIndex, planKatiaImport, speciesInText, type PlanMedia } from './katia'
 
 const index = JSON.stringify([
   { file: 'a.jpg', album: 'MyPhotos — צפרות', group: 'צפרות', date: 'Jan 26, 2026 6:17:00 am', description: 'דוכיפת בגינה', species: 'דוכיפת', context: 'בגינה' },
@@ -71,5 +71,11 @@ describe('katia', () => {
     const folders = [{ id: 'g', name: 'MyPhotos — צפרות', parentId: 'base' }]
     const plan = planKatiaImport(parseKatiaIndex(index), 'base', folders, [media('1', 'a.jpg', 'g'), media('2', 'b.jpg', 'g')])
     expect(plan.emptied).toEqual(['g'])
+  })
+
+  it('tells Facebook groups from folders imported into Katia', () => {
+    expect(katiaProvenance({ album: 'MyPhotos — צילום ציפורים', group: 'צילום ציפורים' })).toEqual({ group: 'צילום ציפורים' })
+    expect(katiaProvenance({ album: 'אמא 8', group: 'אמא 8' })).toEqual({ folder: 'אמא 8' })
+    expect(katiaProvenance({ album: 'MyPhotos — photos', group: null })).toEqual({})
   })
 })

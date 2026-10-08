@@ -17,6 +17,18 @@ export interface KatiaEntry {
   context: string
 }
 
+/** Katia put the photos of the Facebook ZIP in albums "MyPhotos — <group>"; other albums are folders imported by hand. */
+export const isFacebookAlbum = (album: string) => /^MyPhotos\s*[—–-]\s*/.test(album)
+
+/**
+ * Where a Katia photo came from. For folders imported by hand, Katia wrote the
+ * folder name as its "group" (and reduced the photos: 1600 px, JPEG 72 %).
+ */
+export function katiaProvenance(e: Pick<KatiaEntry, 'album' | 'group'>): { group?: string; folder?: string } {
+  if (isFacebookAlbum(e.album)) return e.group ? { group: e.group } : {}
+  return e.album ? { folder: e.album } : {}
+}
+
 const str = (v: unknown): string => (typeof v === 'string' ? v.trim() : '')
 
 export function parseKatiaIndex(text: string): KatiaEntry[] {
@@ -113,6 +125,8 @@ export interface KatiaAction {
   takenAt?: string
   description?: string
   group?: string
+  /** Folder imported by hand into Katia (its photos were reduced by Katia). */
+  folder?: string
 }
 
 export interface KatiaPlan {
@@ -163,7 +177,7 @@ export function planKatiaImport(
     }
     const a: KatiaAction = { id: m.id }
     if (entry.species) a.species = entry.species
-    if (entry.group) a.group = entry.group
+    Object.assign(a, katiaProvenance(entry))
     const date = m.hasOwnDate ? null : katiaDate(entry.date)
     if (date && date !== katiaDate(m.takenAt)) {
       a.takenAt = date

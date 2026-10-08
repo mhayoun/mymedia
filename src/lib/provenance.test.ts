@@ -12,14 +12,15 @@ describe('provenance', () => {
       meta('c', { group: 'Birds' }),
       meta('d', { imported: { from: 'folder001', on: '2026-10-10' } }),
       meta('e', { imported: { from: 'facebook-export', on: '2026-09-01' } }),
+      meta('f', { imported: { from: 'אמא 8', on: '', via: 'katia' } }),
       undefined,
     ])
     expect(p.groups.map((g) => [g.label, g.count])).toEqual([['צפרות', 2], ['Birds', 1]])
-    expect(p.imports.map((i) => [i.label, i.on, i.count])).toEqual([['folder001', '2026-10-10', 2], ['facebook-export', '2026-09-01', 1]])
+    expect(p.imports.map((i) => [i.label, i.on, i.count])).toEqual([['folder001', '2026-10-10', 2], ['facebook-export', '2026-09-01', 1], ['אמא 8', '', 1]])
   })
 
   it('gives the filter keys of a media', () => {
-    expect(provenanceKeys(meta('a', { group: 'G', imported: { from: 'f', on: '2026-10-10' } }))).toEqual(['g:G', 'i:2026-10-10|f'])
+    expect(provenanceKeys(meta('a', { group: 'G', imported: { from: 'f', on: '2026-10-10' } }))).toEqual(['g:G', 'i:2026-10-10||f'])
     expect(provenanceKeys(undefined)).toEqual([])
   })
 
