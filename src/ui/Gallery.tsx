@@ -65,7 +65,8 @@ export function Gallery({ items }: { items: LibraryItem[] }) {
     count: rows.length,
     getScrollElement: () => scrollRef.current,
     estimateSize: (i) => (rows[i].kind === 'header' ? HEADER_H : cell + GAP),
-    overscan: 4,
+    // Rows prepared beyond the screen: their thumbnails are ready before they scroll into view.
+    overscan: 10,
     getItemKey: (i) => rows[i].key,
   })
 

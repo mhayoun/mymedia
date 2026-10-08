@@ -7,7 +7,7 @@ import { sizedThumbnailLink } from '../lib/media'
 import { videoFrameThumbnail } from './videoFrame'
 
 const THUMB_SIZE = 400
-const MAX_PARALLEL = 8
+const MAX_PARALLEL = 12
 const MAX_URLS = 800
 const LOCAL_RESIZE_MAX_BYTES = 25 * 1024 * 1024
 
@@ -98,19 +98,22 @@ function renewFolderLinks(folderId: string): Promise<void> {
 
 /** Drive's own preview image of a file (works for HEIC and videos too), or null. */
 export async function driveThumbnail(rec: MediaRecord, size = THUMB_SIZE): Promise<Blob | null> {
+  // Saved links are probably old: renew the folder's once per session, before trying them.
+  if (!freshLinks.has(rec.folderId)) {
+    await renewFolderLinks(rec.folderId)
+    rec.thumbnailLink = (await db().media.get(rec.id))?.thumbnailLink ?? rec.thumbnailLink
+  }
   if (rec.thumbnailLink) {
     const b = await fetchThumbLink(rec.thumbnailLink, size)
     if (b) return b
   }
-  const fresh = freshLinks.get(rec.folderId)
-  if (!fresh || Date.now() - fresh.at >= LINKS_TTL_MS) {
-    await renewFolderLinks(rec.folderId)
-    const link = (await db().media.get(rec.id))?.thumbnailLink
-    if (link && link !== rec.thumbnailLink) {
-      rec.thumbnailLink = link
-      const b = await fetchThumbLink(link, size)
-      if (b) return b
-    }
+  const failed = rec.thumbnailLink
+  await renewFolderLinks(rec.folderId)
+  const link = (await db().media.get(rec.id))?.thumbnailLink
+  if (link && link !== failed) {
+    rec.thumbnailLink = link
+    const b = await fetchThumbLink(link, size)
+    if (b) return b
   }
   // Still nothing: ask Drive about this file alone.
   try {
