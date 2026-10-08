@@ -15,7 +15,7 @@ export function compressionState(appProperties: Record<string, string> | undefin
 export function searchText(name: string, meta: MediaMeta | undefined, category: string | null, album: string | null): string {
   const s = meta?.species
   return nameKey(
-    [name, meta?.description, meta?.group, category, album, ...(meta?.people ?? []), s?.he, s?.fr, s?.en, s?.la].filter(Boolean).join(' '),
+    [name, meta?.description, meta?.group, meta?.imported?.from, category, album, ...(meta?.people ?? []), s?.he, s?.fr, s?.en, s?.la].filter(Boolean).join(' '),
   )
 }
 

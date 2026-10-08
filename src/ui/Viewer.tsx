@@ -295,6 +295,14 @@ function InfoPanel({ item }: { item: LibraryItem }) {
             </dd>
           </>
         )}
+        {meta?.imported && (
+          <>
+            <dt>{t('viewer.imported')}</dt>
+            <dd>
+              <bdi>{meta.imported.from || t('provenance.looseFiles')}</bdi> · {fmt.date(`${meta.imported.on}T12:00:00`)}
+            </dd>
+          </>
+        )}
         <dt>{t('viewer.size')}</dt>
         <dd>{fmt.bytes(rec.size)}</dd>
         {rec.width && rec.height ? (

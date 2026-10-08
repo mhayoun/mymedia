@@ -1,12 +1,14 @@
-import { CircleHelp, Cloud, Folder, FolderOpen, Images, Inbox, Plus, Sparkles, Users, Wand2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Folder, FolderOpen, Images, Inbox, MessagesSquare, Plus, Sparkles, Users, Wand2 } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { storageQuota, type DriveQuota } from '../drive/api'
 import { useFormat } from '../i18n/format'
 import { useApp } from '../store'
 import { FaceImg } from './FaceImg'
+import type { ProvenanceEntry } from '../lib/provenance'
 import { AUTO, PEOPLE, TO_CLASSIFY, UNFILED, type FolderInfo, type Library } from './useLibrary'
 import type { People } from './usePeople'
+import { useProvenanceLabel } from './useProvenanceLabel'
 
 interface Props {
   lib: Library
@@ -23,7 +25,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
 
   const facesEnabled = useApp((s) => s.settings.facesEnabled)
   const select = (categoryId: string | null, albumId: string | null) => {
-    setFilters({ categoryId, albumId, personId: null })
+    setFilters({ categoryId, albumId, personId: null, provenance: null })
     set({ sidebarOpen: false })
   }
   const total = lib.items.length
@@ -32,7 +34,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
     <>
       <div className={`scrim ${open ? 'open' : ''}`} onClick={() => set({ sidebarOpen: false })} />
       <nav className={`sidebar ${open ? 'open' : ''}`} aria-label={t('nav.categories')}>
-        <button className="nav-item" aria-current={!filters.categoryId && !filters.personId} onClick={() => select(null, null)}>
+        <button className="nav-item" aria-current={!filters.categoryId && !filters.personId && !filters.provenance} onClick={() => select(null, null)}>
           <Images size={18} />
           <span className="label">{t('nav.allMedia')}</span>
           <span className="count">{total}</span>
@@ -99,7 +101,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
                 className="nav-item"
                 aria-current={filters.personId === p.id}
                 onClick={() => {
-                  setFilters({ personId: p.id, categoryId: null, albumId: null })
+                  setFilters({ personId: p.id, categoryId: null, albumId: null, provenance: null })
                   set({ sidebarOpen: false })
                 }}
               >
@@ -112,6 +114,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
             ))}
           </>
         )}
+        <ProvenanceList lib={lib} />
         <h2 />
         <button
           className="nav-item"
@@ -123,6 +126,75 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
         <DriveStorage lib={lib} />
       </nav>
     </>
+  )
+}
+
+/** Where media came from: Facebook groups and imports (folder or ZIP, day). */
+function ProvenanceList({ lib }: { lib: Library }) {
+  const { t } = useTranslation()
+  const { label } = useProvenanceLabel()
+  const active = useApp((s) => s.filters.provenance)
+  const setFilters = useApp((s) => s.setFilters)
+  const set = useApp((s) => s.set)
+  const { groups, imports } = lib.provenance
+  if (!groups.length && !imports.length) return null
+
+  const select = (key: string) => {
+    setFilters({ provenance: key, categoryId: null, albumId: null, personId: null })
+    set({ sidebarOpen: false })
+  }
+  return (
+    <>
+      <h2>{t('provenance.title')}</h2>
+      {groups.length > 0 && (
+        <Section icon={<MessagesSquare size={18} />} title={t('provenance.groups')} entries={groups} active={active} label={label} onSelect={select} />
+      )}
+      {imports.length > 0 && (
+        <Section icon={<Download size={18} />} title={t('provenance.imports')} entries={imports} active={active} label={label} onSelect={select} />
+      )}
+    </>
+  )
+}
+
+function Section({
+  icon,
+  title,
+  entries,
+  active,
+  label,
+  onSelect,
+}: {
+  icon: ReactNode
+  title: string
+  entries: ProvenanceEntry[]
+  active: string | null | undefined
+  label: (e: ProvenanceEntry) => string
+  onSelect: (key: string) => void
+}) {
+  const hasActive = entries.some((e) => e.key === active)
+  const [open, setOpen] = useState(hasActive)
+  const shown = open || hasActive
+  return (
+    <div>
+      <button className="nav-item" aria-expanded={shown} onClick={() => setOpen(!shown)}>
+        {icon}
+        <span className="label">{title}</span>
+        <span className="count">{entries.length}</span>
+        {shown ? <ChevronDown size={16} /> : <ChevronRight size={16} className="flip-rtl" />}
+      </button>
+      {shown && (
+        <div className="nav-children">
+          {entries.map((e) => (
+            <button key={e.key} className="nav-item" aria-current={active === e.key} onClick={() => onSelect(e.key)}>
+              <span className="label">
+                <bdi>{label(e)}</bdi>
+              </span>
+              <span className="count">{e.count}</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 

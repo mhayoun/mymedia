@@ -188,3 +188,9 @@ birds), then put a few new bird photos **directly in `MyMedia`** or directly in
 - [ ] **Next** → list of photos with the post date ("Facebook post date"), the species found in the text (when it is an existing album name) and the text.
 - [ ] Photos already in Drive (same name or same content) are unticked: importing the same export again proposes only the new posts.
 - [ ] **Upload**: photos with a species go into that album, the others into `ציפורים` (then **To classify**).
+
+### Provenance (menu)
+- [ ] After the Katia data or a Facebook ZIP import, the menu shows **Provenance → Facebook groups** with each group and its number of photos; a tap shows all photos of that group, whatever their album.
+- [ ] Add a folder (e.g. `folder001`) from a computer: **Provenance → Imports** shows `folder001 · <today>` with its count; a tap shows exactly those photos. Loose files show as **Chosen files · <day>**, a Facebook ZIP under its file name.
+- [ ] The information panel of an imported photo shows **Imported from**: folder and day. Searching `folder001` finds them.
+- [ ] Photos imported before this version have no import line (only the Facebook group, if known).

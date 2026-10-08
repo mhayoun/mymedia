@@ -123,7 +123,8 @@
     "delete": "Supprimer",
     "deleteTitle": "Supprimer « {{name}} » ?",
     "deleteText": "Le fichier va dans la corbeille de Google Drive. Vous pouvez le restaurer pendant 30 jours.",
-    "group": "Groupe Facebook"
+    "group": "Groupe Facebook",
+    "imported": "Importée de"
   },
   "origin": {
     "camera": "Appareil photo / téléphone",
@@ -501,5 +502,11 @@
     "done_one": "Terminé : {{count}} photo mise à jour.",
     "done_other": "Terminé : {{count}} photos mises à jour.",
     "keepOpen": "Gardez MyMedia ouvert et l'écran allumé. Si cela s'arrête, rouvrez cette fenêtre : le rangement reprend là où il s'était arrêté."
+  },
+  "provenance": {
+    "title": "Provenance",
+    "groups": "Groupes Facebook",
+    "imports": "Importations",
+    "looseFiles": "Fichiers choisis"
   }
 }

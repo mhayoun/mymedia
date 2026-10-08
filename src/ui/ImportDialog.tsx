@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { extractFiles, FacebookFormatError, readFacebookZip, type FacebookExport } from '../import/facebook'
 import { analyze, cancelImport, mediaFiles, runImport, withFacebookPosts, type ImportItem, type ImportOutcome } from '../import/importer'
 import { speciesInText } from '../lib/katia'
+import { importSourceName } from '../lib/provenance'
 import { useFormat } from '../i18n/format'
 import { placementOf } from '../lib/tree'
 import { auth } from '../auth/google'
@@ -63,6 +64,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const [phase, setPhase] = useState<'pick' | 'zip' | 'groups' | 'analyze' | 'choose' | 'upload' | 'done'>('pick')
   const [fb, setFb] = useState<FacebookExport | null>(null)
   const [fbGroups, setFbGroups] = useState<Set<string>>(new Set())
+  const [zipName, setZipName] = useState<string | undefined>()
   const [zipError, setZipError] = useState<string | null>(null)
   const [analyzed, setAnalyzed] = useState({ done: 0, total: 0 })
   const [items, setItems] = useState<ImportItem[]>([])
@@ -109,6 +111,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
       const read = await readFacebookZip(file)
       const groups = [...read.groups.entries()].sort((a, b) => b[1] - a[1])
       setFb(read)
+      setZipName(file.name)
       setFbGroups(new Set(groups.slice(0, 1).map(([g]) => g)))
       setPhase('groups')
     } catch (e) {
@@ -145,7 +148,11 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
           return species ? { ...i, relDir: [species], extra: { ...i.extra, species } } : i
         })
       : selected
-    const r = await runImport(toSend, destId, { compress, keepFolders: keepFolders || !!fb }, (key, o) => setOutcomes((prev) => ({ ...prev, [key]: o })))
+    const r = await runImport(toSend, destId, {
+      compress,
+      keepFolders: keepFolders || !!fb,
+      from: importSourceName({ zipName: fb ? zipName : undefined, relDirs: items.map((i) => i.relDir) }),
+    }, (key, o) => setOutcomes((prev) => ({ ...prev, [key]: o })))
     setResult(r)
     setPhase('done')
   }

@@ -29,6 +29,7 @@ import { PeopleContext, PersonDialogContext } from './peopleContext'
 import { PeopleView } from './PeopleView'
 import { PersonDialog } from './PersonDialog'
 import { usePeople, type People } from './usePeople'
+import { useProvenanceLabel } from './useProvenanceLabel'
 
 type DialogState =
   | { kind: 'newCategory' }
@@ -41,6 +42,7 @@ type DialogState =
 
 export function Shell() {
   const { t } = useTranslation()
+  const provenance = useProvenanceLabel()
   const lib = useLibrary()
   const rootId = useApp((s) => s.rootId)
   const filters = useApp((s) => s.filters)
@@ -66,13 +68,15 @@ export function Shell() {
 
   const personMedia = filters.personId ? people.byId.get(filters.personId)?.mediaIds : undefined
   // Folder shown (album or category), used by Add and Compress in the top bar.
-  const specialView = [UNFILED, TO_CLASSIFY, AUTO, PEOPLE].includes(filters.categoryId ?? '') || !!filters.personId
+  const specialView = [UNFILED, TO_CLASSIFY, AUTO, PEOPLE].includes(filters.categoryId ?? '') || !!filters.personId || !!filters.provenance
   const currentFolderId = filters.albumId ?? (!specialView && filters.categoryId && lib.folders.has(filters.categoryId) ? filters.categoryId : null)
   const currentTitle = currentFolderId
     ? (lib.folders.get(currentFolderId)?.name ?? '')
     : filters.personId
       ? (people.byId.get(filters.personId)?.name ?? t('faces.unnamed'))
-      : t('nav.allMedia')
+      : filters.provenance
+        ? provenance.title(lib, filters.provenance)
+        : t('nav.allMedia')
   const items = useMemo(
     () => (rootId ? sortItems(filterItems(lib, filters, rootId, personMedia ?? new Set()), sort) : []),
     [lib, filters, rootId, sort, personMedia],
@@ -326,13 +330,14 @@ interface ToolbarProps {
  */
 function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarProps) {
   const { t } = useTranslation()
+  const provenance = useProvenanceLabel()
   const filters = useApp((s) => s.filters)
   const setFilters = useApp((s) => s.setFilters)
   const settings = useApp((s) => s.settings)
   const updateSettings = useApp((s) => s.updateSettings)
 
   const special =
-    filters.categoryId === UNFILED || filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO || filters.categoryId === PEOPLE || !!filters.personId
+    filters.categoryId === UNFILED || filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO || filters.categoryId === PEOPLE || !!filters.personId || !!filters.provenance
   const folderId = filters.albumId ?? (!special ? filters.categoryId : null)
   const folder = folderId ? lib.folders.get(folderId) : undefined
   const folderCount = useMemo(() => {
@@ -350,7 +355,9 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
   const person = filters.personId ? people.byId.get(filters.personId) : undefined
   const title = person
     ? (person.name ?? t('faces.unnamed'))
-    : filters.categoryId === PEOPLE
+    : filters.provenance
+      ? provenance.title(lib, filters.provenance)
+      : filters.categoryId === PEOPLE
       ? t('faces.people')
       : filters.categoryId === UNFILED
       ? t('nav.unfiled')

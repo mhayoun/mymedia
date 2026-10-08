@@ -68,7 +68,7 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
         <button
           className="btn"
           onClick={() => {
-            setFilters({ personId: person.id, categoryId: null, albumId: null })
+            setFilters({ personId: person.id, categoryId: null, albumId: null, provenance: null })
             set({ sidebarOpen: false })
             onClose()
           }}

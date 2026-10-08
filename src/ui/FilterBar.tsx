@@ -95,7 +95,7 @@ export function FilterBar({ people, lib }: { people: People; lib: Library }) {
                 let f = lib.folders.get(id)
                 while (f && lib.folders.get(f.parentId)) f = lib.folders.get(f.parentId)
                 const categoryId = f?.id ?? id
-                setFilters({ categoryId, albumId: categoryId === id ? null : id, personId: null })
+                setFilters({ categoryId, albumId: categoryId === id ? null : id, personId: null, provenance: null })
               }}
             >
               <option value="">{t('common.all')}</option>
@@ -140,7 +140,7 @@ export function FilterBar({ people, lib }: { people: People; lib: Library }) {
               {t('faces.people')}
               <select
                 value={filters.personId ?? ''}
-                onChange={(e) => setFilters({ personId: e.target.value || null, ...(e.target.value ? { categoryId: null, albumId: null } : {}) })}
+                onChange={(e) => setFilters({ personId: e.target.value || null, ...(e.target.value ? { categoryId: null, albumId: null, provenance: null } : {}) })}
               >
                 <option value="">{t('common.all')}</option>
                 {people.named.map((p) => (

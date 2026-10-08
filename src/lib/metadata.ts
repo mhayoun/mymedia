@@ -37,6 +37,8 @@ export interface MediaMeta {
   description?: string
   /** Facebook group the photo was posted in (Facebook export, Katia). */
   group?: string
+  /** The import that brought the media: folder or ZIP name ('' = loose files) and day. */
+  imported?: import('./provenance').ImportInfo
   source?: ClassificationSource
   species?: SpeciesNames | null
   confidence?: number | null

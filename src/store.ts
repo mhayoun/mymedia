@@ -78,6 +78,8 @@ export interface Filters {
   type: 'all' | 'photo' | 'video'
   /** Only media showing this person. */
   personId?: string | null
+  /** Only media from this Facebook group or import (key from lib/provenance). */
+  provenance?: string | null
   /** Search words (name, description, album, people, species). */
   query?: string
   origin?: import('./lib/media').Origin | null

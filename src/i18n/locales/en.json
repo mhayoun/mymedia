@@ -125,7 +125,8 @@
     "delete": "Delete",
     "deleteTitle": "Delete “{{name}}”?",
     "deleteText": "The file goes to the Google Drive trash. You can restore it from there for 30 days.",
-    "group": "Facebook group"
+    "group": "Facebook group",
+    "imported": "Imported from"
   },
   "origin": {
     "camera": "Camera / phone",
@@ -503,5 +504,11 @@
     "done_one": "Done: {{count}} photo updated.",
     "done_other": "Done: {{count}} photos updated.",
     "keepOpen": "Keep MyMedia open and the screen on. If it stops, open this window again: filing resumes where it stopped."
+  },
+  "provenance": {
+    "title": "Provenance",
+    "groups": "Facebook groups",
+    "imports": "Imports",
+    "looseFiles": "Chosen files"
   }
 }

@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { db, hasDb, type MediaRecord } from '../db/db'
 import type { MediaMeta } from '../lib/metadata'
 import { isReservedFolderName, placementOf, subtreeIds, type FolderNode, type Placement } from '../lib/tree'
+import { buildProvenance, provenanceKeys, type Provenance } from '../lib/provenance'
 import { compressionState, matchesQuery, searchText } from '../lib/search'
 import { useApp, type Filters, type SortMode } from '../store'
 
@@ -35,6 +36,8 @@ export interface Library {
   unfiledCount: number
   toClassify: LibraryItem[]
   autoItems: LibraryItem[]
+  /** Facebook groups and imports, with their number of media. */
+  provenance: Provenance
 }
 
 export function useLibrary(): Library {
@@ -52,7 +55,7 @@ export function useLibrary(): Library {
 
   return useMemo(() => {
     if (!data || !rootId)
-      return { ready: false, items: [], folders: new Map(), categories: [], unfiledCount: 0, toClassify: [], autoItems: [] }
+      return { ready: false, items: [], folders: new Map(), categories: [], unfiledCount: 0, toClassify: [], autoItems: [], provenance: { groups: [], imports: [] } }
     const folders = new Map(data.folders.map((f) => [f.id, f]))
     const metas = new Map(data.meta.map((m) => [m.id, m]))
     const items: LibraryItem[] = []
@@ -85,7 +88,8 @@ export function useLibrary(): Library {
       (i) => !i.meta?.keepHere && (i.rec.folderId === rootId || categoriesWithAlbums.has(i.rec.folderId)),
     )
     const autoItems = items.filter((i) => i.meta?.auto)
-    return { ready: true, items, folders, categories, unfiledCount, toClassify, autoItems }
+    const provenance = buildProvenance(items.map((i) => i.meta))
+    return { ready: true, items, folders, categories, unfiledCount, toClassify, autoItems, provenance }
   }, [data, rootId])
 }
 
@@ -131,6 +135,7 @@ function applyExtraFilters(items: LibraryItem[], f: Filters, lib: Library): Libr
 function placeFilter(lib: Library, filters: Filters, rootId: string, personMedia?: Set<string>): LibraryItem[] {
   let items = lib.items
   if (filters.personId && personMedia) return items.filter((i) => personMedia.has(i.rec.id))
+  if (filters.provenance) return items.filter((i) => provenanceKeys(i.meta).includes(filters.provenance!))
   if (filters.categoryId === TO_CLASSIFY) items = lib.toClassify
   else if (filters.categoryId === AUTO) items = lib.autoItems
   else if (filters.categoryId === UNFILED) items = items.filter((i) => i.rec.folderId === rootId)

@@ -155,7 +155,7 @@ export function cancelImport() {
 export async function runImport(
   items: ImportItem[],
   destId: string,
-  opts: { compress: boolean; keepFolders: boolean },
+  opts: { compress: boolean; keepFolders: boolean; from: string },
   onItem: (key: string, o: ImportOutcome) => void,
 ): Promise<{ count: number; before: number; after: number }> {
   abort = new AbortController()
@@ -163,6 +163,7 @@ export async function runImport(
   const s = app().settings.compress
   const folderCache = new Map<string, string>()
   const d = db()
+  const imported = { from: opts.from, on: localIso(new Date()).slice(0, 10) }
   let count = 0
   let before = 0
   let after = 0
@@ -231,6 +232,7 @@ export async function runImport(
             source: item.extra?.species ? 'manual' : 'folder',
             description: item.extra?.description,
             group: item.extra?.group,
+            imported,
             species: item.extra?.species ? { he: item.extra.species } : undefined,
             compression: compressed
               ? { status: 'compressed', sizeBefore: item.file.size, sizeAfter: blob.size, date: new Date().toISOString() }
