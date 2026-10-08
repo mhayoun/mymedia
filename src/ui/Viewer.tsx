@@ -1,15 +1,15 @@
 import { ChevronLeft, ChevronRight, ExternalLink, Info, Maximize2, Play, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { db } from '../db/db'
-import { downloadBlob, getFile } from '../drive/api'
+import { downloadBlob } from '../drive/api'
 import { useFormat } from '../i18n/format'
-import { ORIGINS, sizedThumbnailLink, type Origin } from '../lib/media'
+import { ORIGINS, type Origin } from '../lib/media'
 import { ALBUM_SEPARATOR } from '../lib/tree'
 import { useApp } from '../store'
 import { trashMedia } from '../sync/media'
 import { updateMeta } from '../sync/metaStore'
 import { streamUrl } from '../sync/stream'
+import { loadPreview, prefetchPreviews } from '../sync/previews'
 import { cachedThumbUrl } from '../sync/thumbs'
 import { chooseFolder } from '../classify/engine'
 import { AlbumSelect } from './AlbumSelect'
@@ -19,8 +19,6 @@ import { FaceImg } from './FaceImg'
 import { useLibraryContext } from './libraryContext'
 import { useOpenPerson, usePeopleContext } from './peopleContext'
 import type { LibraryItem } from './useLibrary'
-
-const PREVIEW_SIZE = 2048
 
 interface Props {
   ids: string[]
@@ -37,6 +35,12 @@ export function Viewer({ ids, items }: Props) {
   const [showInfo, setShowInfo] = useState(() => window.innerWidth > 800)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const rtl = i18n.dir() === 'rtl'
+
+  // The next and previous photos are prepared while this one is looked at.
+  useEffect(() => {
+    const t = setTimeout(() => prefetchPreviews([1, -1, 2].map((d) => byId.get(ids[index + d])?.rec)), 300)
+    return () => clearTimeout(t)
+  }, [byId, ids, index])
 
   const close = useCallback(() => set({ viewerId: null }), [set])
   const go = useCallback(
@@ -128,25 +132,6 @@ export function Viewer({ ids, items }: Props) {
   )
 }
 
-function usePreviewLink(item: LibraryItem): [string | null, () => void] {
-  const [link, setLink] = useState(() =>
-    item.rec.thumbnailLink ? sizedThumbnailLink(item.rec.thumbnailLink, PREVIEW_SIZE) : null,
-  )
-  const refreshed = useRef(false)
-  const refresh = useCallback(() => {
-    if (refreshed.current) return setLink(null)
-    refreshed.current = true
-    getFile(item.rec.id, 'id,thumbnailLink')
-      .then(async (f) => {
-        if (!f.thumbnailLink) return setLink(null)
-        await db().media.update(item.rec.id, { thumbnailLink: f.thumbnailLink })
-        setLink(sizedThumbnailLink(f.thumbnailLink, PREVIEW_SIZE))
-      })
-      .catch(() => setLink(null))
-  }, [item.rec.id])
-  return [link, refresh]
-}
-
 function useObjectUrl() {
   const [url, setUrl] = useState<string | null>(null)
   useEffect(() => () => {
@@ -159,8 +144,16 @@ function PhotoStage({ item }: { item: LibraryItem }) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const placeholder = cachedThumbUrl(item.rec.id)
-  const [preview, refreshPreview] = usePreviewLink(item)
+  const [preview, setPreview] = useObjectUrl()
   const [loaded, setLoaded] = useState(false)
+  useEffect(() => {
+    let alive = true
+    loadPreview(item.rec).then((b) => alive && b && setPreview(b))
+    return () => {
+      alive = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.rec.id])
   const [original, setOriginal] = useObjectUrl()
   const [progress, setProgress] = useState<number | null>(null)
   const [failed, setFailed] = useState(false)
@@ -183,9 +176,7 @@ function PhotoStage({ item }: { item: LibraryItem }) {
         <img
           src={preview}
           alt={item.meta?.description ?? item.rec.name}
-          referrerPolicy="no-referrer"
           onLoad={() => setLoaded(true)}
-          onError={refreshPreview}
         />
       ) : null}
       <div className="status">

@@ -16,6 +16,7 @@ import { ConfirmDialog, PromptDialog } from './Dialog'
 import { deleteAllFaceData } from '../faces/store'
 import { usePeopleContext } from './peopleContext'
 import { KatiaDialog } from './KatiaDialog'
+import { clearMediaCaches } from '../sync/previews'
 
 export function SettingsPanel() {
   const { t } = useTranslation()
@@ -317,6 +318,7 @@ export function SettingsPanel() {
             disabled={cleared}
             onClick={async () => {
               await db().thumbs.clear()
+              await clearMediaCaches()
               setCleared(true)
             }}
           >

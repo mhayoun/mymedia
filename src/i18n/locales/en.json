@@ -150,7 +150,7 @@
     "rescan": "Re-read the whole folder",
     "rescanHint": "Only needed if something looks wrong.",
     "storage": "Saved on this device",
-    "clearThumbs": "Clear saved thumbnails",
+    "clearThumbs": "Clear thumbnails, previews and videos kept on this device",
     "version": "Version {{version}}"
   },
   "errors": {

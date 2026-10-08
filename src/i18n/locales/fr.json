@@ -148,7 +148,7 @@
     "rescan": "Relire tout le dossier",
     "rescanHint": "Utile seulement si quelque chose semble incorrect.",
     "storage": "Enregistré sur cet appareil",
-    "clearThumbs": "Effacer les miniatures enregistrées",
+    "clearThumbs": "Effacer les miniatures, aperçus et vidéos gardés sur l’appareil",
     "version": "Version {{version}}"
   },
   "errors": {

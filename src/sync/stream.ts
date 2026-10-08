@@ -23,10 +23,11 @@ async function send(token: string): Promise<boolean> {
 }
 
 /** Address to play a Drive video while it downloads, or null if streaming is not available. */
-export async function streamUrl(rec: { id: string; size: number; mimeType: string }): Promise<string | null> {
+export async function streamUrl(rec: { id: string; size: number; mimeType: string; md5?: string; modifiedTime: string }): Promise<string | null> {
   if (!controller() || !rec.size) return null
   if (!(await send(await auth.getToken()))) return null
-  const params = new URLSearchParams({ size: String(rec.size), type: rec.mimeType || 'video/mp4' })
+  // v: the version of the file, so the copy kept on the device is replaced when it changes.
+  const params = new URLSearchParams({ size: String(rec.size), type: rec.mimeType || 'video/mp4', v: rec.md5 ?? rec.modifiedTime })
   return `${import.meta.env.BASE_URL}stream/${encodeURIComponent(rec.id)}?${params}`
 }
 

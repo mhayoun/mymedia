@@ -2,12 +2,12 @@
 // IndexedDB for offline browsing. Loaded lazily, newest request first.
 
 import { db, type MediaRecord } from '../db/db'
-import { downloadBlob, getFile } from '../drive/api'
+import { childrenQuery, downloadBlob, getFile, listFiles } from '../drive/api'
 import { sizedThumbnailLink } from '../lib/media'
 import { videoFrameThumbnail } from './videoFrame'
 
 const THUMB_SIZE = 400
-const MAX_PARALLEL = 6
+const MAX_PARALLEL = 8
 const MAX_URLS = 800
 const LOCAL_RESIZE_MAX_BYTES = 25 * 1024 * 1024
 
@@ -68,13 +68,51 @@ async function resizeLocally(blob: Blob, size: number): Promise<Blob | null> {
   }
 }
 
+/** Thumbnail version: the content's MD5 (moves and renames keep it), else the modification date. */
+export function thumbVersion(rec: MediaRecord): string {
+  return rec.md5 ?? rec.modifiedTime
+}
+
+// Drive's preview links expire after a few hours. When one has expired, the
+// others of the same folder have too: renew them all with one request.
+const LINKS_TTL_MS = 3 * 3600 * 1000
+const freshLinks = new Map<string, { at: number; run: Promise<void> }>()
+
+function renewFolderLinks(folderId: string): Promise<void> {
+  const cur = freshLinks.get(folderId)
+  if (cur && Date.now() - cur.at < LINKS_TTL_MS) return cur.run
+  const run = (async () => {
+    const links: [string, string][] = []
+    await listFiles(childrenQuery([folderId]), (files) => {
+      for (const f of files) if (f.thumbnailLink) links.push([f.id, f.thumbnailLink])
+    }, undefined, 'id,thumbnailLink')
+    await db().transaction('rw', db().media, async () => {
+      for (const [id, thumbnailLink] of links) await db().media.update(id, { thumbnailLink })
+    })
+  })().catch(() => {
+    freshLinks.delete(folderId)
+  })
+  freshLinks.set(folderId, { at: Date.now(), run })
+  return run
+}
+
 /** Drive's own preview image of a file (works for HEIC and videos too), or null. */
 export async function driveThumbnail(rec: MediaRecord, size = THUMB_SIZE): Promise<Blob | null> {
   if (rec.thumbnailLink) {
     const b = await fetchThumbLink(rec.thumbnailLink, size)
     if (b) return b
   }
-  // Links expire after a few hours: ask Drive for a fresh one.
+  const fresh = freshLinks.get(rec.folderId)
+  if (!fresh || Date.now() - fresh.at >= LINKS_TTL_MS) {
+    await renewFolderLinks(rec.folderId)
+    const link = (await db().media.get(rec.id))?.thumbnailLink
+    if (link && link !== rec.thumbnailLink) {
+      rec.thumbnailLink = link
+      const b = await fetchThumbLink(link, size)
+      if (b) return b
+    }
+  }
+  // Still nothing: ask Drive about this file alone.
   try {
     const f = await getFile(rec.id, 'id,thumbnailLink')
     if (f.thumbnailLink) {
@@ -116,7 +154,7 @@ function pump() {
     produce(task.rec)
       .then(async (blob) => {
         if (!blob) return task.resolve(null)
-        await db().thumbs.put({ id: task.rec.id, version: task.rec.modifiedTime, blob })
+        await db().thumbs.put({ id: task.rec.id, version: thumbVersion(task.rec), blob })
         task.resolve(remember(task.rec.id, blob))
       })
       .catch(() => task.resolve(null))
@@ -138,7 +176,8 @@ export function loadThumb(rec: MediaRecord, isWanted: () => boolean): Promise<st
   if (pending) return pending
   const p = (async () => {
     const stored = await db().thumbs.get(rec.id)
-    if (stored && (stored.version === rec.modifiedTime || !navigator.onLine)) return remember(rec.id, stored.blob)
+    const valid = stored && (stored.version === thumbVersion(rec) || stored.version === rec.modifiedTime)
+    if (stored && (valid || !navigator.onLine)) return remember(rec.id, stored.blob)
     if (!navigator.onLine) return null
     if (!isWanted()) return null
     return new Promise<string | null>((resolve) => {
