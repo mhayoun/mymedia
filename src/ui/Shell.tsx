@@ -436,6 +436,8 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
         <option value="newest">{t('gallery.sortNewest')}</option>
         <option value="oldest">{t('gallery.sortOldest')}</option>
         <option value="name">{t('gallery.sortName')}</option>
+        <option value="largest">{t('gallery.sortLargest')}</option>
+        <option value="smallest">{t('gallery.sortSmallest')}</option>
       </select>
       <select
         aria-label={t('gallery.type')}

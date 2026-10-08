@@ -82,6 +82,8 @@
     "sortNewest": "חדשים",
     "sortOldest": "ישנים",
     "sortName": "שם",
+    "sortLargest": "הגדולים ביותר",
+    "sortSmallest": "הקטנים ביותר",
     "type": "סוג",
     "typeAll": "מדיה",
     "typePhoto": "תמונות",
@@ -480,5 +482,12 @@
       "size": "גודל",
       "link": "קישור ל-Google Drive"
     }
+  },
+  "storage": {
+    "title": "Google Drive",
+    "used": "{{used}} בשימוש מתוך {{total}}",
+    "usedUnlimited": "{{used}} בשימוש",
+    "free": "{{free}} פנויים",
+    "mine": "MyMedia: {{size}}"
   }
 }

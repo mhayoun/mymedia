@@ -81,6 +81,8 @@
     "sortNewest": "Récents",
     "sortOldest": "Anciens",
     "sortName": "Nom",
+    "sortLargest": "Plus gros",
+    "sortSmallest": "Plus petits",
     "type": "Type",
     "typeAll": "Médias",
     "typePhoto": "Photos",
@@ -447,5 +449,12 @@
       "size": "Taille",
       "link": "Lien Google Drive"
     }
+  },
+  "storage": {
+    "title": "Google Drive",
+    "used": "{{used}} utilisés sur {{total}}",
+    "usedUnlimited": "{{used}} utilisés",
+    "free": "{{free}} libres",
+    "mine": "MyMedia : {{size}}"
   }
 }

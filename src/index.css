@@ -118,6 +118,11 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   background: var(--surface); border-inline-end: 1px solid var(--border);
   overflow-y: auto; padding: 10px 8px 24px;
 }
+.storage { margin: 16px 10px 0; font-size: 0.82rem; color: var(--text-2); display: grid; gap: 4px; }
+.storage .title { display: flex; align-items: center; gap: 6px; color: var(--text); font-weight: 600; }
+.storage .bar { block-size: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.storage .bar > span { display: block; block-size: 100%; background: var(--accent); }
+.storage .bar.full > span { background: #d93025; }
 .sidebar h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-2); margin: 16px 10px 6px; }
 .nav-item {
   display: flex; align-items: center; gap: 8px; inline-size: 100%; text-align: start;
@@ -160,6 +165,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   position: absolute; inset-block-end: 4px; inset-inline-end: 4px; display: inline-flex; gap: 3px; align-items: center;
   background: rgb(0 0 0 / 0.6); color: #fff; font-size: 0.75rem; padding: 1px 6px; border-radius: 6px;
 }
+.cell .badge.size { inset-inline-end: auto; inset-inline-start: 4px; }
 .cell .fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-2); font-size: 0.75rem; padding: 4px; text-align: center; word-break: break-all; }
 .empty { padding: 48px 20px; text-align: center; color: var(--text-2); }
 

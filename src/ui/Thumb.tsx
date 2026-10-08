@@ -3,6 +3,7 @@ import { memo, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MediaRecord } from '../db/db'
 import { useFormat } from '../i18n/format'
+import { useApp } from '../store'
 import { cachedThumbUrl, loadThumb } from '../sync/thumbs'
 
 interface Props {
@@ -19,6 +20,7 @@ const LONG_PRESS_MS = 500
 export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress }: Props) {
   const { t } = useTranslation()
   const fmt = useFormat()
+  const bySize = useApp((s) => s.settings.sort === 'largest' || s.settings.sort === 'smallest')
   const [url, setUrl] = useState<string | null | undefined>(() => cachedThumbUrl(rec.id))
   const mounted = useRef(true)
   const press = useRef<{ timer: ReturnType<typeof setTimeout>; fired: boolean } | null>(null)
@@ -79,6 +81,7 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress }:
           {rec.durationMs ? fmt.duration(rec.durationMs) : ''}
         </span>
       )}
+      {bySize && <span className="badge size">{fmt.bytes(rec.size)}</span>}
       {selected !== undefined && <span className="check">{selected && <Check size={14} />}</span>}
     </button>
   )

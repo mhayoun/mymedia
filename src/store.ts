@@ -6,7 +6,7 @@ import { DEFAULT_COMPRESS, type CompressSettings } from './lib/compressPlan'
 
 export type Language = 'he' | 'fr' | 'en'
 export type ViewMode = 'grid' | 'albums'
-export type SortMode = 'newest' | 'oldest' | 'name'
+export type SortMode = 'newest' | 'oldest' | 'name' | 'largest' | 'smallest'
 
 export interface Settings {
   language: Language

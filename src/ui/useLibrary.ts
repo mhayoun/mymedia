@@ -94,6 +94,8 @@ const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'bas
 export function sortItems(items: LibraryItem[], sort: SortMode): LibraryItem[] {
   const out = [...items]
   if (sort === 'name') out.sort((a, b) => collator.compare(a.rec.name, b.rec.name))
+  else if (sort === 'largest') out.sort((a, b) => b.rec.size - a.rec.size)
+  else if (sort === 'smallest') out.sort((a, b) => a.rec.size - b.rec.size)
   else {
     const dir = sort === 'newest' ? -1 : 1
     out.sort((a, b) => (a.rec.takenAt < b.rec.takenAt ? -dir : a.rec.takenAt > b.rec.takenAt ? dir : 0))

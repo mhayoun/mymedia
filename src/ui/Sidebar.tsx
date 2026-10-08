@@ -1,5 +1,8 @@
-import { CircleHelp, Folder, FolderOpen, Images, Inbox, Plus, Sparkles, Users, Wand2 } from 'lucide-react'
+import { CircleHelp, Cloud, Folder, FolderOpen, Images, Inbox, Plus, Sparkles, Users, Wand2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { storageQuota, type DriveQuota } from '../drive/api'
+import { useFormat } from '../i18n/format'
 import { useApp } from '../store'
 import { FaceImg } from './FaceImg'
 import { AUTO, PEOPLE, TO_CLASSIFY, UNFILED, type FolderInfo, type Library } from './useLibrary'
@@ -117,8 +120,50 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
           <CircleHelp size={18} />
           <span className="label">{t('nav.help')}</span>
         </button>
+        <DriveStorage lib={lib} />
       </nav>
     </>
+  )
+}
+
+/** Google Drive space: used / free for the whole account, and what MyMedia takes. */
+function DriveStorage({ lib }: { lib: Library }) {
+  const { t } = useTranslation()
+  const fmt = useFormat()
+  const [quota, setQuota] = useState<DriveQuota | null>(null)
+  const count = lib.items.length
+  const mine = lib.items.reduce((n, i) => n + i.rec.size, 0)
+
+  useEffect(() => {
+    let alive = true
+    storageQuota()
+      .then((q) => alive && setQuota(q))
+      .catch(() => {}) // offline: keep the last value
+    return () => {
+      alive = false
+    }
+  }, [count])
+
+  if (!quota) return null
+  const ratio = quota.limit ? Math.min(1, quota.usage / quota.limit) : 0
+  return (
+    <div className="storage">
+      <span className="title">
+        <Cloud size={16} /> {t('storage.title')}
+      </span>
+      {quota.limit !== undefined && (
+        <div className={`bar ${ratio > 0.9 ? 'full' : ''}`} role="progressbar" aria-valuenow={Math.round(ratio * 100)} aria-valuemin={0} aria-valuemax={100}>
+          <span style={{ inlineSize: `${ratio * 100}%` }} />
+        </div>
+      )}
+      <span>
+        {quota.limit !== undefined
+          ? t('storage.used', { used: fmt.bytes(quota.usage), total: fmt.bytes(quota.limit) })
+          : t('storage.usedUnlimited', { used: fmt.bytes(quota.usage) })}
+      </span>
+      {quota.limit !== undefined && <span>{t('storage.free', { free: fmt.bytes(Math.max(0, quota.limit - quota.usage)) })}</span>}
+      <span>{t('storage.mine', { size: fmt.bytes(mine) })}</span>
+    </div>
   )
 }
 

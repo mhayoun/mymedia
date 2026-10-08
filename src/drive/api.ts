@@ -117,6 +117,19 @@ export async function about(): Promise<{ email: string; name: string; photo?: st
   return { email: r.user.emailAddress, name: r.user.displayName, photo: r.user.photoLink }
 }
 
+export interface DriveQuota {
+  /** Bytes used by the whole account (Drive + Gmail + Photos). */
+  usage: number
+  /** Total space; undefined for unlimited accounts. */
+  limit?: number
+}
+
+export async function storageQuota(): Promise<DriveQuota> {
+  const r = await getJson<{ storageQuota: { usage: string; limit?: string } }>(`${API}/about?fields=storageQuota(usage,limit)`)
+  const q = r.storageQuota
+  return { usage: Number(q.usage), limit: q.limit ? Number(q.limit) : undefined }
+}
+
 /** Lists all files matching a query, page by page. */
 export async function listFiles(
   query: string,
