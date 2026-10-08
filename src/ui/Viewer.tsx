@@ -171,7 +171,12 @@ function PhotoStage({ item }: { item: LibraryItem }) {
     <>
       {placeholder && !loaded && <img className="placeholder" src={placeholder} alt="" />}
       {original && !failed ? (
-        <img src={original} alt={item.meta?.description ?? item.rec.name} onError={() => setFailed(true)} />
+        <img
+          src={original}
+          alt={item.meta?.description ?? item.rec.name}
+          onLoad={() => setLoaded(true)}
+          onError={() => setFailed(true)}
+        />
       ) : preview ? (
         <img
           src={preview}
