@@ -351,9 +351,9 @@
       "facebook": "תאריך הפוסט בפייסבוק"
     },
     "duplicate": "כבר ב-Drive",
-    "duplicatesHint_one": "קובץ אחד כבר נמצא ב-Drive שלך (אותו תוכן): הסימון בוטל.",
-    "duplicatesHint_two": "{{count}} קבצים כבר נמצאים ב-Drive שלך (אותו תוכן): הסימון בוטל.",
-    "duplicatesHint_other": "{{count}} קבצים כבר נמצאים ב-Drive שלך (אותו תוכן): הסימון בוטל.",
+    "duplicatesHint_one": "קובץ אחד כבר נמצא ב-Drive שלך (אותה תמונה): הסימון בוטל.",
+    "duplicatesHint_two": "{{count}} קבצים כבר נמצאים ב-Drive שלך (אותה תמונה): הסימון בוטל.",
+    "duplicatesHint_other": "{{count}} קבצים כבר נמצאים ב-Drive שלך (אותה תמונה): הסימון בוטל.",
     "compress": "דחיסה לפני ההעלאה (העלאה מהירה יותר, פחות מקום)",
     "keepFolders": "לשמור את תתי-התיקיות כאלבומים",
     "compressing": "דוחס",
@@ -363,7 +363,8 @@
     "uploadN_other": "העלאת {{count}} קבצים",
     "done_one": "הסתיים: נוסף קובץ אחד ({{before}} ← {{after}} ב-Drive).",
     "done_two": "הסתיים: נוספו {{count}} קבצים ({{before}} ← {{after}} ב-Drive).",
-    "done_other": "הסתיים: נוספו {{count}} קבצים ({{before}} ← {{after}} ב-Drive)."
+    "done_other": "הסתיים: נוספו {{count}} קבצים ({{before}} ← {{after}} ב-Drive).",
+    "duplicateLook": "כבר ב-Drive (אותה תמונה)"
   },
   "faces": {
     "people": "אנשים",

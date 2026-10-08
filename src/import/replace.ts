@@ -55,7 +55,8 @@ async function fingerprintOf(rec: MediaRecord): Promise<Int8Array | null> {
 /**
  * Marks the ZIP photos that are a better version of a photo reduced by Katia
  * (`replaces`). Matching by name first, then by look (closest pairs first,
- * each photo used once).
+ * each photo used once). A photo found by look that is not clearly bigger is
+ * a duplicate (`sameLook`).
  */
 export async function findReplacements(items: ImportItem[], onProgress: (done: number, total: number) => void): Promise<ImportItem[]> {
   const d = db()
@@ -97,7 +98,6 @@ export async function findReplacements(items: ImportItem[], onProgress: (done: n
       onProgress(++done, total)
       if (!pic || !vec) continue
       for (const c of cand) {
-        if (!better(item, c.rec)) continue
         const r = shape(c.rec.width, c.rec.height)
         if (r && Math.abs(r - pic.ratio) / pic.ratio > SAME_SHAPE) continue
         const sim = cosine(vec, c.vec)
@@ -110,7 +110,10 @@ export async function findReplacements(items: ImportItem[], onProgress: (done: n
       if (used.has(p.i) || taken.has(p.rec.id)) continue
       used.add(p.i)
       taken.add(p.rec.id)
-      out[p.i] = { ...out[p.i], replaces: { id: p.rec.id, name: p.rec.name, size: p.rec.size, by: 'look' } }
+      // Not clearly better: the same photo is already in Drive, nothing to send.
+      out[p.i] = better(out[p.i], p.rec)
+        ? { ...out[p.i], replaces: { id: p.rec.id, name: p.rec.name, size: p.rec.size, by: 'look' } }
+        : { ...out[p.i], duplicate: true, sameLook: true }
     }
   } catch (e) {
     console.warn('[MyMedia] matching by look not available', e)

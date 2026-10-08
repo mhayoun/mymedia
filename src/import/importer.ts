@@ -38,6 +38,8 @@ export interface ImportItem {
   extra?: { description?: string; group?: string; species?: string }
   /** A reduced version of this photo already in Drive, replaced by this file. */
   replaces?: import('./replace').Replacement
+  /** Duplicate found by look (same photo already in Drive, not clearly smaller). */
+  sameLook?: boolean
 }
 
 export type ImportOutcome =

@@ -336,8 +336,8 @@
       "facebook": "Facebook post date"
     },
     "duplicate": "already in Drive",
-    "duplicatesHint_one": "{{count}} file is already in your Drive (same content): unticked.",
-    "duplicatesHint_other": "{{count}} files are already in your Drive (same content): unticked.",
+    "duplicatesHint_one": "{{count}} file is already in your Drive (same photo): unticked.",
+    "duplicatesHint_other": "{{count}} files are already in your Drive (same photo): unticked.",
     "compress": "Compress before upload (faster upload, less space)",
     "keepFolders": "Keep the sub-folders as albums",
     "compressing": "compressing",
@@ -345,7 +345,8 @@
     "uploadN_one": "Upload {{count}} file",
     "uploadN_other": "Upload {{count}} files",
     "done_one": "Done: {{count}} file added ({{before}} → {{after}} in Drive).",
-    "done_other": "Done: {{count}} files added ({{before}} → {{after}} in Drive)."
+    "done_other": "Done: {{count}} files added ({{before}} → {{after}} in Drive).",
+    "duplicateLook": "already in Drive (same picture)"
   },
   "faces": {
     "people": "People",

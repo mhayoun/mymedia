@@ -334,8 +334,8 @@
       "facebook": "date du post Facebook"
     },
     "duplicate": "déjà dans Drive",
-    "duplicatesHint_one": "{{count}} fichier est déjà dans votre Drive (même contenu) : décoché.",
-    "duplicatesHint_other": "{{count}} fichiers sont déjà dans votre Drive (même contenu) : décochés.",
+    "duplicatesHint_one": "{{count}} fichier est déjà dans votre Drive (même photo) : décoché.",
+    "duplicatesHint_other": "{{count}} fichiers sont déjà dans votre Drive (même photo) : décochés.",
     "compress": "Compresser avant l'envoi (envoi plus rapide, moins de place)",
     "keepFolders": "Garder les sous-dossiers comme albums",
     "compressing": "compression",
@@ -343,7 +343,8 @@
     "uploadN_one": "Envoyer {{count}} fichier",
     "uploadN_other": "Envoyer {{count}} fichiers",
     "done_one": "Terminé : {{count}} fichier ajouté ({{before}} → {{after}} dans Drive).",
-    "done_other": "Terminé : {{count}} fichiers ajoutés ({{before}} → {{after}} dans Drive)."
+    "done_other": "Terminé : {{count}} fichiers ajoutés ({{before}} → {{after}} dans Drive).",
+    "duplicateLook": "déjà dans Drive (même image)"
   },
   "faces": {
     "people": "Personnes",

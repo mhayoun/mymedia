@@ -191,7 +191,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const status = (i: ImportItem) => {
     const o = outcomes[i.key]
     if (phase === 'choose' || !checked.has(i.key)) {
-      if (i.duplicate) return <span className="tag warn">{t('import.duplicate')}</span>
+      if (i.duplicate) return <span className="tag warn">{t(i.sameLook ? 'import.duplicateLook' : 'import.duplicate')}</span>
       if (i.replaces)
         return (
           <>

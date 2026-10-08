@@ -201,3 +201,4 @@ birds), then put a few new bird photos **directly in `MyMedia`** or directly in
 - [ ] A ZIP photo whose reduced version is in Drive shows the old picture → the new one, **replaces (same name)** or **replaces (same picture)**, and the sizes (e.g. 95 kB → 143 kB). The hint says how many will be replaced.
 - [ ] Upload: those photos keep their place (album/species), date and text; the info panel no longer says compressed; the picture is sharper. In Drive, the file's **Manage versions** shows the old reduced version.
 - [ ] Untick a line whose two pictures differ: that ZIP photo is not uploaded.
+- [ ] A ZIP photo that is the same picture as a Katia photo but not clearly bigger (< 5 %) shows **already in Drive (same picture)**, unticked: no duplicate is added.
