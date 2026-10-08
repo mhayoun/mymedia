@@ -194,3 +194,10 @@ birds), then put a few new bird photos **directly in `MyMedia`** or directly in
 - [ ] Add a folder (e.g. `folder001`) from a computer: **Provenance → Imports** shows `folder001 · <today>` with its count; a tap shows exactly those photos. Loose files show as **Chosen files · <day>**, a Facebook ZIP under its file name.
 - [ ] The information panel of an imported photo shows **Imported from**: folder and day. Searching `folder001` finds them.
 - [ ] Photos imported before this version have no import line (only the Facebook group, if known).
+- [ ] Katia folders: photos of folders imported into Katia by hand (e.g. `אמא 8`) show under **Provenance → Imports** as `אמא 8 · Katia folder`, not under Facebook groups (repaired once after a sync). Only `צילום ציפורים`-like groups (Katia's `MyPhotos — …` albums) stay under Facebook groups.
+
+### Facebook ZIP: replace photos reduced by Katia
+- [ ] Add → Facebook export (ZIP) → groups → Next: "Looking for the photos Katia reduced… x / y", then the list.
+- [ ] A ZIP photo whose reduced version is in Drive shows the old picture → the new one, **replaces (same name)** or **replaces (same picture)**, and the sizes (e.g. 95 kB → 143 kB). The hint says how many will be replaced.
+- [ ] Upload: those photos keep their place (album/species), date and text; the info panel no longer says compressed; the picture is sharper. In Drive, the file's **Manage versions** shows the old reduced version.
+- [ ] Untick a line whose two pictures differ: that ZIP photo is not uploaded.

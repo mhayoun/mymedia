@@ -360,12 +360,12 @@ function putWithProgress(url: string, blob: Blob, onProgress?: (p: number) => vo
 /**
  * Replaces the content of an existing file (same id: classification, album,
  * description stay attached to it). Drive keeps the previous content as an
- * older version of the file.
+ * older version of the file. An app property set to null is removed.
  */
 export async function uploadNewContent(
   id: string,
   blob: Blob,
-  metadata: { name?: string; mimeType?: string; appProperties?: Record<string, string> },
+  metadata: { name?: string; mimeType?: string; appProperties?: Record<string, string | null> },
   onProgress?: (p: number) => void,
   signal?: AbortSignal,
 ): Promise<DriveFile> {

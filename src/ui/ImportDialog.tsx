@@ -1,7 +1,9 @@
-import { Check, FileArchive, FolderOpen, ImagePlus, Loader2, Play, X } from 'lucide-react'
+import { ArrowRight, Check, FileArchive, FolderOpen, ImagePlus, Loader2, Play, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { extractFiles, FacebookFormatError, readFacebookZip, type FacebookExport } from '../import/facebook'
+import { findReplacements } from '../import/replace'
+import { loadThumb } from '../sync/thumbs'
 import { analyze, cancelImport, mediaFiles, runImport, withFacebookPosts, type ImportItem, type ImportOutcome } from '../import/importer'
 import { speciesInText } from '../lib/katia'
 import { importSourceName } from '../lib/provenance'
@@ -55,13 +57,28 @@ function FilePreview({ item }: { item: ImportItem }) {
   )
 }
 
+/** The photo in Drive that a file of the ZIP replaces. */
+function ReplacedThumb({ lib, id }: { lib: Library; id: string }) {
+  const [url, setUrl] = useState<string | null>(null)
+  const rec = useMemo(() => lib.items.find((i) => i.rec.id === id)?.rec, [lib.items, id])
+  useEffect(() => {
+    if (rec) void loadThumb(rec, () => true).then(setUrl)
+  }, [rec])
+  return (
+    <>
+      <span className="list-thumb">{url && <img src={url} alt="" loading="lazy" />}</span>
+      <ArrowRight size={14} className="flip-rtl" />
+    </>
+  )
+}
+
 /** "Add photos/videos": choose files or a folder, check dates and sizes, upload. */
 export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }: Props) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
   const [destId, setDestId] = useState(initialDest)
-  const [phase, setPhase] = useState<'pick' | 'zip' | 'groups' | 'analyze' | 'choose' | 'upload' | 'done'>('pick')
+  const [phase, setPhase] = useState<'pick' | 'zip' | 'groups' | 'analyze' | 'match' | 'choose' | 'upload' | 'done'>('pick')
   const [fb, setFb] = useState<FacebookExport | null>(null)
   const [fbGroups, setFbGroups] = useState<Set<string>>(new Set())
   const [zipName, setZipName] = useState<string | undefined>()
@@ -97,7 +114,12 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     setPhase('analyze')
     setAnalyzed({ done: 0, total: files.length })
     let result = await analyze(files, (done) => setAnalyzed({ done, total: files.length }))
-    if (posts) result = await withFacebookPosts(result, posts)
+    if (posts) {
+      result = await withFacebookPosts(result, posts)
+      setPhase('match')
+      setAnalyzed({ done: 0, total: 0 })
+      result = await findReplacements(result, (done, total) => setAnalyzed({ done, total }))
+    }
     setItems(result)
     setChecked(new Set(result.filter((i) => !i.duplicate).map((i) => i.key)))
     setPhase('choose')
@@ -137,6 +159,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const sizeAfter = selected.reduce((n, i) => n + (compress && i.estimate !== null ? i.estimate : i.file.size), 0)
   const hasFolders = !fb && items.some((i) => i.relDir.length > 0)
   const duplicates = items.filter((i) => i.duplicate).length
+  const replacements = items.filter((i) => i.replaces).length
 
   async function start() {
     rememberDestination(destId)
@@ -169,6 +192,14 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     const o = outcomes[i.key]
     if (phase === 'choose' || !checked.has(i.key)) {
       if (i.duplicate) return <span className="tag warn">{t('import.duplicate')}</span>
+      if (i.replaces)
+        return (
+          <>
+            <span className="tag">{t(i.replaces.by === 'name' ? 'facebook.replacesByName' : 'facebook.replacesByLook')}</span>
+            <br />
+            {fmt.bytes(i.replaces.size)} → {fmt.bytes(i.file.size)}
+          </>
+        )
       return compress && i.estimate !== null ? (
         <>
           {fmt.bytes(i.file.size)} → ≈ {fmt.bytes(i.estimate)}
@@ -302,6 +333,13 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
         </>
       )}
 
+      {phase === 'match' && (
+        <>
+          <p>{t('facebook.matching', { done: analyzed.done, total: analyzed.total })}</p>
+          <progress max={analyzed.total || 1} value={analyzed.done} style={{ inlineSize: '100%' }} />
+        </>
+      )}
+
       {phase === 'analyze' && (
         <>
           <p>{t('import.analyzing', { done: analyzed.done, total: analyzed.total })}</p>
@@ -316,6 +354,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
               <li key={i.key} className={checked.has(i.key) ? '' : 'off'}>
                 <label>
                   <input type="checkbox" checked={checked.has(i.key)} disabled={phase !== 'choose'} onChange={() => toggle(i.key)} />
+                  {i.replaces && <ReplacedThumb lib={lib} id={i.replaces.id} />}
                   <FilePreview item={i} />
                   <span className="name" title={i.file.name}>
                     <bdi>{i.file.name}</bdi>
@@ -360,6 +399,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
                 </label>
               )}
               {duplicates > 0 && <p className="hint">{t('import.duplicatesHint', { count: duplicates })}</p>}
+              {replacements > 0 && <p className="hint">{t('facebook.replaceHint', { count: replacements })}</p>}
               <p>
                 <strong>
                   {t('compress.selection', { count: selected.length })}: {fmt.bytes(sizeBefore)}

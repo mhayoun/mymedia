@@ -14,6 +14,7 @@ import { dateFromFileName, detectOrigin, localIso, mediaTypeOf, type MediaType }
 import { mp4CreationTime } from '../lib/mp4'
 import { app } from '../store'
 import type { FacebookPost } from './facebook'
+import { replaceContent } from './replace'
 import { syncNow, toRecord } from '../sync/engine'
 import { markMetaDirty } from '../sync/metaStore'
 
@@ -35,6 +36,8 @@ export interface ImportItem {
   estimate: number | null
   /** Text, group and species from a Facebook post. */
   extra?: { description?: string; group?: string; species?: string }
+  /** A reduced version of this photo already in Drive, replaced by this file. */
+  replaces?: import('./replace').Replacement
 }
 
 export type ImportOutcome =
@@ -171,6 +174,15 @@ export async function runImport(
     for (const item of items) {
       if (signal.aborted) break
       try {
+        if (item.replaces) {
+          onItem(item.key, { status: 'uploading', progress: 0 })
+          const size = await replaceContent(item, imported, (p) => onItem(item.key, { status: 'uploading', progress: p }), signal)
+          count++
+          before += item.replaces.size
+          after += size
+          onItem(item.key, { status: 'done', size })
+          continue
+        }
         let parent = destId
         if (opts.keepFolders && item.relDir.length) {
           const k = item.relDir.join('/')

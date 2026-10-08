@@ -472,7 +472,12 @@
     "noGroup": "(no group)",
     "photos_one": "{{count}} photo",
     "photos_other": "{{count}} photos",
-    "speciesHint": "When the text of a post contains the name of an album of the destination (a species), the photo goes straight into that album. The others stay in the destination, and MyMedia suggests a species."
+    "speciesHint": "When the text of a post contains the name of an album of the destination (a species), the photo goes straight into that album. The others stay in the destination, and MyMedia suggests a species.",
+    "matching": "Looking for the photos Katia reduced… {{done}} / {{total}}",
+    "replacesByName": "replaces (same name)",
+    "replacesByLook": "replaces (same picture)",
+    "replaceHint_one": "{{count}} photo of the ZIP will replace its version reduced by Katia (left picture → right picture). Species, album, date and text stay; Drive also keeps the old version. Untick a line if it is not the same photo.",
+    "replaceHint_other": "{{count}} photos of the ZIP will replace their version reduced by Katia (left picture → right picture). Species, album, date and text stay; Drive also keeps the old version. Untick a line if it is not the same photo."
   },
   "katia": {
     "settingsTitle": "Katia data",
