@@ -177,6 +177,16 @@ class GoogleAuth {
     this.signIn()
   }
 
+  /**
+   * Before a long task (call it from the click that starts it): renews now
+   * if the token would expire during the task, so it does not stop halfway.
+   */
+  renewBefore(taskMs: number) {
+    if (!this.client || this.requesting || !this.loginHint) return
+    if (this.token && this.token.expiresAt - EXPIRY_MARGIN_MS - taskMs > Date.now()) return
+    this.signIn()
+  }
+
   /** Returns a valid access token, waiting for the user to reconnect if needed. */
   getToken(): Promise<string> {
     if (this.isValid()) return Promise.resolve(this.token!.accessToken)

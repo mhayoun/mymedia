@@ -289,7 +289,7 @@ function Banners() {
   return (
     <div>
       {status === 'needsReconnect' && (
-        <div className="banner" role="alert">
+        <div className="banner reconnect" role="alert">
           <div className="grow">
             <strong>{t('auth.reconnectTitle')}</strong>
             {authError === 'popup_failed_to_open' ? t('auth.popupBlocked') : t('auth.reconnectText')}

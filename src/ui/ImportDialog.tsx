@@ -6,6 +6,7 @@ import { analyze, cancelImport, mediaFiles, runImport, withFacebookPosts, type I
 import { speciesInText } from '../lib/katia'
 import { useFormat } from '../i18n/format'
 import { placementOf } from '../lib/tree'
+import { auth } from '../auth/google'
 import { useApp } from '../store'
 import { AlbumSelect } from './AlbumSelect'
 import { Modal } from './Dialog'
@@ -136,6 +137,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
 
   async function start() {
     rememberDestination(destId)
+    auth.renewBefore(Math.max(10, selected.length / 10) * 60_000)
     setPhase('upload')
     const toSend = fb
       ? selected.map((i) => {

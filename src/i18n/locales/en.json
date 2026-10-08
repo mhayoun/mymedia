@@ -501,6 +501,7 @@
     "start": "File by species",
     "running": "Filing… {{done}} / {{total}}",
     "done_one": "Done: {{count}} photo updated.",
-    "done_other": "Done: {{count}} photos updated."
+    "done_other": "Done: {{count}} photos updated.",
+    "keepOpen": "Keep MyMedia open and the screen on. If it stops, open this window again: filing resumes where it stopped."
   }
 }

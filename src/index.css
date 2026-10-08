@@ -114,6 +114,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .banner .grow { flex: 1; min-inline-size: 200px; }
 .banner strong { display: block; }
 
+.banner.reconnect { position: fixed; inset-block-start: 8px; inset-inline: 8px; z-index: 100; box-shadow: 0 6px 24px rgb(0 0 0 / 0.3); }
 .body { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 0; }
 .sidebar {
   background: var(--surface); border-inline-end: 1px solid var(--border);

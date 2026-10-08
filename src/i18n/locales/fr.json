@@ -499,6 +499,7 @@
     "start": "Ranger par espèce",
     "running": "Rangement… {{done}} / {{total}}",
     "done_one": "Terminé : {{count}} photo mise à jour.",
-    "done_other": "Terminé : {{count}} photos mises à jour."
+    "done_other": "Terminé : {{count}} photos mises à jour.",
+    "keepOpen": "Gardez MyMedia ouvert et l'écran allumé. Si cela s'arrête, rouvrez cette fenêtre : le rangement reprend là où il s'était arrêté."
   }
 }

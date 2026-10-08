@@ -1,6 +1,7 @@
 import { Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { auth } from '../auth/google'
 import { findKatiaData, runKatiaImport, type KatiaSource } from '../import/katia'
 import { Modal } from './Dialog'
 
@@ -31,6 +32,7 @@ export function KatiaDialog({ onClose }: { onClose: () => void }) {
 
   async function start() {
     if (!ready) return
+    auth.renewBefore(Math.max(10, ready.plan!.actions.length / 20) * 60_000)
     setPhase('run')
     try {
       setCount(await runKatiaImport(ready, { trashEmptied }, (done, total) => setProgress({ done, total })))
@@ -99,6 +101,7 @@ export function KatiaDialog({ onClose }: { onClose: () => void }) {
         <>
           <p>{t('katia.running', progress)}</p>
           <progress max={progress.total || 1} value={progress.done} style={{ inlineSize: '100%' }} />
+          <p className="hint">{t('katia.keepOpen')}</p>
         </>
       )}
       {phase === 'done' && <p>{t('katia.done', { count })}</p>}
