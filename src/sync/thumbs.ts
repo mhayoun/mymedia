@@ -200,3 +200,64 @@ export function loadThumb(rec: MediaRecord, isWanted: () => boolean): Promise<st
   inflight.set(rec.id, p)
   return p
 }
+
+// ---- Preparing in advance -----------------------------------------------------
+
+const WARM_WORKERS = 4
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+let warmGen = 0
+
+/** True while thumbnails asked for by the screen are still loading. */
+export function screenLoading(): boolean {
+  return queue.length > 0
+}
+
+/** Waits until the thumbnails on screen are loaded (other work gives way to them). */
+export async function afterScreenThumbs(): Promise<void> {
+  while (screenLoading()) await sleep(300)
+}
+
+/**
+ * Downloads, in the background, the thumbnails of the media being browsed
+ * (the open album or list), so they are already on the device when the user
+ * scrolls to them. Gives way to the thumbnails on screen.
+ */
+export function warmThumbs(all: MediaRecord[]): void {
+  const gen = ++warmGen
+  // Data saver or slow network: nothing in advance; mobile data: the first 200 only.
+  const c = (navigator as Navigator & { connection?: { saveData?: boolean; type?: string; effectiveType?: string } }).connection
+  if (c?.saveData || /2g|3g/.test(c?.effectiveType ?? '')) return
+  const recs = c?.type === 'cellular' ? all.slice(0, 200) : all
+  void (async () => {
+    await sleep(1500) // the list may still change (live updates)
+    if (gen !== warmGen || !navigator.onLine) return
+    const stored = await db().thumbs.bulkGet(recs.map((r) => r.id))
+    const todo = recs.filter((r, i) => {
+      const s = stored[i]
+      return !(s && (s.version === thumbVersion(r) || s.version === r.modifiedTime))
+    })
+    let next = 0
+    const worker = async () => {
+      while (next < todo.length) {
+        if (gen !== warmGen || !navigator.onLine) return
+        while (screenLoading() || active >= MAX_PARALLEL - 4) {
+          await sleep(200)
+          if (gen !== warmGen) return
+        }
+        const rec = todo[next++]
+        if (urls.has(rec.id) || inflight.has(rec.id)) continue
+        active++
+        try {
+          const blob = await produce(rec)
+          if (blob) await db().thumbs.put({ id: rec.id, version: thumbVersion(rec), blob })
+        } catch {
+          // tried again when it scrolls into view
+        } finally {
+          active--
+          pump()
+        }
+      }
+    }
+    await Promise.all(Array.from({ length: WARM_WORKERS }, worker))
+  })()
+}

@@ -7,7 +7,7 @@ import { pullFaces, saveFaces } from '../faces/store'
 import { inReservedFolder, loadData } from '../classify/data'
 import { db, type MediaRecord } from '../db/db'
 import { app } from '../store'
-import { driveThumbnail, localPhotoPreview } from '../sync/thumbs'
+import { afterScreenThumbs, driveThumbnail, localPhotoPreview } from '../sync/thumbs'
 import { videoKeyFrames } from '../sync/videoFrame'
 import { mediaVersion, pullIndex, saveIndex } from './indexStore'
 import { embed, findFacesIn } from './ml'
@@ -58,6 +58,7 @@ async function run(signal: AbortSignal) {
   app().set({ indexing: { done, total: todo.length } })
   for (const rec of todo) {
     if (signal.aborted) break
+    await afterScreenThumbs() // what the user is looking at comes first
     let vec: Int8Array | null = null
     const version = mediaVersion(rec)
     try {

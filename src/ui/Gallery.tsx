@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ALBUM_SEPARATOR } from '../lib/tree'
 import { useApp } from '../store'
+import { warmThumbs } from '../sync/thumbs'
 import { Thumb } from './Thumb'
 import { groupByAlbum, type LibraryItem } from './useLibrary'
 import { Viewer } from './Viewer'
@@ -55,6 +56,13 @@ export function Gallery({ items }: { items: LibraryItem[] }) {
     } else chunk(items, 'all')
     return out
   }, [items, cols, view, t])
+
+  // The whole list being browsed (up to 1,000) is prepared in the background.
+  const listKey = items.slice(0, 1000).map((i) => i.rec.id).join(',')
+  useEffect(() => {
+    warmThumbs(items.slice(0, 1000).map((i) => i.rec))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listKey])
 
   const orderedIds = useMemo(
     () => rows.flatMap((r) => (r.kind === 'cells' ? r.items.map((i) => i.rec.id) : [])),
