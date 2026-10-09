@@ -127,7 +127,8 @@
     "deleteText": "הקובץ יועבר לאשפה של Google Drive. אפשר לשחזר אותו משם במשך 30 יום.",
     "group": "קבוצת פייסבוק",
     "imported": "יובא מ",
-    "loadingOriginal": "איכות מלאה… {{percent}}"
+    "loadingOriginal": "איכות מלאה… {{percent}}",
+    "newAlbum": "אלבום חדש עם התמונה"
   },
   "origin": {
     "camera": "מצלמה / טלפון",
@@ -210,7 +211,9 @@
     "rebuildHint": "הלמידה מתבצעת לבד ברקע אחרי כל טעינה.",
     "learning": "לומד {{done}} / {{total}}",
     "learningHint": "MyMedia לומדת את התמונות שלך כדי לזהות חדשות. שום דבר לא יוצא מהמכשיר.",
-    "pause": "השהיית הלמידה"
+    "pause": "השהיית הלמידה",
+    "newAlbumWith": "צור אלבום עם {{count}}",
+    "newAlbumPick": "סמנו את התמונות לאלבום החדש, ואז לחצו שוב."
   },
   "stats": {
     "title": "סטטיסטיקת למידה",
@@ -561,5 +564,8 @@
     "imports": "ייבואים",
     "looseFiles": "קבצים שנבחרו",
     "katiaFolder": "תיקייה מקטיה"
+  },
+  "newAlbum": {
+    "in": "בתוך"
   }
 }

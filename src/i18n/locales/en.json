@@ -127,7 +127,8 @@
     "deleteText": "The file goes to the Google Drive trash. You can restore it from there for 30 days.",
     "group": "Facebook group",
     "imported": "Imported from",
-    "loadingOriginal": "Full quality… {{percent}}"
+    "loadingOriginal": "Full quality… {{percent}}",
+    "newAlbum": "New album with this photo"
   },
   "origin": {
     "camera": "Camera / phone",
@@ -208,7 +209,9 @@
     "rebuildHint": "Learning runs by itself in the background after each load.",
     "learning": "Learning {{done}} / {{total}}",
     "learningHint": "MyMedia studies your photos to recognise new ones. Nothing leaves your device.",
-    "pause": "Pause learning"
+    "pause": "Pause learning",
+    "newAlbumWith": "Create the album with {{count}}",
+    "newAlbumPick": "Tick the photos to put in the new album, then press the button again."
   },
   "stats": {
     "title": "Learning statistics",
@@ -520,5 +523,8 @@
     "imports": "Imports",
     "looseFiles": "Chosen files",
     "katiaFolder": "Katia folder"
+  },
+  "newAlbum": {
+    "in": "In"
   }
 }

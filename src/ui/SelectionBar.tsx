@@ -2,13 +2,12 @@ import { CheckSquare, FolderInput, FolderPlus, Minimize2, Pencil, Trash2, UserPl
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder } from '../classify/engine'
-import { createFolder } from '../drive/api'
 import { app, useApp } from '../store'
-import { syncNow } from '../sync/engine'
 import { addPersonByHand, setDescription, trashMedia } from '../sync/media'
 import { AlbumSelect } from './AlbumSelect'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog, PromptDialog } from './Dialog'
+import { NewAlbumDialog } from './NewAlbumDialog'
 import type { Library, LibraryItem } from './useLibrary'
 import type { People } from './usePeople'
 
@@ -90,15 +89,11 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
       </div>
 
       {action === 'newAlbum' && (
-        <PromptDialog
-          title={t('select.newAlbumTitle', { count: ids.length })}
-          confirmLabel={t('common.create')}
-          onSubmit={async (name) => {
-            const folder = await createFolder(name, parentId)
-            await syncNow()
-            await each((id) => chooseFolder(id, folder.id))
-            done()
-          }}
+        <NewAlbumDialog
+          lib={lib}
+          ids={ids}
+          parentId={lib.folders.has(parentId) ? parentId : undefined}
+          onDone={done}
           onClose={() => setAction(null)}
         />
       )}

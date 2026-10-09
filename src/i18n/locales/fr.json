@@ -125,7 +125,8 @@
     "deleteText": "Le fichier va dans la corbeille de Google Drive. Vous pouvez le restaurer pendant 30 jours.",
     "group": "Groupe Facebook",
     "imported": "Importée de",
-    "loadingOriginal": "Pleine qualité… {{percent}}"
+    "loadingOriginal": "Pleine qualité… {{percent}}",
+    "newAlbum": "Nouvel album avec cette photo"
   },
   "origin": {
     "camera": "Appareil photo / téléphone",
@@ -206,7 +207,9 @@
     "rebuildHint": "L'apprentissage se fait tout seul en arrière-plan après chaque chargement.",
     "learning": "Apprentissage {{done}} / {{total}}",
     "learningHint": "MyMedia étudie vos photos pour reconnaître les nouvelles. Rien ne quitte votre appareil.",
-    "pause": "Mettre l'apprentissage en pause"
+    "pause": "Mettre l'apprentissage en pause",
+    "newAlbumWith": "Créer l'album avec {{count}}",
+    "newAlbumPick": "Cochez les photos à mettre dans le nouvel album, puis appuyez à nouveau sur le bouton."
   },
   "stats": {
     "title": "Statistiques d'apprentissage",
@@ -518,5 +521,8 @@
     "imports": "Importations",
     "looseFiles": "Fichiers choisis",
     "katiaFolder": "dossier Katia"
+  },
+  "newAlbum": {
+    "in": "Dans"
   }
 }

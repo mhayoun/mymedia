@@ -1,4 +1,4 @@
-import { Check, Home, Sparkles, Wand2 } from 'lucide-react'
+import { Check, FolderPlus, Home, Sparkles, Wand2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { acceptConfident, chooseFolder, classifyPending, confirmAuto, keepHere } from '../classify/engine'
@@ -6,6 +6,7 @@ import { useFormat } from '../i18n/format'
 import { placementOf } from '../lib/tree'
 import { app, useApp } from '../store'
 import { AlbumSelect } from './AlbumSelect'
+import { NewAlbumDialog } from './NewAlbumDialog'
 import { Thumb } from './Thumb'
 import type { Library, LibraryItem } from './useLibrary'
 import { Viewer } from './Viewer'
@@ -29,6 +30,15 @@ export function ReviewView({ lib, items, mode }: Props) {
   const [shown, setShown] = useState(PAGE)
   const [busy, setBusy] = useState<Set<string>>(new Set())
   const [bulkBusy, setBulkBusy] = useState(false)
+  const [newAlbumFor, setNewAlbumFor] = useState<string[] | null>(null)
+  const selection = useApp((s) => s.selection)
+  const selected = useMemo(() => (selection ? new Set(selection) : null), [selection])
+  const toggle = (id: string) => {
+    const next = new Set(selected)
+    if (next.has(id)) next.delete(id)
+    else next.add(id)
+    set({ selection: [...next] })
+  }
 
   const label = (folderId: string) => {
     const p = placementOf(folderId, lib.folders, rootId)
@@ -78,6 +88,14 @@ export function ReviewView({ lib, items, mode }: Props) {
             <button className="btn" disabled={bulkBusy} onClick={() => bulk(classifyPending)}>
               <Wand2 size={16} /> {t('classify.runNow')}
             </button>
+            <button
+              className={`btn ${selected ? 'primary' : ''}`}
+              disabled={bulkBusy}
+              onClick={() => (selected?.size ? setNewAlbumFor([...selected]) : set({ selection: selected ? null : [] }))}
+            >
+              <FolderPlus size={16} /> {selected?.size ? t('classify.newAlbumWith', { count: selected.size }) : t('select.newAlbum')}
+            </button>
+            {selected && !selected.size && <p className="hint">{t('classify.newAlbumPick')}</p>}
           </>
         ) : (
           <>
@@ -95,7 +113,7 @@ export function ReviewView({ lib, items, mode }: Props) {
           const sugg = meta?.suggestions ?? []
           return (
             <div className="review-card" key={rec.id} aria-busy={isBusy}>
-              <Thumb rec={rec} onOpen={(id) => set({ viewerId: id })} />
+              <Thumb rec={rec} selected={selected ? selected.has(rec.id) : undefined} onOpen={(id) => (selected ? toggle(id) : set({ viewerId: id }))} />
               <div className="review-body">
                 <div className="review-name" title={rec.name}>
                   <bdi>{meta?.description || rec.name}</bdi>
@@ -146,6 +164,9 @@ export function ReviewView({ lib, items, mode }: Props) {
                       <button className="btn ghost" disabled={isBusy} onClick={() => act(rec.id, () => keepHere(rec.id))} title={t('classify.keepHereHint')}>
                         <Home size={16} /> {t('classify.keepHere')}
                       </button>
+                      <button className="btn ghost" disabled={isBusy} onClick={() => setNewAlbumFor([rec.id])} title={t('select.newAlbum')}>
+                        <FolderPlus size={16} />
+                      </button>
                     </div>
                   </>
                 ) : (
@@ -181,6 +202,14 @@ export function ReviewView({ lib, items, mode }: Props) {
         </div>
       )}
       {viewerId && <Viewer ids={ids} items={items} />}
+      {newAlbumFor && (
+        <NewAlbumDialog
+          lib={lib}
+          ids={newAlbumFor}
+          onDone={() => set({ selection: null })}
+          onClose={() => setNewAlbumFor(null)}
+        />
+      )}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, ExternalLink, Info, Maximize2, Play, Trash2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ExternalLink, FolderPlus, Info, Maximize2, Play, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { downloadBlob } from '../drive/api'
@@ -16,6 +16,7 @@ import { AlbumSelect } from './AlbumSelect'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog } from './Dialog'
 import { FaceImg } from './FaceImg'
+import { NewAlbumDialog } from './NewAlbumDialog'
 import { useLibraryContext } from './libraryContext'
 import { useOpenPerson, usePeopleContext } from './peopleContext'
 import type { LibraryItem } from './useLibrary'
@@ -292,6 +293,7 @@ function InfoPanel({ item }: { item: LibraryItem }) {
   const { rec, meta, place } = item
   const [moving, setMoving] = useState(false)
   const [compressOpen, setCompressOpen] = useState(false)
+  const [newAlbumOpen, setNewAlbumOpen] = useState(false)
   const people = usePeopleContext()
   const openPerson = useOpenPerson()
   const faces = people?.facesOfMedia.get(rec.id) ?? []
@@ -415,6 +417,12 @@ function InfoPanel({ item }: { item: LibraryItem }) {
           />
         </label>
       )}
+      {lib && (
+        <button type="button" className="btn" style={{ marginBlockEnd: 12 }} disabled={moving} onClick={() => setNewAlbumOpen(true)}>
+          <FolderPlus size={16} /> {t('viewer.newAlbum')}
+        </button>
+      )}
+      {lib && newAlbumOpen && <NewAlbumDialog lib={lib} ids={[rec.id]} onClose={() => setNewAlbumOpen(false)} />}
       <label className="field">
         {t('viewer.origin')}
         <select
