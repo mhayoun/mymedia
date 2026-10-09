@@ -372,7 +372,11 @@
     "duplicateLook": "כבר ב-Drive (אותה תמונה)",
     "intoAlbums_one": "התמונות ייכנסו לאלבום (בתוך ”{{dest}}”):",
     "intoAlbums_two": "התמונות ייכנסו ל-{{count}} אלבומים (בתוך ”{{dest}}”):",
-    "intoAlbums_other": "התמונות ייכנסו ל-{{count}} אלבומים (בתוך ”{{dest}}”):"
+    "intoAlbums_other": "התמונות ייכנסו ל-{{count}} אלבומים (בתוך ”{{dest}}”):",
+    "whichAlbum": "לאיזה אלבום להוסיף את התמונות?",
+    "searchAlbum": "חיפוש אלבום…",
+    "noAlbumFound": "אין אלבום בשם הזה.",
+    "noAlbum": "בלי אלבום: MyMedia ימיין אותן (למיון)"
   },
   "faces": {
     "people": "אנשים",

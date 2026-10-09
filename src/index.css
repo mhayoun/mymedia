@@ -88,6 +88,21 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .lang-switch button { border: none; background: none; cursor: pointer; color: var(--text-2); padding: 4px 8px; border-radius: 6px; }
 .lang-switch button[aria-pressed='true'] { color: var(--accent); font-weight: 600; background: var(--surface-2); }
 .chip-list { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 8px; }
+
+/* "Add" from All media: choose the album first. */
+.dest-picker { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.dest-picker > * { max-inline-size: 100%; }
+.dest-new { display: flex; flex-direction: column; gap: 8px; inline-size: 100%; }
+.dest-search { display: flex; align-items: center; gap: 6px; inline-size: 100%; }
+.dest-search input { flex: 1; }
+.dest-list { inline-size: 100%; max-block-size: 45vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+.dest-list button {
+  display: block; inline-size: 100%; text-align: start; padding-block: 9px; padding-inline-end: 10px; border: 0;
+  border-block-end: 1px solid var(--border); background: none; color: inherit; font: inherit; cursor: pointer;
+}
+.dest-list button:last-child { border-block-end: 0; }
+.dest-list button:hover { background: var(--surface-2, rgb(0 0 0 / 0.04)); }
+.dest-list button.category { font-weight: 600; }
 .chip {
   display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px 4px 12px;
   padding-inline: 12px 6px; border-radius: 999px; background: var(--surface-2);

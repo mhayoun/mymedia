@@ -353,7 +353,11 @@
     "done_other": "Done: {{count}} files added ({{before}} → {{after}} in Drive).",
     "duplicateLook": "already in Drive (same picture)",
     "intoAlbums_one": "The photos will go into the album (in “{{dest}}”):",
-    "intoAlbums_other": "The photos will go into {{count}} albums (in “{{dest}}”):"
+    "intoAlbums_other": "The photos will go into {{count}} albums (in “{{dest}}”):",
+    "whichAlbum": "Which album do you want to add the photos to?",
+    "searchAlbum": "Search an album…",
+    "noAlbumFound": "No album has this name.",
+    "noAlbum": "No album: MyMedia will sort them (To classify)"
   },
   "faces": {
     "people": "People",

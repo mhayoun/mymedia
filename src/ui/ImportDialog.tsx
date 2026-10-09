@@ -12,6 +12,7 @@ import { placementOf } from '../lib/tree'
 import { auth } from '../auth/google'
 import { useApp } from '../store'
 import { AlbumSelect } from './AlbumSelect'
+import { DestinationPicker } from './DestinationPicker'
 import { Modal } from './Dialog'
 import type { Library } from './useLibrary'
 
@@ -78,7 +79,8 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
   const [destId, setDestId] = useState(initialDest)
-  const [phase, setPhase] = useState<'pick' | 'zip' | 'groups' | 'analyze' | 'match' | 'choose' | 'upload' | 'done'>('pick')
+  // From "All media", the first question is where the photos go.
+  const [phase, setPhase] = useState<'dest' | 'pick' | 'zip' | 'groups' | 'analyze' | 'match' | 'choose' | 'upload' | 'done'>(initialDest === rootId ? 'dest' : 'pick')
   const [fb, setFb] = useState<FacebookExport | null>(null)
   const [fbGroups, setFbGroups] = useState<Set<string>>(new Set())
   const [zipName, setZipName] = useState<string | undefined>()
@@ -103,9 +105,15 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const recent = recentDestinations().filter((id) => id !== destId && (id === rootId || lib.folders.has(id)))
 
   useEffect(() => {
-    if (initialFiles?.length) void onFiles(initialFiles)
+    if (initialFiles?.length && phase !== 'dest') void onFiles(initialFiles)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  function chooseDest(id: string) {
+    setDestId(id)
+    if (initialFiles?.length) void onFiles(initialFiles)
+    else setPhase('pick')
+  }
 
   async function onFiles(list: FileList | File[] | null, posts?: FacebookExport['posts']) {
     const files = mediaFiles([...(list ?? [])])
@@ -238,6 +246,10 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
 
   return (
     <Modal wide title={t('import.title')} onClose={phase === 'upload' ? () => undefined : onClose}>
+      {phase === 'dest' && (
+        <DestinationPicker lib={lib} recent={recentDestinations().filter((id) => id === rootId || lib.folders.has(id))} nameOf={nameOf} onChoose={chooseDest} />
+      )}
+      {phase !== 'dest' && (
       <div className="row" style={{ marginBlockEnd: 10 }}>
         <span>{t('import.to')}</span>
         <strong>
@@ -252,6 +264,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
           />
         )}
       </div>
+      )}
 
       {(phase === 'pick' || phase === 'groups' || phase === 'choose') && recent.length > 0 && (
         <div className="chip-list">
