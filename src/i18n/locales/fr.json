@@ -175,6 +175,8 @@
     "now": "Actuellement dans",
     "root": "dossier principal",
     "toCheck": "À vérifier",
+    "novel": "Nouveau ?",
+    "novelHint": "Ne ressemble à aucun album : peut-être une espèce ou un album qui n'existe pas encore. Pas déplacé automatiquement.",
     "noSuggestion": "Pas encore de suggestion (apprentissage en cours, ou pas assez d'exemples).",
     "otherAlbum": "Autre album…",
     "keepHere": "Laisser ici",

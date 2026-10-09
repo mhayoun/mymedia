@@ -52,7 +52,7 @@ describe('classifier', () => {
   })
 
   it('finds the right album with a confident, calibrated score', () => {
-    const tau = calibrate(labeled)
+    const { tau } = calibrate(labeled)
     const [top, second] = predict(cluster(centers[2], 0.6, r), labeled, null, tau)
     expect(top.label).toBe('album2')
     expect(top.confidence).toBeGreaterThan(0.85)
@@ -60,7 +60,7 @@ describe('classifier', () => {
   })
 
   it('is less sure for a photo between two albums', () => {
-    const tau = calibrate(labeled)
+    const { tau } = calibrate(labeled)
     const mix = quantize(Float32Array.from(centers[0], (x, i) => x + centers[1][i]))
     const [top, second] = predict(mix, labeled, null, tau)
     const [clean] = predict(cluster(centers[0], 0.6, r), labeled, null, tau)
@@ -80,8 +80,24 @@ describe('classifier', () => {
     expect(predict(average([a, b]), labeled, null, 0.02)[0].label).toBe('album3')
   })
 
+  it('tells a photo of a new album from a photo of a known one', () => {
+    const { tau, novelty } = calibrate(labeled)
+    expect(novelty).not.toBeNull()
+    const fresh = Float32Array.from({ length: dim }, () => r())
+    for (let i = 0; i < 5; i++) {
+      const [known] = predict(cluster(centers[i], 0.6, r), labeled, null, tau)
+      expect(known.similarity).toBeGreaterThanOrEqual(novelty!)
+      const [unknown] = predict(cluster(fresh, 0.6, r), labeled, null, tau)
+      expect(unknown.similarity).toBeLessThan(novelty!)
+    }
+  })
+
+  it('cannot judge "new" with too few albums', () => {
+    expect(calibrate(labeled.filter((e) => e.label === 'album0' || e.label === 'album1')).novelty).toBeNull()
+  })
+
   it('reports accuracy per album', () => {
-    const stats = evaluate(labeled, calibrate(labeled))
+    const stats = evaluate(labeled, calibrate(labeled).tau)
     expect(stats).toHaveLength(5)
     for (const s of stats) expect(s.correct / s.tested).toBeGreaterThan(0.8)
   })

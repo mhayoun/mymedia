@@ -5,7 +5,7 @@ import { db } from '../db/db'
 import { useFormat } from '../i18n/format'
 import type { LabelStats } from '../lib/classifier'
 import { placementOf } from '../lib/tree'
-import { calibrateTau, evaluateSet } from '../ml/ml'
+import { calibrate, evaluateSet } from '../ml/ml'
 import { useApp } from '../store'
 import { Modal } from './Dialog'
 import type { Library } from './useLibrary'
@@ -33,7 +33,7 @@ export function StatsDialog({ lib }: { lib: Library }) {
       const failed = (await db().embeddings.toArray()).filter((e) => e.failed).length
       const { set: packed } = labeledSet(data)
       let stats: LabelStats[] = []
-      if (packed.ids.length >= 2) stats = await evaluateSet(packed, await calibrateTau(packed))
+      if (packed.ids.length >= 2) stats = await evaluateSet(packed, (await calibrate(packed)).tau)
       if (alive) setResult({ media: data.media.length, learned: data.vecs.size, failed, stats })
     })().catch((e) => alive && setError(String(e)))
     return () => {

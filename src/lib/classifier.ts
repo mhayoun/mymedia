@@ -12,8 +12,10 @@ export interface LabeledVec {
 
 export interface Prediction {
   label: string
-  /** Calibrated probability 0..1. */
+  /** Calibrated probability 0..1 (relative to the other albums). */
   confidence: number
+  /** Raw resemblance to the album (mean cosine of its closest examples). */
+  similarity: number
 }
 
 const SCALE = 127 * 127
@@ -79,7 +81,7 @@ export function rank(scores: Map<string, number>, tau: number, top = 4): Predict
     return { label, e }
   })
   return exps
-    .map(({ label, e }) => ({ label, confidence: e / total }))
+    .map(({ label, e }) => ({ label, confidence: e / total, similarity: scores.get(label)! }))
     .sort((a, b) => b.confidence - a.confidence)
     .slice(0, top)
 }
@@ -98,17 +100,25 @@ function sample(n: number, max: number): number[] {
 // Not sharper than 0.01: being over-confident would move photos to the wrong album.
 const TAU_GRID = [0.01, 0.0125, 0.015, 0.02, 0.03, 0.05, 0.08]
 
+interface LooQuery {
+  truth: string
+  scores: Map<string, number>
+}
+
+/** Leave-one-out: each sampled photo scored against all the others. */
+function looScores(labeled: LabeledVec[], maxQueries: number): LooQuery[] {
+  const counts = labelCounts(labeled)
+  const queries = sample(labeled.length, maxQueries).filter((i) => (counts.get(labeled[i].label) ?? 0) >= 2)
+  return queries.map((i) => ({ truth: labeled[i].label, scores: labelScores(labeled[i].vec, labeled, null, labeled[i].id) }))
+}
+
 /**
- * Leave-one-out: each sampled photo is classified against all the others.
  * Picks the tau whose confidences best match reality (lowest log-loss), so
  * that "85 %" means right about 85 % of the time on this user's photos.
  */
-export function calibrate(labeled: LabeledVec[], maxQueries = 600): number {
-  const counts = labelCounts(labeled)
-  const queries = sample(labeled.length, maxQueries).filter((i) => (counts.get(labeled[i].label) ?? 0) >= 2)
-  if (queries.length < 10) return 0.02
-  const all = queries.map((i) => ({ truth: labeled[i].label, scores: labelScores(labeled[i].vec, labeled, null, labeled[i].id) }))
-  let bestTau = 0.02
+function bestTau(all: LooQuery[]): number {
+  if (all.length < 10) return 0.02
+  let best = 0.02
   let bestLoss = Infinity
   for (const tau of TAU_GRID) {
     let loss = 0
@@ -118,10 +128,57 @@ export function calibrate(labeled: LabeledVec[], maxQueries = 600): number {
     }
     if (loss < bestLoss) {
       bestLoss = loss
-      bestTau = tau
+      best = tau
     }
   }
-  return bestTau
+  return best
+}
+
+// A media of an album that does not exist yet (e.g. a new bird species) left
+// in an album wrongly is worse than one more "To check": misses count double.
+const MISSED_NEW_COST = 2
+
+/**
+ * Resemblance below which a media probably belongs to NO existing album.
+ * Measured on the user's photos: a known photo's resemblance to its own album
+ * versus its resemblance to the best OTHER album (= what a photo of a new
+ * album looks like). Null when there are too few albums to measure.
+ */
+function bestNovelty(all: LooQuery[]): number | null {
+  const known: number[] = []
+  const novel: number[] = []
+  for (const q of all) {
+    const own = q.scores.get(q.truth)
+    let other = -Infinity
+    for (const [label, s] of q.scores) if (label !== q.truth && s > other) other = s
+    if (own == null || other === -Infinity) continue
+    known.push(own)
+    novel.push(other)
+  }
+  if (known.length < 10 || new Set(all.map((q) => q.truth)).size < 3) return null
+  let best: number | null = null
+  let bestCost = Infinity
+  for (const t of [...known, ...novel].sort((a, b) => a - b)) {
+    const falseNew = known.filter((s) => s < t).length / known.length
+    const missedNew = novel.filter((s) => s >= t).length / novel.length
+    const cost = falseNew + MISSED_NEW_COST * missedNew
+    if (cost < bestCost) {
+      bestCost = cost
+      best = t
+    }
+  }
+  return best
+}
+
+export interface Calibration {
+  tau: number
+  /** See bestNovelty. */
+  novelty: number | null
+}
+
+export function calibrate(labeled: LabeledVec[], maxQueries = 600): Calibration {
+  const all = looScores(labeled, maxQueries)
+  return { tau: bestTau(all), novelty: bestNovelty(all) }
 }
 
 export interface LabelStats {

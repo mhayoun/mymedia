@@ -3,6 +3,8 @@
 //   2. a meaningful file name equal to an album name;
 //   3. the learned model (nearest examples): auto-move when confident,
 //      otherwise a suggestion; below the medium threshold it is "To check".
+//      A media that resembles no album enough is never moved: it is marked
+//      "New?" (e.g. a bird species that has no album yet).
 // User decisions always win (keepHere, manual moves, corrections).
 
 import { db, type MediaRecord } from '../db/db'
@@ -10,7 +12,8 @@ import { moveFile } from '../drive/api'
 import { meaningfulName, nameKey } from '../lib/filename'
 import type { MediaMeta } from '../lib/metadata'
 import { placementOf } from '../lib/tree'
-import { calibrateTau, predictMany } from '../ml/ml'
+import type { Calibration } from '../lib/classifier'
+import { calibrate, predictMany } from '../ml/ml'
 import type { PackedSet } from '../ml/protocol'
 import { app } from '../store'
 import { markMetaDirty } from '../sync/metaStore'
@@ -18,13 +21,13 @@ import { albumsUnder, allowedFor, isCandidate, labeledSet, loadData, type Classi
 
 let running: Promise<void> | null = null
 
-async function tauFor(set: PackedSet): Promise<number> {
+async function calibrationFor(set: PackedSet): Promise<Calibration> {
   const d = db()
-  const cached = await d.getKv<{ tau: number; n: number }>('tau')
-  if (cached && Math.abs(cached.n - set.ids.length) <= Math.max(5, set.ids.length * 0.05)) return cached.tau
-  const tau = await calibrateTau(set)
-  await d.setKv('tau', { tau, n: set.ids.length })
-  return tau
+  const cached = await d.getKv<Calibration & { n: number }>('tau')
+  if (cached && 'novelty' in cached && Math.abs(cached.n - set.ids.length) <= Math.max(5, set.ids.length * 0.05)) return cached
+  const cal = await calibrate(set)
+  await d.setKv('tau', { ...cal, n: set.ids.length })
+  return cal
 }
 
 /** Moves a media to another folder in Drive and records how it was classified. */
@@ -43,6 +46,7 @@ export async function moveMedia(rec: MediaRecord, toFolderId: string, patch: Par
       album: place.album,
       suggestions: undefined,
       toCheck: false,
+      novel: undefined,
       keepHere: undefined,
       ...patch,
       updatedAt: Date.now(),
@@ -95,7 +99,7 @@ async function run(): Promise<void> {
   const { set, counts } = labeledSet(data)
   const queries = remaining.filter((r) => data.vecs.has(r.id))
   if (queries.length && counts.size >= 2) {
-    const tau = await tauFor(set)
+    const { tau, novelty } = await calibrationFor(set)
     const preds = await predictMany(
       set,
       queries.map((r) => ({ id: r.id, vec: data.vecs.get(r.id)!, allowed: allowedFor(r, data) })),
@@ -106,15 +110,16 @@ async function run(): Promise<void> {
       const top = preds[i][0]
       if (!top) continue
       const examples = counts.get(top.label) ?? 0
-      if (settings.classifyAuto && top.confidence >= settings.thresholdHigh && examples >= 3) {
+      const novel = novelty != null && top.similarity < novelty
+      if (!novel && settings.classifyAuto && top.confidence >= settings.thresholdHigh && examples >= 3) {
         await moveMedia(rec, top.label, { source: 'model', confidence: top.confidence, auto: true })
         continue
       }
       const suggestions = preds[i].map((p) => ({ folderId: p.label, confidence: Math.round(p.confidence * 1000) / 1000 }))
-      const toCheck = top.confidence < settings.thresholdMedium
+      const toCheck = novel || top.confidence < settings.thresholdMedium
       const meta = data.meta.get(rec.id)
-      if (meta && (!sameSuggestions(meta.suggestions, suggestions) || !!meta.toCheck !== toCheck)) {
-        await patchMeta(rec.id, { suggestions, toCheck, confidence: top.confidence })
+      if (meta && (!sameSuggestions(meta.suggestions, suggestions) || !!meta.toCheck !== toCheck || !!meta.novel !== novel)) {
+        await patchMeta(rec.id, { suggestions, toCheck, novel: novel || undefined, confidence: top.confidence })
         changed = true
       }
     }
@@ -154,7 +159,7 @@ export async function chooseFolder(id: string, folderId: string): Promise<void> 
 
 /** The media stays where it is: no more suggestions for it. */
 export async function keepHere(id: string): Promise<void> {
-  await patchMeta(id, { keepHere: true, suggestions: undefined, toCheck: false, source: 'manual' })
+  await patchMeta(id, { keepHere: true, suggestions: undefined, toCheck: false, novel: undefined, source: 'manual' })
   await markMetaDirty()
 }
 

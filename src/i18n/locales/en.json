@@ -177,6 +177,8 @@
     "now": "Now in",
     "root": "main folder",
     "toCheck": "To check",
+    "novel": "New?",
+    "novelHint": "Resembles no album: maybe a species or album that does not exist yet. Not moved automatically.",
     "noSuggestion": "No suggestion yet (learning in progress, or not enough examples).",
     "otherAlbum": "Other album…",
     "keepHere": "Keep here",

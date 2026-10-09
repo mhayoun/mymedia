@@ -43,6 +43,8 @@ export interface MediaMeta {
   species?: SpeciesNames | null
   confidence?: number | null
   toCheck?: boolean
+  /** Resembles no album enough: probably belongs to an album that does not exist yet. */
+  novel?: boolean
   /** Proposed destinations, best first (waiting for the user). */
   suggestions?: Suggestion[]
   /** Moved automatically by the learned model, not yet reviewed. */

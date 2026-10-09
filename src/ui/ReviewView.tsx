@@ -104,7 +104,7 @@ export function ReviewView({ lib, items, mode }: Props) {
                   <>
                     <div className="hint">
                       {t('classify.now')}: <bdi>{place.category ?? t('classify.root')}</bdi>
-                      {meta?.toCheck && <span className="tag warn">{t('classify.toCheck')}</span>}
+                      {meta?.toCheck && <span className="tag warn" title={meta.novel ? t('classify.novelHint') : undefined}>{t(meta.novel ? 'classify.novel' : 'classify.toCheck')}</span>}
                     </div>
                     {sugg.length > 0 ? (
                       <>

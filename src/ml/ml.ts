@@ -1,6 +1,6 @@
 // App side of the ML worker.
 
-import type { LabelStats, Prediction } from '../lib/classifier'
+import type { Calibration, LabelStats, Prediction } from '../lib/classifier'
 import type { FoundFace } from './faceModel'
 import type { PackedSet, Query, Request } from './protocol'
 
@@ -44,7 +44,7 @@ export function predictMany(set: PackedSet, queries: Query[], tau: number): Prom
   return call({ type: 'predict', set, queries, tau })
 }
 
-export function calibrateTau(set: PackedSet): Promise<number> {
+export function calibrate(set: PackedSet): Promise<Calibration> {
   return call({ type: 'calibrate', set })
 }
 
