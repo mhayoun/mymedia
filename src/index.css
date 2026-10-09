@@ -146,6 +146,8 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .toolbar h1 bdi { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .toolbar .count { color: var(--text-2); font-weight: normal; font-size: 0.9rem; margin-inline-start: 8px; }
 .toolbar select { inline-size: auto; padding: 6px 8px; }
+.toolbar-title { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.toolbar-controls { display: contents; }
 .segmented { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 .segmented button { border: none; background: var(--surface); padding: 6px 10px; cursor: pointer; display: inline-flex; gap: 4px; align-items: center; }
 .segmented button[aria-pressed='true'] { background: var(--accent); color: var(--accent-text); }
@@ -251,7 +253,11 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   .scrim.open { display: block; position: fixed; inset: 0; z-index: 39; background: rgb(0 0 0 / 0.35); }
   .viewer { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
   .info-panel { inline-size: 100%; max-block-size: 45vh; }
-  .toolbar { padding: 8px 6px; gap: 4px; flex-wrap: nowrap; }
+  /* Two lines: the title with its actions, then the controls. */
+  .toolbar { padding: 8px 6px; gap: 6px 4px; flex-wrap: wrap; }
+  .toolbar-title { flex: 1 0 100%; }
+  .toolbar-title h1 { flex: 1; }
+  .toolbar-controls { display: flex; align-items: center; gap: 4px; flex: 1 0 100%; min-width: 0; }
   /* Compact lists: a small arrow instead of the wide native one. */
   .toolbar select {
     appearance: none; -webkit-appearance: none; font-size: 0.88rem; min-inline-size: 0; max-inline-size: 92px;
@@ -265,7 +271,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   .toolbar .result-count { font-size: 0.85rem; padding-inline: 2px; }
   .toolbar .btn { padding: 7px 8px; }
   .toolbar .segmented button { padding: 6px 7px; }
-  .toolbar h1 { font-size: 1rem; max-inline-size: 30vw; }
+  .toolbar h1 { font-size: 1rem; }
 }
 
 /* ---------- Classification review ---------- */

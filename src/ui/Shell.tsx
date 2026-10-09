@@ -390,11 +390,10 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
   return (
     <div className="toolbar">
       {showTitle && (
+      <div className="toolbar-title">
         <h1>
           <bdi>{title}</bdi>
         </h1>
-      )}
-
       {folder && (
         <span className="row">
           <button
@@ -423,6 +422,9 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
           </button>
         </span>
       )}
+      </div>
+      )}
+      <div className="toolbar-controls">
       <button
         className="btn only-mobile view-toggle"
         onClick={() => updateSettings({ view: settings.view === 'grid' ? 'albums' : 'grid' })}
@@ -473,6 +475,7 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
         <Minimize2 size={16} />
         <span className="only-desktop">{t('compress.button')}</span>
       </button>
+      </div>
     </div>
   )
 }
