@@ -398,19 +398,19 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
         <span className="row">
           <button
             className="icon-btn small"
-            title={t('nav.newAlbum')}
-            aria-label={t('nav.newAlbum')}
-            onClick={() => onDialog({ kind: 'newAlbum', parentId: folder.id, parentName: folder.name })}
-          >
-            <FolderPlus size={18} />
-          </button>
-          <button
-            className="icon-btn small"
             title={t('common.rename')}
             aria-label={t('common.rename')}
             onClick={() => onDialog({ kind: 'rename', id: folder.id, name: folder.name })}
           >
             <Pencil size={18} />
+          </button>
+          <button
+            className="icon-btn small"
+            title={t('nav.newAlbum')}
+            aria-label={t('nav.newAlbum')}
+            onClick={() => onDialog({ kind: 'newAlbum', parentId: folder.id, parentName: folder.name })}
+          >
+            <FolderPlus size={18} />
           </button>
           <button
             className="icon-btn small"

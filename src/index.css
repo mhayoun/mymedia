@@ -256,7 +256,6 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   /* Two lines: the title with its actions, then the controls. */
   .toolbar { padding: 8px 6px; gap: 6px 4px; flex-wrap: wrap; }
   .toolbar-title { flex: 1 0 100%; }
-  .toolbar-title h1 { flex: 1; }
   .toolbar-controls { display: flex; align-items: center; gap: 4px; flex: 1 0 100%; min-width: 0; }
   /* Compact lists: a small arrow instead of the wide native one. */
   .toolbar select {
