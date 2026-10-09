@@ -158,6 +158,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const sizeBefore = selected.reduce((n, i) => n + i.file.size, 0)
   const sizeAfter = selected.reduce((n, i) => n + (compress && i.estimate !== null ? i.estimate : i.file.size), 0)
   const hasFolders = !fb && items.some((i) => i.relDir.length > 0)
+  const exampleFolder = (items.find((i) => i.relDir.length > 1) ?? items.find((i) => i.relDir.length > 0))?.relDir.join(' / ') ?? ''
   const duplicates = items.filter((i) => i.duplicate).length
   const replacements = items.filter((i) => i.replaces).length
 
@@ -397,6 +398,11 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
                   <input type="checkbox" checked={keepFolders} onChange={(e) => setKeepFolders(e.target.checked)} />
                   {t('import.keepFolders')}
                 </label>
+              )}
+              {hasFolders && (
+                <p className="hint">
+                  {t(keepFolders ? 'import.keepFoldersOn' : 'import.keepFoldersOff', { folder: exampleFolder, dest: destName })}
+                </p>
               )}
               {duplicates > 0 && <p className="hint">{t('import.duplicatesHint', { count: duplicates })}</p>}
               {replacements > 0 && <p className="hint">{t('facebook.replaceHint', { count: replacements })}</p>}
