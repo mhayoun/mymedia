@@ -87,7 +87,6 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const [items, setItems] = useState<ImportItem[]>([])
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [compress, setCompress] = useState(true)
-  const [keepFolders, setKeepFolders] = useState(true)
   const [outcomes, setOutcomes] = useState<Record<string, ImportOutcome>>({})
   const [result, setResult] = useState<{ count: number; before: number; after: number } | null>(null)
   const filesInput = useRef<HTMLInputElement>(null)
@@ -158,7 +157,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const sizeBefore = selected.reduce((n, i) => n + i.file.size, 0)
   const sizeAfter = selected.reduce((n, i) => n + (compress && i.estimate !== null ? i.estimate : i.file.size), 0)
   const hasFolders = !fb && items.some((i) => i.relDir.length > 0)
-  const exampleFolder = (items.find((i) => i.relDir.length > 1) ?? items.find((i) => i.relDir.length > 0))?.relDir.join(' / ') ?? ''
+  const newAlbums = [...new Set(items.filter((i) => i.relDir.length > 0).map((i) => i.relDir.join(' / ')))]
   const duplicates = items.filter((i) => i.duplicate).length
   const replacements = items.filter((i) => i.replaces).length
 
@@ -174,7 +173,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
       : selected
     const r = await runImport(toSend, destId, {
       compress,
-      keepFolders: keepFolders || !!fb,
+      keepFolders: true,
       from: importSourceName({ zipName: fb ? zipName : undefined, relDirs: items.map((i) => i.relDir) }),
     }, (key, o) => setOutcomes((prev) => ({ ...prev, [key]: o })))
     setResult(r)
@@ -362,7 +361,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
                     <br />
                     <span className="hint">
                       {fmt.dateTime(i.takenAt)} · {t(`import.source.${i.dateSource}`)}
-                      {i.relDir.length > 0 && keepFolders && !fb && (
+                      {i.relDir.length > 0 && !fb && (
                         <>
                           {' · '}
                           <bdi>{i.relDir.join(' / ')}</bdi>
@@ -394,14 +393,14 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
                 {t('import.compress')}
               </label>
               {hasFolders && (
-                <label className="radio-row">
-                  <input type="checkbox" checked={keepFolders} onChange={(e) => setKeepFolders(e.target.checked)} />
-                  {t('import.keepFolders')}
-                </label>
-              )}
-              {hasFolders && (
-                <p className="hint">
-                  {t(keepFolders ? 'import.keepFoldersOn' : 'import.keepFoldersOff', { folder: exampleFolder, dest: destName })}
+                <p>
+                  {t('import.intoAlbums', { count: newAlbums.length, dest: destName })}{' '}
+                  {newAlbums.slice(0, 5).map((n, i) => (
+                    <span key={n}>
+                      {i > 0 && ', '}« <bdi>{n}</bdi> »
+                    </span>
+                  ))}
+                  {newAlbums.length > 5 && ' …'}
                 </p>
               )}
               {duplicates > 0 && <p className="hint">{t('import.duplicatesHint', { count: duplicates })}</p>}

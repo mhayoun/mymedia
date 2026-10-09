@@ -345,7 +345,6 @@
     "duplicatesHint_one": "{{count}} file is already in your Drive (same photo): unticked.",
     "duplicatesHint_other": "{{count}} files are already in your Drive (same photo): unticked.",
     "compress": "Compress before upload (faster upload, less space)",
-    "keepFolders": "Make an album for each folder",
     "compressing": "compressing",
     "uploading": "uploading",
     "uploadN_one": "Upload {{count}} file",
@@ -353,8 +352,8 @@
     "done_one": "Done: {{count}} file added ({{before}} → {{after}} in Drive).",
     "done_other": "Done: {{count}} files added ({{before}} → {{after}} in Drive).",
     "duplicateLook": "already in Drive (same picture)",
-    "keepFoldersOn": "The folders become albums in “{{dest}}”: for example “{{folder}}”, with its photos.",
-    "keepFoldersOff": "Folders are ignored: all the photos go together into “{{dest}}”, without albums."
+    "intoAlbums_one": "The photos will go into the album (in “{{dest}}”):",
+    "intoAlbums_other": "The photos will go into {{count}} albums (in “{{dest}}”):"
   },
   "faces": {
     "people": "People",

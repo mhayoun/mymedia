@@ -361,7 +361,6 @@
     "duplicatesHint_two": "{{count}} קבצים כבר נמצאים ב-Drive שלך (אותה תמונה): הסימון בוטל.",
     "duplicatesHint_other": "{{count}} קבצים כבר נמצאים ב-Drive שלך (אותה תמונה): הסימון בוטל.",
     "compress": "דחיסה לפני ההעלאה (העלאה מהירה יותר, פחות מקום)",
-    "keepFolders": "ליצור אלבום לכל תיקייה",
     "compressing": "דוחס",
     "uploading": "מעלה",
     "uploadN_one": "העלאת קובץ אחד",
@@ -371,8 +370,9 @@
     "done_two": "הסתיים: נוספו {{count}} קבצים ({{before}} ← {{after}} ב-Drive).",
     "done_other": "הסתיים: נוספו {{count}} קבצים ({{before}} ← {{after}} ב-Drive).",
     "duplicateLook": "כבר ב-Drive (אותה תמונה)",
-    "keepFoldersOn": "התיקיות הופכות לאלבומים בתוך ”{{dest}}”: למשל ”{{folder}}”, עם התמונות שלה.",
-    "keepFoldersOff": "התיקיות לא נשמרות: כל התמונות נכנסות יחד ל”{{dest}}”, בלי אלבומים."
+    "intoAlbums_one": "התמונות ייכנסו לאלבום (בתוך ”{{dest}}”):",
+    "intoAlbums_two": "התמונות ייכנסו ל-{{count}} אלבומים (בתוך ”{{dest}}”):",
+    "intoAlbums_other": "התמונות ייכנסו ל-{{count}} אלבומים (בתוך ”{{dest}}”):"
   },
   "faces": {
     "people": "אנשים",
