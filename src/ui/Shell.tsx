@@ -239,13 +239,19 @@ function TopBar() {
           </button>
         </>
       )}
-      {indexing && !sync && !compressing && (
+      {indexing && !compressing && (
         <>
-          <span className="sync-info" aria-live="polite" title={t('classify.learningHint')}>
-            <Brain size={14} />
-            <span className="only-desktop"> {t('classify.learning', { done: fmt.number(indexing.done), total: fmt.number(indexing.total) })}</span>
+          <button
+            className="learning-pill"
+            aria-live="polite"
+            title={t('classify.learningHint')}
+            onClick={() => set({ statsOpen: true })}
+            style={{ '--pct': `${indexing.total ? Math.round((indexing.done / indexing.total) * 100) : 0}%` } as React.CSSProperties}
+          >
+            <Brain size={16} className="pulse" />
+            <span className="only-desktop">{t('classify.learning', { done: fmt.number(indexing.done), total: fmt.number(indexing.total) })}</span>
             <span className="only-mobile-inline">{fmt.number(indexing.done)}/{fmt.number(indexing.total)}</span>
-          </span>
+          </button>
           <button className="icon-btn small" onClick={stopIndexer} aria-label={t('classify.pause')} title={t('classify.pause')}>
             <Pause size={16} />
           </button>

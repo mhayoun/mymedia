@@ -223,6 +223,17 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 [dir='rtl'] .toast { transform: translateX(50%); }
 
 .spin { animation: spin 1s linear infinite; }
+
+/* Learning in progress: filled as it advances; opens the learning statistics. */
+.learning-pill {
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; padding: 5px 12px; border-radius: 999px; border: 0;
+  font: inherit; font-weight: 600; color: #fff; cursor: pointer;
+  background: linear-gradient(to right, var(--accent) var(--pct), color-mix(in srgb, var(--accent) 45%, #333) var(--pct));
+}
+[dir='rtl'] .learning-pill { background: linear-gradient(to left, var(--accent) var(--pct), color-mix(in srgb, var(--accent) 45%, #333) var(--pct)); }
+.pulse { animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.25); opacity: 0.6; } }
+@media (prefers-reduced-motion: reduce) { .pulse, .spin { animation: none; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ---------- Small screens ---------- */
