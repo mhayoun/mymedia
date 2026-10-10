@@ -16,6 +16,7 @@ import {
   createTextFile,
   downloadText,
   findChildByName,
+  getFile,
   listFiles,
   moveFile,
   moveInto,
@@ -32,6 +33,36 @@ import { syncNow } from '../sync/engine'
 import { markMetaDirty } from '../sync/metaStore'
 
 export const TRANSFER_FILE_NAME = 'mymedia-transfer.json'
+
+/** A step that failed, with what the user needs to know. */
+export class TransferError extends Error {
+  step: 'notOwner' | 'send' | 'accept' | 'move'
+  detail: string
+  owner?: string
+  constructor(step: TransferError['step'], detail: string, owner?: string) {
+    super(detail)
+    this.step = step
+    this.detail = detail
+    this.owner = owner
+  }
+}
+
+async function step<T>(name: TransferError['step'], fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn()
+  } catch (e) {
+    if (e instanceof TransferError) throw e
+    throw new TransferError(name, (e as Error).message)
+  }
+}
+
+export interface TransferResult {
+  total: number
+  failed: number
+  /** Items that belong to another account (only their owner can give them). */
+  skipped: number
+  otherOwners: string[]
+}
 
 export interface TransferManifest {
   format: 'mymedia-transfer'
@@ -60,7 +91,7 @@ async function walk(folderId: string): Promise<DriveFile[]> {
           out.push(f)
           if (f.mimeType === FOLDER_MIME) next.push(f.id)
         }
-      }, undefined, 'id,name,mimeType,parents')
+      }, undefined, 'id,name,mimeType,parents,ownedByMe,owners(emailAddress)')
     }
     level = next
   }
@@ -91,7 +122,7 @@ async function each<T>(items: T[], fn: (item: T) => Promise<void>, onProgress: P
 // ---- Sender -------------------------------------------------------------------
 
 /** Offers the folder and all it holds to `email`. Returns the number of items that failed. */
-export async function sendFolder(folderId: string, email: string, message: string, onProgress: Progress): Promise<{ total: number; failed: number }> {
+export async function sendFolder(folderId: string, email: string, message: string, onProgress: Progress): Promise<TransferResult> {
   const rootId = app().rootId!
   const d = db()
   await syncNow()
@@ -105,6 +136,9 @@ export async function sendFolder(folderId: string, email: string, message: strin
   const items: Record<string, MediaMeta> = {}
   for (const m of metas) if (m && !m.deleted) items[m.id] = m
 
+  const top = await getFile(folderId, 'id,name,ownedByMe,owners(emailAddress)')
+  if (!top.ownedByMe) throw new TransferError('notOwner', top.name, top.owners?.[0]?.emailAddress)
+
   const me = await about()
   const manifest: TransferManifest = {
     format: 'mymedia-transfer',
@@ -116,16 +150,24 @@ export async function sendFolder(folderId: string, email: string, message: strin
     createdAt: Date.now(),
     items,
   }
-  // Replace an earlier manifest of the same folder (a transfer sent again).
-  const old = await findChildByName(folderId, TRANSFER_FILE_NAME)
-  if (old) await trashFile(old.id)
-  await createTextFile(TRANSFER_FILE_NAME, folderId, JSON.stringify(manifest))
-
-  // The folder first, with the only e-mail; then everything inside.
-  await offerOwnership(folderId, manifest.to, true, message || undefined)
-  const inside = await walk(folderId)
-  const failed = await each(inside, (f) => offerOwnership(f.id, manifest.to, false), (done, total) => onProgress(done + 1, total + 1))
-  return { total: inside.length + 1, failed }
+  await step('send', async () => {
+    // Replace an earlier manifest of the same folder (a transfer sent again).
+    const old = await findChildByName(folderId, TRANSFER_FILE_NAME)
+    if (old) await trashFile(old.id).catch(() => undefined)
+    await createTextFile(TRANSFER_FILE_NAME, folderId, JSON.stringify(manifest))
+    // The folder first, with the only e-mail; then everything inside.
+    await offerOwnership(folderId, manifest.to, true, message || undefined)
+  })
+  const inside = await step('send', () => walk(folderId))
+  const mine = inside.filter((f) => f.ownedByMe !== false)
+  const others = inside.filter((f) => f.ownedByMe === false)
+  const failed = await each(mine, (f) => offerOwnership(f.id, manifest.to, false), (done, total) => onProgress(done + 1, total + 1))
+  return {
+    total: mine.length + 1,
+    failed,
+    skipped: others.length,
+    otherOwners: [...new Set(others.map((f) => f.owners?.[0]?.emailAddress).filter((x): x is string => !!x))],
+  }
 }
 
 // ---- Receiver -----------------------------------------------------------------
@@ -169,29 +211,33 @@ async function mergeInto(from: string, to: string): Promise<void> {
 }
 
 /** Accepts every item, puts the folder in MyMedia and takes the metadata. Returns the number of items that failed. */
-export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress): Promise<{ total: number; failed: number }> {
+export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress): Promise<TransferResult> {
   const rootId = app().rootId!
   const { manifest } = t
-  const permissionId = await myPermissionId()
-  const inside = await walk(manifest.folderId)
+  const permissionId = await step('accept', myPermissionId)
+  const inside = await step('accept', () => walk(manifest.folderId))
   const all = [{ id: manifest.folderId }, ...inside]
   // Folders first (top down), so the files land in folders already ours.
   const failed = await each(all, (f) => acceptOwnership(f.id, permissionId), onProgress)
+  const top = await step('accept', () => getFile(manifest.folderId, 'id,ownedByMe'))
+  if (!top.ownedByMe) throw new TransferError('accept', 'folder not accepted')
 
-  // Same place as in the sender's MyMedia: create the parents, merge with a folder of the same name.
-  let parent = rootId
-  for (const name of manifest.path.slice(0, -1)) {
-    parent = (await findChildByName(parent, name))?.id ?? (await createFolder(name, parent)).id
-  }
-  const last = manifest.path[manifest.path.length - 1]
-  const same = await findChildByName(parent, last)
-  await trashFile(t.manifestId)
-  if (same && same.id !== manifest.folderId) {
-    await moveInto(manifest.folderId, parent)
-    await mergeInto(manifest.folderId, same.id)
-  } else {
-    await moveInto(manifest.folderId, parent)
-  }
+  await step('move', async () => {
+    // Same place as in the sender's MyMedia: create the parents, merge with a folder of the same name.
+    let parent = rootId
+    for (const name of manifest.path.slice(0, -1)) {
+      parent = (await findChildByName(parent, name))?.id ?? (await createFolder(name, parent)).id
+    }
+    const last = manifest.path[manifest.path.length - 1]
+    const same = await findChildByName(parent, last)
+    await trashFile(t.manifestId).catch(() => undefined)
+    if (same && same.id !== manifest.folderId) {
+      await moveInto(manifest.folderId, parent)
+      await mergeInto(manifest.folderId, same.id)
+    } else {
+      await moveInto(manifest.folderId, parent)
+    }
+  })
 
   // What the sender's MyMedia knew about each photo.
   await syncNow()
@@ -203,5 +249,5 @@ export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress):
     await d.meta.put({ ...sent, id, name: cur.name, category: cur.category, album: cur.album, deleted: undefined, updatedAt: now })
   }
   await markMetaDirty()
-  return { total: all.length, failed }
+  return { total: all.length, failed, skipped: 0, otherOwners: [] }
 }

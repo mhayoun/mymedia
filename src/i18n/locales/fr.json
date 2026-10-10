@@ -550,6 +550,14 @@
     "preparing": "Préparation…",
     "sent_one": "Envoyé : {{count}} élément proposé à {{email}}. Il doit maintenant l'accepter dans MyMedia.",
     "sent_other": "Envoyé : {{count}} éléments proposés à {{email}}. Il doit maintenant les accepter dans MyMedia.",
-    "partly": "Terminé, mais {{failed}} élément(s) sur {{total}} n'ont pas pu être traités. Relancez : ce qui est fait reste fait."
+    "partly": "Terminé, mais {{failed}} élément(s) sur {{total}} n'ont pas pu être traités. Relancez : ce qui est fait reste fait.",
+    "notOwner": "Le dossier « {{name}} » n'appartient pas à ce compte mais à {{owner}}. Google ne laisse transférer que ses propres fichiers : ouvrez MyMedia avec {{owner}} pour l'envoyer, ou choisissez un autre dossier.",
+    "skipped_one": "{{count}} élément appartient à un autre compte ({{owners}}) : il n'a pas été proposé.",
+    "skipped_other": "{{count}} éléments appartiennent à un autre compte ({{owners}}) : ils n'ont pas été proposés.",
+    "failed": {
+      "send": "L'envoi n'a pas pu commencer (rien n'a été proposé). Détail de Google : {{message}}",
+      "accept": "L'acceptation n'a pas abouti. Vérifiez que l'envoi s'est bien terminé, puis réessayez. Détail de Google : {{message}}",
+      "move": "Les fichiers sont à vous, mais le dossier n'a pas pu être placé dans MyMedia. Réessayez. Détail de Google : {{message}}"
+    }
   }
 }

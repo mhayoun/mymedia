@@ -32,6 +32,8 @@ export interface DriveFile {
   }
   videoMediaMetadata?: { width?: number; height?: number; durationMillis?: string }
   appProperties?: Record<string, string>
+  ownedByMe?: boolean
+  owners?: { emailAddress?: string }[]
 }
 
 export interface DriveChangeRaw {
@@ -535,6 +537,14 @@ export async function moveInto(id: string, toFolderId: string): Promise<void> {
   const cur = await getFile(id, 'id,parents')
   const params = new URLSearchParams({ addParents: toFolderId, supportsAllDrives: 'true', fields: 'id,parents' })
   const old = (cur.parents ?? []).filter((p) => p !== toFolderId)
-  if (old.length) params.set('removeParents', old.join(','))
-  await request(`${API}/files/${id}?${params}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+  const patch = (p: URLSearchParams) =>
+    request(`${API}/files/${id}?${p}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+  if (!old.length) return void (await patch(params))
+  try {
+    await patch(new URLSearchParams({ ...Object.fromEntries(params), removeParents: old.join(',') }))
+  } catch (e) {
+    // The old parent belongs to the other account: only add the new one.
+    if (e instanceof DriveError && e.status === 403) await patch(params)
+    else throw e
+  }
 }

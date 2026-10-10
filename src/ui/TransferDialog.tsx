@@ -2,7 +2,7 @@ import { Download, Loader2, Send } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFormat } from '../i18n/format'
-import { acceptTransfer, findIncoming, sendFolder, type IncomingTransfer } from '../transfer/transfer'
+import { acceptTransfer, findIncoming, sendFolder, TransferError, type IncomingTransfer, type TransferResult } from '../transfer/transfer'
 import { Modal } from './Dialog'
 import { useLibraryContext } from './libraryContext'
 import type { FolderInfo } from './useLibrary'
@@ -45,16 +45,24 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
   const chosen = folders.find((f) => f.id === folderId)
   const validEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())
 
-  const run = async (fn: () => Promise<{ total: number; failed: number }>, okKey: string) => {
+  const run = async (fn: () => Promise<TransferResult>, okKey: string) => {
     setError(null)
     setResult(null)
     setBusy({ done: 0, total: 0 })
     try {
       const r = await fn()
-      setResult(r.failed ? t('transfer.partly', { failed: r.failed, total: r.total }) : t(okKey, { count: r.total, email: email.trim() }))
+      const lines = [r.failed ? t('transfer.partly', { failed: r.failed, total: r.total }) : t(okKey, { count: r.total, email: email.trim() })]
+      if (r.skipped) lines.push(t('transfer.skipped', { count: r.skipped, owners: r.otherOwners.join(', ') || '?' }))
+      setResult(lines.join(' '))
     } catch (e) {
       console.error('[MyMedia] transfer failed', e)
-      setError(t('errors.generic', { message: (e as Error).message }))
+      setError(
+        e instanceof TransferError
+          ? e.step === 'notOwner'
+            ? t('transfer.notOwner', { name: e.detail, owner: e.owner ?? '?' })
+            : t(`transfer.failed.${e.step}`, { message: e.detail })
+          : t('errors.generic', { message: (e as Error).message }),
+      )
     } finally {
       setBusy(null)
     }
