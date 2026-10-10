@@ -84,11 +84,10 @@ const fr: HelpContent = {
       ],
     },
     {
-      title: 'Facebook et Katia',
+      title: 'Facebook',
       items: [
         'Ajouter → Export Facebook (ZIP) : choisissez les groupes. Chaque photo garde la date et le texte du post, et va dans l’album de l’espèce si le texte la nomme.',
         'Une photo déjà présente en plus petit est remplacée par la version du ZIP ; la même photo pas plus grande est un doublon, ignoré.',
-        'Réglages → Données de Katia : reprend une fois les espèces, dates, textes et groupes de myphotos.json.',
       ],
     },
     {
@@ -109,7 +108,7 @@ const fr: HelpContent = {
         'Bandeau « Se reconnecter » : la connexion Google doit être renouvelée (surtout sur iPhone). Votre travail est conservé.',
         'iPhone : le menu Partager n’est pas disponible pour MyMedia. Utilisez le bouton Ajouter.',
         'Un nouveau compte Google n’arrive pas à se connecter ? Il doit d’abord être ajouté à la liste des comptes autorisés de MyMedia (Google Cloud → utilisateurs test).',
-        'Combien de photos tiennent dans 15 Go gratuits ? Avec des photos de 100 Ko en moyenne (comme celles téléchargées de Facebook), environ 150 000. Les photos d’appareil photo, même compressées, pèsent plus (souvent 1 à 2 Mo), donc moins tiennent. Les 15 Go sont partagés avec Gmail et Google Photos.',
+        'Combien de photos tiennent dans 15 Go gratuits ? Avec des photos de 100 Ko en moyenne, environ 150 000. Exemple réel : 652 photos occupent 61,7 Mo, soit environ 95 Ko par photo. Les photos ajoutées en taille d’origine depuis le téléphone pèsent plus. Les 15 Go sont partagés avec Gmail et Google Photos.',
       ],
     },
   ],
@@ -185,11 +184,10 @@ const en: HelpContent = {
       ],
     },
     {
-      title: 'Facebook and Katia',
+      title: 'Facebook',
       items: [
         'Add → Facebook export (ZIP): choose the groups. Each photo keeps the post\'s date and text, and goes into the species album when the text names it.',
         'A photo already there in a smaller size is replaced by the ZIP\'s version; the same photo not bigger is a duplicate, skipped.',
-        'Settings → Katia data: takes over once the species, dates, texts and groups of myphotos.json.',
       ],
     },
     {
@@ -210,7 +208,7 @@ const en: HelpContent = {
         '"Reconnect" banner: the Google connection must be renewed (mostly on iPhone). Your work is kept.',
         'iPhone: the Share menu is not available for MyMedia. Use the Add button.',
         'A new Google account cannot sign in? It must first be added to MyMedia\'s allowed accounts (Google Cloud → test users).',
-        'How many photos fit in the free 15 GB? With photos of 100 KB on average (like those downloaded from Facebook), about 150,000. Camera photos, even compressed, weigh more (often 1 to 2 MB), so fewer fit. The 15 GB are shared with Gmail and Google Photos.',
+        'How many photos fit in the free 15 GB? With photos of 100 KB on average, about 150,000. Real example: 652 photos take 61.7 MB, about 95 KB per photo. Photos added at full size from a phone weigh more. The 15 GB are shared with Gmail and Google Photos.',
       ],
     },
   ],
@@ -286,11 +284,10 @@ const he: HelpContent = {
       ],
     },
     {
-      title: 'פייסבוק וקטיה',
+      title: 'פייסבוק',
       items: [
         'הוספה ← ייצוא מפייסבוק (ZIP): בוחרים את הקבוצות. כל תמונה שומרת את התאריך והטקסט של הפוסט, ונכנסת לאלבום המין כשהטקסט מזכיר אותו.',
         'תמונה שכבר קיימת בגודל קטן יותר מוחלפת בגרסה מה-ZIP; אותה תמונה שאינה גדולה יותר היא כפילות ומדולגת.',
-        'הגדרות ← הנתונים של Katia: לוקח פעם אחת את המינים, התאריכים, הטקסטים והקבוצות מ-myphotos.json.',
       ],
     },
     {
@@ -311,7 +308,7 @@ const he: HelpContent = {
         'הודעת "התחברות מחדש": יש לחדש את החיבור ל-Google (בעיקר באייפון). העבודה שלך נשמרת.',
         'אייפון: תפריט השיתוף לא זמין ל-MyMedia. יש להשתמש בכפתור הוספה.',
         'חשבון Google חדש לא מצליח להתחבר? צריך קודם להוסיף אותו לרשימת החשבונות המורשים של MyMedia (Google Cloud ← משתמשי בדיקה).',
-        'כמה תמונות נכנסות ב-15 ג\'יגה החינמיים? עם תמונות של 100 קילובייט בממוצע (כמו אלה שהורדו מפייסבוק), בערך 150,000. תמונות ממצלמה, גם אחרי דחיסה, שוקלות יותר (לרוב 1 עד 2 מגה), ולכן נכנסות פחות. ה-15 ג\'יגה משותפים עם Gmail ו-Google Photos.',
+        'כמה תמונות נכנסות ב-15 ג\'יגה החינמיים? עם תמונות של 100 קילובייט בממוצע, בערך 150,000. דוגמה אמיתית: 652 תמונות תופסות 61.7 מגה, כלומר כ-95 קילובייט לתמונה. תמונות שנוספו בגודל המקורי מהטלפון שוקלות יותר. ה-15 ג\'יגה משותפים עם Gmail ו-Google Photos.',
       ],
     },
   ],
