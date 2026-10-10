@@ -55,3 +55,25 @@ export function nameKey(text: string): string {
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim()
 }
+
+/**
+ * The album whose whole name appears in the file name ("IMG_1234 חסידה לבנה.jpg"
+ * → "חסידה לבנה"). The longest name wins; two different albums of the same
+ * length are ambiguous (null).
+ */
+export function albumInName<T extends { id: string; name: string }>(fileName: string, albums: T[]): T | null {
+  const text = ` ${nameKey(baseName(fileName))} `
+  let best: T | null = null
+  let bestLen = 0
+  let tie = false
+  for (const a of albums) {
+    const k = nameKey(a.name)
+    if (k.length < 2 || !/\p{L}/u.test(k) || !text.includes(` ${k} `)) continue
+    if (k.length > bestLen) {
+      best = a
+      bestLen = k.length
+      tie = false
+    } else if (k.length === bestLen && best && nameKey(best.name) !== k) tie = true
+  }
+  return tie ? null : best
+}

@@ -1,6 +1,6 @@
 // Classification rules, in order:
 //   1. location (the folder) — media already in an album are classified;
-//   2. a meaningful file name equal to an album name;
+//   2. a file name that is, or contains, the name of an album;
 //   3. the learned model (nearest examples): auto-move when confident,
 //      otherwise a suggestion; below the medium threshold it is "To check".
 //      A media that resembles no album enough is never moved: it is marked
@@ -9,7 +9,7 @@
 
 import { db, type MediaRecord } from '../db/db'
 import { moveFile } from '../drive/api'
-import { meaningfulName, nameKey } from '../lib/filename'
+import { albumInName, meaningfulName, nameKey } from '../lib/filename'
 import type { MediaMeta } from '../lib/metadata'
 import { placementOf } from '../lib/tree'
 import type { Calibration } from '../lib/classifier'
@@ -74,19 +74,19 @@ async function run(): Promise<void> {
   if (!candidates.length) return
   let changed = false
 
-  // 2. File names that match an album.
+  // 2. File names that are, or contain, the name of an album.
   const remaining: MediaRecord[] = []
   for (const rec of candidates) {
     const text = meaningfulName(rec.name)
     const meta = data.meta.get(rec.id)
+    const pool = (rec.folderId === rootId ? [...data.folders.values()] : albumsUnder(rec.folderId, data)).filter((f) => f.id !== rootId)
+    const key = text ? nameKey(text) : null
+    const match = (key && pool.find((f) => nameKey(f.name) === key)) || albumInName(rec.name, pool)
+    if (match && !meta?.keepHere) {
+      await moveMedia(rec, match.id, { source: 'filename', confidence: 1, auto: false })
+      continue
+    }
     if (text) {
-      const key = nameKey(text)
-      const pool = rec.folderId === rootId ? [...data.folders.values()] : albumsUnder(rec.folderId, data)
-      const match = pool.find((f) => nameKey(f.name) === key && f.id !== rootId)
-      if (match) {
-        await moveMedia(rec, match.id, { source: 'filename', confidence: 1, auto: false })
-        continue
-      }
       if (meta && !meta.description) {
         await patchMeta(rec.id, { description: text })
         changed = true

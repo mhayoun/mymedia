@@ -192,6 +192,9 @@ export function ReviewView({ lib, items, mode }: Props) {
                         exclude={rec.folderId}
                         onChoose={(f) => act(rec.id, () => chooseFolder(rec.id, f))}
                       />
+                      <button className="btn ghost" disabled={isBusy} onClick={() => setToDelete({ id: rec.id, name: rec.name })} title={t('common.delete')} aria-label={t('common.delete')}>
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </>
                 )}

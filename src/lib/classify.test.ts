@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { average, calibrate, cosine, evaluate, predict, quantize, type LabeledVec } from './classifier'
-import { isAutomaticName, meaningfulName, nameKey } from './filename'
+import { albumInName, isAutomaticName, meaningfulName, nameKey } from './filename'
 
 describe('file names', () => {
   it('ignores automatic names', () => {
@@ -18,6 +18,24 @@ describe('file names', () => {
     expect(meaningfulName('נחליאלי לבן (2).jpg')).toBe('נחליאלי לבן')
     expect(meaningfulName('Copy of Pesach 2026.jpg')).toBe('Pesach 2026')
     expect(meaningfulName('IMG_1234.jpg')).toBeNull()
+  })
+
+  it('finds an album named inside the file name', () => {
+    const albums = [
+      { id: 'a', name: 'נחליאלי' },
+      { id: 'b', name: 'נחליאלי לבן' },
+      { id: 'c', name: 'חסידה' },
+      { id: 'd', name: 'Mésange bleue' },
+    ]
+    expect(albumInName('IMG_1234 נחליאלי לבן.jpg', albums)?.id).toBe('b')
+    expect(albumInName('נחליאלי_2026.jpg', albums)?.id).toBe('a')
+    expect(albumInName('חסידה-בשדה (2).jpg', albums)?.id).toBe('c')
+    expect(albumInName('mesange_bleue_jardin.jpg', albums)?.id).toBe('d')
+    expect(albumInName('החסידה.jpg', albums)).toBeNull()
+    expect(albumInName('IMG_1234.jpg', albums)).toBeNull()
+    expect(albumInName('חסידה נחליאלי.jpg', [{ id: 'x', name: 'חסידה' }, { id: 'y', name: 'עורב' }, { id: 'z', name: 'עפרוני' }])?.id).toBe('x')
+    expect(albumInName('עורב עפרוני.jpg', [{ id: 'y', name: 'עורב' }, { id: 'z', name: 'עפרו' }])?.id).toBe('y')
+    expect(albumInName('דרור עורב.jpg', [{ id: 'y', name: 'עורב' }, { id: 'z', name: 'דרור' }])).toBeNull()
   })
 
   it('compares names loosely', () => {
