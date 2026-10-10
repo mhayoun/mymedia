@@ -351,7 +351,10 @@
     "done_other": "Terminé : {{count}} fichiers ajoutés ({{before}} → {{after}} dans Drive).",
     "duplicateLook": "déjà dans Drive (même image)",
     "intoAlbums_one": "Les photos iront dans l'album (dans « {{dest}} ») :",
-    "intoAlbums_other": "Les photos iront dans {{count}} albums (dans « {{dest}} ») :"
+    "intoAlbums_other": "Les photos iront dans {{count}} albums (dans « {{dest}} ») :",
+    "progress": "Traités : {{done}} / {{total}}",
+    "progressFailed_one": "{{count}} en erreur",
+    "progressFailed_other": "{{count}} en erreur"
   },
   "faces": {
     "people": "Personnes",

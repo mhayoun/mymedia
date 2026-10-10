@@ -372,7 +372,11 @@
     "duplicateLook": "כבר ב-Drive (אותה תמונה)",
     "intoAlbums_one": "התמונות ייכנסו לאלבום (בתוך ”{{dest}}”):",
     "intoAlbums_two": "התמונות ייכנסו ל-{{count}} אלבומים (בתוך ”{{dest}}”):",
-    "intoAlbums_other": "התמונות ייכנסו ל-{{count}} אלבומים (בתוך ”{{dest}}”):"
+    "intoAlbums_other": "התמונות ייכנסו ל-{{count}} אלבומים (בתוך ”{{dest}}”):",
+    "progress": "טופלו: {{done}} / {{total}}",
+    "progressFailed_one": "שגיאה אחת",
+    "progressFailed_two": "{{count}} שגיאות",
+    "progressFailed_other": "{{count}} שגיאות"
   },
   "faces": {
     "people": "אנשים",

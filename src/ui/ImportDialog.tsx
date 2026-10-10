@@ -234,6 +234,9 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     )
   }
 
+  const sent = selected.filter((i) => outcomes[i.key]?.status === 'done').length
+  const failedCount = selected.filter((i) => outcomes[i.key]?.status === 'error').length
+
   const sortedItems = useMemo(() => [...items].sort((a, b) => a.takenAt.localeCompare(b.takenAt)), [items])
 
   return (
@@ -345,6 +348,14 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
           <p>{t('import.analyzing', { done: analyzed.done, total: analyzed.total })}</p>
           <progress max={analyzed.total} value={analyzed.done} style={{ inlineSize: '100%' }} />
         </>
+      )}
+
+      {(phase === 'upload' || phase === 'done') && (
+        <div className="import-progress" aria-live="polite">
+          <strong>{t('import.progress', { done: fmt.number(sent + failedCount), total: fmt.number(selected.length) })}</strong>
+          {failedCount > 0 && <span className="error-text"> · {t('import.progressFailed', { count: failedCount })}</span>}
+          <progress max={selected.length || 1} value={sent + failedCount} />
+        </div>
       )}
 
       {(phase === 'choose' || phase === 'upload' || phase === 'done') && (

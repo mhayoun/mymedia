@@ -88,6 +88,9 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .lang-switch button { border: none; background: none; cursor: pointer; color: var(--text-2); padding: 4px 8px; border-radius: 6px; }
 .lang-switch button[aria-pressed='true'] { color: var(--accent); font-weight: 600; background: var(--surface-2); }
 .chip-list { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 8px; }
+/* Upload counter: stays visible above the list. */
+.import-progress { position: sticky; inset-block-start: 0; z-index: 1; background: var(--surface); padding-block: 6px; margin-block-end: 6px; }
+.import-progress progress { display: block; inline-size: 100%; margin-block-start: 4px; }
 .chip {
   display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px 4px 12px;
   padding-inline: 12px 6px; border-radius: 999px; background: var(--surface-2);
