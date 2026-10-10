@@ -350,11 +350,15 @@
     "done_one": "Terminé : {{count}} fichier ajouté ({{before}} → {{after}} dans Drive).",
     "done_other": "Terminé : {{count}} fichiers ajoutés ({{before}} → {{after}} dans Drive).",
     "duplicateLook": "déjà dans Drive (même image)",
-    "intoAlbums_one": "Les photos iront dans l'album (dans « {{dest}} ») :",
-    "intoAlbums_other": "Les photos iront dans {{count}} albums (dans « {{dest}} ») :",
     "progress": "Traités : {{done}} / {{total}}",
     "progressFailed_one": "{{count}} en erreur",
-    "progressFailed_other": "{{count}} en erreur"
+    "progressFailed_other": "{{count}} en erreur",
+    "intoAlbumsIn": "Les photos iront dans ces albums, dans « {{dest}} » (un album décalé est à l'intérieur de celui du dessus) :",
+    "albumPhotos_one": "{{count}} photo",
+    "albumPhotos_other": "{{count}} photos",
+    "albumOnlySub": "seulement les sous-albums",
+    "albumExists": "album existant",
+    "albumNew": "nouvel album"
   },
   "faces": {
     "people": "Personnes",

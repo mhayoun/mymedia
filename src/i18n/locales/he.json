@@ -370,13 +370,17 @@
     "done_two": "הסתיים: נוספו {{count}} קבצים ({{before}} ← {{after}} ב-Drive).",
     "done_other": "הסתיים: נוספו {{count}} קבצים ({{before}} ← {{after}} ב-Drive).",
     "duplicateLook": "כבר ב-Drive (אותה תמונה)",
-    "intoAlbums_one": "התמונות ייכנסו לאלבום (בתוך ”{{dest}}”):",
-    "intoAlbums_two": "התמונות ייכנסו ל-{{count}} אלבומים (בתוך ”{{dest}}”):",
-    "intoAlbums_other": "התמונות ייכנסו ל-{{count}} אלבומים (בתוך ”{{dest}}”):",
     "progress": "טופלו: {{done}} / {{total}}",
     "progressFailed_one": "שגיאה אחת",
     "progressFailed_two": "{{count}} שגיאות",
-    "progressFailed_other": "{{count}} שגיאות"
+    "progressFailed_other": "{{count}} שגיאות",
+    "intoAlbumsIn": "התמונות ייכנסו לאלבומים האלה, בתוך \"{{dest}}\" (אלבום מוזח נמצא בתוך האלבום שמעליו):",
+    "albumPhotos_one": "תמונה אחת",
+    "albumPhotos_two": "{{count}} תמונות",
+    "albumPhotos_other": "{{count}} תמונות",
+    "albumOnlySub": "רק תתי-האלבומים",
+    "albumExists": "אלבום קיים",
+    "albumNew": "אלבום חדש"
   },
   "faces": {
     "people": "אנשים",

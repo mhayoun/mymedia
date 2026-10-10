@@ -352,11 +352,15 @@
     "done_one": "Done: {{count}} file added ({{before}} → {{after}} in Drive).",
     "done_other": "Done: {{count}} files added ({{before}} → {{after}} in Drive).",
     "duplicateLook": "already in Drive (same picture)",
-    "intoAlbums_one": "The photos will go into the album (in “{{dest}}”):",
-    "intoAlbums_other": "The photos will go into {{count}} albums (in “{{dest}}”):",
     "progress": "Processed: {{done}} / {{total}}",
     "progressFailed_one": "{{count}} failed",
-    "progressFailed_other": "{{count}} failed"
+    "progressFailed_other": "{{count}} failed",
+    "intoAlbumsIn": "The photos will go into these albums, in “{{dest}}” (an indented album is inside the one above):",
+    "albumPhotos_one": "{{count}} photo",
+    "albumPhotos_other": "{{count}} photos",
+    "albumOnlySub": "only the sub-albums",
+    "albumExists": "existing album",
+    "albumNew": "new album"
   },
   "faces": {
     "people": "People",

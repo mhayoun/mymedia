@@ -157,7 +157,27 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const sizeBefore = selected.reduce((n, i) => n + i.file.size, 0)
   const sizeAfter = selected.reduce((n, i) => n + (compress && i.estimate !== null ? i.estimate : i.file.size), 0)
   const hasFolders = !fb && items.some((i) => i.relDir.length > 0)
-  const newAlbums = [...new Set(items.filter((i) => i.relDir.length > 0).map((i) => i.relDir.join(' / ')))]
+  // Albums the chosen folder gives, as a tree: name, depth, photos, already in MyMedia or new.
+  const albumTree = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const i of items) {
+      if (!i.relDir.length || !checked.has(i.key)) continue
+      for (let d = 1; d <= i.relDir.length; d++) {
+        const k = i.relDir.slice(0, d).join('/')
+        counts.set(k, (counts.get(k) ?? 0) + (d === i.relDir.length ? 1 : 0))
+      }
+    }
+    const childOf = (parentId: string | null, name: string) =>
+      parentId === null
+        ? null
+        : ([...lib.folders.values()].find((f) => f.parentId === parentId && f.name.localeCompare(name, undefined, { sensitivity: 'base' }) === 0)?.id ?? null)
+    return [...counts.keys()].sort().map((k) => {
+      const parts = k.split('/')
+      let id: string | null = destId
+      for (const p of parts) id = childOf(id, p)
+      return { key: k, name: parts[parts.length - 1], depth: parts.length - 1, photos: counts.get(k) ?? 0, exists: id !== null }
+    })
+  }, [items, checked, lib.folders, destId])
   const duplicates = items.filter((i) => i.duplicate).length
   const replacements = items.filter((i) => i.replaces).length
 
@@ -404,15 +424,22 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
                 {t('import.compress')}
               </label>
               {hasFolders && (
-                <p>
-                  {t('import.intoAlbums', { count: newAlbums.length, dest: destName })}{' '}
-                  {newAlbums.slice(0, 5).map((n, i) => (
-                    <span key={n}>
-                      {i > 0 && ', '}« <bdi>{n}</bdi> »
-                    </span>
-                  ))}
-                  {newAlbums.length > 5 && ' …'}
-                </p>
+                <div className="album-tree">
+                  <p>{t('import.intoAlbumsIn', { dest: destName })}</p>
+                  <ul>
+                    {albumTree.map((a) => (
+                      <li key={a.key} style={{ paddingInlineStart: a.depth * 22 }}>
+                        <FolderOpen size={15} /> <strong><bdi>{a.name}</bdi></strong>
+                        <span className="hint">
+                          {' — '}
+                          {a.photos ? t('import.albumPhotos', { count: a.photos }) : t('import.albumOnlySub')}
+                          {' · '}
+                          {a.exists ? t('import.albumExists') : t('import.albumNew')}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
               {duplicates > 0 && <p className="hint">{t('import.duplicatesHint', { count: duplicates })}</p>}
               {replacements > 0 && <p className="hint">{t('facebook.replaceHint', { count: replacements })}</p>}
