@@ -88,6 +88,9 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .lang-switch button { border: none; background: none; cursor: pointer; color: var(--text-2); padding: 4px 8px; border-radius: 6px; }
 .lang-switch button[aria-pressed='true'] { color: var(--accent); font-weight: 600; background: var(--surface-2); }
 .chip-list { display: flex; flex-wrap: wrap; gap: 6px; margin-block: 8px; }
+.folder-mode { margin-block: 6px; }
+.folder-mode .radio-row { align-items: flex-start; }
+.folder-mode input { margin-block-start: 3px; }
 .album-tree ul { list-style: none; margin: 0 0 8px; padding: 0; }
 .album-tree li { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; padding-block: 2px; }
 .album-tree p { margin-block-end: 4px; }

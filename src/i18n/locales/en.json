@@ -360,7 +360,10 @@
     "albumPhotos_other": "{{count}} photos",
     "albumOnlySub": "only the sub-albums",
     "albumExists": "existing album",
-    "albumNew": "new album"
+    "albumNew": "new album",
+    "modeFolders": "Keep the folders as albums",
+    "modeSort": "Put everything in “{{dest}}” and let MyMedia file each photo in its species album",
+    "modeSortHint": "The computer's folders are ignored. After the upload and the learning, MyMedia recognises each photo: 85 % sure or more, it goes into its album on its own (check in “Classified automatically”); otherwise it waits in “To classify” with a suggestion, or “New?” if it resembles no album."
   },
   "faces": {
     "people": "People",

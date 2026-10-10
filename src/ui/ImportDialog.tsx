@@ -87,6 +87,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const [items, setItems] = useState<ImportItem[]>([])
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [compress, setCompress] = useState(true)
+  const [folderMode, setFolderMode] = useState<'folders' | 'sort'>('folders')
   const [outcomes, setOutcomes] = useState<Record<string, ImportOutcome>>({})
   const [result, setResult] = useState<{ count: number; before: number; after: number } | null>(null)
   const filesInput = useRef<HTMLInputElement>(null)
@@ -157,6 +158,9 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const sizeBefore = selected.reduce((n, i) => n + i.file.size, 0)
   const sizeAfter = selected.reduce((n, i) => n + (compress && i.estimate !== null ? i.estimate : i.file.size), 0)
   const hasFolders = !fb && items.some((i) => i.relDir.length > 0)
+  // Into the root or a category that has albums, MyMedia can sort the photos itself.
+  const canSort = destId === rootId || (lib.folders.get(destId)?.parentId === rootId && [...lib.folders.values()].some((f) => f.parentId === destId))
+  const sortByModel = hasFolders && canSort && folderMode === 'sort'
   // Albums the chosen folder gives, as a tree: name, depth, photos, already in MyMedia or new.
   const albumTree = useMemo(() => {
     const counts = new Map<string, number>()
@@ -193,7 +197,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
       : selected
     const r = await runImport(toSend, destId, {
       compress,
-      keepFolders: true,
+      keepFolders: !sortByModel,
       from: importSourceName({ zipName: fb ? zipName : undefined, relDirs: items.map((i) => i.relDir) }),
     }, (key, o) => setOutcomes((prev) => ({ ...prev, [key]: o })))
     setResult(r)
@@ -392,7 +396,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
                     <br />
                     <span className="hint">
                       {fmt.dateTime(i.takenAt)} · {t(`import.source.${i.dateSource}`)}
-                      {i.relDir.length > 0 && !fb && (
+                      {i.relDir.length > 0 && !fb && !sortByModel && (
                         <>
                           {' · '}
                           <bdi>{i.relDir.join(' / ')}</bdi>
@@ -423,7 +427,20 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
                 <input type="checkbox" checked={compress} onChange={(e) => setCompress(e.target.checked)} />
                 {t('import.compress')}
               </label>
-              {hasFolders && (
+              {hasFolders && canSort && (
+                <div className="folder-mode">
+                  <label className="radio-row">
+                    <input type="radio" name="folder-mode" checked={folderMode === 'folders'} onChange={() => setFolderMode('folders')} />
+                    <span>{t('import.modeFolders')}</span>
+                  </label>
+                  <label className="radio-row">
+                    <input type="radio" name="folder-mode" checked={folderMode === 'sort'} onChange={() => setFolderMode('sort')} />
+                    <span>{t('import.modeSort', { dest: destName })}</span>
+                  </label>
+                </div>
+              )}
+              {hasFolders && sortByModel && <p className="hint">{t('import.modeSortHint', { dest: destName })}</p>}
+              {hasFolders && !sortByModel && (
                 <div className="album-tree">
                   <p>{t('import.intoAlbumsIn', { dest: destName })}</p>
                   <ul>

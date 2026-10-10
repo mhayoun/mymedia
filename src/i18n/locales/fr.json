@@ -358,7 +358,10 @@
     "albumPhotos_other": "{{count}} photos",
     "albumOnlySub": "seulement les sous-albums",
     "albumExists": "album existant",
-    "albumNew": "nouvel album"
+    "albumNew": "nouvel album",
+    "modeFolders": "Garder les dossiers comme albums",
+    "modeSort": "Tout mettre dans « {{dest}} » et laisser MyMedia ranger chaque photo dans l'album de son espèce",
+    "modeSortHint": "Les dossiers de l'ordinateur sont ignorés. Après l'envoi et l'apprentissage, MyMedia reconnaît chaque photo : sûr à 85 % ou plus, elle va seule dans son album (à vérifier dans « Classés automatiquement ») ; sinon elle attend dans « À classer » avec une proposition, ou « Nouveau ? » si elle ne ressemble à aucun album."
   },
   "faces": {
     "people": "Personnes",
