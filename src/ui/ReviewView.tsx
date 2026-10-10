@@ -1,11 +1,13 @@
-import { Check, FolderPlus, Home, Sparkles, Wand2 } from 'lucide-react'
+import { Check, FolderPlus, Home, Sparkles, Trash2, Wand2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { acceptConfident, chooseFolder, classifyPending, confirmAuto, keepHere } from '../classify/engine'
 import { useFormat } from '../i18n/format'
 import { placementOf } from '../lib/tree'
 import { app, useApp } from '../store'
+import { trashMedia } from '../sync/media'
 import { AlbumSelect } from './AlbumSelect'
+import { ConfirmDialog } from './Dialog'
 import { NewAlbumDialog } from './NewAlbumDialog'
 import { Thumb } from './Thumb'
 import type { Library, LibraryItem } from './useLibrary'
@@ -31,6 +33,7 @@ export function ReviewView({ lib, items, mode }: Props) {
   const [busy, setBusy] = useState<Set<string>>(new Set())
   const [bulkBusy, setBulkBusy] = useState(false)
   const [newAlbumFor, setNewAlbumFor] = useState<string[] | null>(null)
+  const [toDelete, setToDelete] = useState<{ id: string; name: string } | null>(null)
   const selection = useApp((s) => s.selection)
   const selected = useMemo(() => (selection ? new Set(selection) : null), [selection])
   const toggle = (id: string) => {
@@ -167,6 +170,9 @@ export function ReviewView({ lib, items, mode }: Props) {
                       <button className="btn ghost" disabled={isBusy} onClick={() => setNewAlbumFor([rec.id])} title={t('select.newAlbum')}>
                         <FolderPlus size={16} />
                       </button>
+                      <button className="btn ghost" disabled={isBusy} onClick={() => setToDelete({ id: rec.id, name: rec.name })} title={t('common.delete')} aria-label={t('common.delete')}>
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </>
                 ) : (
@@ -202,6 +208,16 @@ export function ReviewView({ lib, items, mode }: Props) {
         </div>
       )}
       {viewerId && <Viewer ids={ids} items={items} />}
+      {toDelete && (
+        <ConfirmDialog
+          title={t('viewer.deleteTitle', { name: toDelete.name })}
+          text={t('viewer.deleteText')}
+          confirmLabel={t('common.delete')}
+          danger
+          onConfirm={() => act(toDelete.id, () => trashMedia(toDelete.id))}
+          onClose={() => setToDelete(null)}
+        />
+      )}
       {newAlbumFor && (
         <NewAlbumDialog
           lib={lib}
