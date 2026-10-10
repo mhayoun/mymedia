@@ -59,6 +59,8 @@ async function step<T>(name: TransferError['step'], fn: () => Promise<T>): Promi
 export interface TransferResult {
   total: number
   failed: number
+  /** Google's reason for the first failure. */
+  reason?: string
   /** Items that belong to another account (only their owner can give them). */
   skipped: number
   otherOwners: string[]
@@ -98,10 +100,11 @@ async function walk(folderId: string): Promise<DriveFile[]> {
   return out
 }
 
-/** Runs `fn` on each item, a few at a time; returns how many failed. */
-async function each<T>(items: T[], fn: (item: T) => Promise<void>, onProgress: Progress): Promise<number> {
+/** Runs `fn` on each item, a few at a time; returns how many failed and the first reason. */
+async function each<T>(items: T[], fn: (item: T) => Promise<void>, onProgress: Progress): Promise<{ failed: number; reason?: string }> {
   let done = 0
   let failed = 0
+  let reason: string | undefined
   let next = 0
   const worker = async () => {
     while (next < items.length) {
@@ -111,12 +114,13 @@ async function each<T>(items: T[], fn: (item: T) => Promise<void>, onProgress: P
       } catch (e) {
         console.error('[MyMedia] transfer', e)
         failed++
+        reason ??= (e as Error).message
       }
       onProgress(++done, items.length)
     }
   }
   await Promise.all(Array.from({ length: 4 }, worker))
-  return failed
+  return { failed, reason }
 }
 
 // ---- Sender -------------------------------------------------------------------
@@ -161,10 +165,11 @@ export async function sendFolder(folderId: string, email: string, message: strin
   const inside = await step('send', () => walk(folderId))
   const mine = inside.filter((f) => f.ownedByMe !== false)
   const others = inside.filter((f) => f.ownedByMe === false)
-  const failed = await each(mine, (f) => offerOwnership(f.id, manifest.to, false), (done, total) => onProgress(done + 1, total + 1))
+  const { failed, reason } = await each(mine, (f) => offerOwnership(f.id, manifest.to, false), (done, total) => onProgress(done + 1, total + 1))
   return {
     total: mine.length + 1,
     failed,
+    reason,
     skipped: others.length,
     otherOwners: [...new Set(others.map((f) => f.owners?.[0]?.emailAddress).filter((x): x is string => !!x))],
   }
@@ -218,9 +223,9 @@ export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress):
   const inside = await step('accept', () => walk(manifest.folderId))
   const all = [{ id: manifest.folderId }, ...inside]
   // Folders first (top down), so the files land in folders already ours.
-  const failed = await each(all, (f) => acceptOwnership(f.id, permissionId), onProgress)
+  const { failed, reason } = await each(all, (f) => acceptOwnership(f.id, permissionId), onProgress)
   const top = await step('accept', () => getFile(manifest.folderId, 'id,ownedByMe'))
-  if (!top.ownedByMe) throw new TransferError('accept', 'folder not accepted')
+  if (!top.ownedByMe) throw new TransferError('accept', reason ?? 'folder not accepted')
 
   await step('move', async () => {
     // Same place as in the sender's MyMedia: create the parents, merge with a folder of the same name.
@@ -249,5 +254,5 @@ export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress):
     await d.meta.put({ ...sent, id, name: cur.name, category: cur.category, album: cur.album, deleted: undefined, updatedAt: now })
   }
   await markMetaDirty()
-  return { total: all.length, failed, skipped: 0, otherOwners: [] }
+  return { total: all.length, failed, reason, skipped: 0, otherOwners: [] }
 }

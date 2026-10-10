@@ -502,24 +502,39 @@ export async function myPermissionId(): Promise<string> {
   return r.user.permissionId
 }
 
-/** Offers the ownership of a file or folder to `email` (they must accept). */
+/**
+ * Offers the ownership of a file or folder to `email` (they must accept).
+ * When they already have access (e.g. shared by hand), creating the permission
+ * again does not make it an offer: the permission is then updated as well.
+ */
 export async function offerOwnership(id: string, email: string, notify: boolean, message?: string): Promise<void> {
-  const send = (withEmail: boolean) => {
-    const params = new URLSearchParams({ sendNotificationEmail: String(withEmail), supportsAllDrives: 'true', fields: 'id' })
+  const create = async (withEmail: boolean) => {
+    const params = new URLSearchParams({ sendNotificationEmail: String(withEmail), supportsAllDrives: 'true', fields: 'id,pendingOwner' })
     if (withEmail && message) params.set('emailMessage', message)
-    return request(`${API}/files/${id}/permissions?${params}`, {
+    const res = await request(`${API}/files/${id}/permissions?${params}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ role: 'writer', type: 'user', emailAddress: email, pendingOwner: true }),
     })
+    return (await res.json()) as { id: string; pendingOwner?: boolean }
   }
+  let perm: { id: string; pendingOwner?: boolean }
   try {
-    await send(notify)
+    perm = await create(notify)
   } catch (e) {
     // Drive may insist on the e-mail for an ownership offer.
-    if (!notify && e instanceof DriveError && e.status === 400) await send(true)
+    if (!notify && e instanceof DriveError && e.status === 400) perm = await create(true)
     else throw e
   }
+  if (perm.pendingOwner) return
+  const params = new URLSearchParams({ supportsAllDrives: 'true', fields: 'id,pendingOwner' })
+  const res = await request(`${API}/files/${id}/permissions/${perm.id}?${params}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role: 'writer', pendingOwner: true }),
+  })
+  const updated = (await res.json()) as { pendingOwner?: boolean }
+  if (!updated.pendingOwner) throw new Error('Google did not record the ownership offer (pending owner)')
 }
 
 /** Accepts the ownership offered on a file (the signed-in user becomes owner). */

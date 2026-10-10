@@ -51,7 +51,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
     setBusy({ done: 0, total: 0 })
     try {
       const r = await fn()
-      const lines = [r.failed ? t('transfer.partly', { failed: r.failed, total: r.total }) : t(okKey, { count: r.total, email: email.trim() })]
+      const lines = [r.failed ? t('transfer.partly', { failed: r.failed, total: r.total, reason: r.reason ?? '?' }) : t(okKey, { count: r.total, email: email.trim() })]
       if (r.skipped) lines.push(t('transfer.skipped', { count: r.skipped, owners: r.otherOwners.join(', ') || '?' }))
       setResult(lines.join(' '))
     } catch (e) {
