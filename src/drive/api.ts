@@ -489,3 +489,52 @@ export async function setAppProperties(id: string, appProperties: Record<string,
 export async function deleteFilePermanently(id: string): Promise<void> {
   await request(`${API}/files/${id}?supportsAllDrives=true`, { method: 'DELETE' })
 }
+
+// ---- Ownership transfer between two personal accounts ------------------------
+// The owner offers the file (writer + pendingOwner); the new owner accepts by
+// making their own permission "owner". Drive keeps the same file id.
+
+/** Id of the signed-in user in permissions (the same on every file). */
+export async function myPermissionId(): Promise<string> {
+  const r = await getJson<{ user: { permissionId: string } }>(`${API}/about?fields=user(permissionId)`)
+  return r.user.permissionId
+}
+
+/** Offers the ownership of a file or folder to `email` (they must accept). */
+export async function offerOwnership(id: string, email: string, notify: boolean, message?: string): Promise<void> {
+  const send = (withEmail: boolean) => {
+    const params = new URLSearchParams({ sendNotificationEmail: String(withEmail), supportsAllDrives: 'true', fields: 'id' })
+    if (withEmail && message) params.set('emailMessage', message)
+    return request(`${API}/files/${id}/permissions?${params}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'writer', type: 'user', emailAddress: email, pendingOwner: true }),
+    })
+  }
+  try {
+    await send(notify)
+  } catch (e) {
+    // Drive may insist on the e-mail for an ownership offer.
+    if (!notify && e instanceof DriveError && e.status === 400) await send(true)
+    else throw e
+  }
+}
+
+/** Accepts the ownership offered on a file (the signed-in user becomes owner). */
+export async function acceptOwnership(id: string, permissionId: string): Promise<void> {
+  const params = new URLSearchParams({ transferOwnership: 'true', supportsAllDrives: 'true', fields: 'id' })
+  await request(`${API}/files/${id}/permissions/${permissionId}?${params}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role: 'owner' }),
+  })
+}
+
+/** Puts a file in a folder, leaving the parents it had (seen or not). */
+export async function moveInto(id: string, toFolderId: string): Promise<void> {
+  const cur = await getFile(id, 'id,parents')
+  const params = new URLSearchParams({ addParents: toFolderId, supportsAllDrives: 'true', fields: 'id,parents' })
+  const old = (cur.parents ?? []).filter((p) => p !== toFolderId)
+  if (old.length) params.set('removeParents', old.join(','))
+  await request(`${API}/files/${id}?${params}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: '{}' })
+}

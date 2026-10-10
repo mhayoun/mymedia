@@ -16,6 +16,7 @@ import { ConfirmDialog, PromptDialog } from './Dialog'
 import { deleteAllFaceData } from '../faces/store'
 import { usePeopleContext } from './peopleContext'
 import { KatiaDialog } from './KatiaDialog'
+import { TransferDialog } from './TransferDialog'
 import { clearMediaCaches } from '../sync/previews'
 
 export function SettingsPanel() {
@@ -30,6 +31,7 @@ export function SettingsPanel() {
   const [rebuilt, setRebuilt] = useState(false)
   const [deleteFaces, setDeleteFaces] = useState(false)
   const [katia, setKatia] = useState(false)
+  const [transfer, setTransfer] = useState(false)
   const people = usePeopleContext()
   const fmt = useFormat()
   const indexing = useApp((s) => s.indexing)
@@ -288,6 +290,14 @@ export function SettingsPanel() {
         </section>
 
         <section>
+          <h3>{t('transfer.title')}</h3>
+          <button className="btn" onClick={() => setTransfer(true)} disabled={!rootId}>
+            {t('transfer.open')}
+          </button>
+          <p className="hint">{t('transfer.settingsHint')}</p>
+        </section>
+
+        <section>
           <h3>{t('settings.rootFolder')}</h3>
           <div className="row">
             <bdi>{settings.rootName}</bdi>
@@ -329,6 +339,7 @@ export function SettingsPanel() {
       </aside>
 
       {katia && <KatiaDialog onClose={() => setKatia(false)} />}
+      {transfer && <TransferDialog onClose={() => setTransfer(false)} />}
       {deleteFaces && (
         <ConfirmDialog
           title={t('faces.deleteAllTitle')}

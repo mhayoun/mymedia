@@ -525,5 +525,31 @@
   },
   "newAlbum": {
     "in": "Dans"
+  },
+  "transfer": {
+    "title": "Transfert vers un autre compte",
+    "open": "Envoyer ou recevoir un transfert",
+    "settingsHint": "Donnez une catégorie ou un album (par exemple ציפורים) à un autre compte Google, avec les espèces, textes et dates. Les photos ne sont ni copiées ni renvoyées : elles changent seulement de propriétaire.",
+    "receivedTitle": "Reçus",
+    "searching": "Recherche des transferts envoyés à ce compte…",
+    "noneReceived": "Aucun transfert en attente pour ce compte.",
+    "fromWho_one": "de {{email}}, {{count}} photo",
+    "fromWho_other": "de {{email}}, {{count}} photos",
+    "accept": "Accepter et ajouter à mon MyMedia",
+    "accepted_one": "Terminé : {{count}} élément est maintenant à vous, dans votre MyMedia.",
+    "accepted_other": "Terminé : {{count}} éléments sont maintenant à vous, dans votre MyMedia.",
+    "sendTitle": "Envoyer",
+    "sendHint": "L'autre compte reçoit un e-mail. Il ouvre ensuite MyMedia avec ce compte, Réglages → Transfert vers un autre compte → Accepter. Jusque-là, rien ne change chez vous.",
+    "what": "Quoi",
+    "choose": "Choisir une catégorie ou un album…",
+    "to": "À (adresse Gmail)",
+    "message": "Message (facultatif)",
+    "confirm_one": "« {{name}} » ({{count}} photo) sera proposé à {{email}}.",
+    "confirm_other": "« {{name}} » ({{count}} photos) sera proposé à {{email}}.",
+    "send": "Envoyer",
+    "preparing": "Préparation…",
+    "sent_one": "Envoyé : {{count}} élément proposé à {{email}}. Il doit maintenant l'accepter dans MyMedia.",
+    "sent_other": "Envoyé : {{count}} éléments proposés à {{email}}. Il doit maintenant les accepter dans MyMedia.",
+    "partly": "Terminé, mais {{failed}} élément(s) sur {{total}} n'ont pas pu être traités. Relancez : ce qui est fait reste fait."
   }
 }
