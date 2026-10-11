@@ -1,11 +1,13 @@
-import { Check, Loader2 } from 'lucide-react'
+import { Check, Loader2, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder, confirmAuto } from '../classify/engine'
 import { useFormat } from '../i18n/format'
 import { placementOf } from '../lib/tree'
 import { app, useApp } from '../store'
+import { trashMedia } from '../sync/media'
 import { AlbumSelect } from './AlbumSelect'
+import { ConfirmDialog } from './Dialog'
 import { Thumb } from './Thumb'
 import type { Library, LibraryItem } from './useLibrary'
 
@@ -27,6 +29,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
   const [busy, setBusy] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
   const [shown, setShown] = useState<Record<string, number>>({})
+  const [toDelete, setToDelete] = useState<{ key: string; ids: string[] } | null>(null)
 
   const groups = useMemo<Group[]>(() => {
     const map = new Map<string, LibraryItem[]>()
@@ -123,6 +126,15 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                   exclude={mode === 'auto' ? g.folderId : undefined}
                   onChoose={(f) => run(key, sel, (id) => chooseFolder(id, f))}
                 />
+                <button
+                  className="btn ghost"
+                  disabled={isBusy || !sel.length}
+                  onClick={() => setToDelete({ key, ids: sel })}
+                  title={t('common.delete')}
+                  aria-label={t('common.delete')}
+                >
+                  <Trash2 size={16} />
+                </button>
               </span>
               {busy === key && progress && (
                 <span className="hint">
@@ -150,6 +162,16 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
           </section>
         )
       })}
+      {toDelete && (
+        <ConfirmDialog
+          title={t('select.deleteTitle', { count: toDelete.ids.length })}
+          text={t('viewer.deleteText')}
+          confirmLabel={t('common.delete')}
+          danger
+          onConfirm={() => run(toDelete.key, toDelete.ids, (id) => trashMedia(id))}
+          onClose={() => setToDelete(null)}
+        />
+      )}
     </div>
   )
 }
