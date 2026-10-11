@@ -87,7 +87,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const [items, setItems] = useState<ImportItem[]>([])
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [compress, setCompress] = useState(true)
-  const [folderMode, setFolderMode] = useState<'folders' | 'sort'>('folders')
+  const [folderMode, setFolderMode] = useState<'folders' | 'sort'>('sort')
   const [outcomes, setOutcomes] = useState<Record<string, ImportOutcome>>({})
   const [result, setResult] = useState<{ count: number; before: number; after: number } | null>(null)
   const filesInput = useRef<HTMLInputElement>(null)
@@ -430,12 +430,12 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
               {hasFolders && canSort && (
                 <div className="folder-mode">
                   <label className="radio-row">
-                    <input type="radio" name="folder-mode" checked={folderMode === 'folders'} onChange={() => setFolderMode('folders')} />
-                    <span>{t('import.modeFolders')}</span>
-                  </label>
-                  <label className="radio-row">
                     <input type="radio" name="folder-mode" checked={folderMode === 'sort'} onChange={() => setFolderMode('sort')} />
                     <span>{t('import.modeSort', { dest: destName })}</span>
+                  </label>
+                  <label className="radio-row">
+                    <input type="radio" name="folder-mode" checked={folderMode === 'folders'} onChange={() => setFolderMode('folders')} />
+                    <span>{t('import.modeFolders')}</span>
                   </label>
                 </div>
               )}
