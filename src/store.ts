@@ -24,6 +24,8 @@ export interface Settings {
   compress: CompressSettings
   /** Face recognition (on the device only). */
   facesEnabled: boolean
+  /** Computer: the side menu (categories and albums) is closed; the ☰ button opens it again. */
+  sidebarHidden?: boolean
   /** 2: the Albums view became the default (earlier saved settings are moved to it once). */
   viewDefault?: number
 }

@@ -47,6 +47,7 @@ export function Shell() {
   const rootId = useApp((s) => s.rootId)
   const filters = useApp((s) => s.filters)
   const sort = useApp((s) => s.settings.sort)
+  const sidebarHidden = useApp((s) => !!s.settings.sidebarHidden)
   const settingsOpen = useApp((s) => s.settingsOpen)
   const helpOpen = useApp((s) => s.helpOpen)
   const statsOpen = useApp((s) => s.statsOpen)
@@ -94,7 +95,7 @@ export function Shell() {
     <div className={`shell ${selection ? 'selecting' : ''}`}>
       <TopBar />
       <Banners />
-      <div className="body">
+      <div className={`body ${sidebarHidden ? 'sidebar-hidden' : ''}`}>
         <Sidebar lib={lib} people={people} onNewCategory={() => setDialog({ kind: 'newCategory' })} />
         <main className="main">
           <Toolbar
@@ -215,7 +216,17 @@ function TopBar() {
 
   return (
     <header className="topbar">
-      <button className="icon-btn only-mobile" onClick={() => set({ sidebarOpen: true })} aria-label={t('nav.menu')}>
+      <button
+        className="icon-btn"
+        onClick={() =>
+          // Phone: the menu slides over the photos. Computer: it is closed or opened, and stays so.
+          window.matchMedia('(max-width: 800px)').matches
+            ? set({ sidebarOpen: true })
+            : app().updateSettings({ sidebarHidden: !app().settings.sidebarHidden })
+        }
+        aria-label={t('nav.menu')}
+        title={t('nav.menu')}
+      >
         <Menu />
       </button>
       <div className="title">
