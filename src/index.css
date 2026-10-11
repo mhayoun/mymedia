@@ -396,3 +396,22 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .drawer.help ul { margin: 0; padding-inline-start: 20px; display: grid; gap: 8px; }
 .drawer.help li { line-height: 1.5; }
 .help-tagline { font-size: 1.05rem; color: var(--text-2); margin-block: 0 8px; }
+
+/* ---------- To classify / Auto, Albums view ---------- */
+.review-groups { display: grid; gap: 14px; padding: 0 12px 24px; }
+.review-groups > .hint { margin: 0; }
+.review-group { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; display: grid; gap: 8px; }
+.review-group[aria-busy='true'] { opacity: 0.6; }
+.review-group-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.review-group-head .check-row { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; flex: 1 1 auto; min-width: 0; }
+.review-group-head .check-row input { inline-size: 20px; block-size: 20px; }
+.review-group-head .count { color: var(--text-2); font-size: 0.85rem; }
+.review-group-head select { inline-size: auto; max-inline-size: 220px; }
+.review-group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 4px; }
+.review-group-cell { position: relative; display: grid; }
+.review-group-cell .pct { position: absolute; inset-block-end: 4px; inset-inline-end: 4px; background: rgb(0 0 0 / 0.55); color: #fff; border-radius: 6px; padding: 0 5px; pointer-events: none; }
+.review-group-cell .tag { position: absolute; inset-block-end: 4px; inset-inline-start: 0; pointer-events: none; }
+@media (max-width: 800px) {
+  .review-group-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+  .review-group-head .row { flex: 1 1 100%; }
+}

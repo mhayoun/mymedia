@@ -213,7 +213,16 @@
     "learningHint": "MyMedia לומדת את התמונות שלך כדי לזהות חדשות. שום דבר לא יוצא מהמכשיר.",
     "pause": "השהיית הלמידה",
     "newAlbumWith": "צור אלבום עם {{count}}",
-    "newAlbumPick": "סמנו את התמונות לאלבום החדש, ואז לחצו שוב."
+    "newAlbumPick": "סמנו את התמונות לאלבום החדש, ואז לחצו שוב.",
+    "groupHint": "התמונות מקובצות לפי האלבום המוצע. הקישו על תמונות כדי לסמן אותן, או סמנו את כל הקבוצה, ואז העבירו.",
+    "groupNone": "ללא הצעה",
+    "groupMove_one": "העברת תמונה אחת ל\"{{name}}\"",
+    "groupMove_two": "העברת {{count}} תמונות ל\"{{name}}\"",
+    "groupMove_other": "העברת {{count}} תמונות ל\"{{name}}\"",
+    "groupCorrect_one": "נכון ({{count}})",
+    "groupCorrect_two": "נכון ({{count}})",
+    "groupCorrect_other": "נכון ({{count}})",
+    "groupOther": "אלבום אחר לבחירה…"
   },
   "stats": {
     "title": "סטטיסטיקת למידה",

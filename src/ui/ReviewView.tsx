@@ -9,6 +9,7 @@ import { trashMedia } from '../sync/media'
 import { AlbumSelect } from './AlbumSelect'
 import { ConfirmDialog } from './Dialog'
 import { NewAlbumDialog } from './NewAlbumDialog'
+import { ReviewGroups } from './ReviewGroups'
 import { Thumb } from './Thumb'
 import type { Library, LibraryItem } from './useLibrary'
 import { Viewer } from './Viewer'
@@ -28,6 +29,7 @@ export function ReviewView({ lib, items, mode }: Props) {
   const rootId = useApp((s) => s.rootId)!
   const medium = useApp((s) => s.settings.thresholdMedium)
   const viewerId = useApp((s) => s.viewerId)
+  const grouped = useApp((s) => s.settings.view === 'albums')
   const set = useApp((s) => s.set)
   const [shown, setShown] = useState(PAGE)
   const [busy, setBusy] = useState<Set<string>>(new Set())
@@ -91,6 +93,7 @@ export function ReviewView({ lib, items, mode }: Props) {
             <button className="btn" disabled={bulkBusy} onClick={() => bulk(classifyPending)}>
               <Wand2 size={16} /> {t('classify.runNow')}
             </button>
+            {!grouped && (
             <button
               className={`btn ${selected ? 'primary' : ''}`}
               disabled={bulkBusy}
@@ -98,7 +101,8 @@ export function ReviewView({ lib, items, mode }: Props) {
             >
               <FolderPlus size={16} /> {selected?.size ? t('classify.newAlbumWith', { count: selected.size }) : t('select.newAlbum')}
             </button>
-            {selected && !selected.size && <p className="hint">{t('classify.newAlbumPick')}</p>}
+            )}
+            {!grouped && selected && !selected.size && <p className="hint">{t('classify.newAlbumPick')}</p>}
           </>
         ) : (
           <>
@@ -110,6 +114,10 @@ export function ReviewView({ lib, items, mode }: Props) {
         )}
       </div>
 
+      {grouped ? (
+        <ReviewGroups lib={lib} items={items} mode={mode} />
+      ) : (
+      <>
       <div className="review-grid">
         {items.slice(0, shown).map(({ rec, meta, place }) => {
           const isBusy = busy.has(rec.id) || bulkBusy
@@ -209,6 +217,8 @@ export function ReviewView({ lib, items, mode }: Props) {
             {t('classify.showMore', { count: items.length - shown })}
           </button>
         </div>
+      )}
+      </>
       )}
       {viewerId && <Viewer ids={ids} items={items} />}
       {toDelete && (

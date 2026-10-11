@@ -209,7 +209,14 @@
     "learningHint": "MyMedia étudie vos photos pour reconnaître les nouvelles. Rien ne quitte votre appareil.",
     "pause": "Mettre l'apprentissage en pause",
     "newAlbumWith": "Créer l'album avec {{count}}",
-    "newAlbumPick": "Cochez les photos à mettre dans le nouvel album, puis appuyez à nouveau sur le bouton."
+    "newAlbumPick": "Cochez les photos à mettre dans le nouvel album, puis appuyez à nouveau sur le bouton.",
+    "groupHint": "Les photos sont groupées par album proposé. Touchez les photos pour les cocher, ou cochez tout le groupe, puis transférez.",
+    "groupNone": "Sans suggestion",
+    "groupMove_one": "Transférer {{count}} vers « {{name}} »",
+    "groupMove_other": "Transférer {{count}} vers « {{name}} »",
+    "groupCorrect_one": "Correct ({{count}})",
+    "groupCorrect_other": "Correct ({{count}})",
+    "groupOther": "Autre album pour la sélection…"
   },
   "stats": {
     "title": "Statistiques d'apprentissage",

@@ -211,7 +211,14 @@
     "learningHint": "MyMedia studies your photos to recognise new ones. Nothing leaves your device.",
     "pause": "Pause learning",
     "newAlbumWith": "Create the album with {{count}}",
-    "newAlbumPick": "Tick the photos to put in the new album, then press the button again."
+    "newAlbumPick": "Tick the photos to put in the new album, then press the button again.",
+    "groupHint": "Photos are grouped by proposed album. Tap photos to tick them, or tick the whole group, then move them.",
+    "groupNone": "No suggestion",
+    "groupMove_one": "Move {{count}} to “{{name}}”",
+    "groupMove_other": "Move {{count}} to “{{name}}”",
+    "groupCorrect_one": "Correct ({{count}})",
+    "groupCorrect_other": "Correct ({{count}})",
+    "groupOther": "Other album for the selection…"
   },
   "stats": {
     "title": "Learning statistics",
