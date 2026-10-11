@@ -57,13 +57,6 @@ export function Gallery({ items }: { items: LibraryItem[] }) {
     return out
   }, [items, cols, view, t])
 
-  // The whole list being browsed (up to 1,000) is prepared in the background.
-  const listKey = items.slice(0, 1000).map((i) => i.rec.id).join(',')
-  useEffect(() => {
-    warmThumbs(items.slice(0, 1000).map((i) => i.rec))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [listKey])
-
   const orderedIds = useMemo(
     () => rows.flatMap((r) => (r.kind === 'cells' ? r.items.map((i) => i.rec.id) : [])),
     [rows],
@@ -81,6 +74,20 @@ export function Gallery({ items }: { items: LibraryItem[] }) {
   useEffect(() => {
     virtualizer.measure()
   }, [cell, rows, virtualizer])
+
+  // The list being browsed is prepared in the background, in the order shown
+  // (albums one after the other in the Albums view), from where the screen is.
+  const firstRow = virtualizer.getVirtualItems()[0]?.index ?? 0
+  const startBucket = Math.floor(firstRow / 10)
+  const listKey = orderedIds.slice(0, 1000).join(',')
+  useEffect(() => {
+    const byId = new Map(items.map((i) => [i.rec.id, i.rec]))
+    let start = 0
+    for (const r of rows.slice(0, startBucket * 10)) if (r.kind === 'cells') start += r.items.length
+    const ids = [...orderedIds.slice(start), ...orderedIds.slice(0, start)].slice(0, 1000)
+    warmThumbs(ids.map((id) => byId.get(id)!).filter(Boolean))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listKey, startBucket])
 
   const selection = useApp((s) => s.selection)
   const selected = useMemo(() => (selection ? new Set(selection) : null), [selection])
