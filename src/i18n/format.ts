@@ -2,7 +2,7 @@
 
 import { useTranslation } from 'react-i18next'
 import type { Language } from '../store'
-import { LOCALES } from './index'
+import { isRtl, LOCALES } from './index'
 
 function localeOf(lang: string): string {
   return LOCALES[lang as Language] ?? 'en-US'
@@ -50,7 +50,12 @@ export function formatBytes(bytes: number, lang: string): string {
     unit: UNITS[i],
     unitDisplay: 'short',
     maximumFractionDigits: i <= 1 ? 0 : 1,
-  }).format(value)
+  })
+    .format(value)
+    // One block, kept in its own direction inside Hebrew text ("228 MB" never splits).
+    .replace(/\s/g, '\u00a0')
+    .replace(/^/, '\u2068')
+    .concat('\u2069')
 }
 
 export function formatDuration(ms: number, lang: string): string {
@@ -74,5 +79,7 @@ export function useFormat() {
     percent: (r: number) => formatPercent(r, lang),
     bytes: (n: number) => formatBytes(n, lang),
     duration: (ms: number) => formatDuration(ms, lang),
+    /** "becomes": → in French and English, ← in Hebrew. */
+    arrow: isRtl(lang as Language) ? '←' : '→',
   }
 }

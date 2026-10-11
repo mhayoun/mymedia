@@ -221,12 +221,12 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
           <>
             <span className="tag">{t(i.replaces.by === 'name' ? 'facebook.replacesByName' : 'facebook.replacesByLook')}</span>
             <br />
-            {fmt.bytes(i.replaces.size)} → {fmt.bytes(i.file.size)}
+            {fmt.bytes(i.replaces.size)} {fmt.arrow} {fmt.bytes(i.file.size)}
           </>
         )
       return compress && i.estimate !== null ? (
         <>
-          {fmt.bytes(i.file.size)} → ≈ {fmt.bytes(i.estimate)}
+          {fmt.bytes(i.file.size)} {fmt.arrow} ≈ {fmt.bytes(i.estimate)}
         </>
       ) : (
         fmt.bytes(i.file.size)
@@ -463,7 +463,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
               <p>
                 <strong>
                   {t('compress.selection', { count: selected.length })}: {fmt.bytes(sizeBefore)}
-                  {compress && sizeAfter < sizeBefore ? <> → ≈ {fmt.bytes(sizeAfter)}</> : null}
+                  {compress && sizeAfter < sizeBefore ? <> {fmt.arrow} ≈ {fmt.bytes(sizeAfter)}</> : null}
                 </strong>
               </p>
             </>

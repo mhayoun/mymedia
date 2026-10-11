@@ -147,7 +147,7 @@ export function CompressDialog(props: Props) {
                   </span>
                 </label>
                 <span className="sizes">
-                  {fmt.bytes(p.rec.size)} → {rowStatus(p)}
+                  {fmt.bytes(p.rec.size)} {fmt.arrow} {rowStatus(p)}
                 </span>
               </li>
             ))}
@@ -155,7 +155,7 @@ export function CompressDialog(props: Props) {
           {phase === 'choose' && (
             <p>
               <strong>
-                {t('compress.selection', { count: selected.length })}: {fmt.bytes(before)} → ≈ {fmt.bytes(after)}
+                {t('compress.selection', { count: selected.length })}: {fmt.bytes(before)} {fmt.arrow} ≈ {fmt.bytes(after)}
               </strong>{' '}
               {selected.length > 0 && t('compress.savedEstimate', { saved: fmt.bytes(before - after) })}
             </p>
