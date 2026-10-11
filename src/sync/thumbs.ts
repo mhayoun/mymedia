@@ -1,5 +1,5 @@
 // Thumbnails: Drive's thumbnail (any format, incl. HEIC and video), cached in
-// IndexedDB for offline browsing. Loaded lazily, newest request first.
+// IndexedDB for offline browsing. Loaded lazily, what is on screen first, in reading order.
 
 import { db, type MediaRecord } from '../db/db'
 import { childrenQuery, downloadBlob, getFile, listFiles } from '../drive/api'
@@ -15,6 +15,39 @@ interface Task {
   rec: MediaRecord
   resolve: (url: string | null) => void
   cancelled: boolean
+  /** Lower loads first (see `screenOrder`). */
+  order: () => number
+}
+
+/**
+ * Loading order of a thumbnail on the page: those on screen first, top row
+ * first and, in a row, from the start of the line (right in Hebrew); then
+ * those just below or above the screen, nearest first.
+ */
+export function screenOrder(el: Element | null): number {
+  if (!el?.isConnected) return Number.MAX_SAFE_INTEGER
+  const r = el.getBoundingClientRect()
+  const h = window.innerHeight
+  const w = window.innerWidth || 1
+  const fromStart = document.documentElement.dir === 'rtl' ? w - r.right : r.left
+  const inRow = Math.min(Math.max(fromStart / w, 0), 0.999)
+  if (r.bottom > 0 && r.top < h) return Math.max(r.top, 0) + inRow
+  const away = r.top >= h ? r.top - h : -r.bottom
+  return 2 * h + away + inRow
+}
+
+/** The task to start now: the one nearest the top of the screen. */
+function nextTask(): Task | undefined {
+  let best = -1
+  let bestOrder = Infinity
+  for (let i = 0; i < queue.length; i++) {
+    const o = queue[i].cancelled ? -1 : queue[i].order()
+    if (o < bestOrder) {
+      bestOrder = o
+      best = i
+    }
+  }
+  return best < 0 ? undefined : queue.splice(best, 1)[0]
 }
 
 const urls = new Map<string, string>() // id → object URL (insertion order = LRU)
@@ -148,7 +181,7 @@ async function produce(rec: MediaRecord): Promise<Blob | null> {
 
 function pump() {
   while (active < MAX_PARALLEL && queue.length) {
-    const task = queue.pop()! // newest first: what is on screen now
+    const task = nextTask()!
     if (task.cancelled) {
       task.resolve(null)
       continue
@@ -170,9 +203,10 @@ function pump() {
 
 /**
  * Returns an object URL for the thumbnail, or null if none can be produced.
- * `isWanted` lets a scrolled-away cell drop its queued request.
+ * `isWanted` lets a scrolled-away cell drop its queued request; `order` (see
+ * `screenOrder`) puts it in line, on-screen first (default: right away).
  */
-export function loadThumb(rec: MediaRecord, isWanted: () => boolean): Promise<string | null> {
+export function loadThumb(rec: MediaRecord, isWanted: () => boolean, order: () => number = () => 0): Promise<string | null> {
   const hit = cachedThumbUrl(rec.id)
   if (hit) return Promise.resolve(hit)
   const pending = inflight.get(rec.id)
@@ -184,7 +218,7 @@ export function loadThumb(rec: MediaRecord, isWanted: () => boolean): Promise<st
     if (!navigator.onLine) return null
     if (!isWanted()) return null
     return new Promise<string | null>((resolve) => {
-      const task: Task = { rec, resolve, cancelled: false }
+      const task: Task = { rec, resolve, cancelled: false, order }
       queue.push(task)
       const check = setInterval(() => {
         if (!isWanted()) task.cancelled = true

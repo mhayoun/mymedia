@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { MediaRecord } from '../db/db'
 import { useFormat } from '../i18n/format'
 import { useApp } from '../store'
-import { cachedThumbUrl, loadThumb } from '../sync/thumbs'
+import { cachedThumbUrl, loadThumb, screenOrder } from '../sync/thumbs'
 
 interface Props {
   rec: MediaRecord
@@ -23,12 +23,13 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress }:
   const bySize = useApp((s) => s.settings.sort === 'largest' || s.settings.sort === 'smallest')
   const [url, setUrl] = useState<string | null | undefined>(() => cachedThumbUrl(rec.id))
   const mounted = useRef(true)
+  const el = useRef<HTMLButtonElement>(null)
   const press = useRef<{ timer: ReturnType<typeof setTimeout>; fired: boolean } | null>(null)
 
   useEffect(() => {
     mounted.current = true
     if (url) return
-    loadThumb(rec, () => mounted.current).then((u) => {
+    loadThumb(rec, () => mounted.current, () => screenOrder(el.current)).then((u) => {
       if (mounted.current) setUrl(u)
     })
     return () => {
@@ -52,6 +53,7 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress }:
   return (
     <button
       type="button"
+      ref={el}
       className={`cell ${selected ? 'selected' : ''}`}
       aria-pressed={selected}
       onClick={(e) => {
