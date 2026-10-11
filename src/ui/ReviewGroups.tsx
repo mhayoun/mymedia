@@ -1,11 +1,12 @@
 import { Check, Loader2, Trash2 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder, confirmAuto } from '../classify/engine'
 import { useFormat } from '../i18n/format'
 import { placementOf } from '../lib/tree'
 import { app, useApp } from '../store'
 import { trashMedia } from '../sync/media'
+import { prepareLinks } from '../sync/thumbs'
 import { AlbumSelect } from './AlbumSelect'
 import { ConfirmDialog } from './Dialog'
 import { Thumb } from './Thumb'
@@ -42,6 +43,10 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
       .map(([folderId, list]) => ({ folderId, items: list.sort((a, b) => conf(b) - conf(a)) }))
       .sort((a, b) => (a.folderId === NONE ? 1 : b.folderId === NONE ? -1 : b.items.length - a.items.length))
   }, [items, mode])
+
+  useEffect(() => {
+    prepareLinks(groups.flatMap((g) => g.items.slice(0, PAGE).map((i) => i.rec)))
+  }, [groups])
 
   const name = (folderId: string) => {
     const p = placementOf(folderId, lib.folders, rootId)

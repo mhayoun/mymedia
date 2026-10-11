@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ALBUM_SEPARATOR } from '../lib/tree'
 import { useApp } from '../store'
-import { warmThumbs } from '../sync/thumbs'
+import { prepareLinks, warmThumbs } from '../sync/thumbs'
 import { Thumb } from './Thumb'
 import { groupByAlbum, type LibraryItem } from './useLibrary'
 import { Viewer } from './Viewer'
@@ -85,7 +85,9 @@ export function Gallery({ items }: { items: LibraryItem[] }) {
     let start = 0
     for (const r of rows.slice(0, startBucket * 10)) if (r.kind === 'cells') start += r.items.length
     const ids = [...orderedIds.slice(start), ...orderedIds.slice(0, start)].slice(0, 1000)
-    warmThumbs(ids.map((id) => byId.get(id)!).filter(Boolean))
+    const recs = ids.map((id) => byId.get(id)!).filter(Boolean)
+    prepareLinks(recs)
+    warmThumbs(recs)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listKey, startBucket])
 

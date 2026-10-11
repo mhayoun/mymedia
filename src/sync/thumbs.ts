@@ -112,21 +112,50 @@ const LINKS_TTL_MS = 3 * 3600 * 1000
 const freshLinks = new Map<string, { at: number; run: Promise<void> }>()
 
 function renewFolderLinks(folderId: string): Promise<void> {
-  const cur = freshLinks.get(folderId)
-  if (cur && Date.now() - cur.at < LINKS_TTL_MS) return cur.run
-  const run = (async () => {
-    const links: [string, string][] = []
-    await listFiles(childrenQuery([folderId]), (files) => {
-      for (const f of files) if (f.thumbnailLink) links.push([f.id, f.thumbnailLink])
-    }, undefined, 'id,thumbnailLink')
-    await db().transaction('rw', db().media, async () => {
-      for (const [id, thumbnailLink] of links) await db().media.update(id, { thumbnailLink })
-    })
-  })().catch(() => {
-    freshLinks.delete(folderId)
+  return renewLinks([folderId])
+}
+
+/**
+ * Renews the preview links of several folders with one listing (40 folders a
+ * request), so the albums on screen do not each wait for their own request.
+ */
+function renewLinks(folderIds: string[]): Promise<void> {
+  const now = Date.now()
+  const todo = [...new Set(folderIds)].filter((id) => {
+    const cur = freshLinks.get(id)
+    return !(cur && now - cur.at < LINKS_TTL_MS)
   })
-  freshLinks.set(folderId, { at: Date.now(), run })
-  return run
+  const waits = folderIds.map((id) => freshLinks.get(id)?.run).filter((r): r is Promise<void> => !!r)
+  if (todo.length) {
+    const run = (async () => {
+      const links: [string, string][] = []
+      for (let i = 0; i < todo.length; i += 40) {
+        await listFiles(childrenQuery(todo.slice(i, i + 40)), (files) => {
+          for (const f of files) if (f.thumbnailLink) links.push([f.id, f.thumbnailLink])
+        }, undefined, 'id,thumbnailLink')
+      }
+      await db().transaction('rw', db().media, async () => {
+        for (const [id, thumbnailLink] of links) await db().media.update(id, { thumbnailLink })
+      })
+    })().catch(() => {
+      for (const id of todo) freshLinks.delete(id)
+    })
+    for (const id of todo) freshLinks.set(id, { at: now, run })
+    waits.push(run)
+  }
+  return Promise.all(waits).then(() => undefined)
+}
+
+/**
+ * Called as soon as a list is shown: renews at once, in one request, the
+ * preview links of the folders of its first media (those of the screen).
+ * Registered right away, so the thumbnails of the screen wait for it instead
+ * of each album asking Drive on its own.
+ */
+export function prepareLinks(recs: MediaRecord[]): void {
+  if (!navigator.onLine) return
+  const folders = recs.slice(0, 300).filter((r) => !urls.has(r.id)).map((r) => r.folderId)
+  if (folders.length) renewLinks(folders).catch(() => undefined)
 }
 
 /** Drive's own preview image of a file (works for HEIC and videos too), or null. */
