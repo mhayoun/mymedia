@@ -154,11 +154,6 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                   <div className="review-group-cell" key={i.rec.id} title={i.meta?.description || i.rec.name}>
                     <Thumb rec={i.rec} selected={picked.has(i.rec.id)} onOpen={(id) => !isBusy && toggle(id)} />
                     {c ? <span className="pct">{fmt.percent(c)}</span> : null}
-                    {i.meta?.novel && (
-                      <span className="tag warn" title={`${t('classify.novel')} ${t('classify.novelHint')}`}>
-                        {t('classify.novelShort')}
-                      </span>
-                    )}
                     <button
                       type="button"
                       className="zoom-btn"

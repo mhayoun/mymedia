@@ -53,7 +53,7 @@ const fr: HelpContent = {
       items: [
         '« À classer » : photos posées en vrac. MyMedia propose l’album le plus probable avec un pourcentage ; un toucher suffit pour accepter.',
         '« Classés automatiquement » : ce que MyMedia a rangé seul (85 % ou plus). Vérifiez et corrigez si besoin ; chaque correction lui apprend.',
-        'Bouton « Albums » (à côté de « Grille ») dans « À classer » et « Classés automatiquement » : les photos sont groupées par album proposé. Cochez tout le groupe (ou touchez les photos une à une) puis « Transférer », « Correct » ou 🗑 Supprimer d’un seul coup. La loupe agrandit une photo ; « N » marque une photo « Nouveau ? ».',
+        'Bouton « Albums » (à côté de « Grille ») dans « À classer » et « Classés automatiquement » : les photos sont groupées par album proposé. Cochez tout le groupe (ou touchez les photos une à une) puis « Transférer », « Correct » ou 🗑 Supprimer d’un seul coup. La loupe agrandit une photo.',
         'Un fichier dont le nom contient le nom d’un album (par exemple « נחליאלי לבן.jpg » ou « IMG_1234 נחליאלי לבן.jpg ») va directement dans cet album, sans attendre la reconnaissance. Si deux albums conviennent, le nom le plus long gagne.',
         '« Nouveau ? » : la photo ne ressemble à aucun album, par exemple une espèce qui n’a pas encore d’album. Elle n’est jamais rangée toute seule : créez l’album ou choisissez-en un.',
         'Nouvel album depuis « À classer » : bouton Nouvel album, touchez les photos à mettre dedans, puis « Créer l’album avec… ». Le petit bouton dossier + d’une carte le fait pour une seule photo.',
@@ -160,7 +160,7 @@ const en: HelpContent = {
       items: [
         '"To classify": loose photos. MyMedia suggests the most likely album with a percentage; one tap accepts it.',
         '"Classified automatically": what MyMedia filed on its own (85 % or more). Check and correct if needed; every correction teaches it.',
-        '"Albums" button (next to "Grid") in "To classify" and "Classified automatically": photos are grouped by proposed album. Tick the whole group (or tap photos one by one), then "Move", "Correct" or 🗑 Delete in one go. The magnifier enlarges a photo; "N" marks a "New?" photo.',
+        '"Albums" button (next to "Grid") in "To classify" and "Classified automatically": photos are grouped by proposed album. Tick the whole group (or tap photos one by one), then "Move", "Correct" or 🗑 Delete in one go. The magnifier enlarges a photo.',
         'A file whose name contains an album name (e.g. "נחליאלי לבן.jpg" or "IMG_1234 נחליאלי לבן.jpg") goes straight into that album, without waiting for recognition. If two albums fit, the longest name wins.',
         '"New?": the photo resembles no album, for example a species that has no album yet. It is never filed on its own: create the album or choose one.',
         'New album from "To classify": New album button, tap the photos to put in it, then "Create the album with…". The small folder + button of a card does it for one photo.',
