@@ -415,12 +415,14 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .review-group-cell .pct { position: absolute; inset-block-end: 4px; inset-inline-end: 4px; background: rgb(0 0 0 / 0.55); color: #fff; border-radius: 6px; padding: 0 5px; pointer-events: none; }
 .review-group-cell .tag { position: absolute; inset-block-start: 6px; inset-inline-end: 6px; margin: 0; padding: 0 6px; font-weight: 700; pointer-events: auto; cursor: help; }
 .cell .zoom-btn {
-  position: absolute; inset-block-start: 4px; inset-inline-end: 4px; inline-size: 30px; block-size: 30px;
+  /* Bottom corner on the reading side: right in Hebrew, left in French/English. */
+  position: absolute; inset-block-end: 4px; inset-inline-start: 4px; inline-size: 30px; block-size: 30px;
   display: grid; place-items: center; border-radius: 50%; cursor: pointer;
   background: rgb(0 0 0 / 0.55); color: #fff;
 }
 .cell .zoom-btn::before { content: ''; position: absolute; inset: -6px; }
 .cell .zoom-btn:hover { background: var(--accent); }
+.cell:has(.zoom-btn) .badge.size { inset-inline-start: 40px; }
 @media (max-width: 800px) {
   .review-group-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
   .review-group-head .row { flex: 1 1 100%; }
