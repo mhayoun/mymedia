@@ -378,6 +378,13 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 }
 .cell.selected { outline: 3px solid var(--accent); outline-offset: -3px; }
 .cell.selected .check { background: var(--accent); border-color: var(--accent); }
+/* The tick always shown in grids: a bigger touch area than it looks. */
+.cell .check.tick { cursor: pointer; box-shadow: 0 0 0 1px rgb(0 0 0 / 0.25); }
+.cell .check.tick::before { content: ''; position: absolute; inset: -8px; }
+@media (hover: hover) {
+  .cell:not(.selected) .check.tick { opacity: 0.55; }
+  .cell:hover .check.tick { opacity: 1; }
+}
 .cell.selected img { transform: scale(0.92); transition: transform 0.1s; }
 .selecting .gallery-scroll { padding-block-end: 70px; }
 

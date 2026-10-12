@@ -95,7 +95,7 @@ const fr: HelpContent = {
       items: [
         'Recherche : nom, description, album, espèce, personne. Les accents et les points-voyelles sont ignorés.',
         'Filtres : album, origine (appareil photo, WhatsApp, web…), classement, compression, personne.',
-        'Sélectionner (ou appui long sur une photo) : déplacer, créer un album, décrire, ajouter une personne, compresser, supprimer plusieurs fichiers d’un coup.',
+        'Sélection : touchez le petit rond dans le coin d’une photo pour la cocher (ou appui long, ou Ctrl + clic). Une fois une photo cochée, toucher les autres les coche aussi. La barre du bas permet alors de déplacer, créer un album, décrire, ajouter une personne, compresser ou supprimer d’un coup ; ✕ annule la sélection.',
         'Trier par « Plus gros » pour voir ce qui prend de la place ; la taille s’affiche sur chaque vignette.',
         'Menu → Provenance : les photos par groupe Facebook ou par import (dossier ou ZIP, avec le jour).',
       ],
@@ -222,7 +222,7 @@ const en: HelpContent = {
       items: [
         'Search: name, description, album, species, person. Accents and Hebrew vowel points are ignored.',
         'Filters: album, origin (camera, WhatsApp, web…), classification, compression, person.',
-        'Select (or long press a photo): move, create an album, describe, add a person, compress, delete several files at once.',
+        'Selecting: tap the small circle in the corner of a photo to tick it (or long press, or Ctrl + click). Once a photo is ticked, tapping others ticks them too. The bar at the bottom then lets you move, create an album, describe, add a person, compress or delete at once; ✕ cancels the selection.',
         'Sort by "Largest" to see what takes space; the size shows on each thumbnail.',
         'Menu → Provenance: photos by Facebook group or by import (folder or ZIP, with the day).',
       ],
@@ -349,7 +349,7 @@ const he: HelpContent = {
       items: [
         'חיפוש: שם, תיאור, אלבום, מין, אדם. הניקוד והאותיות הגדולות לא משנים.',
         'סינון: אלבום, מקור (מצלמה, וואטסאפ, אינטרנט…), מיון, דחיסה, אדם.',
-        'בחירה (או לחיצה ארוכה על תמונה): העברה, יצירת אלבום, תיאור, הוספת אדם, דחיסה ומחיקה של כמה קבצים בבת אחת.',
+        'בחירה: נוגעים בעיגול הקטן בפינת התמונה כדי לסמן אותה (או לחיצה ארוכה, או Ctrl + לחיצה). אחרי שתמונה אחת מסומנת, נגיעה בתמונות אחרות מסמנת גם אותן. הסרגל למטה מאפשר אז העברה, יצירת אלבום, תיאור, הוספת אדם, דחיסה או מחיקה בבת אחת; ✕ מבטל את הבחירה.',
         'מיון לפי "הגדולים ביותר" כדי לראות מה תופס מקום; הגודל מופיע על כל תמונה ממוזערת.',
         'תפריט ← מקור: תמונות לפי קבוצת פייסבוק או לפי ייבוא (תיקייה או ZIP, עם היום).',
       ],

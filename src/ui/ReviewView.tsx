@@ -39,12 +39,13 @@ export function ReviewView({ lib, items, mode }: Props) {
   const [newAlbumFor, setNewAlbumFor] = useState<string[] | null>(null)
   const [toDelete, setToDelete] = useState<{ id: string; name: string } | null>(null)
   const selection = useApp((s) => s.selection)
-  const selected = useMemo(() => (selection ? new Set(selection) : null), [selection])
+  const selected = useMemo(() => new Set(selection ?? []), [selection])
+  const [pickHint, setPickHint] = useState(false)
   const toggle = (id: string) => {
     const next = new Set(selected)
     if (next.has(id)) next.delete(id)
     else next.add(id)
-    set({ selection: [...next] })
+    set({ selection: next.size ? [...next] : null })
   }
 
   const label = (folderId: string) => {
@@ -96,14 +97,14 @@ export function ReviewView({ lib, items, mode }: Props) {
             </button>
             {!grouped && (
             <button
-              className={`btn ${selected ? 'primary' : ''}`}
+              className={`btn ${selected.size ? 'primary' : ''}`}
               disabled={bulkBusy}
-              onClick={() => (selected?.size ? setNewAlbumFor([...selected]) : set({ selection: selected ? null : [] }))}
+              onClick={() => (selected.size ? setNewAlbumFor([...selected]) : setPickHint(true))}
             >
-              <FolderPlus size={16} /> {selected?.size ? t('classify.newAlbumWith', { count: selected.size }) : t('select.newAlbum')}
+              <FolderPlus size={16} /> {selected.size ? t('classify.newAlbumWith', { count: selected.size }) : t('select.newAlbum')}
             </button>
             )}
-            {!grouped && selected && !selected.size && <p className="hint">{t('classify.newAlbumPick')}</p>}
+            {!grouped && pickHint && !selected.size && <p className="hint">{t('classify.newAlbumPick')}</p>}
           </>
         ) : (
           <>
@@ -124,7 +125,13 @@ export function ReviewView({ lib, items, mode }: Props) {
           const sugg = meta?.suggestions ?? []
           return (
             <div className="review-card" key={rec.id} aria-busy={isBusy}>
-              <Thumb rec={rec} selected={selected ? selected.has(rec.id) : undefined} onOpen={(id) => (selected ? toggle(id) : set({ viewerId: id }))} />
+              <Thumb
+                rec={rec}
+                selected={selected.has(rec.id)}
+                onCheck={toggle}
+                onLongPress={toggle}
+                onOpen={(id) => (selected.size ? toggle(id) : set({ viewerId: id }))}
+              />
               <div className="review-body">
                 <div className="review-name" title={rec.name}>
                   <bdi>{meta?.description || rec.name}</bdi>

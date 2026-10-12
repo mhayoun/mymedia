@@ -1,4 +1,4 @@
-import { CheckSquare, Search, SlidersHorizontal, X } from 'lucide-react'
+import { Search, SlidersHorizontal, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ORIGINS, type Origin } from '../lib/media'
@@ -22,8 +22,6 @@ function folderOptions(list: FolderInfo[], depth = 0): { id: string; label: stri
 
 export function FilterBar({ people, lib }: { people: People; lib: Library }) {
   const { t } = useTranslation()
-  const selection = useApp((s) => s.selection)
-  const set = useApp((s) => s.set)
   const filters = useApp((s) => s.filters)
   const setFilters = useApp((s) => s.setFilters)
   const [query, setQuery] = useState(filters.query ?? '')
@@ -64,10 +62,6 @@ export function FilterBar({ people, lib }: { people: People; lib: Library }) {
           <SlidersHorizontal size={16} />
           <span className="only-desktop">{t('filters.button')}</span>
           {active > 0 && <span className="badge-count">{active}</span>}
-        </button>
-        <button className={`btn ${selection ? 'primary' : ''}`} onClick={() => set({ selection: selection ? null : [] })} title={t('select.button')}>
-          <CheckSquare size={16} />
-          <span className="only-desktop">{t('select.button')}</span>
         </button>
       </div>
       {chips.length > 0 && (

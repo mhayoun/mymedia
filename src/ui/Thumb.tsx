@@ -9,15 +9,17 @@ import { cachedThumbUrl, loadThumb, screenOrder } from '../sync/thumbs'
 interface Props {
   rec: MediaRecord
   onOpen: (id: string, e: { shiftKey: boolean }) => void
-  /** Selection mode: true/false; undefined when not selecting. */
+  /** Ticked or not; undefined: no tick shown. */
   selected?: boolean
-  /** Long press (touch) or Ctrl/⌘-click: start selecting with this media. */
+  /** The round tick in the corner, always shown: ticks or unticks without opening. */
+  onCheck?: (id: string, e: { shiftKey: boolean }) => void
+  /** Long press (touch) or Ctrl/⌘-click: tick this media. */
   onLongPress?: (id: string) => void
 }
 
 const LONG_PRESS_MS = 500
 
-export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress }: Props) {
+export const Thumb = memo(function Thumb({ rec, onOpen, selected, onCheck, onLongPress }: Props) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const bySize = useApp((s) => s.settings.sort === 'largest' || s.settings.sort === 'smallest')
@@ -39,7 +41,7 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress }:
   }, [rec.id, rec.modifiedTime])
 
   const startPress = () => {
-    if (!onLongPress || selected !== undefined) return
+    if (!onLongPress || selected) return
     const state = { fired: false, timer: setTimeout(() => {
       state.fired = true
       onLongPress(rec.id)
@@ -61,13 +63,13 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress }:
           press.current = null
           return
         }
-        if ((e.ctrlKey || e.metaKey) && selected === undefined && onLongPress) return onLongPress(rec.id)
+        if ((e.ctrlKey || e.metaKey) && !selected && onLongPress) return onLongPress(rec.id)
         onOpen(rec.id, e)
       }}
       onPointerDown={startPress}
       onPointerUp={endPress}
       onPointerLeave={endPress}
-      onContextMenu={(e) => selected === undefined && onLongPress && e.preventDefault()}
+      onContextMenu={(e) => onLongPress && e.preventDefault()}
       title={rec.name}
     >
       {url ? (
@@ -84,7 +86,24 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress }:
         </span>
       )}
       {bySize && <span className="badge size">{fmt.bytes(rec.size)}</span>}
-      {selected !== undefined && <span className="check">{selected && <Check size={14} />}</span>}
+      {onCheck ? (
+        <span
+          className="check tick"
+          role="checkbox"
+          aria-checked={!!selected}
+          aria-label={t('select.tick')}
+          title={t('select.tick')}
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation()
+            onCheck(rec.id, e)
+          }}
+        >
+          {selected && <Check size={14} />}
+        </span>
+      ) : (
+        selected !== undefined && <span className="check">{selected && <Check size={14} />}</span>
+      )}
     </button>
   )
 })
