@@ -11,6 +11,7 @@ import { ConfirmDialog } from './Dialog'
 import { NewAlbumDialog } from './NewAlbumDialog'
 import { ReviewGroups } from './ReviewGroups'
 import { Thumb } from './Thumb'
+import { useAnalysed } from './useAnalysed'
 import type { Library, LibraryItem } from './useLibrary'
 import { Viewer } from './Viewer'
 
@@ -30,6 +31,7 @@ export function ReviewView({ lib, items, mode }: Props) {
   const medium = useApp((s) => s.settings.thresholdMedium)
   const viewerId = useApp((s) => s.viewerId)
   const grouped = useApp((s) => s.settings.view === 'albums')
+  const analysed = useAnalysed()
   const set = useApp((s) => s.set)
   const [shown, setShown] = useState(PAGE)
   const [busy, setBusy] = useState<Set<string>>(new Set())
@@ -160,7 +162,7 @@ export function ReviewView({ lib, items, mode }: Props) {
                         </div>
                       </>
                     ) : (
-                      <div className="hint">{t('classify.noSuggestion')}</div>
+                      <div className="hint">{analysed && !analysed(rec) ? t('classify.waitingAnalysis') : t('classify.noSuggestion')}</div>
                     )}
                     <div className="row">
                       <AlbumSelect

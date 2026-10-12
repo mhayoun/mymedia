@@ -178,7 +178,7 @@
     "toCheck": "À vérifier",
     "novel": "Nouveau ?",
     "novelHint": "Ne ressemble à aucun album : peut-être une espèce ou un album qui n'existe pas encore. Pas déplacé automatiquement.",
-    "noSuggestion": "Pas encore de suggestion (apprentissage en cours, ou pas assez d'exemples).",
+    "noSuggestion": "Pas de suggestion (pas assez d'exemples, ou photo illisible).",
     "otherAlbum": "Autre album…",
     "keepHere": "Laisser ici",
     "keepHereHint": "Laisser ce fichier où il est ; plus de suggestion pour lui.",
@@ -205,9 +205,9 @@
     "thresholdMedium": "Marquer « À vérifier » en dessous de",
     "rebuild": "Refaire l'apprentissage",
     "rebuildHint": "L'apprentissage se fait tout seul en arrière-plan après chaque chargement.",
-    "learning": "Apprentissage {{done}} / {{total}}",
+    "learning": "Analyse des photos {{done}} / {{total}}",
     "learningHint": "MyMedia étudie vos photos pour reconnaître les nouvelles. Rien ne quitte votre appareil.",
-    "pause": "Mettre l'apprentissage en pause",
+    "pause": "Mettre l'analyse des photos en pause",
     "newAlbumWith": "Créer l'album avec {{count}}",
     "newAlbumPick": "Cochez les photos à mettre dans le nouvel album, puis appuyez à nouveau sur le bouton.",
     "groupHint": "Les photos sont groupées par album proposé. Touchez les photos pour les cocher, ou cochez tout le groupe, puis transférez.",
@@ -217,7 +217,9 @@
     "groupCorrect_one": "Correct ({{count}})",
     "groupCorrect_other": "Correct ({{count}})",
     "groupOther": "Autre album pour la sélection…",
-    "zoom": "Agrandir"
+    "zoom": "Agrandir",
+    "groupWaiting": "En attente d'analyse",
+    "waitingAnalysis": "En attente d'analyse : la suggestion viendra quand cette photo sera analysée."
   },
   "stats": {
     "title": "Statistiques d'apprentissage",

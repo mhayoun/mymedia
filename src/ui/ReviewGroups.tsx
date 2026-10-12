@@ -10,16 +10,22 @@ import { prepareLinks } from '../sync/thumbs'
 import { AlbumSelect } from './AlbumSelect'
 import { ConfirmDialog } from './Dialog'
 import { Thumb } from './Thumb'
+import { useAnalysed } from './useAnalysed'
 import type { Library, LibraryItem } from './useLibrary'
 
 const PAGE = 48
 const NONE = ''
+/** No suggestion because not analysed yet. */
+const WAITING = 'waiting'
 
 interface Group {
-  /** The proposed album ("To classify") or the album it was put in ("Auto"); NONE: no suggestion. */
+  /** The proposed album ("To classify") or the album it was put in ("Auto"); NONE: no suggestion; WAITING: not analysed yet. */
   folderId: string
   items: LibraryItem[]
 }
+
+/** Groups without an album come last: no suggestion, then waiting for analysis. */
+const last = (folderId: string) => (folderId === WAITING ? 2 : folderId === NONE ? 1 : 0)
 
 /** "To classify" and "Auto" in the Albums view: photos grouped by album, a whole group accepted at once. */
 export function ReviewGroups({ lib, items, mode }: { lib: Library; items: LibraryItem[]; mode: 'classify' | 'auto' }) {
@@ -32,18 +38,22 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
   const [shown, setShown] = useState<Record<string, number>>({})
   const [toDelete, setToDelete] = useState<{ key: string; ids: string[] } | null>(null)
+  const analysed = useAnalysed()
 
   const groups = useMemo<Group[]>(() => {
     const map = new Map<string, LibraryItem[]>()
     for (const i of items) {
-      const key = mode === 'auto' ? i.rec.folderId : (i.meta?.suggestions?.[0]?.folderId ?? NONE)
+      const key =
+        mode === 'auto'
+          ? i.rec.folderId
+          : (i.meta?.suggestions?.[0]?.folderId ?? (analysed && !analysed(i.rec) ? WAITING : NONE))
       map.set(key, [...(map.get(key) ?? []), i])
     }
     const conf = (i: LibraryItem) => (mode === 'auto' ? i.meta?.confidence : i.meta?.suggestions?.[0]?.confidence) ?? 0
     return [...map.entries()]
       .map(([folderId, list]) => ({ folderId, items: list.sort((a, b) => conf(b) - conf(a)) }))
-      .sort((a, b) => (a.folderId === NONE ? 1 : b.folderId === NONE ? -1 : b.items.length - a.items.length))
-  }, [items, mode])
+      .sort((a, b) => last(a.folderId) - last(b.folderId) || b.items.length - a.items.length)
+  }, [items, mode, analysed])
 
   useEffect(() => {
     prepareLinks(groups.flatMap((g) => g.items.slice(0, PAGE).map((i) => i.rec)))
@@ -93,6 +103,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
     <div className="review-groups">
       {groups.map((g) => {
         const key = g.folderId || 'none'
+        const isAlbum = g.folderId !== NONE && g.folderId !== WAITING
         const sel = g.items.filter((i) => picked.has(i.rec.id)).map((i) => i.rec.id)
         const all = sel.length === g.items.length
         const isBusy = busy !== null
@@ -103,12 +114,12 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
               <label className="check-row">
                 <input type="checkbox" checked={all} disabled={isBusy} onChange={(e) => toggleGroup(g, e.target.checked)} />
                 <strong>
-                  <bdi>{g.folderId ? name(g.folderId) : t('classify.groupNone')}</bdi>
+                  <bdi>{isAlbum ? name(g.folderId) : g.folderId === WAITING ? t('classify.groupWaiting') : t('classify.groupNone')}</bdi>
                 </strong>
                 <span className="count">{fmt.number(g.items.length)}</span>
               </label>
               <span className="row">
-                {g.folderId && (
+                {isAlbum && (
                   <button
                     className="btn primary"
                     disabled={isBusy || !sel.length}

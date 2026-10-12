@@ -64,7 +64,7 @@ const fr: HelpContent = {
         'Nouvel album depuis « À classer » : bouton Nouvel album, touchez les photos à mettre dedans, puis « Créer l’album avec… ». Le petit bouton dossier + d’une carte le fait pour une seule photo.',
         'Dans la fiche d’une photo : « Nouvel album avec cette photo » crée l’album et y met la photo.',
         'Dès 3 photos dans un album, MyMedia peut ranger seul les suivantes.',
-        'Apprentissage : la pastille bleue en haut se remplit pendant que MyMedia étudie les nouvelles photos. Touchez-la pour les statistiques : exactitude par album, confusions, albums qui manquent d’exemples.',
+        'Analyse des photos : la pastille bleue en haut se remplit pendant que MyMedia calcule l’empreinte des nouvelles photos. Une photo pas encore analysée reste « En attente d’analyse » dans À classer. ⏸ met l’analyse en pause jusqu’au prochain chargement. Touchez la pastille pour les statistiques : exactitude par album, confusions, albums qui manquent d’exemples.',
       ],
     },
     {
@@ -191,7 +191,7 @@ const en: HelpContent = {
         'New album from "To classify": New album button, tap the photos to put in it, then "Create the album with…". The small folder + button of a card does it for one photo.',
         'In a photo\'s information: "New album with this photo" creates the album and puts the photo in it.',
         'From 3 photos in an album, MyMedia can file the next ones on its own.',
-        'Learning: the blue pill at the top fills up while MyMedia studies new photos. Tap it for the statistics: accuracy per album, confusions, albums that need more examples.',
+        'Analysing photos: the blue pill at the top fills up while MyMedia computes the fingerprint of new photos. A photo not analysed yet stays “Waiting for analysis” in To classify. ⏸ pauses the analysis until the next load. Tap the pill for the statistics: accuracy per album, confusions, albums that need more examples.',
       ],
     },
     {
@@ -318,7 +318,7 @@ const he: HelpContent = {
         'אלבום חדש מ"למיון": כפתור אלבום חדש, נוגעים בתמונות שייכנסו אליו, ואז "צור אלבום עם…". כפתור התיקייה + הקטן בכרטיס עושה זאת לתמונה אחת.',
         'בפרטי תמונה: "אלבום חדש עם התמונה" יוצר את האלבום ומכניס אליו את התמונה.',
         'מ-3 תמונות באלבום, MyMedia יכולה לסדר לבד את הבאות.',
-        'למידה: הכדור הכחול למעלה מתמלא בזמן ש-MyMedia לומדת תמונות חדשות. נוגעים בו לסטטיסטיקה: דיוק לכל אלבום, בלבולים, אלבומים שחסרות בהם דוגמאות.',
+        'ניתוח תמונות: הכדור הכחול למעלה מתמלא בזמן ש-MyMedia מחשבת את טביעת האצבע של התמונות החדשות. תמונה שעוד לא נותחה מופיעה כ„ממתין לניתוח” ב„למיון”. ⏸ משהה את הניתוח עד הטעינה הבאה. נוגעים בכדור לסטטיסטיקה: דיוק לכל אלבום, בלבולים, אלבומים שחסרות בהם דוגמאות.',
       ],
     },
     {

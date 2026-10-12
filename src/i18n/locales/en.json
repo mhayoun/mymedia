@@ -180,7 +180,7 @@
     "toCheck": "To check",
     "novel": "New?",
     "novelHint": "Resembles no album: maybe a species or album that does not exist yet. Not moved automatically.",
-    "noSuggestion": "No suggestion yet (learning in progress, or not enough examples).",
+    "noSuggestion": "No suggestion (not enough examples, or unreadable photo).",
     "otherAlbum": "Other album…",
     "keepHere": "Keep here",
     "keepHereHint": "Leave this file where it is; no more suggestions for it.",
@@ -207,9 +207,9 @@
     "thresholdMedium": "Mark \"To check\" below",
     "rebuild": "Rebuild learning",
     "rebuildHint": "Learning runs by itself in the background after each load.",
-    "learning": "Learning {{done}} / {{total}}",
+    "learning": "Analysing photos {{done}} / {{total}}",
     "learningHint": "MyMedia studies your photos to recognise new ones. Nothing leaves your device.",
-    "pause": "Pause learning",
+    "pause": "Pause the photo analysis",
     "newAlbumWith": "Create the album with {{count}}",
     "newAlbumPick": "Tick the photos to put in the new album, then press the button again.",
     "groupHint": "Photos are grouped by proposed album. Tap photos to tick them, or tick the whole group, then move them.",
@@ -219,7 +219,9 @@
     "groupCorrect_one": "Correct ({{count}})",
     "groupCorrect_other": "Correct ({{count}})",
     "groupOther": "Other album for the selection…",
-    "zoom": "Enlarge"
+    "zoom": "Enlarge",
+    "groupWaiting": "Waiting for analysis",
+    "waitingAnalysis": "Waiting for analysis: the suggestion will come once this photo is analysed."
   },
   "stats": {
     "title": "Learning statistics",
