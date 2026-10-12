@@ -365,7 +365,7 @@ function InfoPanel({ item }: { item: LibraryItem }) {
               {t(`classify.sources.${meta.source}`)}
               {meta.confidence != null && meta.source !== 'folder' && meta.source !== 'manual' ? ` · ${fmt.percent(meta.confidence)}` : ''}
               {meta.auto && <span className="tag auto">{t('classify.autoTag')}</span>}
-              {meta.toCheck && <span className="tag warn" title={meta.novel ? t('classify.novelHint') : undefined}>{t(meta.novel ? 'classify.novel' : 'classify.toCheck')}</span>}
+              {meta.toCheck && !meta.novel && <span className="tag warn">{t('classify.toCheck')}</span>}
             </dd>
           </>
         )}
