@@ -8,7 +8,9 @@
 // the server says the licence is valid.
 
 import { db } from '../db/db'
-import { createTextFile, downloadText, findChildByName, folderNamed, listFiles, sameFolderName, trashFile, updateTextFile } from '../drive/api'
+import { createFolder, createTextFile, downloadText, findChildByName, folderNamed, listFiles, sameFolderName, trashFile, updateTextFile, type DriveFile } from '../drive/api'
+import { nameKey } from '../lib/filename'
+import { FOLDER_MIME } from '../lib/media'
 import { albumsUnder, labeledSet, loadData, type ClassifyData } from '../classify/data'
 import { folderChain } from '../lib/tree'
 import { EMBED_DIM, MODEL_ID } from '../ml/protocol'
@@ -211,20 +213,63 @@ export async function referenceExamples(data: ClassifyData): Promise<{ ids: stri
   return out
 }
 
+export type InstallStep = 'download' | 'albums' | 'save' | 'sync'
+export type InstallProgress = (step: InstallStep, done: number, total: number) => void
+
+/**
+ * Folders found or created by name, each Drive folder listed once and
+ * several albums created at a time (101 albums one by one took minutes).
+ */
+function folderMaker() {
+  const lists = new Map<string, Promise<DriveFile[]>>()
+  const made = new Map<string, Promise<string>>()
+  const listOf = (parent: string) => {
+    let p = lists.get(parent)
+    if (!p) {
+      p = (async () => {
+        const out: DriveFile[] = []
+        await listFiles(`'${parent}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false`, (page) => void out.push(...page), undefined, 'id,name')
+        return out
+      })()
+      lists.set(parent, p)
+    }
+    return p
+  }
+  return (name: string, parent: string): Promise<string> => {
+    const key = `${parent}\n${nameKey(name) || name}`
+    let p = made.get(key)
+    if (!p) {
+      p = (async () => (await listOf(parent)).find((f) => sameFolderName(f.name, name))?.id ?? (await createFolder(name, parent)).id)()
+      made.set(key, p)
+    }
+    return p
+  }
+}
+
 /** Gets the model for this account and creates its albums (then classify again). */
-export async function installModel(id: string): Promise<InstalledModel> {
+export async function installModel(id: string, onProgress: InstallProgress = () => undefined): Promise<InstalledModel> {
   const rootId = app().rootId
   if (!rootId) throw new ModelError('noRoot')
+  onProgress('download', 0, 1)
   await buyModel(id)
   const { info, buyer, data } = await downloadModel(id)
   if (data.model !== MODEL_ID || data.dim !== EMBED_DIM) throw new ModelError('otherModel')
+  const folderIn = folderMaker()
   const category = await folderNamed(info.category, rootId)
-  const albums: InstalledModel['albums'] = []
-  for (const path of data.albums) {
-    let parent = category.id
-    for (const name of path.split(SEP)) parent = (await folderNamed(name, parent)).id
-    albums.push({ path, folderId: parent })
+  const albums: InstalledModel['albums'] = data.albums.map((path) => ({ path, folderId: null }))
+  let done = 0
+  let next = 0
+  onProgress('albums', 0, albums.length)
+  const worker = async () => {
+    while (next < albums.length) {
+      const a = albums[next++]
+      let parent = category.id
+      for (const name of a.path.split(SEP)) parent = await folderIn(name, parent)
+      a.folderId = parent
+      onProgress('albums', ++done, albums.length)
+    }
   }
+  await Promise.all(Array.from({ length: 4 }, worker))
   const m: InstalledModel = {
     format: 'mymedia-model',
     version: 1,
@@ -239,6 +284,7 @@ export async function installModel(id: string): Promise<InstalledModel> {
     labels: data.labels,
     vecs: data.vecs,
   }
+  onProgress('save', 0, 1)
   const existing = await findChildByName(rootId, fileName(id))
   if (existing) await updateTextFile(existing.id, JSON.stringify(m))
   else await createTextFile(fileName(id), rootId, JSON.stringify(m))
@@ -248,6 +294,7 @@ export async function installModel(id: string): Promise<InstalledModel> {
     // ignore
   }
   cache = null
+  onProgress('sync', 0, 1)
   await syncNow()
   return m
 }

@@ -4,13 +4,20 @@ import { useTranslation } from 'react-i18next'
 import { classifyPending } from '../classify/engine'
 import { LOCALES } from '../i18n'
 import { useFormat } from '../i18n/format'
-import { buildModel, installedModels, installModel, ModelError, removeModel, type InstalledModel } from '../models/references'
+import { buildModel, installedModels, installModel, ModelError, removeModel, type InstalledModel, type InstallStep } from '../models/references'
 import { publishModel, shopModels, ShopError, withdrawModel, type ShopModel } from '../models/shop'
 import { useApp, type Language } from '../store'
 import { Modal } from './Dialog'
 import { useLibraryContext } from './libraryContext'
 
 const CURRENCIES = ['ILS', 'EUR', 'USD']
+
+/** Rough share of the whole install: the albums take most of it. */
+function percentOf(p: { step: InstallStep; done: number; total: number }): number {
+  if (p.step === 'download') return 3
+  if (p.step === 'albums') return 5 + Math.round((80 * p.done) / Math.max(p.total, 1))
+  return p.step === 'save' ? 88 : 95
+}
 
 /** Settings → classification models: the shop, the installed models, publishing one's own. */
 export function ModelsDialog({ onClose }: { onClose: () => void }) {
@@ -23,6 +30,7 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<string | null>(null)
+  const [install, setInstall] = useState<{ step: InstallStep; done: number; total: number } | null>(null)
 
   const [categoryId, setCategoryId] = useState('')
   const [name, setName] = useState('')
@@ -128,6 +136,14 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
                   {t('models.examples', { count: m.examples })} · {fmt.date(m.createdAt)}
                 </div>
                 {m.description && <div dir="auto">{m.description}</div>}
+                {busy === m.id && install && (
+                  <div className="model-progress">
+                    <progress max={100} value={percentOf(install)} />
+                    <span className="hint">
+                      {t(`models.step.${install.step}`, { done: fmt.number(install.done), total: fmt.number(install.total) })} — {fmt.percent(percentOf(install) / 100)}
+                    </span>
+                  </div>
+                )}
               </div>
               <span className="row">
                 {m.mine ? (
@@ -140,7 +156,7 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
                     disabled={!!busy}
                     onClick={() =>
                       act(m.id, async () => {
-                        const got = await installModel(m.id)
+                        const got = await installModel(m.id, (step, n, total) => setInstall({ step, done: n, total })).finally(() => setInstall(null))
                         void classifyPending()
                         return t('models.installed', { name: got.name, count: got.albums.length })
                       })

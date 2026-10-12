@@ -628,6 +628,12 @@
     },
     "isMine": "Publié par moi",
     "leftOut_one": "Album non inclus (aucune photo analysée et vérifiée) : {{names}}.",
-    "leftOut_other": "{{count}} albums non inclus (aucune photo analysée et vérifiée) : {{names}}."
+    "leftOut_other": "{{count}} albums non inclus (aucune photo analysée et vérifiée) : {{names}}.",
+    "step": {
+      "download": "Téléchargement du modèle…",
+      "albums": "Création des albums {{done}} / {{total}}",
+      "save": "Enregistrement dans votre Drive…",
+      "sync": "Mise à jour de MyMedia…"
+    }
   }
 }

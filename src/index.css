@@ -437,3 +437,5 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 /* Classification models (Settings) */
 .model-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px solid var(--border); }
 .model-row > div { flex: 1 1 260px; min-width: 0; }
+.model-progress { display: flex; flex-direction: column; gap: 4px; margin-block-start: 6px; }
+.model-progress progress { inline-size: 100%; block-size: 8px; accent-color: var(--accent); }

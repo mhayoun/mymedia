@@ -630,6 +630,12 @@
     },
     "isMine": "Published by me",
     "leftOut_one": "Album left out (no analysed and checked photo): {{names}}.",
-    "leftOut_other": "{{count}} albums left out (no analysed and checked photo): {{names}}."
+    "leftOut_other": "{{count}} albums left out (no analysed and checked photo): {{names}}.",
+    "step": {
+      "download": "Downloading the model…",
+      "albums": "Creating the albums {{done}} / {{total}}",
+      "save": "Saving to your Drive…",
+      "sync": "Updating MyMedia…"
+    }
   }
 }
