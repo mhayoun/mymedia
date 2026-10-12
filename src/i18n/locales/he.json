@@ -222,7 +222,9 @@
     "groupCorrect_one": "נכון ({{count}})",
     "groupCorrect_two": "נכון ({{count}})",
     "groupCorrect_other": "נכון ({{count}})",
-    "groupOther": "אלבום אחר לבחירה…"
+    "groupOther": "אלבום אחר לבחירה…",
+    "novelShort": "N",
+    "zoom": "הגדלה"
   },
   "stats": {
     "title": "סטטיסטיקת למידה",

@@ -86,7 +86,6 @@ export function ReviewView({ lib, items, mode }: Props) {
       <div className="review-bar">
         {mode === 'classify' ? (
           <>
-            <p className="hint">{t('classify.introClassify')}</p>
             <button className="btn primary" disabled={bulkBusy || !confident.length} onClick={() => bulk(() => acceptConfident(confident))}>
               <Check size={16} /> {t('classify.acceptAll', { count: confident.length, percent: fmt.percent(medium) })}
             </button>

@@ -218,7 +218,9 @@
     "groupMove_other": "Move {{count}} to “{{name}}”",
     "groupCorrect_one": "Correct ({{count}})",
     "groupCorrect_other": "Correct ({{count}})",
-    "groupOther": "Other album for the selection…"
+    "groupOther": "Other album for the selection…",
+    "novelShort": "N",
+    "zoom": "Enlarge"
   },
   "stats": {
     "title": "Learning statistics",

@@ -1,4 +1,4 @@
-import { Check, Loader2, Trash2 } from 'lucide-react'
+import { Check, Loader2, Trash2, ZoomIn } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder, confirmAuto } from '../classify/engine'
@@ -26,6 +26,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
   const { t } = useTranslation()
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
+  const set = useApp((s) => s.set)
   const [picked, setPicked] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
@@ -90,7 +91,6 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
 
   return (
     <div className="review-groups">
-      <p className="hint">{t('classify.groupHint')}</p>
       {groups.map((g) => {
         const key = g.folderId || 'none'
         const sel = g.items.filter((i) => picked.has(i.rec.id)).map((i) => i.rec.id)
@@ -154,7 +154,20 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                   <div className="review-group-cell" key={i.rec.id} title={i.meta?.description || i.rec.name}>
                     <Thumb rec={i.rec} selected={picked.has(i.rec.id)} onOpen={(id) => !isBusy && toggle(id)} />
                     {c ? <span className="pct">{fmt.percent(c)}</span> : null}
-                    {i.meta?.novel && <span className="tag warn">{t('classify.novel')}</span>}
+                    {i.meta?.novel && (
+                      <span className="tag warn" title={`${t('classify.novel')} ${t('classify.novelHint')}`}>
+                        {t('classify.novelShort')}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      className="zoom-btn"
+                      onClick={() => set({ viewerId: i.rec.id })}
+                      title={t('classify.zoom')}
+                      aria-label={t('classify.zoom')}
+                    >
+                      <ZoomIn size={16} />
+                    </button>
                   </div>
                 )
               })}
