@@ -95,7 +95,7 @@ const fr: HelpContent = {
       items: [
         'Recherche : nom, description, album, espèce, personne. Les accents et les points-voyelles sont ignorés.',
         'Filtres : album, origine (appareil photo, WhatsApp, web…), classement, compression, personne.',
-        'Sélection : toucher une photo la coche (Maj + clic sur ordinateur : toute une suite). La loupe 🔍 dans son coin l’ouvre en grand. La barre du bas permet alors de déplacer, créer un album, décrire, ajouter une personne, compresser ou supprimer d’un coup ; ✕ annule la sélection.',
+        'Sélectionner (ou appui long sur une photo) : déplacer, créer un album, décrire, ajouter une personne, compresser, supprimer plusieurs fichiers d’un coup. Dans « À classer » et « Classés automatiquement », toucher une photo la coche directement et la loupe 🔍 l’ouvre en grand.',
         'Trier par « Plus gros » pour voir ce qui prend de la place ; la taille s’affiche sur chaque vignette.',
         'Menu → Provenance : les photos par groupe Facebook ou par import (dossier ou ZIP, avec le jour).',
       ],
@@ -222,7 +222,7 @@ const en: HelpContent = {
       items: [
         'Search: name, description, album, species, person. Accents and Hebrew vowel points are ignored.',
         'Filters: album, origin (camera, WhatsApp, web…), classification, compression, person.',
-        'Selecting: tapping a photo ticks it (Shift + click on a computer: a whole run). The magnifier 🔍 in its corner opens it large. The bar at the bottom then lets you move, create an album, describe, add a person, compress or delete at once; ✕ cancels the selection.',
+        'Select (or long press a photo): move, create an album, describe, add a person, compress, delete several files at once. In “To classify” and “Auto”, tapping a photo ticks it directly and the magnifier 🔍 opens it large.',
         'Sort by "Largest" to see what takes space; the size shows on each thumbnail.',
         'Menu → Provenance: photos by Facebook group or by import (folder or ZIP, with the day).',
       ],
@@ -349,7 +349,7 @@ const he: HelpContent = {
       items: [
         'חיפוש: שם, תיאור, אלבום, מין, אדם. הניקוד והאותיות הגדולות לא משנים.',
         'סינון: אלבום, מקור (מצלמה, וואטסאפ, אינטרנט…), מיון, דחיסה, אדם.',
-        'בחירה: נגיעה בתמונה מסמנת אותה (Shift + לחיצה במחשב: רצף שלם). זכוכית המגדלת 🔍 בפינה פותחת אותה בגדול. הסרגל למטה מאפשר אז העברה, יצירת אלבום, תיאור, הוספת אדם, דחיסה או מחיקה בבת אחת; ✕ מבטל את הבחירה.',
+        'בחירה (או לחיצה ארוכה על תמונה): העברה, יצירת אלבום, תיאור, הוספת אדם, דחיסה ומחיקה של כמה קבצים בבת אחת. ב„למיון” וב„מוינו אוטומטית”, נגיעה בתמונה מסמנת אותה ישירות וזכוכית המגדלת 🔍 פותחת אותה בגדול.',
         'מיון לפי "הגדולים ביותר" כדי לראות מה תופס מקום; הגודל מופיע על כל תמונה ממוזערת.',
         'תפריט ← מקור: תמונות לפי קבוצת פייסבוק או לפי ייבוא (תיקייה או ZIP, עם היום).',
       ],

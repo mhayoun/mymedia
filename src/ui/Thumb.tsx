@@ -8,21 +8,25 @@ import { cachedThumbUrl, loadThumb, screenOrder } from '../sync/thumbs'
 
 interface Props {
   rec: MediaRecord
-  /** A tap on the picture (opens it, or ticks it in grids that select). */
   onOpen: (id: string, e: { shiftKey: boolean }) => void
-  /** Ticked or not; undefined: no tick shown. */
+  /** Selection mode: true/false; undefined when not selecting. */
   selected?: boolean
-  /** The Enlarge button in the corner (when a tap ticks): opens the photo. */
+  /** Long press (touch) or Ctrl/⌘-click: start selecting with this media. */
+  onLongPress?: (id: string) => void
+  /** The Enlarge button in the corner, where a tap ticks ("To classify", "Auto"): opens the photo. */
   onZoom?: (id: string) => void
 }
 
-export const Thumb = memo(function Thumb({ rec, onOpen, selected, onZoom }: Props) {
+const LONG_PRESS_MS = 500
+
+export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, onZoom }: Props) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const bySize = useApp((s) => s.settings.sort === 'largest' || s.settings.sort === 'smallest')
   const [url, setUrl] = useState<string | null | undefined>(() => cachedThumbUrl(rec.id))
   const mounted = useRef(true)
   const el = useRef<HTMLButtonElement>(null)
+  const press = useRef<{ timer: ReturnType<typeof setTimeout>; fired: boolean } | null>(null)
 
   useEffect(() => {
     mounted.current = true
@@ -36,13 +40,36 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onZoom }: Prop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rec.id, rec.modifiedTime])
 
+  const startPress = () => {
+    if (!onLongPress || selected !== undefined) return
+    const state = { fired: false, timer: setTimeout(() => {
+      state.fired = true
+      onLongPress(rec.id)
+    }, LONG_PRESS_MS) }
+    press.current = state
+  }
+  const endPress = () => {
+    if (press.current) clearTimeout(press.current.timer)
+  }
+
   return (
     <button
       type="button"
       ref={el}
       className={`cell ${selected ? 'selected' : ''}`}
       aria-pressed={selected}
-      onClick={(e) => onOpen(rec.id, e)}
+      onClick={(e) => {
+        if (press.current?.fired) {
+          press.current = null
+          return
+        }
+        if ((e.ctrlKey || e.metaKey) && selected === undefined && onLongPress) return onLongPress(rec.id)
+        onOpen(rec.id, e)
+      }}
+      onPointerDown={startPress}
+      onPointerUp={endPress}
+      onPointerLeave={endPress}
+      onContextMenu={(e) => selected === undefined && onLongPress && e.preventDefault()}
       title={rec.name}
     >
       {url ? (
@@ -66,6 +93,7 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onZoom }: Prop
           role="button"
           aria-label={t('classify.zoom')}
           title={t('classify.zoom')}
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation()
             onZoom(rec.id)
