@@ -9,7 +9,7 @@
 
 import { db } from '../db/db'
 import { createTextFile, downloadText, findChildByName, folderNamed, listFiles, sameFolderName, trashFile, updateTextFile } from '../drive/api'
-import { labeledSet, loadData, type ClassifyData } from '../classify/data'
+import { albumsUnder, labeledSet, loadData, type ClassifyData } from '../classify/data'
 import { folderChain } from '../lib/tree'
 import { EMBED_DIM, MODEL_ID } from '../ml/protocol'
 import { app } from '../store'
@@ -67,7 +67,7 @@ const fileName = (id: string) => `${FILE_PREFIX}${id}.json`
 // ---- Seller -------------------------------------------------------------------
 
 /** The examples of a category (its albums' sorted photos), ready to publish. */
-export async function buildModel(categoryId: string): Promise<Pick<PublishInput, keyof ModelData | 'category'> & { photos: number }> {
+export async function buildModel(categoryId: string): Promise<Pick<PublishInput, keyof ModelData | 'category'> & { photos: number; left: string[] }> {
   const rootId = app().rootId
   if (!rootId) throw new ModelError('noRoot')
   const data = await loadData(rootId)
@@ -106,6 +106,10 @@ export async function buildModel(categoryId: string): Promise<Pick<PublishInput,
     labels,
     vecs: toBase64(vecs),
     photos: total,
+    // Albums without any example: empty, not analysed yet, or only automatic moves not checked yet.
+    left: albumsUnder(categoryId, data)
+      .filter((f) => !byAlbum.has(f.id) && !albumsUnder(f.id, data).length)
+      .map((f) => f.name),
   }
 }
 

@@ -628,6 +628,8 @@
       "signIn": "Sign in to Google again, then retry.",
       "tooBig": "The model is too big to be sent."
     },
-    "isMine": "My model"
+    "isMine": "My model",
+    "leftOut_one": "Album left out (no analysed and checked photo): {{names}}.",
+    "leftOut_other": "{{count}} albums left out (no analysed and checked photo): {{names}}."
   }
 }

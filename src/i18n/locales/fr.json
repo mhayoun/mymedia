@@ -626,6 +626,8 @@
       "signIn": "Reconnectez-vous à Google, puis réessayez.",
       "tooBig": "Le modèle est trop gros pour être envoyé."
     },
-    "isMine": "Mon modèle"
+    "isMine": "Mon modèle",
+    "leftOut_one": "Album non inclus (aucune photo analysée et vérifiée) : {{names}}.",
+    "leftOut_other": "{{count}} albums non inclus (aucune photo analysée et vérifiée) : {{names}}."
   }
 }

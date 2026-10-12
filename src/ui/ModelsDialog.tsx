@@ -222,9 +222,10 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
           onClick={() =>
             act('publish', async () => {
               const built = await buildModel(categoryId)
-              const { photos: _, ...data } = built
+              const { photos: _, left, ...data } = built
               const m = await publishModel({ ...data, name: name.trim(), description: description.trim(), seller: seller.trim(), price: priceValue, currency })
-              return t('models.published', { name: m.name, albums: m.albums, count: m.examples })
+              const msg = t('models.published', { name: m.name, albums: m.albums, count: m.examples })
+              return left.length ? `${msg} ${t('models.leftOut', { count: left.length, names: left.join(', ') })}` : msg
             })
           }
         >
