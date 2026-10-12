@@ -105,7 +105,6 @@ export function ReviewView({ lib, items, mode }: Props) {
           </>
         ) : (
           <>
-            <p className="hint">{t('classify.introAuto')}</p>
             <button className="btn primary" disabled={bulkBusy || !ids.length} onClick={() => bulk(() => confirmAuto(ids))}>
               <Check size={16} /> {t('classify.allCorrect')}
             </button>
