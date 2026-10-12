@@ -15,6 +15,7 @@ import { placementOf } from '../lib/tree'
 import type { Calibration } from '../lib/classifier'
 import { calibrate, predictMany } from '../ml/ml'
 import type { PackedSet } from '../ml/protocol'
+import { referenceExamples } from '../models/references'
 import { app } from '../store'
 import { markMetaDirty } from '../sync/metaStore'
 import { albumsUnder, allowedFor, isCandidate, labeledSet, loadData, type ClassifyData } from './data'
@@ -96,7 +97,7 @@ async function run(): Promise<void> {
   }
 
   // 3. Learned model.
-  const { set, counts } = labeledSet(data)
+  const { set, counts } = labeledSet(data, await referenceExamples(data).catch(() => undefined))
   const queries = remaining.filter((r) => data.vecs.has(r.id))
   if (queries.length && counts.size >= 2) {
     const { tau, novelty } = await calibrationFor(set)

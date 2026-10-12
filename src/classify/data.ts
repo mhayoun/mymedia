@@ -77,13 +77,17 @@ export function allowedFor(rec: MediaRecord, data: ClassifyData): string[] | nul
 /**
  * Examples for learning: every fingerprinted media inside a category or an
  * album, labelled with its folder. Automatic moves not yet reviewed are left
- * out, so a mistake is not learned.
+ * out, so a mistake is not learned. `extra`: examples of installed models.
  */
-export function labeledSet(data: ClassifyData): { set: PackedSet; counts: Map<string, number> } {
-  const ids: string[] = []
-  const labels: string[] = []
-  const vecs: Int8Array[] = []
+export function labeledSet(
+  data: ClassifyData,
+  extra?: { ids: string[]; labels: string[]; vecs: Int8Array[] },
+): { set: PackedSet; counts: Map<string, number> } {
+  const ids: string[] = [...(extra?.ids ?? [])]
+  const labels: string[] = [...(extra?.labels ?? [])]
+  const vecs: Int8Array[] = [...(extra?.vecs ?? [])]
   const counts = new Map<string, number>()
+  for (const l of labels) counts.set(l, (counts.get(l) ?? 0) + 1)
   for (const rec of data.media) {
     const vec = data.vecs.get(rec.id)
     if (!vec || rec.folderId === data.rootId || !data.folders.has(rec.folderId)) continue

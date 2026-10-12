@@ -16,6 +16,7 @@ import { ConfirmDialog, PromptDialog } from './Dialog'
 import { deleteAllFaceData } from '../faces/store'
 import { usePeopleContext } from './peopleContext'
 import { TransferDialog } from './TransferDialog'
+import { ModelsDialog } from './ModelsDialog'
 import { clearMediaCaches } from '../sync/previews'
 
 export function SettingsPanel() {
@@ -30,6 +31,7 @@ export function SettingsPanel() {
   const [rebuilt, setRebuilt] = useState(false)
   const [deleteFaces, setDeleteFaces] = useState(false)
   const [transfer, setTransfer] = useState(false)
+  const [models, setModels] = useState(false)
   const people = usePeopleContext()
   const fmt = useFormat()
   const indexing = useApp((s) => s.indexing)
@@ -280,6 +282,14 @@ export function SettingsPanel() {
         </section>
 
         <section>
+          <h3>{t('models.title')}</h3>
+          <button className="btn" onClick={() => setModels(true)} disabled={!rootId}>
+            {t('models.open')}
+          </button>
+          <p className="hint">{t('models.settingsHint')}</p>
+        </section>
+
+        <section>
           <h3>{t('transfer.title')}</h3>
           <button className="btn" onClick={() => setTransfer(true)} disabled={!rootId}>
             {t('transfer.open')}
@@ -329,6 +339,7 @@ export function SettingsPanel() {
       </aside>
 
       {transfer && <TransferDialog onClose={() => setTransfer(false)} />}
+      {models && <ModelsDialog onClose={() => setModels(false)} />}
       {deleteFaces && (
         <ConfirmDialog
           title={t('faces.deleteAllTitle')}

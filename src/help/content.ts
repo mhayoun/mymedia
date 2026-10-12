@@ -117,9 +117,19 @@ const fr: HelpContent = {
       ],
     },
     {
+      title: 'Modèles de classement (boutique)',
+      items: [
+        'Un modèle, ce sont les noms des albums d’une catégorie et les « empreintes » de ses photos rangées, sans les photos. Il permet à un autre compte de ranger ses propres photos dès le début.',
+        'Réglages → Modèles de classement → Publier mon modèle : choisissez la catégorie (par exemple ציפורים), un nom, votre nom de vendeur et un prix (0 = gratuit). Au plus 60 exemples par album sont envoyés.',
+        'Pour obtenir un modèle : même menu, Boutique → Obtenir. MyMedia crée les albums (vides) dans votre MyMedia, puis vos photos à classer leur sont comparées et rangées ou proposées dans « À classer ».',
+        'Pendant le test, tout est gratuit : le prix est seulement affiché. Le paiement (PayPal) viendra plus tard.',
+        'Un modèle est lié au compte Google qui l’a obtenu : copié vers un autre compte, il est refusé. Le retirer garde ses albums et vos photos.',
+      ],
+    },
+    {
       title: 'Questions fréquentes',
       items: [
-        'Mes photos sont-elles envoyées quelque part ? Non. Seulement entre votre appareil et votre propre Google Drive.',
+        'Mes photos sont-elles envoyées quelque part ? Non. Seulement entre votre appareil et votre propre Google Drive. Si vous publiez un modèle de classement, seules les empreintes et les noms des albums vont à la boutique MyMedia.',
         'Où sont mes noms, descriptions, visages ? Dans votre Drive, dossier MyMedia : mymedia.json, mymedia-faces.json, mymedia-index.*. Vos autres appareils les retrouvent.',
         'Supprimer est-il définitif ? Non. Les fichiers vont dans la corbeille de Google Drive, récupérables 30 jours.',
         'Bandeau « Se reconnecter » : la connexion Google doit être renouvelée (surtout sur iPhone). Votre travail est conservé.',
@@ -234,9 +244,19 @@ const en: HelpContent = {
       ],
     },
     {
+      title: 'Classification models (shop)',
+      items: [
+        'A model is the album names of a category and the “fingerprints” of its sorted photos, without the photos. It lets another account sort its own photos from the start.',
+        'Settings → Classification models → Publish my model: choose the category (e.g. ציפורים), a name, your seller name and a price (0 = free). At most 60 examples per album are sent.',
+        'To get a model: same menu, Shop → Get. MyMedia creates the albums (empty) in your MyMedia, then your photos to classify are compared with them and sorted or suggested in “To classify”.',
+        'During the test everything is free: the price is only shown. Payment (PayPal) will come later.',
+        'A model is bound to the Google account that got it: copied to another account, it is refused. Removing it keeps its albums and your photos.',
+      ],
+    },
+    {
       title: 'Questions',
       items: [
-        'Are my photos sent anywhere? No. Only between your device and your own Google Drive.',
+        'Are my photos sent anywhere? No. Only between your device and your own Google Drive. If you publish a classification model, only the fingerprints and album names go to the MyMedia shop.',
         'Where are my names, descriptions, faces? In your Drive, MyMedia folder: mymedia.json, mymedia-faces.json, mymedia-index.*. Your other devices find them there.',
         'Is deleting permanent? No. Files go to the Google Drive trash, recoverable for 30 days.',
         '"Reconnect" banner: the Google connection must be renewed (mostly on iPhone). Your work is kept.',
@@ -351,9 +371,19 @@ const he: HelpContent = {
       ],
     },
     {
+      title: 'מודלים למיון (חנות)',
+      items: [
+        'מודל הוא שמות האלבומים של קטגוריה ו„טביעות האצבע” של התמונות הממוינות בה, בלי התמונות. הוא מאפשר לחשבון אחר למיין את התמונות שלו כבר מההתחלה.',
+        'הגדרות ← מודלים למיון ← פרסום המודל שלי: בוחרים קטגוריה (למשל ציפורים), שם, שם מוכר ומחיר (0 = חינם). נשלחות עד 60 דוגמאות לכל אלבום.',
+        'כדי לקבל מודל: אותו תפריט, חנות ← קבלה. MyMedia יוצרת את האלבומים (ריקים) אצלכם, ואז התמונות למיון מושוות אליהם וממוינות או מוצעות ב„למיון”.',
+        'בתקופת הניסיון הכול בחינם: המחיר רק מוצג. התשלום (PayPal) יגיע בהמשך.',
+        'מודל קשור לחשבון Google שקיבל אותו: אם מעתיקים אותו לחשבון אחר, הוא נדחה. הסרתו משאירה את האלבומים ואת התמונות שלכם.',
+      ],
+    },
+    {
       title: 'שאלות נפוצות',
       items: [
-        'האם התמונות שלי נשלחות לאנשהו? לא. רק בין המכשיר שלך ל-Google Drive שלך.',
+        'האם התמונות שלי נשלחות לאנשהו? לא. רק בין המכשיר שלך ל-Google Drive שלך. אם מפרסמים מודל למיון, רק טביעות האצבע ושמות האלבומים נשלחים לחנות של MyMedia.',
         'איפה נשמרים השמות, התיאורים והפנים? ב-Drive שלך, בתיקיית MyMedia: mymedia.json, mymedia-faces.json, mymedia-index.*. המכשירים האחרים שלך מוצאים אותם שם.',
         'האם מחיקה היא סופית? לא. הקבצים עוברים לאשפה של Google Drive וניתנים לשחזור במשך 30 יום.',
         'הודעת "התחברות מחדש": יש לחדש את החיבור ל-Google (בעיקר באייפון). העבודה שלך נשמרת.',
