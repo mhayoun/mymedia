@@ -627,6 +627,7 @@
       "noRoot": "The MyMedia folder is not ready yet.",
       "signIn": "Sign in to Google again, then retry.",
       "tooBig": "The model is too big to be sent."
-    }
+    },
+    "isMine": "My model"
   }
 }

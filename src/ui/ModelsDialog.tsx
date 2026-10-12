@@ -130,7 +130,9 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
                 {m.description && <div dir="auto">{m.description}</div>}
               </div>
               <span className="row">
-                {installedIds.has(m.id) ? (
+                {m.mine ? (
+                  <span className="tag">{t('models.isMine')}</span>
+                ) : installedIds.has(m.id) ? (
                   <span className="ok-text">{t('models.isInstalled')}</span>
                 ) : (
                   <button

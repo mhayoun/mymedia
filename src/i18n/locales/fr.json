@@ -625,6 +625,7 @@
       "noRoot": "Le dossier MyMedia n'est pas encore prêt.",
       "signIn": "Reconnectez-vous à Google, puis réessayez.",
       "tooBig": "Le modèle est trop gros pour être envoyé."
-    }
+    },
+    "isMine": "Mon modèle"
   }
 }
