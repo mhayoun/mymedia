@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { FolderExistsError } from '../drive/api'
 
 interface ModalProps {
   title: string
@@ -59,7 +60,7 @@ export function PromptDialog({ title, initial = '', suggestions, label, confirmL
       await onSubmit(v)
       onClose()
     } catch (ex) {
-      setError(t('errors.generic', { message: (ex as Error).message }))
+      setError(ex instanceof FolderExistsError ? t('folders.exists') : t('errors.generic', { message: (ex as Error).message }))
       setBusy(false)
     }
   }
@@ -111,7 +112,7 @@ export function ConfirmDialog({ title, text, confirmLabel, danger, onConfirm, on
       await onConfirm()
       onClose()
     } catch (ex) {
-      setError(t('errors.generic', { message: (ex as Error).message }))
+      setError(ex instanceof FolderExistsError ? t('folders.exists') : t('errors.generic', { message: (ex as Error).message }))
       setBusy(false)
     }
   }

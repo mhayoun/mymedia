@@ -1,6 +1,7 @@
 // Minimal Google Drive v3 REST client used by the app.
 
 import { auth } from '../auth/google'
+import { nameKey } from '../lib/filename'
 import { FOLDER_MIME } from '../lib/media'
 
 const API = 'https://www.googleapis.com/drive/v3'
@@ -211,6 +212,47 @@ export async function createFolder(name: string, parentId: string): Promise<Driv
     body: JSON.stringify({ name, mimeType: FOLDER_MIME, parents: [parentId] }),
   })
   return res.json()
+}
+
+/** A folder of that name is already there (see `sameFolderName`). */
+export class FolderExistsError extends Error {
+  readonly folder: DriveFile
+  constructor(folder: DriveFile) {
+    super(`folder exists: ${folder.name}`)
+    this.folder = folder
+  }
+}
+
+/** Folder names that are the same for the user: case, spaces, dashes, punctuation and Hebrew points ignored. */
+export function sameFolderName(a: string, b: string): boolean {
+  const ka = nameKey(a)
+  return ka ? ka === nameKey(b) : a.trim() === b.trim()
+}
+
+/** The sub-folder of `parentId` with the same name (see `sameFolderName`), asked to Drive itself. */
+export async function findFolderNamed(parentId: string, name: string, exceptId?: string): Promise<DriveFile | null> {
+  let found: DriveFile | null = null
+  await listFiles(
+    `'${q(parentId)}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false`,
+    (files) => {
+      found ??= files.find((f) => f.id !== exceptId && sameFolderName(f.name, name)) ?? null
+    },
+    undefined,
+    'id,name,mimeType,parents',
+  )
+  return found
+}
+
+/** Creates a folder the user named; refuses (FolderExistsError) when one of the same name is already there. */
+export async function createNewFolder(name: string, parentId: string): Promise<DriveFile> {
+  const same = await findFolderNamed(parentId, name)
+  if (same) throw new FolderExistsError(same)
+  return createFolder(name, parentId)
+}
+
+/** The folder of that name in `parentId`, created if there is none (never a second one). */
+export async function folderNamed(name: string, parentId: string): Promise<DriveFile> {
+  return (await findFolderNamed(parentId, name)) ?? createFolder(name, parentId)
 }
 
 export async function renameFile(id: string, name: string): Promise<DriveFile> {
@@ -424,18 +466,7 @@ export async function keepPreviousVersion(id: string): Promise<void> {
 /** Finds (or creates) a chain of folders below parentId, e.g. ["_Originals", "Birds", "דוכיפת"]. */
 export async function ensureFolderPath(parentId: string, names: string[]): Promise<string> {
   let current = parentId
-  for (const name of names) {
-    let found: DriveFile | null = null
-    await listFiles(
-      `name = '${q(name)}' and '${q(current)}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false`,
-      (files) => {
-        found ??= files[0] ?? null
-      },
-      undefined,
-      'id,name',
-    )
-    current = (found as DriveFile | null)?.id ?? (await createFolder(name, current)).id
-  }
+  for (const name of names) current = (await folderNamed(name, current)).id
   return current
 }
 

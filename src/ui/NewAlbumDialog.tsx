@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder } from '../classify/engine'
-import { createFolder } from '../drive/api'
+import { createNewFolder, FolderExistsError, sameFolderName } from '../drive/api'
 import { placementOf } from '../lib/tree'
 import { useApp } from '../store'
 import { syncNow } from '../sync/engine'
@@ -47,13 +47,13 @@ export function NewAlbumDialog({ lib, ids, parentId, onDone, onClose }: Props) {
     const v = name.trim().replace(/\s+/g, ' ')
     if (!v || !parent) return setError(t('folders.invalidName'))
     const exists = [...lib.folders.values()].some(
-      (f) => f.parentId === parent && f.name.localeCompare(v, undefined, { sensitivity: 'base' }) === 0,
+      (f) => f.parentId === parent && sameFolderName(f.name, v),
     )
     if (exists) return setError(t('folders.exists'))
     setError(null)
     setProgress({ done: 0, total: ids.length })
     try {
-      const folder = await createFolder(v, parent)
+      const folder = await createNewFolder(v, parent)
       await syncNow()
       for (const [n, id] of ids.entries()) {
         await chooseFolder(id, folder.id)
@@ -62,7 +62,7 @@ export function NewAlbumDialog({ lib, ids, parentId, onDone, onClose }: Props) {
       onDone?.()
       onClose()
     } catch (ex) {
-      setError(t('errors.generic', { message: (ex as Error).message }))
+      setError(ex instanceof FolderExistsError ? t('folders.exists') : t('errors.generic', { message: (ex as Error).message }))
       setProgress(null)
     }
   }

@@ -5,7 +5,7 @@
 
 import { moveMedia } from '../classify/engine'
 import { db } from '../db/db'
-import { createFolder, downloadText, findFilesByName, getFile, isFolderEmpty, setAppProperties, trashFile } from '../drive/api'
+import { downloadText, folderNamed, findFilesByName, getFile, isFolderEmpty, setAppProperties, trashFile } from '../drive/api'
 import { KATIA_INDEX_NAME, katiaProvenance, parseKatiaIndex, planKatiaImport, type KatiaPlan } from '../lib/katia'
 import { nameKey } from '../lib/filename'
 import { folderChain, subtreeIds } from '../lib/tree'
@@ -80,7 +80,8 @@ export async function runKatiaImport(
   const albumFor = async (species: string) => {
     const key = nameKey(species)
     if (!albums.has(key)) {
-      const f = await createFolder(species, source.folderId)
+      const f = await folderNamed(species, source.folderId)
+      species = f.name
       await d.folders.put({ id: f.id, name: species, parentId: source.folderId })
       albums.set(key, f.id)
     }

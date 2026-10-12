@@ -12,10 +12,11 @@ import {
   about,
   acceptOwnership,
   childrenQuery,
-  createFolder,
   createTextFile,
   downloadText,
   findChildByName,
+  findFolderNamed,
+  folderNamed,
   getFile,
   listFiles,
   moveFile,
@@ -231,10 +232,10 @@ export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress):
     // Same place as in the sender's MyMedia: create the parents, merge with a folder of the same name.
     let parent = rootId
     for (const name of manifest.path.slice(0, -1)) {
-      parent = (await findChildByName(parent, name))?.id ?? (await createFolder(name, parent)).id
+      parent = (await folderNamed(name, parent)).id
     }
     const last = manifest.path[manifest.path.length - 1]
-    const same = await findChildByName(parent, last)
+    const same = await findFolderNamed(parent, last, manifest.folderId)
     await trashFile(t.manifestId).catch(() => undefined)
     if (same && same.id !== manifest.folderId) {
       await moveInto(manifest.folderId, parent)

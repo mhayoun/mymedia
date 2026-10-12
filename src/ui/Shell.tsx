@@ -2,6 +2,7 @@ import { Brain, CircleHelp, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause,
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
+import { sameFolderName } from '../drive/api'
 import { useFormat } from '../i18n/format'
 import { app, useApp } from '../store'
 import { createAlbum, createCategory, deleteFolder, renameFolder } from '../sync/folders'
@@ -85,7 +86,7 @@ export function Shell() {
 
   const siblingsHaveName = (parentId: string, name: string, exceptId?: string) =>
     [...lib.folders.values()].some(
-      (f) => f.parentId === parentId && f.id !== exceptId && f.name.localeCompare(name, undefined, { sensitivity: 'base' }) === 0,
+      (f) => f.parentId === parentId && f.id !== exceptId && sameFolderName(f.name, name),
     )
 
   return (
