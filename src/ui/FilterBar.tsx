@@ -42,7 +42,7 @@ export function FilterBar({ people, lib }: { people: People; lib: Library }) {
   const active = chips.length
 
   return (
-    <div className="filter-bar">
+    <div className={`filter-bar ${open || chips.length ? 'expanded' : ''}`}>
       <div className="row">
         <label className="search">
           <Search size={16} />

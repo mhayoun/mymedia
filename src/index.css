@@ -424,3 +424,11 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   .review-group-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
   .review-group-head .row { flex: 1 1 100%; }
 }
+
+/* ---------- Computer: title, view, sort, add… and search on one line ---------- */
+@media (min-width: 801px) {
+  .controls { display: flex; flex-wrap: wrap; align-items: center; border-block-end: 1px solid var(--border); }
+  .controls > .toolbar { flex: 1 1 auto; border-block-end: none; }
+  .controls > .filter-bar { flex: 1 1 380px; border-block-end: none; padding-inline-start: 0; }
+  .controls > .filter-bar.expanded { flex-basis: 100%; padding-inline-start: 14px; }
+}

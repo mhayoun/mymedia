@@ -98,6 +98,7 @@ export function Shell() {
       <div className={`body ${sidebarHidden ? 'sidebar-hidden' : ''}`}>
         <Sidebar lib={lib} people={people} onNewCategory={() => setDialog({ kind: 'newCategory' })} />
         <main className="main">
+          <div className="controls">
           <Toolbar
             lib={lib}
             people={people}
@@ -107,6 +108,7 @@ export function Shell() {
             onCompress={() => setDialog({ kind: 'compress', title: t('compress.titleFor', { name: currentTitle }), folderId: currentFolderId })}
           />
           {filters.categoryId !== PEOPLE && <FilterBar people={people} lib={lib} />}
+          </div>
           {filters.categoryId === PEOPLE ? (
             <PeopleView people={people} />
           ) : lib.ready && items.length === 0 ? (
@@ -437,23 +439,15 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
       )}
       <div className="toolbar-controls">
       <button
-        className="btn only-mobile view-toggle"
+        className="btn view-toggle"
         onClick={() => updateSettings({ view: settings.view === 'grid' ? 'albums' : 'grid' })}
-        aria-label={settings.view === 'grid' ? t('gallery.viewAlbums') : t('gallery.viewGrid')}
         title={settings.view === 'grid' ? t('gallery.viewAlbums') : t('gallery.viewGrid')}
+        aria-label={settings.view === 'grid' ? t('gallery.viewAlbums') : t('gallery.viewGrid')}
       >
-        {settings.view === 'grid' ? <LayoutGrid size={16} /> : <Rows3 size={16} />}
+        {/* One button: shows the view it switches to. */}
+        {settings.view === 'grid' ? <Rows3 size={16} /> : <LayoutGrid size={16} />}
+        <span className="only-desktop">{settings.view === 'grid' ? t('gallery.viewAlbums') : t('gallery.viewGrid')}</span>
       </button>
-      <div className="segmented only-desktop" role="group" aria-label={t('gallery.viewGrid')}>
-        <button aria-pressed={settings.view === 'grid'} onClick={() => updateSettings({ view: 'grid' })} title={t('gallery.viewGrid')}>
-          <LayoutGrid size={16} />
-          <span className="only-desktop">{t('gallery.viewGrid')}</span>
-        </button>
-        <button aria-pressed={settings.view === 'albums'} onClick={() => updateSettings({ view: 'albums' })} title={t('gallery.viewAlbums')}>
-          <Rows3 size={16} />
-          <span className="only-desktop">{t('gallery.viewAlbums')}</span>
-        </button>
-      </div>
       <select
         aria-label={t('gallery.sort')}
         value={settings.sort}
