@@ -1,4 +1,4 @@
-import { Brain, CircleHelp, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Trash2, WifiOff, X } from 'lucide-react'
+import { Brain, CircleHelp, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Store, Trash2, UserRound, WifiOff, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -24,6 +24,8 @@ import { AUTO, filterItems, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary,
 import { clearSharedFiles, hasSharedFiles, readSharedFiles } from '../import/shared'
 import { FacesIntro } from './FacesIntro'
 import { HelpPanel } from './HelpPanel'
+import { AccountPanel } from './AccountPanel'
+import { ModelsDialog } from './ModelsDialog'
 import { FilterBar } from './FilterBar'
 import { SelectionBar } from './SelectionBar'
 import { PeopleContext, PersonDialogContext } from './peopleContext'
@@ -51,6 +53,8 @@ export function Shell() {
   const sidebarHidden = useApp((s) => !!s.settings.sidebarHidden)
   const settingsOpen = useApp((s) => s.settingsOpen)
   const helpOpen = useApp((s) => s.helpOpen)
+  const accountOpen = useApp((s) => s.accountOpen)
+  const shopOpen = useApp((s) => s.shopOpen)
   const statsOpen = useApp((s) => s.statsOpen)
   const compressOffer = useApp((s) => s.compressOffer)
   const [dialog, setDialog] = useState<DialogState>(null)
@@ -123,6 +127,8 @@ export function Shell() {
       </div>
       {settingsOpen && <SettingsPanel />}
       {helpOpen && <HelpPanel />}
+      {accountOpen && <AccountPanel />}
+      {shopOpen && <ModelsDialog onClose={() => app().set({ shopOpen: false })} />}
       {statsOpen && <StatsDialog lib={lib} />}
       {compressOffer && (
         <CompressDialog mode="offer" title={t('compress.offerTitle')} planned={compressOffer} onClose={() => useApp.getState().set({ compressOffer: null })} />
@@ -297,8 +303,14 @@ function TopBar() {
       <button className="icon-btn" onClick={() => set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
         <CircleHelp />
       </button>
-      <button className="icon-btn" onClick={() => set({ settingsOpen: true })} aria-label={t('nav.settings')}>
-        {user?.photo ? <img className="avatar" src={user.photo} alt="" referrerPolicy="no-referrer" /> : <SettingsIcon />}
+      <button className="icon-btn shop-btn" onClick={() => set({ shopOpen: true })} aria-label={t('nav.shop')} title={t('nav.shop')}>
+        <Store />
+      </button>
+      <button className="icon-btn" onClick={() => set({ settingsOpen: true })} aria-label={t('nav.settings')} title={t('nav.settings')}>
+        <SettingsIcon />
+      </button>
+      <button className="icon-btn" onClick={() => set({ accountOpen: true })} aria-label={t('nav.account')} title={user?.email ?? t('nav.account')}>
+        {user?.photo ? <img className="avatar" src={user.photo} alt="" referrerPolicy="no-referrer" /> : <UserRound />}
       </button>
     </header>
   )

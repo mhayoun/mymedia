@@ -110,8 +110,8 @@ const fr: HelpContent = {
     {
       title: 'Donner des photos à un autre compte',
       items: [
-        'Réglages → Transfert vers un autre compte : choisissez une catégorie ou un album (par exemple ציפורים) et l’adresse Gmail, puis Envoyer.',
-        'L’autre compte ouvre MyMedia, même menu, et clique sur Accepter. Le dossier arrive au même endroit dans son MyMedia, avec espèces, textes, dates et personnes.',
+        'Compte (votre photo en haut à droite) → Transfert vers un autre compte : choisissez une catégorie ou un album (par exemple ציפורים) et l’adresse Gmail, puis Envoyer.',
+        'L’autre compte ouvre MyMedia, Compte → Transfert vers un autre compte, et clique sur Accepter. Le dossier arrive au même endroit dans son MyMedia, avec espèces, textes, dates et personnes.',
         'Rien n’est copié ni renvoyé : les photos changent seulement de propriétaire. Après l’acceptation, la place est libérée sur le premier compte.',
         'Seuls vos propres fichiers peuvent être donnés ; MyMedia indique ceux qui appartiennent à un autre compte.',
       ],
@@ -120,8 +120,8 @@ const fr: HelpContent = {
       title: 'Modèles de classement (boutique)',
       items: [
         'Un modèle, ce sont les noms des albums d’une catégorie et les « empreintes » de ses photos rangées, sans les photos. Il permet à un autre compte de ranger ses propres photos dès le début.',
-        'Réglages → Modèles de classement → Publier mon modèle : choisissez la catégorie (par exemple ציפורים), un nom, votre nom de vendeur et un prix (0 = gratuit). Au plus 60 exemples par album sont envoyés.',
-        'Pour obtenir un modèle : même menu, Boutique → Obtenir. MyMedia crée les albums (vides) dans votre MyMedia, puis vos photos à classer leur sont comparées et rangées ou proposées dans « À classer ».',
+        '🛒 Boutique (en haut, ou dans le menu ☰) → Publier mon modèle : choisissez la catégorie (par exemple ציפורים), un nom, votre nom de vendeur et un prix (0 = gratuit). Au plus 60 exemples par album sont envoyés.',
+        'Pour obtenir un modèle : 🛒 Boutique → Obtenir. MyMedia crée les albums (vides) dans votre MyMedia, puis vos photos à classer leur sont comparées et rangées ou proposées dans « À classer ».',
         'Pendant le test, tout est gratuit : le prix est seulement affiché. Le paiement (PayPal) viendra plus tard.',
         'Un modèle est lié au compte Google qui l’a obtenu : copié vers un autre compte, il est refusé. Le retirer garde ses albums et vos photos.',
       ],
@@ -237,8 +237,8 @@ const en: HelpContent = {
     {
       title: 'Give photos to another account',
       items: [
-        'Settings → Transfer to another account: choose a category or an album (e.g. ציפורים) and the Gmail address, then Send.',
-        'The other account opens MyMedia, same menu, and clicks Accept. The folder lands at the same place in their MyMedia, with species, texts, dates and people.',
+        'Account (your photo at the top right) → Transfer to another account: choose a category or an album (e.g. ציפורים) and the Gmail address, then Send.',
+        'The other account opens MyMedia, Account → Transfer to another account, and clicks Accept. The folder lands at the same place in their MyMedia, with species, texts, dates and people.',
         'Nothing is copied or uploaded again: only the owner changes. Once accepted, the space is freed on the first account.',
         'Only your own files can be given; MyMedia tells which ones belong to another account.',
       ],
@@ -247,8 +247,8 @@ const en: HelpContent = {
       title: 'Classification models (shop)',
       items: [
         'A model is the album names of a category and the “fingerprints” of its sorted photos, without the photos. It lets another account sort its own photos from the start.',
-        'Settings → Classification models → Publish my model: choose the category (e.g. ציפורים), a name, your seller name and a price (0 = free). At most 60 examples per album are sent.',
-        'To get a model: same menu, Shop → Get. MyMedia creates the albums (empty) in your MyMedia, then your photos to classify are compared with them and sorted or suggested in “To classify”.',
+        '🛒 Shop (at the top, or in the ☰ menu) → Publish my model: choose the category (e.g. ציפורים), a name, your seller name and a price (0 = free). At most 60 examples per album are sent.',
+        'To get a model: 🛒 Shop → Get. MyMedia creates the albums (empty) in your MyMedia, then your photos to classify are compared with them and sorted or suggested in “To classify”.',
         'During the test everything is free: the price is only shown. Payment (PayPal) will come later.',
         'A model is bound to the Google account that got it: copied to another account, it is refused. Removing it keeps its albums and your photos.',
       ],
@@ -364,8 +364,8 @@ const he: HelpContent = {
     {
       title: 'מסירת תמונות לחשבון אחר',
       items: [
-        'הגדרות ← העברה לחשבון אחר: בוחרים קטגוריה או אלבום (למשל ציפורים) ואת כתובת ה-Gmail, ואז שליחה.',
-        'החשבון השני פותח את MyMedia, באותו תפריט, ולוחץ לקבל. התיקייה מגיעה לאותו מקום ב-MyMedia שלו, עם המינים, הטקסטים, התאריכים והאנשים.',
+        'חשבון (התמונה שלכם למעלה) ← העברה לחשבון אחר: בוחרים קטגוריה או אלבום (למשל ציפורים) ואת כתובת ה-Gmail, ואז שליחה.',
+        'החשבון השני פותח את MyMedia, חשבון ← העברה לחשבון אחר, ולוחץ לקבל. התיקייה מגיעה לאותו מקום ב-MyMedia שלו, עם המינים, הטקסטים, התאריכים והאנשים.',
         'שום דבר לא מועתק ולא מועלה מחדש: רק הבעלים משתנה. אחרי הקבלה, המקום מתפנה בחשבון הראשון.',
         'אפשר למסור רק קבצים שלך; MyMedia מציינת אילו שייכים לחשבון אחר.',
       ],
@@ -374,8 +374,8 @@ const he: HelpContent = {
       title: 'מודלים למיון (חנות)',
       items: [
         'מודל הוא שמות האלבומים של קטגוריה ו„טביעות האצבע” של התמונות הממוינות בה, בלי התמונות. הוא מאפשר לחשבון אחר למיין את התמונות שלו כבר מההתחלה.',
-        'הגדרות ← מודלים למיון ← פרסום המודל שלי: בוחרים קטגוריה (למשל ציפורים), שם, שם מוכר ומחיר (0 = חינם). נשלחות עד 60 דוגמאות לכל אלבום.',
-        'כדי לקבל מודל: אותו תפריט, חנות ← קבלה. MyMedia יוצרת את האלבומים (ריקים) אצלכם, ואז התמונות למיון מושוות אליהם וממוינות או מוצעות ב„למיון”.',
+        '🛒 חנות (למעלה, או בתפריט ☰) ← פרסום המודל שלי: בוחרים קטגוריה (למשל ציפורים), שם, שם מוכר ומחיר (0 = חינם). נשלחות עד 60 דוגמאות לכל אלבום.',
+        'כדי לקבל מודל: 🛒 חנות ← קבלה. MyMedia יוצרת את האלבומים (ריקים) אצלכם, ואז התמונות למיון מושוות אליהם וממוינות או מוצעות ב„למיון”.',
         'בתקופת הניסיון הכול בחינם: המחיר רק מוצג. התשלום (PayPal) יגיע בהמשך.',
         'מודל קשור לחשבון Google שקיבל אותו: אם מעתיקים אותו לחשבון אחר, הוא נדחה. הסרתו משאירה את האלבומים ואת התמונות שלכם.',
       ],

@@ -61,7 +61,9 @@
     "menu": "Menu",
     "settings": "Paramètres",
     "noAlbums": "Pas encore d'album",
-    "help": "Aide"
+    "help": "Aide",
+    "shop": "Boutique",
+    "account": "Compte"
   },
   "folders": {
     "newCategoryTitle": "Nouvelle catégorie",
@@ -559,7 +561,7 @@
     "accepted_one": "Terminé : {{count}} élément est maintenant à vous, dans votre MyMedia.",
     "accepted_other": "Terminé : {{count}} éléments sont maintenant à vous, dans votre MyMedia.",
     "sendTitle": "Envoyer",
-    "sendHint": "L'autre compte reçoit un e-mail. Il ouvre ensuite MyMedia avec ce compte, Réglages → Transfert vers un autre compte → Accepter. Jusque-là, rien ne change chez vous.",
+    "sendHint": "L'autre compte reçoit un e-mail. Il ouvre ensuite MyMedia avec ce compte, Compte (sa photo en haut) → Transfert vers un autre compte → Accepter. Jusque-là, rien ne change chez vous.",
     "what": "Quoi",
     "choose": "Choisir une catégorie ou un album…",
     "to": "À (adresse Gmail)",
@@ -635,5 +637,9 @@
       "save": "Enregistrement dans votre Drive…",
       "sync": "Mise à jour de MyMedia…"
     }
+  },
+  "account": {
+    "title": "Compte",
+    "reconnectHint": "Se reconnecter : quand Google demande de renouveler la connexion (surtout sur iPhone). Changer de compte : ouvrir MyMedia avec un autre compte Google."
   }
 }

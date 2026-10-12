@@ -439,3 +439,6 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .model-row > div { flex: 1 1 260px; min-width: 0; }
 .model-progress { display: flex; flex-direction: column; gap: 4px; margin-block-start: 6px; }
 .model-progress progress { inline-size: 100%; block-size: 8px; accent-color: var(--accent); }
+.account-card { display: flex; align-items: center; gap: 12px; margin-block-end: 12px; }
+.avatar.big { inline-size: 56px; block-size: 56px; }
+@media (max-width: 480px) { .topbar .shop-btn { display: none; } }

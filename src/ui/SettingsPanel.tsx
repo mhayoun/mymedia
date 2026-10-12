@@ -1,11 +1,9 @@
 import { X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { auth } from '../auth/google'
 import { db } from '../db/db'
 import { renameFile } from '../drive/api'
 import { changeLanguage, LANGUAGES } from '../i18n'
-import { signOut } from '../session'
 import { DEFAULT_COMPRESS, type CompressSettings, type KeepOriginal } from '../lib/compressPlan'
 import { ORIGINS } from '../lib/media'
 import { useApp, type Language } from '../store'
@@ -15,23 +13,18 @@ import { useFormat } from '../i18n/format'
 import { ConfirmDialog, PromptDialog } from './Dialog'
 import { deleteAllFaceData } from '../faces/store'
 import { usePeopleContext } from './peopleContext'
-import { TransferDialog } from './TransferDialog'
-import { ModelsDialog } from './ModelsDialog'
 import { clearMediaCaches } from '../sync/previews'
 
 export function SettingsPanel() {
   const { t } = useTranslation()
   const settings = useApp((s) => s.settings)
   const updateSettings = useApp((s) => s.updateSettings)
-  const user = useApp((s) => s.user)
   const rootId = useApp((s) => s.rootId)
   const set = useApp((s) => s.set)
   const [renaming, setRenaming] = useState(false)
   const [cleared, setCleared] = useState(false)
   const [rebuilt, setRebuilt] = useState(false)
   const [deleteFaces, setDeleteFaces] = useState(false)
-  const [transfer, setTransfer] = useState(false)
-  const [models, setModels] = useState(false)
   const people = usePeopleContext()
   const fmt = useFormat()
   const indexing = useApp((s) => s.indexing)
@@ -282,22 +275,6 @@ export function SettingsPanel() {
         </section>
 
         <section>
-          <h3>{t('models.title')}</h3>
-          <button className="btn" onClick={() => setModels(true)} disabled={!rootId}>
-            {t('models.open')}
-          </button>
-          <p className="hint">{t('models.settingsHint')}</p>
-        </section>
-
-        <section>
-          <h3>{t('transfer.title')}</h3>
-          <button className="btn" onClick={() => setTransfer(true)} disabled={!rootId}>
-            {t('transfer.open')}
-          </button>
-          <p className="hint">{t('transfer.settingsHint')}</p>
-        </section>
-
-        <section>
           <h3>{t('settings.rootFolder')}</h3>
           <div className="row">
             <bdi>{settings.rootName}</bdi>
@@ -306,19 +283,6 @@ export function SettingsPanel() {
             </button>
           </div>
           <p className="hint">{t('settings.rootFolderHint')}</p>
-        </section>
-
-        <section>
-          <h3>{t('settings.account')}</h3>
-          {user && <p>{t('settings.signedInAs', { email: user.email })}</p>}
-          <div className="row">
-            <button className="btn" onClick={() => auth.signIn(true)}>
-              {t('auth.switchAccount')}
-            </button>
-            <button className="btn" onClick={signOut}>
-              {t('auth.signOut')}
-            </button>
-          </div>
         </section>
 
         <section>
@@ -338,8 +302,6 @@ export function SettingsPanel() {
         </section>
       </aside>
 
-      {transfer && <TransferDialog onClose={() => setTransfer(false)} />}
-      {models && <ModelsDialog onClose={() => setModels(false)} />}
       {deleteFaces && (
         <ConfirmDialog
           title={t('faces.deleteAllTitle')}

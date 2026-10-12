@@ -61,7 +61,9 @@
     "menu": "Menu",
     "settings": "Settings",
     "noAlbums": "No albums yet",
-    "help": "Help"
+    "help": "Help",
+    "shop": "Shop",
+    "account": "Account"
   },
   "folders": {
     "newCategoryTitle": "New category",
@@ -561,7 +563,7 @@
     "accepted_one": "Done: {{count}} item is now yours, in your MyMedia.",
     "accepted_other": "Done: {{count}} items are now yours, in your MyMedia.",
     "sendTitle": "Send",
-    "sendHint": "The other account gets an e-mail. Then they open MyMedia with that account, Settings → Transfer to another account → Accept. Until then nothing changes for you.",
+    "sendHint": "The other account gets an e-mail. Then they open MyMedia with that account, Account (their photo at the top) → Transfer to another account → Accept. Until then nothing changes for you.",
     "what": "What",
     "choose": "Choose a category or album…",
     "to": "To (Gmail address)",
@@ -637,5 +639,9 @@
       "save": "Saving to your Drive…",
       "sync": "Updating MyMedia…"
     }
+  },
+  "account": {
+    "title": "Account",
+    "reconnectHint": "Reconnect: when Google asks to renew the connection (mostly on iPhone). Switch account: open MyMedia with another Google account."
   }
 }
