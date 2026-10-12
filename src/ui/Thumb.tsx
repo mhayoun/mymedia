@@ -1,4 +1,4 @@
-import { Check, Play } from 'lucide-react'
+import { Check, Play, ZoomIn } from 'lucide-react'
 import { memo, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MediaRecord } from '../db/db'
@@ -8,25 +8,21 @@ import { cachedThumbUrl, loadThumb, screenOrder } from '../sync/thumbs'
 
 interface Props {
   rec: MediaRecord
+  /** A tap on the picture (opens it, or ticks it in grids that select). */
   onOpen: (id: string, e: { shiftKey: boolean }) => void
   /** Ticked or not; undefined: no tick shown. */
   selected?: boolean
-  /** The round tick in the corner, always shown: ticks or unticks without opening. */
-  onCheck?: (id: string, e: { shiftKey: boolean }) => void
-  /** Long press (touch) or Ctrl/⌘-click: tick this media. */
-  onLongPress?: (id: string) => void
+  /** The Enlarge button in the corner (when a tap ticks): opens the photo. */
+  onZoom?: (id: string) => void
 }
 
-const LONG_PRESS_MS = 500
-
-export const Thumb = memo(function Thumb({ rec, onOpen, selected, onCheck, onLongPress }: Props) {
+export const Thumb = memo(function Thumb({ rec, onOpen, selected, onZoom }: Props) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const bySize = useApp((s) => s.settings.sort === 'largest' || s.settings.sort === 'smallest')
   const [url, setUrl] = useState<string | null | undefined>(() => cachedThumbUrl(rec.id))
   const mounted = useRef(true)
   const el = useRef<HTMLButtonElement>(null)
-  const press = useRef<{ timer: ReturnType<typeof setTimeout>; fired: boolean } | null>(null)
 
   useEffect(() => {
     mounted.current = true
@@ -40,36 +36,13 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onCheck, onLon
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rec.id, rec.modifiedTime])
 
-  const startPress = () => {
-    if (!onLongPress || selected) return
-    const state = { fired: false, timer: setTimeout(() => {
-      state.fired = true
-      onLongPress(rec.id)
-    }, LONG_PRESS_MS) }
-    press.current = state
-  }
-  const endPress = () => {
-    if (press.current) clearTimeout(press.current.timer)
-  }
-
   return (
     <button
       type="button"
       ref={el}
       className={`cell ${selected ? 'selected' : ''}`}
       aria-pressed={selected}
-      onClick={(e) => {
-        if (press.current?.fired) {
-          press.current = null
-          return
-        }
-        if ((e.ctrlKey || e.metaKey) && !selected && onLongPress) return onLongPress(rec.id)
-        onOpen(rec.id, e)
-      }}
-      onPointerDown={startPress}
-      onPointerUp={endPress}
-      onPointerLeave={endPress}
-      onContextMenu={(e) => onLongPress && e.preventDefault()}
+      onClick={(e) => onOpen(rec.id, e)}
       title={rec.name}
     >
       {url ? (
@@ -86,23 +59,20 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onCheck, onLon
         </span>
       )}
       {bySize && <span className="badge size">{fmt.bytes(rec.size)}</span>}
-      {onCheck ? (
+      {selected !== undefined && <span className="check">{selected && <Check size={14} />}</span>}
+      {onZoom && (
         <span
-          className="check tick"
-          role="checkbox"
-          aria-checked={!!selected}
-          aria-label={t('select.tick')}
-          title={t('select.tick')}
-          onPointerDown={(e) => e.stopPropagation()}
+          className="zoom-btn"
+          role="button"
+          aria-label={t('classify.zoom')}
+          title={t('classify.zoom')}
           onClick={(e) => {
             e.stopPropagation()
-            onCheck(rec.id, e)
+            onZoom(rec.id)
           }}
         >
-          {selected && <Check size={14} />}
+          <ZoomIn size={16} />
         </span>
-      ) : (
-        selected !== undefined && <span className="check">{selected && <Check size={14} />}</span>
       )}
     </button>
   )

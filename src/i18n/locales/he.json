@@ -492,8 +492,7 @@
     "compressTitle_other": "דחיסת {{count}} הקבצים שנבחרו",
     "deleteTitle_one": "למחוק את הקובץ שנבחר?",
     "deleteTitle_two": "למחוק את {{count}} הקבצים שנבחרו?",
-    "deleteTitle_other": "למחוק את {{count}} הקבצים שנבחרו?",
-    "tick": "סימון"
+    "deleteTitle_other": "למחוק את {{count}} הקבצים שנבחרו?"
   },
   "export": {
     "button": "ייצוא",

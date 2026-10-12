@@ -128,9 +128,8 @@ export function ReviewView({ lib, items, mode }: Props) {
               <Thumb
                 rec={rec}
                 selected={selected.has(rec.id)}
-                onCheck={toggle}
-                onLongPress={toggle}
-                onOpen={(id) => (selected.size ? toggle(id) : set({ viewerId: id }))}
+                onOpen={toggle}
+                onZoom={(id) => set({ viewerId: id })}
               />
               <div className="review-body">
                 <div className="review-name" title={rec.name}>

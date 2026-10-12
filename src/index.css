@@ -378,13 +378,6 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 }
 .cell.selected { outline: 3px solid var(--accent); outline-offset: -3px; }
 .cell.selected .check { background: var(--accent); border-color: var(--accent); }
-/* The tick always shown in grids: a bigger touch area than it looks. */
-.cell .check.tick { cursor: pointer; box-shadow: 0 0 0 1px rgb(0 0 0 / 0.25); }
-.cell .check.tick::before { content: ''; position: absolute; inset: -8px; }
-@media (hover: hover) {
-  .cell:not(.selected) .check.tick { opacity: 0.55; }
-  .cell:hover .check.tick { opacity: 1; }
-}
 .cell.selected img { transform: scale(0.92); transition: transform 0.1s; }
 .selecting .gallery-scroll { padding-block-end: 70px; }
 
@@ -421,12 +414,13 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .review-group-cell { position: relative; display: grid; }
 .review-group-cell .pct { position: absolute; inset-block-end: 4px; inset-inline-end: 4px; background: rgb(0 0 0 / 0.55); color: #fff; border-radius: 6px; padding: 0 5px; pointer-events: none; }
 .review-group-cell .tag { position: absolute; inset-block-start: 6px; inset-inline-end: 6px; margin: 0; padding: 0 6px; font-weight: 700; pointer-events: auto; cursor: help; }
-.review-group-cell .zoom-btn {
-  position: absolute; inset-block-end: 4px; inset-inline-start: 4px; inline-size: 28px; block-size: 28px;
-  display: grid; place-items: center; border: none; border-radius: 50%; cursor: pointer;
+.cell .zoom-btn {
+  position: absolute; inset-block-start: 4px; inset-inline-end: 4px; inline-size: 30px; block-size: 30px;
+  display: grid; place-items: center; border-radius: 50%; cursor: pointer;
   background: rgb(0 0 0 / 0.55); color: #fff;
 }
-.review-group-cell .zoom-btn:hover { background: var(--accent); }
+.cell .zoom-btn::before { content: ''; position: absolute; inset: -6px; }
+.cell .zoom-btn:hover { background: var(--accent); }
 @media (max-width: 800px) {
   .review-group-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
   .review-group-head .row { flex: 1 1 100%; }

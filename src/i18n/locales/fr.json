@@ -456,8 +456,7 @@
     "compressTitle_one": "Compresser le fichier choisi",
     "compressTitle_other": "Compresser les {{count}} fichiers choisis",
     "deleteTitle_one": "Supprimer le fichier choisi ?",
-    "deleteTitle_other": "Supprimer les {{count}} fichiers choisis ?",
-    "tick": "Cocher"
+    "deleteTitle_other": "Supprimer les {{count}} fichiers choisis ?"
   },
   "export": {
     "button": "Exporter",

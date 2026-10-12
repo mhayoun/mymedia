@@ -109,12 +109,7 @@ export function Gallery({ items }: { items: LibraryItem[] }) {
     },
     [set, orderedIds],
   )
-  // A tap opens the photo; once something is ticked, a tap ticks.
-  const open = useCallback(
-    (id: string, e: { shiftKey: boolean }) => (useApp.getState().selection?.length ? tick(id, e) : set({ viewerId: id })),
-    [set, tick],
-  )
-  const startSelection = useCallback((id: string) => tick(id, { shiftKey: false }), [tick])
+  const zoom = useCallback((id: string) => set({ viewerId: id }), [set])
 
   return (
     <>
@@ -144,7 +139,7 @@ export function Gallery({ items }: { items: LibraryItem[] }) {
                 style={{ top: v.start + GAP, gridTemplateColumns: `repeat(${cols}, ${cell}px)` }}
               >
                 {row.items.map((it) => (
-                  <Thumb key={it.rec.id} rec={it.rec} onOpen={open} selected={selected.has(it.rec.id)} onCheck={tick} onLongPress={startSelection} />
+                  <Thumb key={it.rec.id} rec={it.rec} onOpen={tick} selected={selected.has(it.rec.id)} onZoom={zoom} />
                 ))}
               </div>
             )

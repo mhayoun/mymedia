@@ -1,4 +1,4 @@
-import { Check, Loader2, Trash2, ZoomIn } from 'lucide-react'
+import { Check, Loader2, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder, confirmAuto } from '../classify/engine'
@@ -163,17 +163,8 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                 const c = mode === 'auto' ? i.meta?.confidence : i.meta?.suggestions?.[0]?.confidence
                 return (
                   <div className="review-group-cell" key={i.rec.id} title={i.meta?.description || i.rec.name}>
-                    <Thumb rec={i.rec} selected={picked.has(i.rec.id)} onOpen={(id) => !isBusy && toggle(id)} />
+                    <Thumb rec={i.rec} selected={picked.has(i.rec.id)} onOpen={(id) => !isBusy && toggle(id)} onZoom={(id) => set({ viewerId: id })} />
                     {c ? <span className="pct">{fmt.percent(c)}</span> : null}
-                    <button
-                      type="button"
-                      className="zoom-btn"
-                      onClick={() => set({ viewerId: i.rec.id })}
-                      title={t('classify.zoom')}
-                      aria-label={t('classify.zoom')}
-                    >
-                      <ZoomIn size={16} />
-                    </button>
                   </div>
                 )
               })}
