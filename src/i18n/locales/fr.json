@@ -648,7 +648,7 @@
     "salesTitle": "Mes ventes",
     "salesLine_one": "{{count}} vente · À recevoir : {{owed}} · Déjà reçu : {{paid}}",
     "salesLine_other": "{{count}} ventes · À recevoir : {{owed}} · Déjà reçu : {{paid}}",
-    "salesHint": "Montants après la commission MyMedia de {{fee}} %. MyMedia vous les envoie sur votre compte PayPal sous 7 jours après chaque vente.",
+    "salesHint": "Montants après la commission MyMedia de {{fee}} %. MyMedia vous les envoie sur votre compte PayPal dans un délai de 7 jours.",
     "payoutsTitle": "À reverser aux vendeurs (administrateur)",
     "payoutsHint": "Envoyez chaque montant dans PayPal (Envoyer de l'argent, à l'adresse indiquée) au plus tard 7 jours après la vente, puis cliquez sur « Marquer comme payé ».",
     "payoutsNone": "Rien à reverser pour l'instant.",
