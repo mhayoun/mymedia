@@ -3,6 +3,7 @@
 import { create } from 'zustand'
 import type { Outcome, Planned } from './compress/engine'
 import { DEFAULT_COMPRESS, type CompressSettings } from './lib/compressPlan'
+import type { PaypalReturn } from './models/shop'
 
 export type Language = 'he' | 'fr' | 'en'
 export type ViewMode = 'grid' | 'albums'
@@ -121,6 +122,8 @@ interface AppState {
   settingsOpen: boolean
   accountOpen: boolean
   shopOpen: boolean
+  /** Back from PayPal: the shop finishes the purchase. */
+  shopResume: PaypalReturn | null
   helpOpen: boolean
   set: (patch: Partial<Omit<AppState, 'set' | 'updateSettings' | 'setFilters'>>) => void
   updateSettings: (patch: Partial<Settings>) => void
@@ -148,6 +151,7 @@ export const useApp = create<AppState>((set, get) => ({
   settingsOpen: false,
   accountOpen: false,
   shopOpen: false,
+  shopResume: null,
   helpOpen: false,
   set: (patch) => set(patch),
   updateSettings: (patch) => {

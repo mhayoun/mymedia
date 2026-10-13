@@ -600,7 +600,7 @@
     "examples_other": "{{count}} exemples",
     "free": "Gratuit",
     "get": "Obtenir",
-    "buy": "Acheter ({{price}})",
+    "buy": "Acheter ({{price}}) avec PayPal",
     "getFreeTest": "Obtenir — gratuit pendant le test",
     "isInstalled": "✓ Installé",
     "installed_one": "« {{name}} » est installé : {{count}} album créé. Les photos à classer sont comparées à ses exemples.",
@@ -626,7 +626,10 @@
       "otherModel": "Ce modèle a été fait avec une autre version de MyMedia : il ne peut pas être utilisé.",
       "noRoot": "Le dossier MyMedia n'est pas encore prêt.",
       "signIn": "Reconnectez-vous à Google, puis réessayez.",
-      "tooBig": "Le modèle est trop gros pour être envoyé."
+      "tooBig": "Le modèle est trop gros pour être envoyé.",
+      "notPaid": "Le paiement n'a pas abouti : rien n'a été débité. Réessayez.",
+      "noPaypal": "Le vendeur n'a pas indiqué de compte PayPal : ce modèle ne peut pas encore être acheté.",
+      "paypal": "PayPal ne répond pas ou a refusé la commande. Réessayez plus tard."
     },
     "isMine": "Publié par moi",
     "leftOut_one": "Album non inclus (aucune photo analysée et vérifiée) : {{names}}.",
@@ -636,7 +639,11 @@
       "albums": "Création des albums {{done}} / {{total}}",
       "save": "Enregistrement dans votre Drive…",
       "sync": "Mise à jour de MyMedia…"
-    }
+    },
+    "paypal": "Votre compte PayPal (l'adresse e-mail qui recevra les paiements)",
+    "priceHintLive": "Les acheteurs paient par PayPal ; l'argent va directement sur votre compte PayPal. MyMedia ne prend pas de commission.",
+    "toPaypal": "Ouverture de PayPal pour le paiement…",
+    "paymentCancelled": "Paiement annulé : rien n'a été débité."
   },
   "account": {
     "title": "Compte",

@@ -602,7 +602,7 @@
     "examples_other": "{{count}} examples",
     "free": "Free",
     "get": "Get",
-    "buy": "Buy ({{price}})",
+    "buy": "Buy ({{price}}) with PayPal",
     "getFreeTest": "Get — free during the test",
     "isInstalled": "✓ Installed",
     "installed_one": "“{{name}}” is installed: {{count}} album created. Photos to classify are compared with its examples.",
@@ -628,7 +628,10 @@
       "otherModel": "This model was made with another version of MyMedia: it cannot be used.",
       "noRoot": "The MyMedia folder is not ready yet.",
       "signIn": "Sign in to Google again, then retry.",
-      "tooBig": "The model is too big to be sent."
+      "tooBig": "The model is too big to be sent.",
+      "notPaid": "The payment did not go through: nothing was charged. Try again.",
+      "noPaypal": "The seller gave no PayPal account: this model cannot be bought yet.",
+      "paypal": "PayPal is not answering or refused the order. Try again later."
     },
     "isMine": "Published by me",
     "leftOut_one": "Album left out (no analysed and checked photo): {{names}}.",
@@ -638,7 +641,11 @@
       "albums": "Creating the albums {{done}} / {{total}}",
       "save": "Saving to your Drive…",
       "sync": "Updating MyMedia…"
-    }
+    },
+    "paypal": "Your PayPal account (the email address that will receive the payments)",
+    "priceHintLive": "Buyers pay with PayPal; the money goes straight to your PayPal account. MyMedia takes no commission.",
+    "toPaypal": "Opening PayPal for the payment…",
+    "paymentCancelled": "Payment cancelled: nothing was charged."
   },
   "account": {
     "title": "Account",

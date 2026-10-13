@@ -1,12 +1,12 @@
 import { Download, Loader2, Store, Trash2, Upload } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { classifyPending } from '../classify/engine'
 import { LOCALES } from '../i18n'
 import { useFormat } from '../i18n/format'
 import { buildModel, installedModels, installModel, ModelError, removeModel, type InstalledModel, type InstallStep } from '../models/references'
-import { publishModel, shopModels, ShopError, withdrawModel, type ShopModel } from '../models/shop'
-import { useApp, type Language } from '../store'
+import { buyModel, capturePayment, publishModel, shopModels, ShopError, withdrawModel, type ShopModel } from '../models/shop'
+import { app, useApp, type Language } from '../store'
 import { Modal } from './Dialog'
 import { useLibraryContext } from './libraryContext'
 
@@ -26,6 +26,7 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
   const lib = useLibraryContext()
   const user = useApp((s) => s.user)
   const [shop, setShop] = useState<ShopModel[] | null>(null)
+  const [paymentsLive, setPaymentsLive] = useState(false)
   const [installed, setInstalled] = useState<InstalledModel[] | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -36,6 +37,7 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [seller, setSeller] = useState(user?.name ?? '')
+  const [paypal, setPaypal] = useState(user?.email ?? '')
   const [price, setPrice] = useState('0')
   const [currency, setCurrency] = useState('ILS')
 
@@ -44,7 +46,10 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
 
   const refresh = useCallback(() => {
     shopModels()
-      .then(setShop)
+      .then((r) => {
+        setShop(r.models)
+        setPaymentsLive(r.paymentsLive)
+      })
       .catch((e) => {
         console.error('[MyMedia] shop not read', e)
         setShop([])
@@ -59,6 +64,9 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
     if (e instanceof ModelError) return t(`models.error.${e.code}`)
     if (e instanceof ShopError && e.status === 401) return t('models.error.signIn')
     if (e instanceof ShopError && e.status === 413) return t('models.error.tooBig')
+    if (e instanceof ShopError && e.status === 402) return t('models.error.notPaid')
+    if (e instanceof ShopError && e.status === 409) return t('models.error.noPaypal')
+    if (e instanceof ShopError && e.status === 502) return t('models.error.paypal')
     return t('errors.generic', { message: (e as Error).message })
   }
 
@@ -76,10 +84,45 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
     }
   }
 
+  const installNow = async (id: string) => {
+    const got = await installModel(id, (step, n, total) => setInstall({ step, done: n, total })).finally(() => setInstall(null))
+    void classifyPending()
+    return t('models.installed', { name: got.name, count: got.albums.length })
+  }
+
+  const get = (id: string) =>
+    act(id, async () => {
+      const r = await buyModel(id)
+      if (r.approve) {
+        // Paid: on to PayPal, which sends the buyer back here to finish.
+        setDone(t('models.toPaypal'))
+        location.assign(r.approve)
+        await new Promise(() => undefined)
+      }
+      return installNow(id)
+    })
+
+  // Back from PayPal: take the payment, then install.
+  const resumed = useRef(false)
+  useEffect(() => {
+    const back = app().shopResume
+    if (!back || resumed.current) return
+    resumed.current = true
+    app().set({ shopResume: null })
+    if (back.cancelled) setError(t('models.paymentCancelled'))
+    else
+      void act(back.model, async () => {
+        await capturePayment(back.model, back.order)
+        return installNow(back.model)
+      })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const installedIds = new Set((installed ?? []).map((m) => m.id))
   const categories = lib?.categories.filter((c) => c.children.length > 0) ?? []
   const priceValue = Number(price.replace(',', '.'))
-  const canPublish = !!categoryId && !!name.trim() && !!seller.trim() && Number.isFinite(priceValue) && priceValue >= 0
+  const paypalOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(paypal.trim())
+  const canPublish = !!categoryId && !!name.trim() && !!seller.trim() && Number.isFinite(priceValue) && priceValue >= 0 && (priceValue === 0 || paypalOk)
 
   return (
     <Modal wide title={t('models.title')} onClose={() => !busy && onClose()}>
@@ -154,13 +197,7 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
                   <button
                     className="btn primary"
                     disabled={!!busy}
-                    onClick={() =>
-                      act(m.id, async () => {
-                        const got = await installModel(m.id, (step, n, total) => setInstall({ step, done: n, total })).finally(() => setInstall(null))
-                        void classifyPending()
-                        return t('models.installed', { name: got.name, count: got.albums.length })
-                      })
-                    }
+                    onClick={() => get(m.id)}
                   >
                     {busy === m.id ? <Loader2 size={16} className="spin" /> : <Download size={16} />}{' '}
                     {m.owned || m.price === 0 ? t('models.get') : m.paymentsLive ? t('models.buy', { price: money(m.price, m.currency) }) : t('models.getFreeTest')}
@@ -231,7 +268,13 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
             </select>
           </label>
         </div>
-        <p className="hint">{t('models.priceHint')}</p>
+        {priceValue > 0 && (
+          <label className="field">
+            {t('models.paypal')}
+            <input type="email" dir="ltr" value={paypal} maxLength={120} disabled={!!busy} onChange={(e) => setPaypal(e.target.value)} />
+          </label>
+        )}
+        <p className="hint">{t(paymentsLive ? 'models.priceHintLive' : 'models.priceHint')}</p>
         <button
           className="btn primary"
           disabled={!!busy || !canPublish}
@@ -239,7 +282,7 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
             act('publish', async () => {
               const built = await buildModel(categoryId)
               const { photos: _, left, ...data } = built
-              const m = await publishModel({ ...data, name: name.trim(), description: description.trim(), seller: seller.trim(), price: priceValue, currency })
+              const m = await publishModel({ ...data, name: name.trim(), description: description.trim(), seller: seller.trim(), paypal: priceValue > 0 ? paypal.trim() : '', price: priceValue, currency })
               const msg = t('models.published', { name: m.name, albums: m.albums, count: m.examples })
               return left.length ? `${msg} ${t('models.leftOut', { count: left.length, names: left.join(', ') })}` : msg
             })

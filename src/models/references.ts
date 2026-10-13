@@ -16,7 +16,7 @@ import { folderChain } from '../lib/tree'
 import { EMBED_DIM, MODEL_ID } from '../ml/protocol'
 import { app } from '../store'
 import { syncNow } from '../sync/engine'
-import { buyModel, checkLicence, downloadModel, ShopError, type ModelData, type PublishInput } from './shop'
+import { checkLicence, downloadModel, ShopError, type ModelData, type PublishInput } from './shop'
 
 const FILE_PREFIX = 'mymedia-model-'
 const SEP = ' / '
@@ -246,12 +246,11 @@ function folderMaker() {
   }
 }
 
-/** Gets the model for this account and creates its albums (then classify again). */
+/** Gets the model (the licence is there already) and creates its albums (then classify again). */
 export async function installModel(id: string, onProgress: InstallProgress = () => undefined): Promise<InstalledModel> {
   const rootId = app().rootId
   if (!rootId) throw new ModelError('noRoot')
   onProgress('download', 0, 1)
-  await buyModel(id)
   const { info, buyer, data } = await downloadModel(id)
   if (data.model !== MODEL_ID || data.dim !== EMBED_DIM) throw new ModelError('otherModel')
   const folderIn = folderMaker()

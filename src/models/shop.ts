@@ -22,6 +22,12 @@ export interface ShopModel {
   paymentsLive: boolean
 }
 
+export interface Shop {
+  models: ShopModel[]
+  /** PayPal is plugged in on the server. */
+  paymentsLive: boolean
+}
+
 export interface ModelData {
   model: string
   dim: number
@@ -35,6 +41,8 @@ export interface PublishInput extends ModelData {
   description: string
   category: string
   seller: string
+  /** The seller's PayPal account (needed for a price). */
+  paypal: string
   price: number
   currency: string
 }
@@ -57,8 +65,8 @@ async function call<T>(method: string, query: string, body?: unknown, signedIn =
   return out
 }
 
-export async function shopModels(): Promise<ShopModel[]> {
-  return (await call<{ models: ShopModel[] }>('GET', '')).models
+export async function shopModels(): Promise<Shop> {
+  return call<Shop>('GET', '')
 }
 
 export async function publishModel(input: PublishInput): Promise<ShopModel> {
@@ -69,9 +77,17 @@ export async function withdrawModel(id: string): Promise<void> {
   await call('DELETE', `?id=${encodeURIComponent(id)}`)
 }
 
-/** Gets a licence for this account (free while testing). */
-export async function buyModel(id: string): Promise<void> {
-  await call('POST', `?action=buy&id=${encodeURIComponent(id)}`)
+/**
+ * Gets a licence for this account. A paid model gives instead the PayPal page
+ * where the buyer pays; PayPal then sends them back to MyMedia (see `capturePayment`).
+ */
+export async function buyModel(id: string): Promise<{ ok: boolean; approve?: string }> {
+  return call('POST', `?action=buy&id=${encodeURIComponent(id)}`)
+}
+
+/** Back from PayPal: takes the payment approved and gives the licence. */
+export async function capturePayment(id: string, order: string): Promise<void> {
+  await call('POST', `?action=capture&id=${encodeURIComponent(id)}&order=${encodeURIComponent(order)}`)
 }
 
 export async function downloadModel(id: string): Promise<{ info: Omit<ShopModel, 'mine' | 'owned' | 'paymentsLive'>; buyer: string; data: ModelData }> {
@@ -81,4 +97,19 @@ export async function downloadModel(id: string): Promise<{ info: Omit<ShopModel,
 /** Whether this account may use the model. */
 export async function checkLicence(id: string): Promise<{ ok: boolean; email: string }> {
   return call('GET', `?action=licence&id=${encodeURIComponent(id)}`)
+}
+
+export interface PaypalReturn {
+  model: string
+  order: string
+  cancelled: boolean
+}
+
+/** The page PayPal sent the buyer back to (/?paypal=1&model=…&token=<order>), once; the address is then cleaned. */
+export function paypalReturn(): PaypalReturn | null {
+  const q = new URLSearchParams(location.search)
+  if (!q.has('paypal')) return null
+  const back = { model: q.get('model') ?? '', order: q.get('token') ?? '', cancelled: q.has('cancel') }
+  history.replaceState(null, '', location.pathname)
+  return back.model && back.order ? back : null
 }

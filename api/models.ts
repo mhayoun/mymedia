@@ -10,11 +10,13 @@
 //   models/<id>/info.json      what the shop shows (+ the seller's account)
 //   models/<id>/data.json      album names, labels, vectors
 //   licences/<id>/<hash>.json  one per buyer account
+//   orders/<paypal order>.json PayPal orders started, until paid
 //
 //   GET    /api/models                      shop
 //   POST   /api/models                      publish (body: PublishBody)
 //   DELETE /api/models?id=                  withdraw (seller only)
-//   POST   /api/models?action=buy&id=       get a licence (free while testing)
+//   POST   /api/models?action=buy&id=       get a licence: free, or a PayPal order to approve
+//   POST   /api/models?action=capture&id=&order=  after PayPal: take the payment, give the licence
 //   GET    /api/models?action=data&id=      the model (seller or licence)
 //   GET    /api/models?action=licence&id=   is this account's licence valid
 
@@ -22,8 +24,12 @@ import { del, get, list, put } from '@vercel/blob'
 import { createHash, randomUUID } from 'node:crypto'
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? '246067015646-63ga5nqjgihi3sd8mmb3ch0urb0i1q5m.apps.googleusercontent.com'
-/** Payments are not plugged in yet: every model is free while testing. */
-const PAYMENTS_LIVE = false
+// PayPal: the buyer pays the seller's PayPal account directly (no fee taken).
+// Without PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET, every model is free (test).
+const PAYPAL_ID = process.env.PAYPAL_CLIENT_ID ?? ''
+const PAYPAL_SECRET = process.env.PAYPAL_CLIENT_SECRET ?? ''
+const PAYPAL_API = process.env.PAYPAL_ENV === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com'
+const paymentsLive = () => !!(PAYPAL_ID && PAYPAL_SECRET)
 // Vercel takes 4.5 MB a request: 4,000 fingerprints (≈ 4.1 MB in base64).
 const MAX_EXAMPLES = 4000
 const DIM = 768
@@ -35,6 +41,8 @@ interface ModelInfo {
   category: string
   seller: string
   sellerEmail: string
+  /** The PayPal account paid for the model. */
+  sellerPaypal?: string
   price: number
   currency: string
   albums: number
@@ -59,8 +67,17 @@ interface PublishBody extends ModelData {
   description?: string
   category: string
   seller: string
+  paypal?: string
   price: number
   currency?: string
+}
+
+interface Order {
+  model: string
+  email: string
+  amount: string
+  currency: string
+  payee: string
 }
 
 class HttpError extends Error {
@@ -136,9 +153,49 @@ async function hasLicence(i: ModelInfo, email: string): Promise<boolean> {
 
 /** What the shop shows of a model (the seller's account stays private). */
 function shown(i: ModelInfo, email: string | null, owned: boolean) {
-  const { sellerEmail, ...rest } = i
-  return { ...rest, mine: sellerEmail === email, owned, paymentsLive: PAYMENTS_LIVE }
+  const { sellerEmail, sellerPaypal: _, ...rest } = i
+  return { ...rest, mine: sellerEmail === email, owned, paymentsLive: paymentsLive() }
 }
+
+function giveLicence(i: ModelInfo, email: string, paid: number, order?: string) {
+  return writeJson(licencePath(i.id, email), { model: i.id, email, at: new Date().toISOString(), price: i.price, currency: i.currency, paid, order, test: !paymentsLive() })
+}
+
+// ---- PayPal ------------------------------------------------------------------
+
+let paypalToken: { token: string; until: number } | null = null
+
+async function paypal<T>(method: string, path: string, body?: unknown): Promise<{ status: number; body: T }> {
+  if (!paypalToken || paypalToken.until < Date.now()) {
+    const r = await fetch(`${PAYPAL_API}/v1/oauth2/token`, {
+      method: 'POST',
+      headers: { Authorization: `Basic ${Buffer.from(`${PAYPAL_ID}:${PAYPAL_SECRET}`).toString('base64')}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'grant_type=client_credentials',
+    })
+    if (!r.ok) throw new Error(`PayPal sign-in ${r.status}`)
+    const t = (await r.json()) as { access_token: string; expires_in: number }
+    paypalToken = { token: t.access_token, until: Date.now() + (t.expires_in - 60) * 1000 }
+  }
+  const r = await fetch(`${PAYPAL_API}${path}`, {
+    method,
+    headers: { Authorization: `Bearer ${paypalToken.token}`, 'Content-Type': 'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  })
+  return { status: r.status, body: (await r.json().catch(() => ({}))) as T }
+}
+
+interface PaypalOrder {
+  id?: string
+  status?: string
+  links?: { rel: string; href: string }[]
+  purchase_units?: {
+    reference_id?: string
+    payee?: { email_address?: string }
+    payments?: { captures?: { status?: string; amount?: { value?: string; currency_code?: string } }[] }
+  }[]
+}
+
+const amountOf = (price: number) => price.toFixed(2)
 
 // ---- Actions -----------------------------------------------------------------
 
@@ -156,7 +213,7 @@ async function shop(req: Request) {
     cursor = page.hasMore ? page.cursor : undefined
   } while (cursor)
   out.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  return json({ models: out })
+  return json({ models: out, paymentsLive: paymentsLive() })
 }
 
 async function publish(req: Request) {
@@ -169,6 +226,9 @@ async function publish(req: Request) {
   if (!name || !category || !seller) throw new HttpError(400, 'name, category and seller are required')
   const price = Number(b.price)
   if (!Number.isFinite(price) || price < 0 || price > 10000) throw new HttpError(400, 'bad price')
+  const sellerPaypal = text(b.paypal, 120).toLowerCase()
+  if (sellerPaypal && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(sellerPaypal)) throw new HttpError(400, 'bad paypal')
+  if (price > 0 && !sellerPaypal) throw new HttpError(400, 'paypal required')
   if (b.dim !== DIM || typeof b.model !== 'string') throw new HttpError(400, 'bad model')
   const albums = Array.isArray(b.albums) ? b.albums.map((a) => text(a, 120)) : []
   const labels = Array.isArray(b.labels) ? b.labels : []
@@ -185,6 +245,7 @@ async function publish(req: Request) {
     category,
     seller,
     sellerEmail: email,
+    sellerPaypal: sellerPaypal || undefined,
     price: Math.round(price * 100) / 100,
     currency: text(b.currency, 3).toUpperCase() || 'ILS',
     albums: new Set(labels).size,
@@ -210,8 +271,59 @@ async function buy(req: Request, id: string) {
   const email = await account(req)
   const i = await info(id)
   if (await hasLicence(i, email)) return json({ ok: true })
-  if (PAYMENTS_LIVE && i.price > 0) throw new HttpError(402, 'payment required')
-  await writeJson(licencePath(id, email), { model: id, email, at: new Date().toISOString(), price: i.price, currency: i.currency, paid: 0, test: !PAYMENTS_LIVE })
+  if (!paymentsLive() || i.price <= 0) {
+    await giveLicence(i, email, 0)
+    return json({ ok: true })
+  }
+  if (!i.sellerPaypal) throw new HttpError(409, 'seller has no paypal')
+  // The buyer approves on PayPal's page, which sends them back to MyMedia.
+  const back = `${new URL(req.url).origin}/?paypal=1&model=${id}`
+  const amount = amountOf(i.price)
+  const r = await paypal<PaypalOrder>('POST', '/v2/checkout/orders', {
+    intent: 'CAPTURE',
+    purchase_units: [
+      {
+        reference_id: id,
+        description: `MyMedia: ${i.name}`.slice(0, 127),
+        amount: { currency_code: i.currency, value: amount },
+        payee: { email_address: i.sellerPaypal },
+      },
+    ],
+    payment_source: {
+      paypal: {
+        experience_context: { brand_name: 'MyMedia', user_action: 'PAY_NOW', shipping_preference: 'NO_SHIPPING', return_url: back, cancel_url: `${back}&cancel=1` },
+      },
+    },
+  })
+  const approve = r.body.links?.find((l) => l.rel === 'payer-action' || l.rel === 'approve')?.href
+  if (r.status >= 300 || !r.body.id || !approve) {
+    console.error('[paypal] order', r.status, JSON.stringify(r.body))
+    throw new HttpError(502, 'paypal refused the order')
+  }
+  const order: Order = { model: id, email, amount, currency: i.currency, payee: i.sellerPaypal }
+  await writeJson(`orders/${r.body.id}.json`, order)
+  return json({ ok: false, approve, order: r.body.id })
+}
+
+async function capture(req: Request, id: string, orderId: string | null) {
+  const email = await account(req)
+  if (!orderId || !/^[A-Z0-9]{5,40}$/.test(orderId)) throw new HttpError(400, 'bad order')
+  const i = await info(id)
+  if (await hasLicence(i, email)) return json({ ok: true })
+  const order = await readJson<Order>(`orders/${orderId}.json`)
+  if (!order || order.model !== id || order.email !== email) throw new HttpError(404, 'order not found')
+  let r = await paypal<PaypalOrder & { details?: { issue?: string }[] }>('POST', `/v2/checkout/orders/${orderId}/capture`)
+  // Captured already (the page was reloaded): read the order.
+  if (r.status === 422 && r.body.details?.some((d) => d.issue === 'ORDER_ALREADY_CAPTURED')) r = await paypal<PaypalOrder>('GET', `/v2/checkout/orders/${orderId}`)
+  const unit = r.body.purchase_units?.[0]
+  const paid = unit?.payments?.captures?.find((c) => c.status === 'COMPLETED')
+  if (r.status >= 300 || r.body.status !== 'COMPLETED' || unit?.reference_id !== id || !paid) {
+    console.error('[paypal] capture', r.status, JSON.stringify(r.body))
+    throw new HttpError(402, 'not paid')
+  }
+  if (paid.amount?.value !== order.amount || paid.amount?.currency_code !== order.currency) throw new HttpError(402, 'wrong amount')
+  await giveLicence(i, email, Number(order.amount), orderId)
+  await del([`orders/${orderId}.json`])
   return json({ ok: true })
 }
 
@@ -242,6 +354,7 @@ async function handle(req: Request): Promise<Response> {
     if (req.method === 'POST' && !action) return await publish(req)
     if (req.method === 'DELETE') return await withdraw(req, validId(id))
     if (req.method === 'POST' && action === 'buy') return await buy(req, validId(id))
+    if (req.method === 'POST' && action === 'capture') return await capture(req, validId(id), url.searchParams.get('order'))
     if (req.method === 'GET' && action === 'data') return await download(req, validId(id))
     if (req.method === 'GET' && action === 'licence') return await licence(req, validId(id))
     return json({ error: 'not found' }, 404)

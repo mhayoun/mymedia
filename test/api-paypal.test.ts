@@ -1,0 +1,127 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+// The shop with PayPal plugged in (sandbox), PayPal and Google faked.
+const store = new Map<string, string>()
+vi.mock('@vercel/blob', () => ({
+  put: async (pathname: string, body: string) => void store.set(pathname, body),
+  get: async (pathname: string) =>
+    store.has(pathname) ? { statusCode: 200, stream: new Response(store.get(pathname)).body } : null,
+  del: async (paths: string[]) => paths.forEach((p) => store.delete(p)),
+  list: async ({ prefix }: { prefix: string }) => ({
+    blobs: [...store.keys()].filter((k) => k.startsWith(prefix)).map((pathname) => ({ pathname })),
+    hasMore: false,
+  }),
+}))
+
+process.env.PAYPAL_CLIENT_ID = 'pp-id'
+process.env.PAYPAL_CLIENT_SECRET = 'pp-secret'
+
+const CLIENT = '246067015646-63ga5nqjgihi3sd8mmb3ch0urb0i1q5m.apps.googleusercontent.com'
+/** PayPal orders: id → what was asked, and whether the buyer approved it. */
+const orders = new Map<string, { body: { purchase_units: { reference_id: string; amount: { value: string; currency_code: string }; payee: { email_address: string } }[] }; approved: boolean; captured: boolean }>()
+let paidValue: string | null = null
+
+vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
+  if (url.startsWith('https://oauth2.googleapis.com/tokeninfo')) return Response.json({ aud: CLIENT, expires_in: '3000' })
+  if (url.startsWith('https://www.googleapis.com/drive')) {
+    const token = String((init?.headers as Record<string, string>).Authorization).split(' ')[1]
+    return Response.json({ user: { emailAddress: `${token}@gmail.com` } })
+  }
+  const path = url.replace('https://api-m.sandbox.paypal.com', '')
+  if (path === '/v1/oauth2/token') return Response.json({ access_token: 'pp', expires_in: 3600 })
+  if (path === '/v2/checkout/orders') {
+    const id = `ORDER${orders.size + 1}`
+    orders.set(id, { body: JSON.parse(String(init!.body)), approved: false, captured: false })
+    return Response.json({ id, status: 'PAYER_ACTION_REQUIRED', links: [{ rel: 'payer-action', href: `https://paypal.test/pay?token=${id}` }] }, { status: 200 })
+  }
+  const m = /^\/v2\/checkout\/orders\/(\w+)\/capture$/.exec(path)
+  const o = m && orders.get(m[1])
+  if (!o) return Response.json({}, { status: 404 })
+  if (!o.approved) return Response.json({ details: [{ issue: 'ORDER_NOT_APPROVED' }] }, { status: 422 })
+  o.captured = true
+  const unit = o.body.purchase_units[0]
+  return Response.json(
+    {
+      status: 'COMPLETED',
+      purchase_units: [
+        { reference_id: unit.reference_id, payments: { captures: [{ status: 'COMPLETED', amount: { ...unit.amount, value: paidValue ?? unit.amount.value } }] } },
+      ],
+    },
+    { status: 201 },
+  )
+})
+
+const { GET, POST } = await import('../api/models')
+
+const req = (method: string, query: string, token?: string, body?: unknown) =>
+  new Request(`https://media.test/api/models${query}`, {
+    method,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: body ? JSON.stringify(body) : undefined,
+  })
+
+const publishBody = {
+  name: 'Oiseaux',
+  category: 'ציפורים',
+  seller: 'Katia',
+  paypal: 'Katia.Pay@example.com',
+  price: 25,
+  currency: 'ILS',
+  model: 'm',
+  dim: 768,
+  albums: ['a', 'b'],
+  labels: [0, 1],
+  vecs: Buffer.alloc(2 * 768, 7).toString('base64'),
+}
+
+describe('model shop with PayPal', () => {
+  beforeEach(() => {
+    store.clear()
+    orders.clear()
+    paidValue = null
+  })
+
+  it('needs a PayPal account to publish a paid model, and keeps it private', async () => {
+    expect((await POST(req('POST', '', 'seller', { ...publishBody, paypal: '' }))).status).toBe(400)
+    expect((await POST(req('POST', '', 'seller', { ...publishBody, paypal: '', price: 0 }))).status).toBe(200)
+    const pub = await (await POST(req('POST', '', 'seller', publishBody))).json()
+    expect(pub.model.sellerPaypal).toBeUndefined()
+    const shop = await (await GET(req('GET', '', 'buyer'))).json()
+    expect(shop.paymentsLive).toBe(true)
+  })
+
+  it('gives the licence only once the buyer paid the seller the price', async () => {
+    const id = (await (await POST(req('POST', '', 'seller', publishBody))).json()).model.id as string
+    const buy = await (await POST(req('POST', `?action=buy&id=${id}`, 'buyer'))).json()
+    expect(buy).toMatchObject({ ok: false, approve: 'https://paypal.test/pay?token=ORDER1', order: 'ORDER1' })
+    const asked = orders.get('ORDER1')!.body.purchase_units[0]
+    expect(asked).toMatchObject({ reference_id: id, amount: { value: '25.00', currency_code: 'ILS' }, payee: { email_address: 'katia.pay@example.com' } })
+
+    // Not approved on PayPal yet, or someone else's order: no licence.
+    expect((await POST(req('POST', `?action=capture&id=${id}&order=ORDER1`, 'buyer'))).status).toBe(402)
+    orders.get('ORDER1')!.approved = true
+    expect((await POST(req('POST', `?action=capture&id=${id}&order=ORDER1`, 'friend'))).status).toBe(404)
+    expect((await GET(req('GET', `?action=data&id=${id}`, 'buyer'))).status).toBe(403)
+
+    expect((await POST(req('POST', `?action=capture&id=${id}&order=ORDER1`, 'buyer'))).status).toBe(200)
+    expect(await (await GET(req('GET', `?action=licence&id=${id}`, 'buyer'))).json()).toMatchObject({ ok: true })
+    expect((await GET(req('GET', `?action=data&id=${id}`, 'buyer'))).status).toBe(200)
+    // Bought: getting it again asks nothing more.
+    expect(await (await POST(req('POST', `?action=buy&id=${id}`, 'buyer'))).json()).toEqual({ ok: true })
+  })
+
+  it('refuses a payment of another amount', async () => {
+    const id = (await (await POST(req('POST', '', 'seller', publishBody))).json()).model.id as string
+    await POST(req('POST', `?action=buy&id=${id}`, 'buyer'))
+    orders.get('ORDER1')!.approved = true
+    paidValue = '1.00'
+    expect((await POST(req('POST', `?action=capture&id=${id}&order=ORDER1`, 'buyer'))).status).toBe(402)
+    expect(await (await GET(req('GET', `?action=licence&id=${id}`, 'buyer'))).json()).toMatchObject({ ok: false })
+  })
+
+  it('gives free models without PayPal', async () => {
+    const id = (await (await POST(req('POST', '', 'seller', { ...publishBody, price: 0 }))).json()).model.id as string
+    expect(await (await POST(req('POST', `?action=buy&id=${id}`, 'buyer'))).json()).toEqual({ ok: true })
+    expect(orders.size).toBe(0)
+  })
+})

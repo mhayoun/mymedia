@@ -22,6 +22,7 @@ import { ReviewView } from './ReviewView'
 import { StatsDialog } from './StatsDialog'
 import { AUTO, filterItems, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
 import { clearSharedFiles, hasSharedFiles, readSharedFiles } from '../import/shared'
+import { paypalReturn } from '../models/shop'
 import { FacesIntro } from './FacesIntro'
 import { HelpPanel } from './HelpPanel'
 import { AccountPanel } from './AccountPanel'
@@ -62,6 +63,13 @@ export function Shell() {
   const selection = useApp((s) => s.selection)
   const people = usePeople()
   useAutoSync()
+
+  // Back from paying a model on PayPal: the shop finishes the purchase.
+  useEffect(() => {
+    if (!rootId) return
+    const back = paypalReturn()
+    if (back) app().set({ shopOpen: true, shopResume: back })
+  }, [rootId])
 
   // Files shared to MyMedia from another app (Android Share menu).
   useEffect(() => {
@@ -128,7 +136,7 @@ export function Shell() {
       {settingsOpen && <SettingsPanel />}
       {helpOpen && <HelpPanel />}
       {accountOpen && <AccountPanel />}
-      {shopOpen && <ModelsDialog onClose={() => app().set({ shopOpen: false })} />}
+      {shopOpen && <ModelsDialog onClose={() => app().set({ shopOpen: false, shopResume: null })} />}
       {statsOpen && <StatsDialog lib={lib} />}
       {compressOffer && (
         <CompressDialog mode="offer" title={t('compress.offerTitle')} planned={compressOffer} onClose={() => useApp.getState().set({ compressOffer: null })} />

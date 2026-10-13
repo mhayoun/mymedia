@@ -37,6 +37,7 @@ const publishBody = {
   name: 'Oiseaux',
   category: 'ציפורים',
   seller: 'Katia',
+  paypal: 'katia@example.com',
   price: 25,
   currency: 'ILS',
   model: 'm',
