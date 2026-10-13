@@ -26,6 +26,31 @@ export interface Shop {
   models: ShopModel[]
   /** PayPal is plugged in on the server. */
   paymentsLive: boolean
+  /** MyMedia's commission, in %. */
+  fee: number
+  /** This account pays the sellers out. */
+  admin: boolean
+}
+
+/** Amounts by currency. */
+export type Amounts = Record<string, number>
+
+export interface MySales {
+  count: number
+  owed: Amounts
+  paidOut: Amounts
+  fee: number
+}
+
+/** What MyMedia owes one seller in one currency. */
+export interface Payout {
+  seller: string
+  sellerEmail: string
+  paypal: string
+  currency: string
+  amount: number
+  fees: number
+  orders: string[]
 }
 
 export interface ModelData {
@@ -92,6 +117,21 @@ export async function capturePayment(id: string, order: string): Promise<void> {
 
 export async function downloadModel(id: string): Promise<{ info: Omit<ShopModel, 'mine' | 'owned' | 'paymentsLive'>; buyer: string; data: ModelData }> {
   return call('GET', `?action=data&id=${encodeURIComponent(id)}`)
+}
+
+/** This account's sales as a seller. */
+export async function mySales(): Promise<MySales> {
+  return call('GET', '?action=sales')
+}
+
+/** Admins: what MyMedia owes each seller. */
+export async function payouts(): Promise<Payout[]> {
+  return (await call<{ payouts: Payout[] }>('GET', '?action=payouts')).payouts
+}
+
+/** Admins: these sales' shares were sent to the seller. */
+export async function markPaidOut(orders: string[]): Promise<void> {
+  await call('POST', '?action=payout', { orders })
 }
 
 /** Whether this account may use the model. */

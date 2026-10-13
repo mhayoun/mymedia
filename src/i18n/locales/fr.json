@@ -640,10 +640,22 @@
       "save": "Enregistrement dans votre Drive…",
       "sync": "Mise à jour de MyMedia…"
     },
-    "paypal": "Votre compte PayPal (l'adresse e-mail qui recevra les paiements)",
-    "priceHintLive": "Les acheteurs paient par PayPal ; l'argent va directement sur votre compte PayPal. MyMedia ne prend pas de commission.",
+    "paypal": "Votre compte PayPal (pour recevoir l'argent de vos ventes)",
+    "priceHintLive": "Les acheteurs paient par PayPal à MyMedia. MyMedia garde une commission de {{fee}} % et vous reverse le reste sur votre compte PayPal (une fois par mois).",
     "toPaypal": "Ouverture de PayPal pour le paiement…",
-    "paymentCancelled": "Paiement annulé : rien n'a été débité."
+    "paymentCancelled": "Paiement annulé : rien n'a été débité.",
+    "youGet": "Vous recevez {{share}} sur {{price}} par vente (commission MyMedia {{fee}} %).",
+    "salesTitle": "Mes ventes",
+    "salesLine_one": "{{count}} vente · À recevoir : {{owed}} · Déjà reçu : {{paid}}",
+    "salesLine_other": "{{count}} ventes · À recevoir : {{owed}} · Déjà reçu : {{paid}}",
+    "salesHint": "Montants après la commission MyMedia de {{fee}} %. MyMedia vous les envoie sur votre compte PayPal une fois par mois.",
+    "payoutsTitle": "À reverser aux vendeurs (administrateur)",
+    "payoutsHint": "Envoyez chaque montant dans PayPal (Envoyer de l'argent, à l'adresse indiquée), puis cliquez sur « Marquer comme payé ».",
+    "payoutsNone": "Rien à reverser pour l'instant.",
+    "payoutSales_one": "{{count}} vente · commission gardée {{fees}}",
+    "payoutSales_other": "{{count}} ventes · commission gardée {{fees}}",
+    "markPaidOut": "Marquer comme payé",
+    "paidOutDone": "{{amount}} à {{seller}} : marqué comme payé."
   },
   "account": {
     "title": "Compte",

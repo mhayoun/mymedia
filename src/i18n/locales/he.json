@@ -692,10 +692,22 @@
       "save": "שמירה ב-Drive שלכם…",
       "sync": "עדכון MyMedia…"
     },
-    "paypal": "חשבון ה-PayPal שלך (כתובת האימייל שתקבל את התשלומים)",
-    "priceHintLive": "הקונים משלמים ב-PayPal; הכסף עובר ישירות לחשבון ה-PayPal שלך. MyMedia לא לוקחת עמלה.",
+    "paypal": "חשבון ה-PayPal שלך (לקבלת הכסף מהמכירות)",
+    "priceHintLive": "הקונים משלמים ל-MyMedia ב-PayPal. MyMedia שומרת עמלה של {{fee}}% ומעבירה לך את השאר לחשבון ה-PayPal שלך (פעם בחודש).",
     "toPaypal": "פותח את PayPal לתשלום…",
-    "paymentCancelled": "התשלום בוטל: לא חויב דבר."
+    "paymentCancelled": "התשלום בוטל: לא חויב דבר.",
+    "youGet": "תקבל/י {{share}} מתוך {{price}} לכל מכירה (עמלת MyMedia {{fee}}%).",
+    "salesTitle": "המכירות שלי",
+    "salesLine_one": "מכירה אחת · לקבל: {{owed}} · כבר התקבל: {{paid}}",
+    "salesLine_other": "{{count}} מכירות · לקבל: {{owed}} · כבר התקבל: {{paid}}",
+    "salesHint": "הסכומים אחרי עמלת MyMedia של {{fee}}%. MyMedia שולחת אותם לחשבון ה-PayPal שלך פעם בחודש.",
+    "payoutsTitle": "להעביר למוכרים (מנהל)",
+    "payoutsHint": "שלחו כל סכום ב-PayPal (שליחת כסף, לכתובת המוצגת), ואז לחצו «סימון כשולם».",
+    "payoutsNone": "אין מה להעביר כרגע.",
+    "payoutSales_one": "מכירה אחת · עמלה שנשמרה {{fees}}",
+    "payoutSales_other": "{{count}} מכירות · עמלה שנשמרה {{fees}}",
+    "markPaidOut": "סימון כשולם",
+    "paidOutDone": "{{amount}} ל{{seller}}: סומן כשולם."
   },
   "account": {
     "title": "חשבון",

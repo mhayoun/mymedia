@@ -1,11 +1,25 @@
-import { Download, Loader2, Store, Trash2, Upload } from 'lucide-react'
+import { Download, HandCoins, Loader2, Store, Trash2, Upload, Wallet } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { classifyPending } from '../classify/engine'
 import { LOCALES } from '../i18n'
 import { useFormat } from '../i18n/format'
 import { buildModel, installedModels, installModel, ModelError, removeModel, type InstalledModel, type InstallStep } from '../models/references'
-import { buyModel, capturePayment, publishModel, shopModels, ShopError, withdrawModel, type ShopModel } from '../models/shop'
+import {
+  buyModel,
+  capturePayment,
+  markPaidOut,
+  mySales,
+  payouts,
+  publishModel,
+  shopModels,
+  ShopError,
+  withdrawModel,
+  type Amounts,
+  type MySales,
+  type Payout,
+  type ShopModel,
+} from '../models/shop'
 import { app, useApp, type Language } from '../store'
 import { Modal } from './Dialog'
 import { useLibraryContext } from './libraryContext'
@@ -27,6 +41,9 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
   const user = useApp((s) => s.user)
   const [shop, setShop] = useState<ShopModel[] | null>(null)
   const [paymentsLive, setPaymentsLive] = useState(false)
+  const [fee, setFee] = useState(0)
+  const [sales, setSales] = useState<MySales | null>(null)
+  const [owed, setOwed] = useState<Payout[] | null>(null)
   const [installed, setInstalled] = useState<InstalledModel[] | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -43,12 +60,15 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
 
   const money = (amount: number, cur: string) =>
     new Intl.NumberFormat(LOCALES[i18n.language as Language] ?? 'en-US', { style: 'currency', currency: cur }).format(amount)
+  const amounts = (a: Amounts) => Object.entries(a).map(([cur, n]) => money(n, cur)).join(' + ') || '—'
 
   const refresh = useCallback(() => {
     shopModels()
       .then((r) => {
         setShop(r.models)
         setPaymentsLive(r.paymentsLive)
+        setFee(r.fee)
+        if (r.admin) payouts().then(setOwed, (e) => console.error('[MyMedia] payouts not read', e))
       })
       .catch((e) => {
         console.error('[MyMedia] shop not read', e)
@@ -56,6 +76,7 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
         setError(t('models.shopUnreachable'))
       })
     installedModels().then(setInstalled)
+    mySales().then(setSales, () => setSales(null))
   }, [t])
   useEffect(refresh, [refresh])
 
@@ -122,6 +143,7 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
   const categories = lib?.categories.filter((c) => c.children.length > 0) ?? []
   const priceValue = Number(price.replace(',', '.'))
   const paypalOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(paypal.trim())
+  const share = Math.round(priceValue * (100 - fee)) / 100
   const canPublish = !!categoryId && !!name.trim() && !!seller.trim() && Number.isFinite(priceValue) && priceValue >= 0 && (priceValue === 0 || paypalOk)
 
   return (
@@ -218,6 +240,16 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
           ))
         )}
 
+        {sales && sales.count > 0 && (
+          <>
+            <h3>
+              <Wallet size={16} /> {t('models.salesTitle')}
+            </h3>
+            <p>{t('models.salesLine', { count: sales.count, owed: amounts(sales.owed), paid: amounts(sales.paidOut) })}</p>
+            <p className="hint">{t('models.salesHint', { fee: sales.fee })}</p>
+          </>
+        )}
+
         <h3>
           <Upload size={16} /> {t('models.publishTitle')}
         </h3>
@@ -274,7 +306,10 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
             <input type="email" dir="ltr" value={paypal} maxLength={120} disabled={!!busy} onChange={(e) => setPaypal(e.target.value)} />
           </label>
         )}
-        <p className="hint">{t(paymentsLive ? 'models.priceHintLive' : 'models.priceHint')}</p>
+        {paymentsLive && priceValue > 0 && (
+          <p className="ok-text">{t('models.youGet', { share: money(share, currency), price: money(priceValue, currency), fee })}</p>
+        )}
+        <p className="hint">{t(paymentsLive ? 'models.priceHintLive' : 'models.priceHint', { fee })}</p>
         <button
           className="btn primary"
           disabled={!!busy || !canPublish}
@@ -290,6 +325,41 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
         >
           {busy === 'publish' ? <Loader2 size={16} className="spin" /> : <Upload size={16} />} {t('models.publish')}
         </button>
+
+        {owed && (
+          <>
+            <h3>
+              <HandCoins size={16} /> {t('models.payoutsTitle')}
+            </h3>
+            <p className="hint">{t('models.payoutsHint')}</p>
+            {owed.length === 0 ? (
+              <p className="hint">{t('models.payoutsNone')}</p>
+            ) : (
+              owed.map((p) => (
+                <div key={`${p.sellerEmail}-${p.currency}`} className="model-row">
+                  <div>
+                    <strong>{money(p.amount, p.currency)}</strong> → <bdi>{p.seller}</bdi>
+                    <div className="hint">
+                      PayPal <bdi className="selectable">{p.paypal}</bdi> · {t('models.payoutSales', { count: p.orders.length, fees: money(p.fees, p.currency) })}
+                    </div>
+                  </div>
+                  <button
+                    className="btn ghost"
+                    disabled={!!busy}
+                    onClick={() =>
+                      act(`p${p.sellerEmail}${p.currency}`, async () => {
+                        await markPaidOut(p.orders)
+                        return t('models.paidOutDone', { amount: money(p.amount, p.currency), seller: p.seller })
+                      })
+                    }
+                  >
+                    {t('models.markPaidOut')}
+                  </button>
+                </div>
+              ))
+            )}
+          </>
+        )}
 
         {done && <p className="ok-text">{done}</p>}
         {error && <p className="error-text">{error}</p>}

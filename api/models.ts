@@ -1,5 +1,9 @@
 // MyMedia's only server: the shop of classification models.
 //
+// Payment: the buyer pays MyMedia's PayPal account; MyMedia keeps its
+// commission (MYMEDIA_FEE %) and pays the rest to the seller's PayPal account
+// by hand, from the list of sales owed (admins: MYMEDIA_ADMINS).
+//
 // A seller publishes the fingerprints of the photos of one category (album
 // names + vectors, never the photos). A buyer gets a licence bound to their
 // Google account, then downloads the model into their own Drive. Their
@@ -11,6 +15,7 @@
 //   models/<id>/data.json      album names, labels, vectors
 //   licences/<id>/<hash>.json  one per buyer account
 //   orders/<paypal order>.json PayPal orders started, until paid
+//   sales/<seller hash>/<paypal order>.json  one per sale: price, commission, seller's share, paid out
 //
 //   GET    /api/models                      shop
 //   POST   /api/models                      publish (body: PublishBody)
@@ -19,17 +24,22 @@
 //   POST   /api/models?action=capture&id=&order=  after PayPal: take the payment, give the licence
 //   GET    /api/models?action=data&id=      the model (seller or licence)
 //   GET    /api/models?action=licence&id=   is this account's licence valid
+//   GET    /api/models?action=sales         the seller's sales: owed and paid out
+//   GET    /api/models?action=payouts       admins: what is owed to each seller
+//   POST   /api/models?action=payout        admins: these sales are paid out (body: { orders })
 
 import { del, get, list, put } from '@vercel/blob'
 import { createHash, randomUUID } from 'node:crypto'
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? '246067015646-63ga5nqjgihi3sd8mmb3ch0urb0i1q5m.apps.googleusercontent.com'
-// PayPal: the buyer pays the seller's PayPal account directly (no fee taken).
 // Without PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET, every model is free (test).
 const PAYPAL_ID = process.env.PAYPAL_CLIENT_ID ?? ''
 const PAYPAL_SECRET = process.env.PAYPAL_CLIENT_SECRET ?? ''
 const PAYPAL_API = process.env.PAYPAL_ENV === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com'
 const paymentsLive = () => !!(PAYPAL_ID && PAYPAL_SECRET)
+/** MyMedia's commission, in % of the price. */
+const FEE = Math.min(Math.max(Number(process.env.MYMEDIA_FEE ?? 15) || 0, 0), 100)
+const ADMINS = (process.env.MYMEDIA_ADMINS ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean)
 // Vercel takes 4.5 MB a request: 4,000 fingerprints (≈ 4.1 MB in base64).
 const MAX_EXAMPLES = 4000
 const DIM = 768
@@ -41,7 +51,7 @@ interface ModelInfo {
   category: string
   seller: string
   sellerEmail: string
-  /** The PayPal account paid for the model. */
+  /** The PayPal account the seller's share is sent to. */
   sellerPaypal?: string
   price: number
   currency: string
@@ -77,7 +87,24 @@ interface Order {
   email: string
   amount: string
   currency: string
-  payee: string
+}
+
+interface Sale {
+  order: string
+  model: string
+  modelName: string
+  seller: string
+  sellerEmail: string
+  sellerPaypal: string
+  at: string
+  price: number
+  currency: string
+  /** MyMedia's commission. */
+  fee: number
+  /** What the seller is owed. */
+  share: number
+  /** When MyMedia sent the share to the seller. */
+  paidOut: string | null
 }
 
 class HttpError extends Error {
@@ -135,7 +162,9 @@ function writeJson(pathname: string, body: unknown) {
   return put(pathname, JSON.stringify(body), { access: 'private', contentType: 'application/json', allowOverwrite: true, addRandomSuffix: false })
 }
 
-const licencePath = (id: string, email: string) => `licences/${id}/${createHash('sha256').update(email).digest('hex').slice(0, 32)}.json`
+const hashOf = (email: string) => createHash('sha256').update(email).digest('hex').slice(0, 32)
+const licencePath = (id: string, email: string) => `licences/${id}/${hashOf(email)}.json`
+const cents = (n: number) => Math.round(n * 100) / 100
 const validId = (id: string | null): string => {
   if (!id || !/^[a-z0-9-]{8,64}$/.test(id)) throw new HttpError(400, 'bad id')
   return id
@@ -190,7 +219,6 @@ interface PaypalOrder {
   links?: { rel: string; href: string }[]
   purchase_units?: {
     reference_id?: string
-    payee?: { email_address?: string }
     payments?: { captures?: { status?: string; amount?: { value?: string; currency_code?: string } }[] }
   }[]
 }
@@ -213,7 +241,7 @@ async function shop(req: Request) {
     cursor = page.hasMore ? page.cursor : undefined
   } while (cursor)
   out.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  return json({ models: out, paymentsLive: paymentsLive() })
+  return json({ models: out, paymentsLive: paymentsLive(), fee: FEE, admin: !!email && ADMINS.includes(email) })
 }
 
 async function publish(req: Request) {
@@ -276,7 +304,7 @@ async function buy(req: Request, id: string) {
     return json({ ok: true })
   }
   if (!i.sellerPaypal) throw new HttpError(409, 'seller has no paypal')
-  // The buyer approves on PayPal's page, which sends them back to MyMedia.
+  // Paid to MyMedia (the PayPal app's account). The buyer approves on PayPal's page, which sends them back to MyMedia.
   const back = `${new URL(req.url).origin}/?paypal=1&model=${id}`
   const amount = amountOf(i.price)
   const r = await paypal<PaypalOrder>('POST', '/v2/checkout/orders', {
@@ -286,7 +314,6 @@ async function buy(req: Request, id: string) {
         reference_id: id,
         description: `MyMedia: ${i.name}`.slice(0, 127),
         amount: { currency_code: i.currency, value: amount },
-        payee: { email_address: i.sellerPaypal },
       },
     ],
     payment_source: {
@@ -300,7 +327,7 @@ async function buy(req: Request, id: string) {
     console.error('[paypal] order', r.status, JSON.stringify(r.body))
     throw new HttpError(502, 'paypal refused the order')
   }
-  const order: Order = { model: id, email, amount, currency: i.currency, payee: i.sellerPaypal }
+  const order: Order = { model: id, email, amount, currency: i.currency }
   await writeJson(`orders/${r.body.id}.json`, order)
   return json({ ok: false, approve, order: r.body.id })
 }
@@ -322,7 +349,24 @@ async function capture(req: Request, id: string, orderId: string | null) {
     throw new HttpError(402, 'not paid')
   }
   if (paid.amount?.value !== order.amount || paid.amount?.currency_code !== order.currency) throw new HttpError(402, 'wrong amount')
-  await giveLicence(i, email, Number(order.amount), orderId)
+  const price = Number(order.amount)
+  const fee = cents((price * FEE) / 100)
+  const sale: Sale = {
+    order: orderId,
+    model: id,
+    modelName: i.name,
+    seller: i.seller,
+    sellerEmail: i.sellerEmail,
+    sellerPaypal: i.sellerPaypal ?? '',
+    at: new Date().toISOString(),
+    price,
+    currency: order.currency,
+    fee,
+    share: cents(price - fee),
+    paidOut: null,
+  }
+  await writeJson(`sales/${hashOf(i.sellerEmail)}/${orderId}.json`, sale)
+  await giveLicence(i, email, price, orderId)
   await del([`orders/${orderId}.json`])
   return json({ ok: true })
 }
@@ -345,6 +389,74 @@ async function licence(req: Request, id: string) {
   return json({ ok, email })
 }
 
+async function salesUnder(prefix: string): Promise<{ pathname: string; sale: Sale }[]> {
+  const out: { pathname: string; sale: Sale }[] = []
+  let cursor: string | undefined
+  do {
+    const page = await list({ prefix, cursor })
+    for (const b of page.blobs) {
+      const sale = await readJson<Sale>(b.pathname)
+      if (sale) out.push({ pathname: b.pathname, sale })
+    }
+    cursor = page.hasMore ? page.cursor : undefined
+  } while (cursor)
+  return out
+}
+
+/** Sums by currency. */
+function totals(sales: Sale[], pick: (s: Sale) => number): Record<string, number> {
+  const out: Record<string, number> = {}
+  for (const s of sales) out[s.currency] = cents((out[s.currency] ?? 0) + pick(s))
+  return out
+}
+
+async function sales(req: Request) {
+  const email = await account(req)
+  const all = (await salesUnder(`sales/${hashOf(email)}/`)).map((x) => x.sale)
+  return json({
+    count: all.length,
+    owed: totals(all.filter((s) => !s.paidOut), (s) => s.share),
+    paidOut: totals(all.filter((s) => s.paidOut), (s) => s.share),
+    fee: FEE,
+  })
+}
+
+async function admin(req: Request): Promise<string> {
+  const email = await account(req)
+  if (!ADMINS.includes(email)) throw new HttpError(403, 'admins only')
+  return email
+}
+
+async function payouts(req: Request) {
+  await admin(req)
+  const owed = new Map<string, { seller: string; sellerEmail: string; paypal: string; currency: string; amount: number; fees: number; orders: string[] }>()
+  for (const { sale: s } of await salesUnder('sales/')) {
+    if (s.paidOut) continue
+    const key = `${s.sellerEmail}\n${s.currency}`
+    const row = owed.get(key) ?? { seller: s.seller, sellerEmail: s.sellerEmail, paypal: s.sellerPaypal, currency: s.currency, amount: 0, fees: 0, orders: [] }
+    row.amount = cents(row.amount + s.share)
+    row.fees = cents(row.fees + s.fee)
+    row.orders.push(s.order)
+    owed.set(key, row)
+  }
+  return json({ payouts: [...owed.values()].sort((a, b) => b.amount - a.amount) })
+}
+
+async function payout(req: Request) {
+  await admin(req)
+  const b = (await req.json().catch(() => ({}))) as { orders?: unknown }
+  const orders = new Set(Array.isArray(b.orders) ? b.orders.filter((o): o is string => typeof o === 'string') : [])
+  if (!orders.size) throw new HttpError(400, 'no orders')
+  const at = new Date().toISOString()
+  let marked = 0
+  for (const { pathname, sale } of await salesUnder('sales/')) {
+    if (sale.paidOut || !orders.has(sale.order)) continue
+    await writeJson(pathname, { ...sale, paidOut: at })
+    marked++
+  }
+  return json({ ok: true, marked })
+}
+
 async function handle(req: Request): Promise<Response> {
   try {
     const url = new URL(req.url)
@@ -357,6 +469,9 @@ async function handle(req: Request): Promise<Response> {
     if (req.method === 'POST' && action === 'capture') return await capture(req, validId(id), url.searchParams.get('order'))
     if (req.method === 'GET' && action === 'data') return await download(req, validId(id))
     if (req.method === 'GET' && action === 'licence') return await licence(req, validId(id))
+    if (req.method === 'GET' && action === 'sales') return await sales(req)
+    if (req.method === 'GET' && action === 'payouts') return await payouts(req)
+    if (req.method === 'POST' && action === 'payout') return await payout(req)
     return json({ error: 'not found' }, 404)
   } catch (e) {
     if (e instanceof HttpError) return json({ error: e.message }, e.status)

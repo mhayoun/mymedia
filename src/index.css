@@ -444,3 +444,6 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .account-card { display: flex; align-items: center; gap: 12px; margin-block-end: 12px; }
 .avatar.big { inline-size: 56px; block-size: 56px; }
 @media (max-width: 480px) { .topbar .shop-btn { display: none; } }
+
+/* An address to copy in one tap (PayPal of a seller to pay). */
+.selectable { user-select: all; }

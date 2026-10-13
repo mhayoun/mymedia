@@ -15,10 +15,12 @@ vi.mock('@vercel/blob', () => ({
 
 process.env.PAYPAL_CLIENT_ID = 'pp-id'
 process.env.PAYPAL_CLIENT_SECRET = 'pp-secret'
+process.env.MYMEDIA_FEE = '15'
+process.env.MYMEDIA_ADMINS = 'admin@gmail.com'
 
 const CLIENT = '246067015646-63ga5nqjgihi3sd8mmb3ch0urb0i1q5m.apps.googleusercontent.com'
 /** PayPal orders: id → what was asked, and whether the buyer approved it. */
-const orders = new Map<string, { body: { purchase_units: { reference_id: string; amount: { value: string; currency_code: string }; payee: { email_address: string } }[] }; approved: boolean; captured: boolean }>()
+const orders = new Map<string, { body: { purchase_units: { reference_id: string; amount: { value: string; currency_code: string }; payee?: unknown }[] }; approved: boolean; captured: boolean }>()
 let paidValue: string | null = null
 
 vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
@@ -90,12 +92,14 @@ describe('model shop with PayPal', () => {
     expect(shop.paymentsLive).toBe(true)
   })
 
-  it('gives the licence only once the buyer paid the seller the price', async () => {
+  it('gives the licence only once the buyer paid MyMedia the price', async () => {
     const id = (await (await POST(req('POST', '', 'seller', publishBody))).json()).model.id as string
     const buy = await (await POST(req('POST', `?action=buy&id=${id}`, 'buyer'))).json()
     expect(buy).toMatchObject({ ok: false, approve: 'https://paypal.test/pay?token=ORDER1', order: 'ORDER1' })
     const asked = orders.get('ORDER1')!.body.purchase_units[0]
-    expect(asked).toMatchObject({ reference_id: id, amount: { value: '25.00', currency_code: 'ILS' }, payee: { email_address: 'katia.pay@example.com' } })
+    expect(asked).toMatchObject({ reference_id: id, amount: { value: '25.00', currency_code: 'ILS' } })
+    // Paid to MyMedia, which pays the seller their share.
+    expect(asked.payee).toBeUndefined()
 
     // Not approved on PayPal yet, or someone else's order: no licence.
     expect((await POST(req('POST', `?action=capture&id=${id}&order=ORDER1`, 'buyer'))).status).toBe(402)
@@ -108,6 +112,28 @@ describe('model shop with PayPal', () => {
     expect((await GET(req('GET', `?action=data&id=${id}`, 'buyer'))).status).toBe(200)
     // Bought: getting it again asks nothing more.
     expect(await (await POST(req('POST', `?action=buy&id=${id}`, 'buyer'))).json()).toEqual({ ok: true })
+  })
+
+  it('owes the seller the price less the commission, until an admin pays it out', async () => {
+    const id = (await (await POST(req('POST', '', 'seller', publishBody))).json()).model.id as string
+    for (const buyer of ['buyer', 'buyer2']) {
+      const { order } = await (await POST(req('POST', `?action=buy&id=${id}`, buyer))).json()
+      orders.get(order)!.approved = true
+      expect((await POST(req('POST', `?action=capture&id=${id}&order=${order}`, buyer))).status).toBe(200)
+    }
+    expect(await (await GET(req('GET', '?action=sales', 'seller'))).json()).toEqual({ count: 2, owed: { ILS: 42.5 }, paidOut: {}, fee: 15 })
+    expect(await (await GET(req('GET', '?action=sales', 'buyer'))).json()).toMatchObject({ count: 0 })
+
+    expect((await GET(req('GET', '?action=payouts', 'seller'))).status).toBe(403)
+    const { payouts } = await (await GET(req('GET', '?action=payouts', 'admin'))).json()
+    expect(payouts).toEqual([
+      { seller: 'Katia', sellerEmail: 'seller@gmail.com', paypal: 'katia.pay@example.com', currency: 'ILS', amount: 42.5, fees: 7.5, orders: ['ORDER1', 'ORDER2'] },
+    ])
+    expect((await POST(req('POST', '?action=payout', 'seller', { orders: ['ORDER1'] }))).status).toBe(403)
+    expect(await (await POST(req('POST', '?action=payout', 'admin', { orders: ['ORDER1'] }))).json()).toEqual({ ok: true, marked: 1 })
+    expect(await (await GET(req('GET', '?action=sales', 'seller'))).json()).toMatchObject({ owed: { ILS: 21.25 }, paidOut: { ILS: 21.25 } })
+    expect((await (await GET(req('GET', '?action=payouts', 'admin'))).json()).payouts[0]).toMatchObject({ amount: 21.25, orders: ['ORDER2'] })
+    expect((await (await GET(req('GET', '', 'admin'))).json())).toMatchObject({ admin: true, fee: 15 })
   })
 
   it('refuses a payment of another amount', async () => {
