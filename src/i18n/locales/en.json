@@ -643,21 +643,22 @@
       "sync": "Updating MyMedia…"
     },
     "paypal": "Your PayPal account (to receive the money from your sales)",
-    "priceHintLive": "Buyers pay MyMedia with PayPal. MyMedia keeps a {{fee}}% commission and sends you the rest on your PayPal account (once a month).",
+    "priceHintLive": "Buyers pay MyMedia with PayPal. MyMedia keeps a {{fee}}% commission and sends you the rest on your PayPal account within 7 days of each sale.",
     "toPaypal": "Opening PayPal for the payment…",
     "paymentCancelled": "Payment cancelled: nothing was charged.",
     "youGet": "You get {{share}} of {{price}} per sale (MyMedia commission {{fee}}%).",
     "salesTitle": "My sales",
     "salesLine_one": "{{count}} sale · To receive: {{owed}} · Already received: {{paid}}",
     "salesLine_other": "{{count}} sales · To receive: {{owed}} · Already received: {{paid}}",
-    "salesHint": "Amounts after MyMedia's {{fee}}% commission. MyMedia sends them to your PayPal account once a month.",
+    "salesHint": "Amounts after MyMedia's {{fee}}% commission. MyMedia sends them to your PayPal account within 7 days of each sale.",
     "payoutsTitle": "To pay the sellers (admin)",
-    "payoutsHint": "Send each amount in PayPal (Send money, to the address shown), then click « Mark as paid ».",
+    "payoutsHint": "Send each amount in PayPal (Send money, to the address shown) at most 7 days after the sale, then click « Mark as paid ».",
     "payoutsNone": "Nothing to pay out for now.",
     "payoutSales_one": "{{count}} sale · commission kept {{fees}}",
     "payoutSales_other": "{{count}} sales · commission kept {{fees}}",
     "markPaidOut": "Mark as paid",
-    "paidOutDone": "{{amount}} to {{seller}}: marked as paid."
+    "paidOutDone": "{{amount}} to {{seller}}: marked as paid.",
+    "payoutSince": "owed since {{date}}"
   },
   "account": {
     "title": "Account",

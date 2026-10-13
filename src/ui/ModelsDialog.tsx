@@ -340,7 +340,8 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
                   <div>
                     <strong>{money(p.amount, p.currency)}</strong> → <bdi>{p.seller}</bdi>
                     <div className="hint">
-                      PayPal <bdi className="selectable">{p.paypal}</bdi> · {t('models.payoutSales', { count: p.orders.length, fees: money(p.fees, p.currency) })}
+                      PayPal <bdi className="selectable">{p.paypal}</bdi> · {t('models.payoutSales', { count: p.orders.length, fees: money(p.fees, p.currency) })} ·{' '}
+                      {t('models.payoutSince', { date: fmt.date(p.oldest) })}
                     </div>
                   </div>
                   <button

@@ -120,7 +120,7 @@ const fr: HelpContent = {
       title: 'Modèles de classement (boutique)',
       items: [
         'Un modèle, ce sont les noms des albums d’une catégorie et les « empreintes » de ses photos rangées, sans les photos. Il permet à un autre compte de ranger ses propres photos dès le début.',
-        '🛒 Boutique (en haut, ou dans le menu ☰) → Publier mon modèle : choisissez la catégorie (par exemple ציפורים), un nom, votre nom de vendeur et un prix (0 = gratuit). Pour un prix, indiquez aussi votre compte PayPal : MyMedia y verse vos ventes, moins sa commission, une fois par mois. « Mes ventes » montre ce qui vous est dû et ce que vous avez déjà reçu. Au plus 60 exemples par album sont envoyés.',
+        '🛒 Boutique (en haut, ou dans le menu ☰) → Publier mon modèle : choisissez la catégorie (par exemple ציפורים), un nom, votre nom de vendeur et un prix (0 = gratuit). Pour un prix, indiquez aussi votre compte PayPal : MyMedia y verse vos ventes, moins sa commission, sous 7 jours après chaque vente. « Mes ventes » montre ce qui vous est dû et ce que vous avez déjà reçu. Au plus 60 exemples par album sont envoyés.',
         'Pour obtenir un modèle : 🛒 Boutique → Obtenir. MyMedia crée les albums (vides) dans votre MyMedia, puis vos photos à classer leur sont comparées et rangées ou proposées dans « À classer ».',
         'Acheter : « Acheter avec PayPal » ouvre la page de paiement PayPal, puis vous ramène dans MyMedia, qui installe le modèle. Le paiement va à MyMedia, qui garde sa commission et reverse le reste au vendeur ; si vous annulez, rien n’est débité. Tant que PayPal n’est pas branché sur le serveur, tout reste gratuit.',
         'Un modèle est lié au compte Google qui l’a obtenu : copié vers un autre compte, il est refusé. Le retirer garde ses albums et vos photos.',
@@ -247,7 +247,7 @@ const en: HelpContent = {
       title: 'Classification models (shop)',
       items: [
         'A model is the album names of a category and the “fingerprints” of its sorted photos, without the photos. It lets another account sort its own photos from the start.',
-        '🛒 Shop (at the top, or in the ☰ menu) → Publish my model: choose the category (e.g. ציפורים), a name, your seller name and a price (0 = free). For a price, also give your PayPal account: MyMedia sends your sales there, less its commission, once a month. « My sales » shows what you are owed and what you already received. At most 60 examples per album are sent.',
+        '🛒 Shop (at the top, or in the ☰ menu) → Publish my model: choose the category (e.g. ציפורים), a name, your seller name and a price (0 = free). For a price, also give your PayPal account: MyMedia sends your sales there, less its commission, within 7 days of each sale. « My sales » shows what you are owed and what you already received. At most 60 examples per album are sent.',
         'To get a model: 🛒 Shop → Get. MyMedia creates the albums (empty) in your MyMedia, then your photos to classify are compared with them and sorted or suggested in “To classify”.',
         'Buying: « Buy with PayPal » opens PayPal\'s payment page, then brings you back to MyMedia, which installs the model. The payment goes to MyMedia, which keeps its commission and passes the rest to the seller; if you cancel, nothing is charged. While PayPal is not plugged in on the server, everything stays free.',
         'A model is bound to the Google account that got it: copied to another account, it is refused. Removing it keeps its albums and your photos.',
@@ -374,7 +374,7 @@ const he: HelpContent = {
       title: 'מודלים למיון (חנות)',
       items: [
         'מודל הוא שמות האלבומים של קטגוריה ו„טביעות האצבע” של התמונות הממוינות בה, בלי התמונות. הוא מאפשר לחשבון אחר למיין את התמונות שלו כבר מההתחלה.',
-        '🛒 חנות (למעלה, או בתפריט ☰) ← פרסום המודל שלי: בוחרים קטגוריה (למשל ציפורים), שם, שם מוכר ומחיר (0 = חינם). כשיש מחיר, מציינים גם חשבון PayPal: MyMedia מעבירה אליו את המכירות, פחות העמלה שלה, פעם בחודש. «המכירות שלי» מראה מה מגיע לך ומה כבר התקבל. נשלחות עד 60 דוגמאות לכל אלבום.',
+        '🛒 חנות (למעלה, או בתפריט ☰) ← פרסום המודל שלי: בוחרים קטגוריה (למשל ציפורים), שם, שם מוכר ומחיר (0 = חינם). כשיש מחיר, מציינים גם חשבון PayPal: MyMedia מעבירה אליו את המכירות, פחות העמלה שלה, תוך 7 ימים מכל מכירה. «המכירות שלי» מראה מה מגיע לך ומה כבר התקבל. נשלחות עד 60 דוגמאות לכל אלבום.',
         'כדי לקבל מודל: 🛒 חנות ← קבלה. MyMedia יוצרת את האלבומים (ריקים) אצלכם, ואז התמונות למיון מושוות אליהם וממוינות או מוצעות ב„למיון”.',
         'קנייה: «קנייה ב-PayPal» פותחת את דף התשלום של PayPal, ואז מחזירה ל-MyMedia, שמתקינה את המודל. התשלום עובר ל-MyMedia, ששומרת את העמלה שלה ומעבירה את השאר למוכר; ביטול לא מחייב דבר. כל עוד PayPal לא מחובר בשרת, הכול נשאר בחינם.',
         'מודל קשור לחשבון Google שקיבל אותו: אם מעתיקים אותו לחשבון אחר, הוא נדחה. הסרתו משאירה את האלבומים ואת התמונות שלכם.',

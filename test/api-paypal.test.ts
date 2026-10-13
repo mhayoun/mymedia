@@ -127,7 +127,7 @@ describe('model shop with PayPal', () => {
     expect((await GET(req('GET', '?action=payouts', 'seller'))).status).toBe(403)
     const { payouts } = await (await GET(req('GET', '?action=payouts', 'admin'))).json()
     expect(payouts).toEqual([
-      { seller: 'Katia', sellerEmail: 'seller@gmail.com', paypal: 'katia.pay@example.com', currency: 'ILS', amount: 42.5, fees: 7.5, orders: ['ORDER1', 'ORDER2'] },
+      { seller: 'Katia', sellerEmail: 'seller@gmail.com', paypal: 'katia.pay@example.com', currency: 'ILS', amount: 42.5, fees: 7.5, orders: ['ORDER1', 'ORDER2'], oldest: expect.any(String) },
     ])
     expect((await POST(req('POST', '?action=payout', 'seller', { orders: ['ORDER1'] }))).status).toBe(403)
     expect(await (await POST(req('POST', '?action=payout', 'admin', { orders: ['ORDER1'] }))).json()).toEqual({ ok: true, marked: 1 })

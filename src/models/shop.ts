@@ -51,6 +51,8 @@ export interface Payout {
   amount: number
   fees: number
   orders: string[]
+  /** The oldest sale not paid out yet (sellers are paid within 7 days). */
+  oldest: string
 }
 
 export interface ModelData {

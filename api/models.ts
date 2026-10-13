@@ -429,14 +429,15 @@ async function admin(req: Request): Promise<string> {
 
 async function payouts(req: Request) {
   await admin(req)
-  const owed = new Map<string, { seller: string; sellerEmail: string; paypal: string; currency: string; amount: number; fees: number; orders: string[] }>()
+  const owed = new Map<string, { seller: string; sellerEmail: string; paypal: string; currency: string; amount: number; fees: number; orders: string[]; oldest: string }>()
   for (const { sale: s } of await salesUnder('sales/')) {
     if (s.paidOut) continue
     const key = `${s.sellerEmail}\n${s.currency}`
-    const row = owed.get(key) ?? { seller: s.seller, sellerEmail: s.sellerEmail, paypal: s.sellerPaypal, currency: s.currency, amount: 0, fees: 0, orders: [] }
+    const row = owed.get(key) ?? { seller: s.seller, sellerEmail: s.sellerEmail, paypal: s.sellerPaypal, currency: s.currency, amount: 0, fees: 0, orders: [], oldest: s.at }
     row.amount = cents(row.amount + s.share)
     row.fees = cents(row.fees + s.fee)
     row.orders.push(s.order)
+    if (s.at < row.oldest) row.oldest = s.at
     owed.set(key, row)
   }
   return json({ payouts: [...owed.values()].sort((a, b) => b.amount - a.amount) })
