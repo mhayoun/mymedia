@@ -358,9 +358,10 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .face-pick input { position: absolute; inset-block-start: 4px; inset-inline-start: 4px; }
 .face-pick.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
 .selection-bar { position: sticky; inset-block-end: 0; background: var(--surface); padding-block: 10px; border-block-start: 1px solid var(--border); margin-block-start: 10px; }
-.info-faces { display: flex; flex-wrap: wrap; gap: 8px; margin-block-end: 14px; }
+.info-faces { display: flex; flex-wrap: wrap; gap: 12px; margin-block-end: 14px; }
 .info-face { display: grid; justify-items: center; gap: 4px; }
-.info-face select { inline-size: 84px; font-size: 0.75rem; padding: 2px; }
+.info-face select { min-inline-size: 130px; font-size: 1rem; padding: 6px 4px; }
+.info-face select option { font-size: 1rem; padding: 4px; }
 .info-faces button { display: grid; justify-items: center; gap: 2px; border: none; background: none; cursor: pointer; font-size: 0.82rem; max-inline-size: 72px; }
 .info-faces button span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-inline-size: 72px; }
 
