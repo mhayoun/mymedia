@@ -101,7 +101,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     return [p.category, p.album].filter(Boolean).join(' / ')
   }
   const destName = nameOf(destId)
-  const items = useMemo(() => insideDestination(picked, destId === rootId ? undefined : lib.folders.get(destId)?.name), [picked, destId, rootId, lib.folders])
+  const items = useMemo(() => insideDestination(picked, placementOf(destId, lib.folders, rootId).albumId !== null), [picked, destId, rootId, lib.folders])
   const recent = recentDestinations().filter((id) => id !== destId && (id === rootId || lib.folders.has(id)))
 
   useEffect(() => {

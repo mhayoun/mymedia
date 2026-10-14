@@ -4,18 +4,15 @@ import { insideDestination, type ImportItem } from '../src/import/importer'
 const item = (relDir: string[]) => ({ key: relDir.join('/'), relDir }) as unknown as ImportItem
 
 describe('insideDestination', () => {
-  it('puts a folder picked into the album of its name in that album', () => {
-    const out = insideDestination([item(['אסתי']), item(['אסתי', 'Purim'])], 'אסתי')
+  it('puts a folder picked into an album in that album, whatever its name', () => {
+    const out = insideDestination([item(['esty']), item(['esty', 'Purim'])], true)
     expect(out.map((i) => i.relDir)).toEqual([[], ['Purim']])
   })
-  it('ignores case and spaces', () => {
-    expect(insideDestination([item(['esty '])], 'Esty')[0].relDir).toEqual([])
+  it('keeps the folder as an album into the root or a category', () => {
+    expect(insideDestination([item(['esty'])], false)[0].relDir).toEqual(['esty'])
   })
-  it('keeps the folder when the names differ', () => {
-    expect(insideDestination([item(['אסתי'])], 'משפחה')[0].relDir).toEqual(['אסתי'])
-  })
-  it('keeps everything into the root, or when some files are outside the folder', () => {
-    expect(insideDestination([item(['אסתי'])], undefined)[0].relDir).toEqual(['אסתי'])
-    expect(insideDestination([item(['אסתי']), item([])], 'אסתי')[0].relDir).toEqual(['אסתי'])
+  it('keeps everything when the files are not all under one folder', () => {
+    expect(insideDestination([item(['esty']), item([])], true)[0].relDir).toEqual(['esty'])
+    expect(insideDestination([item(['a']), item(['b'])], true).map((i) => i.relDir)).toEqual([['a'], ['b']])
   })
 })

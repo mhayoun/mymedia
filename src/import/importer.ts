@@ -129,14 +129,14 @@ export async function analyze(files: File[], onProgress: (done: number) => void)
 }
 
 /**
- * A folder picked to go into an album of the same name (« Esty » into
- * Family / Esty): its photos go into that album, not into a new « Esty »
- * inside it. Its sub-folders stay albums under it.
+ * A folder picked into an album (« esty » into Family / Esty): its photos go
+ * into that album, not into a new « esty » inside it. Its sub-folders stay
+ * albums under it. Into the root or a category, the folder becomes an album.
  */
-export function insideDestination(items: ImportItem[], destName: string | undefined): ImportItem[] {
-  if (!destName || !items.length) return items
-  const same = (a: string) => a.trim().localeCompare(destName.trim(), undefined, { sensitivity: 'base' }) === 0
-  if (!items.every((i) => i.relDir.length > 0 && same(i.relDir[0]))) return items
+export function insideDestination(items: ImportItem[], intoAlbum: boolean): ImportItem[] {
+  if (!intoAlbum || !items.length) return items
+  const top = items[0].relDir[0]
+  if (top === undefined || !items.every((i) => i.relDir[0] === top)) return items
   return items.map((i) => ({ ...i, relDir: i.relDir.slice(1) }))
 }
 
