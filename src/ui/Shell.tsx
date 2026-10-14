@@ -20,7 +20,7 @@ import { Sidebar } from './Sidebar'
 import { LibraryContext } from './libraryContext'
 import { ReviewView } from './ReviewView'
 import { StatsDialog } from './StatsDialog'
-import { AUTO, filterItems, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
+import { AUTO, filterItems, MISFILED, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
 import { clearSharedFiles, hasSharedFiles, readSharedFiles } from '../import/shared'
 import { paypalReturn } from '../models/shop'
 import { FacesIntro } from './FacesIntro'
@@ -32,6 +32,7 @@ import { SelectionBar } from './SelectionBar'
 import { PeopleContext, PersonDialogContext } from './peopleContext'
 import { PeopleView } from './PeopleView'
 import { PersonDialog } from './PersonDialog'
+import { MisfiledView } from './MisfiledView'
 import { MoveFolderDialog } from './MoveFolderDialog'
 import { usePeople, type People } from './usePeople'
 import { useProvenanceLabel } from './useProvenanceLabel'
@@ -93,7 +94,7 @@ export function Shell() {
 
   const personMedia = filters.personId ? people.byId.get(filters.personId)?.mediaIds : undefined
   // Folder shown (album or category), used by Add and Compress in the top bar.
-  const specialView = [UNFILED, TO_CLASSIFY, AUTO, PEOPLE].includes(filters.categoryId ?? '') || !!filters.personId || !!filters.provenance
+  const specialView = [UNFILED, TO_CLASSIFY, AUTO, PEOPLE, MISFILED].includes(filters.categoryId ?? '') || !!filters.personId || !!filters.provenance
   const currentFolderId = filters.albumId ?? (!specialView && filters.categoryId && lib.folders.has(filters.categoryId) ? filters.categoryId : null)
   const currentTitle = currentFolderId
     ? (lib.folders.get(currentFolderId)?.name ?? '')
@@ -132,10 +133,12 @@ export function Shell() {
             onAdd={() => setDialog({ kind: 'import', destId: currentFolderId ?? rootId! })}
             onCompress={() => setDialog({ kind: 'compress', title: t('compress.titleFor', { name: currentTitle }), folderId: currentFolderId })}
           />
-          {filters.categoryId !== PEOPLE && <FilterBar people={people} lib={lib} />}
+          {filters.categoryId !== PEOPLE && filters.categoryId !== MISFILED && <FilterBar people={people} lib={lib} />}
           </div>
           {filters.categoryId === PEOPLE ? (
             <PeopleView people={people} />
+          ) : filters.categoryId === MISFILED ? (
+            <MisfiledView lib={lib} />
           ) : lib.ready && items.length === 0 ? (
             <EmptyState />
           ) : filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO ? (
@@ -426,7 +429,7 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
   const updateSettings = useApp((s) => s.updateSettings)
 
   const special =
-    filters.categoryId === UNFILED || filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO || filters.categoryId === PEOPLE || !!filters.personId || !!filters.provenance
+    filters.categoryId === UNFILED || filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO || filters.categoryId === PEOPLE || filters.categoryId === MISFILED || !!filters.personId || !!filters.provenance
   const folderId = filters.albumId ?? (!special ? filters.categoryId : null)
   const folder = folderId ? lib.folders.get(folderId) : undefined
   const folderCount = useMemo(() => {
@@ -448,6 +451,8 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
       ? provenance.title(lib, filters.provenance)
       : filters.categoryId === PEOPLE
       ? t('faces.people')
+      : filters.categoryId === MISFILED
+      ? t('misfiled.title')
       : filters.categoryId === UNFILED
       ? t('nav.unfiled')
       : filters.categoryId === TO_CLASSIFY

@@ -3,7 +3,7 @@
 // classifier maths away from the screen, so the app never freezes.
 
 import * as ort from 'onnxruntime-web/wasm'
-import { average, calibrate, evaluate, predict, quantize, type LabeledVec, type Vec } from '../lib/classifier'
+import { average, calibrate, evaluate, findMisfiled, predict, quantize, type LabeledVec, type Vec } from '../lib/classifier'
 import { findFaces, initFaceModels } from './faceModel'
 import type { PackedSet, Request } from './protocol'
 
@@ -129,6 +129,8 @@ async function handle(req: Request): Promise<unknown> {
       return calibrate(unpack(req.set))
     case 'evaluate':
       return evaluate(unpack(req.set), req.tau)
+    case 'misfiled':
+      return findMisfiled(unpack(req.set), new Map(Object.entries(req.groups)))
   }
 }
 

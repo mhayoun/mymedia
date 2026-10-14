@@ -1,6 +1,6 @@
 // App side of the ML worker.
 
-import type { Calibration, LabelStats, Prediction } from '../lib/classifier'
+import type { Calibration, LabelStats, Misfiled, Prediction } from '../lib/classifier'
 import type { FoundFace } from './faceModel'
 import type { PackedSet, Query, Request } from './protocol'
 
@@ -50,6 +50,11 @@ export function calibrate(set: PackedSet): Promise<Calibration> {
 
 export function evaluateSet(set: PackedSet, tau: number): Promise<LabelStats[]> {
   return call({ type: 'evaluate', set, tau })
+}
+
+/** Album photos that resemble another album of their category more than their own. */
+export function misfiledIn(set: PackedSet, groups: Record<string, string>): Promise<Misfiled[]> {
+  return call({ type: 'misfiled', set, groups })
 }
 
 /** Faces in each image (detection + fingerprint), computed on the device. */

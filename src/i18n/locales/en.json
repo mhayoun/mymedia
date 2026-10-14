@@ -233,6 +233,18 @@
     "groupWaiting": "Waiting for analysis",
     "waitingAnalysis": "Waiting for analysis: the suggestion will come once this photo is analysed."
   },
+  "misfiled": {
+    "title": "Possibly misfiled photos",
+    "button": "Photos that look more like another album than their own.",
+    "computing": "Comparing every photo with the albums…",
+    "hint_one": "This photo looks more like another album of its category than its own. If it is in the wrong album, move it: a misfiled photo teaches MyMedia the mistake.",
+    "hint_other": "These {{count}} photos look more like another album of their category than their own. If one is in the wrong album, move it: a misfiled photo teaches MyMedia the mistake.",
+    "none": "No photo looks misfiled.",
+    "in": "Now in:",
+    "moveTo": "Move to {{name}}",
+    "rightPlace": "Right album",
+    "rightPlaceHint": "It is in the right album: do not show it again"
+  },
   "stats": {
     "title": "Learning statistics",
     "computing": "Computing…",

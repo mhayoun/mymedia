@@ -14,6 +14,8 @@ export const UNFILED = '__unfiled'
 export const TO_CLASSIFY = '__toClassify'
 /** Media moved automatically and not yet reviewed. */
 export const AUTO = '__auto'
+/** Album photos that look more like another album ("Possibly misfiled"). */
+export const MISFILED = '__misfiled'
 /** The "People" screen. */
 export const PEOPLE = '__people'
 

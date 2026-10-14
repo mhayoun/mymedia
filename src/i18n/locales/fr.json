@@ -231,6 +231,18 @@
     "groupWaiting": "En attente d'analyse",
     "waitingAnalysis": "En attente d'analyse : la suggestion viendra quand cette photo sera analysée."
   },
+  "misfiled": {
+    "title": "Photos peut-être mal rangées",
+    "button": "Les photos qui ressemblent plus à un autre album qu'au leur.",
+    "computing": "Comparaison de chaque photo avec les albums…",
+    "hint_one": "Cette photo ressemble plus à un autre album de sa catégorie qu'au sien. Si elle est dans le mauvais album, déplacez-la : une photo mal rangée apprend l'erreur à MyMedia.",
+    "hint_other": "Ces {{count}} photos ressemblent plus à un autre album de leur catégorie qu'au leur. Si l'une est dans le mauvais album, déplacez-la : une photo mal rangée apprend l'erreur à MyMedia.",
+    "none": "Aucune photo ne semble mal rangée.",
+    "in": "Actuellement dans :",
+    "moveTo": "Déplacer vers {{name}}",
+    "rightPlace": "Bien rangée",
+    "rightPlaceHint": "Elle est dans le bon album : ne plus la montrer"
+  },
   "stats": {
     "title": "Statistiques d'apprentissage",
     "computing": "Calcul en cours…",

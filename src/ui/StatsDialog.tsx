@@ -8,7 +8,7 @@ import { placementOf } from '../lib/tree'
 import { calibrate, evaluateSet } from '../ml/ml'
 import { useApp } from '../store'
 import { Modal } from './Dialog'
-import type { Library } from './useLibrary'
+import { MISFILED, type Library } from './useLibrary'
 
 interface Result {
   media: number
@@ -23,6 +23,7 @@ export function StatsDialog({ lib }: { lib: Library }) {
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
   const set = useApp((s) => s.set)
+  const setFilters = useApp((s) => s.setFilters)
   const [result, setResult] = useState<Result | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -66,6 +67,20 @@ export function StatsDialog({ lib }: { lib: Library }) {
               {result.failed > 0 && <> · {t('stats.failed', { count: result.failed })}</>}
             </p>
             {tested.length > 0 && <p>{t('stats.overall', { percent: fmt.percent(overall) })}</p>}
+            {tested.length > 0 && (
+              <p>
+                <button
+                  className="btn"
+                  onClick={() => {
+                    setFilters({ categoryId: MISFILED, albumId: null, personId: null, provenance: null })
+                    set({ statsOpen: false, sidebarOpen: false })
+                  }}
+                >
+                  {t('misfiled.title')}
+                </button>{' '}
+                <span className="hint">{t('misfiled.button')}</span>
+              </p>
+            )}
             {few.length > 0 && (
               <>
                 <h3>{t('stats.fewTitle', { count: few.length })}</h3>

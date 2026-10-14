@@ -224,3 +224,42 @@ export function evaluate(labeled: LabeledVec[], tau: number, maxQueries = 1500):
   }
   return [...stats.values()]
 }
+
+export interface Misfiled {
+  id: string
+  /** Album it is in. */
+  label: string
+  /** Album it resembles more. */
+  other: string
+  own: number
+  best: number
+}
+
+/**
+ * Photos of an album that resemble another album of the same category more
+ * than their own (leave-one-out): often filed in the wrong album, and then
+ * they teach the mistake. Most doubtful first.
+ */
+export function findMisfiled(labeled: LabeledVec[], groupOf: ReadonlyMap<string, string>): Misfiled[] {
+  const counts = labelCounts(labeled)
+  const inGroup = new Map<string, Set<string>>()
+  for (const label of counts.keys()) {
+    const g = groupOf.get(label) ?? label
+    const set = inGroup.get(g) ?? new Set<string>()
+    set.add(label)
+    inGroup.set(g, set)
+  }
+  const out: Misfiled[] = []
+  for (const e of labeled) {
+    if ((counts.get(e.label) ?? 0) < 2) continue
+    const allowed = inGroup.get(groupOf.get(e.label) ?? e.label)!
+    if (allowed.size < 2) continue
+    const scores = labelScores(e.vec, labeled, allowed, e.id)
+    const own = scores.get(e.label) ?? -Infinity
+    let other = ''
+    let best = -Infinity
+    for (const [label, s] of scores) if (label !== e.label && s > best) [other, best] = [label, s]
+    if (other && best > own) out.push({ id: e.id, label: e.label, other, own, best })
+  }
+  return out.sort((a, b) => b.best - b.own - (a.best - a.own))
+}
