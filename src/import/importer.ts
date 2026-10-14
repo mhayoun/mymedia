@@ -128,15 +128,18 @@ export async function analyze(files: File[], onProgress: (done: number) => void)
   return items
 }
 
+/** The folder picked (« esty »), when every file is inside it. */
+export function pickedFolder(items: ImportItem[]): string | null {
+  const top = items[0]?.relDir[0]
+  return top !== undefined && items.every((i) => i.relDir[0] === top) ? top : null
+}
+
 /**
- * A folder picked into an album (« esty » into Family / Esty): its photos go
- * into that album, not into a new « esty » inside it. Its sub-folders stay
- * albums under it. Into the root or a category, the folder becomes an album.
+ * The picked folder not created in the destination: its photos go straight
+ * into it, its sub-folders become albums there.
  */
-export function insideDestination(items: ImportItem[], intoAlbum: boolean): ImportItem[] {
-  if (!intoAlbum || !items.length) return items
-  const top = items[0].relDir[0]
-  if (top === undefined || !items.every((i) => i.relDir[0] === top)) return items
+export function insideDestination(items: ImportItem[], createFolder: boolean): ImportItem[] {
+  if (createFolder || pickedFolder(items) === null) return items
   return items.map((i) => ({ ...i, relDir: i.relDir.slice(1) }))
 }
 

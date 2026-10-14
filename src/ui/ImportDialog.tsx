@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { extractFiles, FacebookFormatError, readFacebookZip, type FacebookExport } from '../import/facebook'
 import { findReplacements } from '../import/replace'
 import { loadThumb } from '../sync/thumbs'
-import { analyze, cancelImport, insideDestination, mediaFiles, runImport, withFacebookPosts, type ImportItem, type ImportOutcome } from '../import/importer'
+import { analyze, cancelImport, insideDestination, pickedFolder, mediaFiles, runImport, withFacebookPosts, type ImportItem, type ImportOutcome } from '../import/importer'
 import { speciesInText } from '../lib/katia'
 import { importSourceName } from '../lib/provenance'
 import { useFormat } from '../i18n/format'
@@ -109,6 +109,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [compress, setCompress] = useState(true)
   const [originPath, setOriginPath] = useState('')
+  const [createFolder, setCreateFolder] = useState(true)
   const [folderMode, setFolderMode] = useState<'folders' | 'sort'>('sort')
   const [outcomes, setOutcomes] = useState<Record<string, ImportOutcome>>({})
   const [result, setResult] = useState<{ count: number; before: number; after: number } | null>(null)
@@ -123,7 +124,8 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     return [p.category, p.album].filter(Boolean).join(' / ')
   }
   const destName = nameOf(destId)
-  const items = useMemo(() => insideDestination(picked, placementOf(destId, lib.folders, rootId).albumId !== null), [picked, destId, rootId, lib.folders])
+  const items = useMemo(() => insideDestination(picked, createFolder), [picked, createFolder])
+  const topFolder = fb ? null : pickedFolder(picked)
   const recent = recentDestinations().filter((id) => id !== destId && (id === rootId || lib.folders.has(id)))
 
   useEffect(() => {
@@ -466,6 +468,16 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
                     <span>{t('import.modeFolders')}</span>
                   </label>
                 </div>
+              )}
+              {topFolder !== null && !sortByModel && (
+                <label className="radio-row">
+                  <input type="checkbox" checked={createFolder} onChange={(e) => setCreateFolder(e.target.checked)} />
+                  <span>
+                    {t('import.createFolder', { name: topFolder, dest: destName })}
+                    <br />
+                    <span className="hint">{t('import.createFolderHint', { dest: destName })}</span>
+                  </span>
+                </label>
               )}
               {hasFolders && sortByModel && <p className="hint">{t('import.modeSortHint', { dest: destName })}</p>}
               {hasFolders && !sortByModel && (

@@ -1,18 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import { insideDestination, type ImportItem } from '../src/import/importer'
+import { insideDestination, pickedFolder, type ImportItem } from '../src/import/importer'
 
 const item = (relDir: string[]) => ({ key: relDir.join('/'), relDir }) as unknown as ImportItem
 
 describe('insideDestination', () => {
-  it('puts a folder picked into an album in that album, whatever its name', () => {
-    const out = insideDestination([item(['esty']), item(['esty', 'Purim'])], true)
-    expect(out.map((i) => i.relDir)).toEqual([[], ['Purim']])
+  it('creates the picked folder in the destination by default', () => {
+    expect(insideDestination([item(['esty']), item(['esty', 'Purim'])], true).map((i) => i.relDir)).toEqual([['esty'], ['esty', 'Purim']])
   })
-  it('keeps the folder as an album into the root or a category', () => {
-    expect(insideDestination([item(['esty'])], false)[0].relDir).toEqual(['esty'])
+  it('without it, the photos go straight into the destination, sub-folders as albums', () => {
+    expect(insideDestination([item(['esty']), item(['esty', 'Purim'])], false).map((i) => i.relDir)).toEqual([[], ['Purim']])
   })
-  it('keeps everything when the files are not all under one folder', () => {
-    expect(insideDestination([item(['esty']), item([])], true)[0].relDir).toEqual(['esty'])
-    expect(insideDestination([item(['a']), item(['b'])], true).map((i) => i.relDir)).toEqual([['a'], ['b']])
+  it('knows the picked folder only when every file is inside it', () => {
+    expect(pickedFolder([item(['esty']), item(['esty', 'Purim'])])).toBe('esty')
+    expect(pickedFolder([item(['esty']), item([])])).toBeNull()
+    expect(pickedFolder([item(['a']), item(['b'])])).toBeNull()
+    expect(insideDestination([item(['a']), item(['b'])], false).map((i) => i.relDir)).toEqual([['a'], ['b']])
   })
 })
