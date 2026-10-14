@@ -66,6 +66,13 @@
     "account": "Account"
   },
   "folders": {
+    "move": "Move to…",
+    "moveTitle": "Move “{{name}}” to…",
+    "moveRootHint": "(as a category)",
+    "moveAsCategory": "It becomes a category.",
+    "moveAsAlbum": "It becomes an album of “{{dest}}”.",
+    "moveWith_one": "Its file and its albums go with it.",
+    "moveWith_other": "Its {{count}} files and its albums go with it.",
     "newCategoryTitle": "New category",
     "newAlbumTitle": "New album in “{{parent}}”",
     "renameTitle": "Rename “{{name}}”",

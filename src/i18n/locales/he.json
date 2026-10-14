@@ -66,6 +66,14 @@
     "account": "חשבון"
   },
   "folders": {
+    "move": "העברה אל…",
+    "moveTitle": "העברת \"{{name}}\" אל…",
+    "moveRootHint": "(כקטגוריה)",
+    "moveAsCategory": "היא תהפוך לקטגוריה.",
+    "moveAsAlbum": "היא תהפוך לאלבום של \"{{dest}}\".",
+    "moveWith_one": "הקובץ שלה והאלבומים שלה עוברים איתה.",
+    "moveWith_two": "{{count}} הקבצים שלה והאלבומים שלה עוברים איתה.",
+    "moveWith_other": "{{count}} הקבצים שלה והאלבומים שלה עוברים איתה.",
     "newCategoryTitle": "קטגוריה חדשה",
     "newAlbumTitle": "אלבום חדש ב“{{parent}}”",
     "renameTitle": "שינוי השם של “{{name}}”",

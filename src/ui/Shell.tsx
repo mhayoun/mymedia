@@ -1,4 +1,4 @@
-import { Brain, CircleHelp, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Store, Trash2, UserRound, WifiOff, X } from 'lucide-react'
+import { Brain, CircleHelp, FolderInput, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Store, Trash2, UserRound, WifiOff, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -32,6 +32,7 @@ import { SelectionBar } from './SelectionBar'
 import { PeopleContext, PersonDialogContext } from './peopleContext'
 import { PeopleView } from './PeopleView'
 import { PersonDialog } from './PersonDialog'
+import { MoveFolderDialog } from './MoveFolderDialog'
 import { usePeople, type People } from './usePeople'
 import { useProvenanceLabel } from './useProvenanceLabel'
 
@@ -39,6 +40,7 @@ type DialogState =
   | { kind: 'newCategory' }
   | { kind: 'newAlbum'; parentId: string; parentName: string }
   | { kind: 'rename'; id: string; name: string }
+  | { kind: 'move'; id: string; name: string; count: number }
   | { kind: 'delete'; id: string; name: string; count: number }
   | { kind: 'compress'; title: string; folderId: string | null }
   | { kind: 'import'; destId: string; files?: File[] }
@@ -173,6 +175,7 @@ export function Shell() {
           onClose={() => setDialog(null)}
         />
       )}
+      {dialog?.kind === 'move' && <MoveFolderDialog lib={lib} id={dialog.id} name={dialog.name} count={dialog.count} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'compress' && (
         <CompressDialog
           mode="manual"
@@ -445,6 +448,14 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
             onClick={() => onDialog({ kind: 'newAlbum', parentId: folder.id, parentName: folder.name })}
           >
             <FolderPlus size={18} />
+          </button>
+          <button
+            className="icon-btn small"
+            title={t('folders.move')}
+            aria-label={t('folders.move')}
+            onClick={() => onDialog({ kind: 'move', id: folder.id, name: folder.name, count: folderCount })}
+          >
+            <FolderInput size={18} />
           </button>
           <button
             className="icon-btn small"
