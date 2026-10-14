@@ -54,6 +54,15 @@ export function Shell() {
   const filters = useApp((s) => s.filters)
   const sort = useApp((s) => s.settings.sort)
   const sidebarHidden = useApp((s) => !!s.settings.sidebarHidden)
+  const savedSidebarWidth = useApp((s) => s.settings.sidebarWidth)
+  // While dragging, before it is saved.
+  const [dragWidth, setDragWidth] = useState<number | null>(null)
+  const sidebarWidth = dragWidth ?? savedSidebarWidth
+  const setSidebarWidth = (w: number | null, done?: boolean) => {
+    if (!done) return setDragWidth(w)
+    setDragWidth(null)
+    app().updateSettings({ sidebarWidth: w ?? undefined })
+  }
   const settingsOpen = useApp((s) => s.settingsOpen)
   const helpOpen = useApp((s) => s.helpOpen)
   const accountOpen = useApp((s) => s.accountOpen)
@@ -110,8 +119,9 @@ export function Shell() {
     <div className={`shell ${selection ? 'selecting' : ''}`}>
       <TopBar />
       <Banners />
-      <div className={`body ${sidebarHidden ? 'sidebar-hidden' : ''}`}>
+      <div className={`body ${sidebarHidden ? 'sidebar-hidden' : ''}`} style={sidebarWidth ? ({ '--sidebar-w': `${sidebarWidth}px` } as React.CSSProperties) : undefined}>
         <Sidebar lib={lib} people={people} onNewCategory={() => setDialog({ kind: 'newCategory' })} />
+        {!sidebarHidden && <SidebarResizer onWidth={setSidebarWidth} />}
         <main className="main">
           <div className="controls">
           <Toolbar
@@ -220,6 +230,42 @@ export function Shell() {
     </PersonDialogContext.Provider>
     </PeopleContext.Provider>
     </LibraryContext.Provider>
+  )
+}
+
+const SIDEBAR_MIN = 180
+const SIDEBAR_MAX = 600
+
+/** Computer: the edge of the side menu, dragged to make it wider or narrower (double-click: default width). */
+function SidebarResizer({ onWidth }: { onWidth: (w: number | null, done?: boolean) => void }) {
+  const { t } = useTranslation()
+  const widthAt = (e: React.PointerEvent<HTMLDivElement>) => {
+    const body = e.currentTarget.parentElement!.getBoundingClientRect()
+    const rtl = getComputedStyle(e.currentTarget).direction === 'rtl'
+    const w = rtl ? body.right - e.clientX : e.clientX - body.left
+    return Math.round(Math.min(SIDEBAR_MAX, Math.max(SIDEBAR_MIN, w)))
+  }
+  return (
+    <div
+      className="sidebar-resizer"
+      role="separator"
+      aria-orientation="vertical"
+      aria-label={t('nav.resize')}
+      title={t('nav.resize')}
+      onPointerDown={(e) => {
+        e.preventDefault()
+        e.currentTarget.setPointerCapture(e.pointerId)
+      }}
+      onPointerMove={(e) => {
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) onWidth(widthAt(e))
+      }}
+      onPointerUp={(e) => {
+        if (!e.currentTarget.hasPointerCapture(e.pointerId)) return
+        e.currentTarget.releasePointerCapture(e.pointerId)
+        onWidth(widthAt(e), true)
+      }}
+      onDoubleClick={() => onWidth(null, true)}
+    />
   )
 }
 

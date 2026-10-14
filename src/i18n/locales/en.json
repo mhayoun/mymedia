@@ -52,6 +52,7 @@
     "createNew": "Create a new folder"
   },
   "nav": {
+    "resize": "Drag to resize the menu (double-click: default width)",
     "allMedia": "All media",
     "unfiled": "Not in a category",
     "categories": "Categories",

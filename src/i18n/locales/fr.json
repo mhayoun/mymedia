@@ -52,6 +52,7 @@
     "createNew": "Créer un nouveau dossier"
   },
   "nav": {
+    "resize": "Faites glisser pour changer la largeur du menu (double-clic : largeur par défaut)",
     "allMedia": "Tous les médias",
     "unfiled": "Sans catégorie",
     "categories": "Catégories",

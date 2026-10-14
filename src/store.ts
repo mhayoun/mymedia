@@ -27,6 +27,8 @@ export interface Settings {
   facesEnabled: boolean
   /** Computer: the side menu (categories and albums) is closed; the ☰ button opens it again. */
   sidebarHidden?: boolean
+  /** Computer: width of the side menu in pixels, set by dragging its edge. */
+  sidebarWidth?: number
   /** 2: the Albums view became the default (earlier saved settings are moved to it once). */
   viewDefault?: number
 }
