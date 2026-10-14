@@ -254,17 +254,21 @@ function AlbumList({
   activeId: string | null
   onSelect: (categoryId: string, albumId: string) => void
 }) {
+  // Only the albums on the way to the chosen one show their sub-albums.
+  const holds = (f: FolderInfo): boolean => f.id === activeId || f.children.some(holds)
+  const opened = (f: FolderInfo) => activeId !== null && holds(f)
   return (
     <>
       {folders.map((a) => (
         <div key={a.id}>
           <button className="nav-item" aria-current={activeId === a.id} onClick={() => onSelect(categoryId, a.id)}>
+            {a.children.length > 0 && (opened(a) ? <ChevronDown size={14} /> : <ChevronRight size={14} className="flip-rtl" />)}
             <span className="label">
               <bdi>{a.name}</bdi>
             </span>
             <span className="count">{a.count}</span>
           </button>
-          {a.children.length > 0 && (
+          {a.children.length > 0 && opened(a) && (
             <div className="nav-children">
               <AlbumList folders={a.children} categoryId={categoryId} activeId={activeId} onSelect={onSelect} />
             </div>
