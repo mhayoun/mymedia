@@ -129,6 +129,18 @@ export async function analyze(files: File[], onProgress: (done: number) => void)
 }
 
 /**
+ * A folder picked to go into an album of the same name (« Esty » into
+ * Family / Esty): its photos go into that album, not into a new « Esty »
+ * inside it. Its sub-folders stay albums under it.
+ */
+export function insideDestination(items: ImportItem[], destName: string | undefined): ImportItem[] {
+  if (!destName || !items.length) return items
+  const same = (a: string) => a.trim().localeCompare(destName.trim(), undefined, { sensitivity: 'base' }) === 0
+  if (!items.every((i) => i.relDir.length > 0 && same(i.relDir[0]))) return items
+  return items.map((i) => ({ ...i, relDir: i.relDir.slice(1) }))
+}
+
+/**
  * Facebook export: the date, text and group of each post. Files already in
  * Drive under the same name (an earlier import of the same export) are
  * marked as duplicates, so only new posts are proposed.

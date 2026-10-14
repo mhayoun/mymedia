@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { extractFiles, FacebookFormatError, readFacebookZip, type FacebookExport } from '../import/facebook'
 import { findReplacements } from '../import/replace'
 import { loadThumb } from '../sync/thumbs'
-import { analyze, cancelImport, mediaFiles, runImport, withFacebookPosts, type ImportItem, type ImportOutcome } from '../import/importer'
+import { analyze, cancelImport, insideDestination, mediaFiles, runImport, withFacebookPosts, type ImportItem, type ImportOutcome } from '../import/importer'
 import { speciesInText } from '../lib/katia'
 import { importSourceName } from '../lib/provenance'
 import { useFormat } from '../i18n/format'
@@ -84,7 +84,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const [zipName, setZipName] = useState<string | undefined>()
   const [zipError, setZipError] = useState<string | null>(null)
   const [analyzed, setAnalyzed] = useState({ done: 0, total: 0 })
-  const [items, setItems] = useState<ImportItem[]>([])
+  const [picked, setItems] = useState<ImportItem[]>([])
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [compress, setCompress] = useState(true)
   const [folderMode, setFolderMode] = useState<'folders' | 'sort'>('sort')
@@ -101,6 +101,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     return [p.category, p.album].filter(Boolean).join(' / ')
   }
   const destName = nameOf(destId)
+  const items = useMemo(() => insideDestination(picked, destId === rootId ? undefined : lib.folders.get(destId)?.name), [picked, destId, rootId, lib.folders])
   const recent = recentDestinations().filter((id) => id !== destId && (id === rootId || lib.folders.has(id)))
 
   useEffect(() => {
@@ -198,7 +199,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     const r = await runImport(toSend, destId, {
       compress,
       keepFolders: !sortByModel,
-      from: importSourceName({ zipName: fb ? zipName : undefined, relDirs: items.map((i) => i.relDir) }),
+      from: importSourceName({ zipName: fb ? zipName : undefined, relDirs: picked.map((i) => i.relDir) }),
     }, (key, o) => setOutcomes((prev) => ({ ...prev, [key]: o })))
     setResult(r)
     setPhase('done')
