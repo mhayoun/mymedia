@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo } from 'react'
 import { db, hasDb, type MediaRecord } from '../db/db'
 import type { MediaMeta } from '../lib/metadata'
-import { isReservedFolderName, placementOf, subtreeIds, type FolderNode, type Placement } from '../lib/tree'
+import { ALBUM_SEPARATOR, folderChain, isReservedFolderName, placementOf, subtreeIds, type FolderNode, type Placement } from '../lib/tree'
 import { buildProvenance, provenanceKeys, type Provenance } from '../lib/provenance'
 import { compressionState, matchesQuery, searchText } from '../lib/search'
 import { useApp, type Filters, type SortMode } from '../store'
@@ -154,13 +154,27 @@ export interface AlbumGroup {
   items: LibraryItem[]
 }
 
-export function groupByAlbum(items: LibraryItem[]): AlbumGroup[] {
+/**
+ * Media by album. In an open folder (`under`), one group per sub-folder of it:
+ * what is deeper goes into its sub-folder's group.
+ */
+export function groupByAlbum(items: LibraryItem[], under?: { id: string; folders: ReadonlyMap<string, FolderNode>; rootId: string }): AlbumGroup[] {
   const groups = new Map<string, AlbumGroup>()
   for (const it of items) {
-    const key = it.place.albumId ?? it.place.categoryId ?? 'root'
+    let key = it.place.albumId ?? it.place.categoryId ?? 'root'
+    let category = it.place.category
+    let album = it.place.album
+    const chain = under ? folderChain(it.rec.folderId, under.folders, under.rootId) : null
+    const at = chain ? chain.findIndex((f) => f.id === under!.id) : -1
+    if (chain && at >= 0) {
+      const shown = chain.slice(0, Math.min(at + 2, chain.length))
+      key = shown[shown.length - 1].id
+      category = shown[0].name
+      album = shown.length > 1 ? shown.slice(1).map((f) => f.name).join(ALBUM_SEPARATOR) : null
+    }
     let g = groups.get(key)
     if (!g) {
-      g = { key, category: it.place.category, album: it.place.album, items: [] }
+      g = { key, category, album, items: [] }
       groups.set(key, g)
     }
     g.items.push(it)

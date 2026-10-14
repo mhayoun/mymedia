@@ -1,7 +1,7 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ALBUM_SEPARATOR } from '../lib/tree'
+import { ALBUM_SEPARATOR, type FolderNode } from '../lib/tree'
 import { useApp } from '../store'
 import { prepareLinks, warmThumbs } from '../sync/thumbs'
 import { Thumb } from './Thumb'
@@ -27,11 +27,12 @@ function useWidth(ref: React.RefObject<HTMLElement | null>) {
   return width
 }
 
-export function Gallery({ items }: { items: LibraryItem[] }) {
+export function Gallery({ items, folderId, folders }: { items: LibraryItem[]; folderId?: string | null; folders?: ReadonlyMap<string, FolderNode> }) {
   const { t } = useTranslation()
   const view = useApp((s) => s.settings.view)
   const viewerId = useApp((s) => s.viewerId)
   const set = useApp((s) => s.set)
+  const rootId = useApp((s) => s.rootId)
   const scrollRef = useRef<HTMLDivElement>(null)
   const width = useWidth(scrollRef)
 
@@ -47,7 +48,7 @@ export function Gallery({ items }: { items: LibraryItem[] }) {
       }
     }
     if (view === 'albums') {
-      for (const g of groupByAlbum(items)) {
+      for (const g of groupByAlbum(items, folderId && folders && rootId ? { id: folderId, folders, rootId } : undefined)) {
         // Each name is isolated so Hebrew and Latin names keep their own direction.
         const parts = [g.category, ...(g.album?.split(ALBUM_SEPARATOR) ?? [])].filter((p): p is string => !!p)
         out.push({ kind: 'header', key: `h:${g.key}`, parts: parts.length ? parts : [t('nav.unfiled')], count: g.items.length })
@@ -55,7 +56,7 @@ export function Gallery({ items }: { items: LibraryItem[] }) {
       }
     } else chunk(items, 'all')
     return out
-  }, [items, cols, view, t])
+  }, [items, cols, view, t, folderId, folders, rootId])
 
   const orderedIds = useMemo(
     () => rows.flatMap((r) => (r.kind === 'cells' ? r.items.map((i) => i.rec.id) : [])),

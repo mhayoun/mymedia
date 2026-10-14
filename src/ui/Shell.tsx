@@ -131,7 +131,7 @@ export function Shell() {
           ) : filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO ? (
             <ReviewView lib={lib} items={items} mode={filters.categoryId === AUTO ? 'auto' : 'classify'} />
           ) : (
-            <Gallery items={items} />
+            <Gallery items={items} folderId={currentFolderId} folders={lib.folders} />
           )}
         </main>
       </div>
