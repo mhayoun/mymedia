@@ -402,6 +402,9 @@
     "modeSortHint": "The computer's folders are not copied as albums: all the photos go straight into “{{dest}}” (nothing changes on the computer). After the upload and the learning, MyMedia recognises each photo: 85 % sure or more, it goes into its album on its own (check in “Classified automatically”); otherwise it waits in “To classify” with a suggestion, or “New?” if it resembles no album."
   },
   "faces": {
+    "itIs": "It is…",
+    "itIsNew": "New person…",
+    "itIsNobody": "Unknown person",
     "people": "People",
     "allPeople": "All people",
     "toReview_one": "{{count}} to review",

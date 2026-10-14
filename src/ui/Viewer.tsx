@@ -12,6 +12,7 @@ import { streamUrl } from '../sync/stream'
 import { loadOriginal, loadPreview, prefetchPreviews, previewIsOriginal, showable } from '../sync/previews'
 import { cachedThumbUrl } from '../sync/thumbs'
 import { chooseFolder } from '../classify/engine'
+import { assignFaces, removeFaces, splitFaces } from '../faces/engine'
 import { AlbumSelect } from './AlbumSelect'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog } from './Dialog'
@@ -21,6 +22,9 @@ import { useLibraryContext } from './libraryContext'
 import { useOpenPerson, usePeopleContext } from './peopleContext'
 import type { LibraryItem } from './useLibrary'
 import { useProvenanceLabel } from './useProvenanceLabel'
+
+const NEW_PERSON = '__new'
+const NO_PERSON = '__none'
 
 interface Props {
   ids: string[]
@@ -297,6 +301,10 @@ function InfoPanel({ item }: { item: LibraryItem }) {
   const people = usePeopleContext()
   const openPerson = useOpenPerson()
   const faces = people?.facesOfMedia.get(rec.id) ?? []
+  const namedPeople = useMemo(
+    () => [...(people?.named ?? [])].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
+    [people],
+  )
   const [description, setDescription] = useState(meta?.description ?? '')
 
   const saveDescription = () => {
@@ -388,10 +396,32 @@ function InfoPanel({ item }: { item: LibraryItem }) {
             {faces.map((f) => {
               const p = f.personId ? people?.byId.get(f.personId) : undefined
               return (
-                <button key={f.id} onClick={() => p && openPerson(p.id)} disabled={!p} title={p?.name ?? t('faces.nameIt')}>
-                  <FaceImg face={f} size={48} />
-                  <span>{p?.name ? <bdi>{p.name}</bdi> : '?'}</span>
-                </button>
+                <div key={f.id} className="info-face">
+                  <button onClick={() => p && openPerson(p.id)} disabled={!p} title={p?.name ?? t('faces.nameIt')}>
+                    <FaceImg face={f} size={48} />
+                    <span>{p?.name ? <bdi>{p.name}</bdi> : '?'}</span>
+                  </button>
+                  <select
+                    value=""
+                    aria-label={t('faces.itIs')}
+                    onChange={async (e) => {
+                      const v = e.target.value
+                      if (!v) return
+                      if (v === NEW_PERSON) openPerson(await splitFaces([f.id]))
+                      else if (v === NO_PERSON) await removeFaces([f.id])
+                      else await assignFaces([f.id], v)
+                    }}
+                  >
+                    <option value="">{t('faces.itIs')}</option>
+                    {namedPeople.filter((x) => x.id !== p?.id).map((x) => (
+                      <option key={x.id} value={x.id}>
+                        {x.name}
+                      </option>
+                    ))}
+                    <option value={NEW_PERSON}>{t('faces.itIsNew')}</option>
+                    {f.personId && <option value={NO_PERSON}>{t('faces.itIsNobody')}</option>}
+                  </select>
+                </div>
               )
             })}
           </div>

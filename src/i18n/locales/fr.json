@@ -400,6 +400,9 @@
     "modeSortHint": "Les dossiers de l'ordinateur ne sont pas recopiés en albums : toutes les photos vont directement dans « {{dest}} » (rien ne change sur l'ordinateur). Après l'envoi et l'apprentissage, MyMedia reconnaît chaque photo : sûr à 85 % ou plus, elle va seule dans son album (à vérifier dans « Classés automatiquement ») ; sinon elle attend dans « À classer » avec une proposition, ou « Nouveau ? » si elle ne ressemble à aucun album."
   },
   "faces": {
+    "itIs": "C'est…",
+    "itIsNew": "Nouvelle personne…",
+    "itIsNobody": "Personne inconnue",
     "people": "Personnes",
     "allPeople": "Toutes les personnes",
     "toReview_one": "{{count}} à voir",
