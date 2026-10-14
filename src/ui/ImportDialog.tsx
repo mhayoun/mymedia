@@ -42,6 +42,27 @@ function rememberDestination(id: string) {
   }
 }
 
+const PATH_KEY = 'mymedia.lastImportPath'
+
+/** The full path of a picked folder: where the last one was, with this folder's name. */
+function suggestedPath(folder: string): string {
+  try {
+    const last = localStorage.getItem(PATH_KEY)
+    if (last) return last.replace(/[^/\\]+[/\\]*$/, '') + folder
+  } catch {
+    // a convenience only
+  }
+  return folder
+}
+
+function rememberPath(path: string) {
+  try {
+    localStorage.setItem(PATH_KEY, path)
+  } catch {
+    // a convenience only
+  }
+}
+
 function FilePreview({ item }: { item: ImportItem }) {
   const [url, setUrl] = useState<string | null>(null)
   useEffect(() => {
@@ -87,6 +108,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const [picked, setItems] = useState<ImportItem[]>([])
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [compress, setCompress] = useState(true)
+  const [originPath, setOriginPath] = useState('')
   const [folderMode, setFolderMode] = useState<'folders' | 'sort'>('sort')
   const [outcomes, setOutcomes] = useState<Record<string, ImportOutcome>>({})
   const [result, setResult] = useState<{ count: number; before: number; after: number } | null>(null)
@@ -122,6 +144,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
       result = await findReplacements(result, (done, total) => setAnalyzed({ done, total }))
     }
     setItems(result)
+    if (!posts) setOriginPath(suggestedPath(importSourceName({ relDirs: result.map((i) => i.relDir) })))
     setChecked(new Set(result.filter((i) => !i.duplicate).map((i) => i.key)))
     setPhase('choose')
   }
@@ -188,6 +211,9 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
 
   async function start() {
     rememberDestination(destId)
+    const from = importSourceName({ zipName: fb ? zipName : undefined, relDirs: picked.map((i) => i.relDir) })
+    const path = !fb && from && originPath.trim() !== from ? originPath.trim() : undefined
+    if (path) rememberPath(path)
     auth.renewBefore(Math.max(10, selected.length / 10) * 60_000)
     setPhase('upload')
     const toSend = fb
@@ -199,7 +225,8 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     const r = await runImport(toSend, destId, {
       compress,
       keepFolders: !sortByModel,
-      from: importSourceName({ zipName: fb ? zipName : undefined, relDirs: picked.map((i) => i.relDir) }),
+      from,
+      path,
     }, (key, o) => setOutcomes((prev) => ({ ...prev, [key]: o })))
     setResult(r)
     setPhase('done')
@@ -458,6 +485,13 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
                     ))}
                   </ul>
                 </div>
+              )}
+              {!fb && importSourceName({ relDirs: picked.map((i) => i.relDir) }) && (
+                <label className="field">
+                  <span>{t('import.originPath')}</span>
+                  <input type="text" dir="ltr" value={originPath} onChange={(e) => setOriginPath(e.target.value)} spellCheck={false} />
+                  <span className="hint">{t('import.originPathHint')}</span>
+                </label>
               )}
               {duplicates > 0 && <p className="hint">{t('import.duplicatesHint', { count: duplicates })}</p>}
               {replacements > 0 && <p className="hint">{t('facebook.replaceHint', { count: replacements })}</p>}

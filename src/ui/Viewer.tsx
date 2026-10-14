@@ -322,6 +322,11 @@ function InfoPanel({ item }: { item: LibraryItem }) {
             <dt>{t('viewer.imported')}</dt>
             <dd>
               <bdi>{provenance.importLabel(meta.imported)}</bdi>
+              {meta.imported.path && (
+                <div dir="ltr" className="hint" style={{ textAlign: 'start', overflowWrap: 'anywhere' }}>
+                  {meta.imported.path}
+                </div>
+              )}
             </dd>
           </>
         )}

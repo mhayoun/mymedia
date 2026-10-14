@@ -335,6 +335,8 @@
     }
   },
   "import": {
+    "originPath": "Dossier d'origine (facultatif)",
+    "originPathHint": "Le navigateur ne donne que le nom du dossier. Pour garder où il était sur l'ordinateur, collez son chemin complet (dans Fichiers : Ctrl+L, puis copier).",
     "button": "Ajouter",
     "title": "Ajouter des photos et vidéos",
     "to": "Vers :",

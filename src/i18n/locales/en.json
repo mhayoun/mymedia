@@ -337,6 +337,8 @@
     }
   },
   "import": {
+    "originPath": "Original folder (optional)",
+    "originPathHint": "The browser only gives the folder's name. To keep where it was on the computer, paste its full path (in Files: Ctrl+L, then copy).",
     "button": "Add",
     "title": "Add photos and videos",
     "to": "To:",

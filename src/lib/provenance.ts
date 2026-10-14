@@ -8,6 +8,8 @@ export interface ImportInfo {
   from: string
   /** Local day "YYYY-MM-DD" ('' when unknown). */
   on: string
+  /** Full path of the folder on the computer, typed by the user (the browser only gives its name). */
+  path?: string
   /** Folder imported into Katia, the earlier app (photos reduced by it). */
   via?: 'katia'
 }
