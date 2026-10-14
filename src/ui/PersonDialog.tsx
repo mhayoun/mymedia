@@ -1,4 +1,4 @@
-import { Images, Merge, Scissors, UserMinus } from 'lucide-react'
+import { Images, Loader2, Merge, Scissors, UserMinus } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { assignFaces, mergePersons, namePerson, removeFaces, splitFaces } from '../faces/engine'
@@ -48,7 +48,7 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
         className="row"
         onSubmit={(e) => {
           e.preventDefault()
-          if (name.trim()) void run(() => namePerson(person.id, name))
+          if (name.trim()) void run(() => namePerson(person.id, name)).then(onClose, (err) => console.error('[MyMedia] name not saved', err))
         }}
       >
         <FaceImg face={person.cover} size={72} />
@@ -59,7 +59,7 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
           ))}
         </datalist>
         <button className="btn primary" type="submit" disabled={busy || !name.trim() || name.trim() === person.name}>
-          {t('common.save')}
+          {busy && <Loader2 size={14} className="spin" />} {t('common.save')}
         </button>
       </form>
       <p className="hint">{t('faces.nameHint')}</p>
