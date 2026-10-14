@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder } from '../classify/engine'
 import { createNewFolder, FolderExistsError, sameFolderName } from '../drive/api'
@@ -6,7 +6,8 @@ import { placementOf } from '../lib/tree'
 import { useApp } from '../store'
 import { syncNow } from '../sync/engine'
 import { Modal } from './Dialog'
-import type { FolderInfo, Library } from './useLibrary'
+import { FolderTreePicker } from './FolderTreePicker'
+import type { Library } from './useLibrary'
 
 interface Props {
   lib: Library
@@ -29,18 +30,6 @@ export function NewAlbumDialog({ lib, ids, parentId, onDone, onClose }: Props) {
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
   const input = useRef<HTMLInputElement>(null)
   useEffect(() => input.current?.focus(), [])
-
-  const parents = useMemo(() => {
-    const out: { id: string; label: string }[] = []
-    const walk = (list: FolderInfo[], depth: number) => {
-      for (const f of list) {
-        out.push({ id: f.id, label: ' '.repeat(depth * 2) + f.name })
-        walk(f.children, depth + 1)
-      }
-    }
-    walk(lib.categories, 0)
-    return out
-  }, [lib.categories])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -74,16 +63,10 @@ export function NewAlbumDialog({ lib, ids, parentId, onDone, onClose }: Props) {
           {t('common.name')}
           <input ref={input} type="text" value={name} dir="auto" onChange={(e) => setName(e.target.value)} />
         </label>
-        <label className="field">
+        <div className="field">
           {t('newAlbum.in')}
-          <select value={parent} onChange={(e) => setParent(e.target.value)}>
-            {parents.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))}
-          </select>
-        </label>
+          <FolderTreePicker categories={lib.categories} value={parent} onChange={setParent} />
+        </div>
         {error && <div className="error-text">{error}</div>}
         {progress && <div className="hint">{t('select.working', progress)}</div>}
         <div className="actions">

@@ -5,7 +5,8 @@ import { folderChain, subtreeIds } from '../lib/tree'
 import { useApp } from '../store'
 import { moveFolder } from '../sync/folders'
 import { Modal } from './Dialog'
-import type { FolderInfo, Library } from './useLibrary'
+import { FolderTreePicker } from './FolderTreePicker'
+import type { Library } from './useLibrary'
 
 interface Props {
   lib: Library
@@ -28,17 +29,6 @@ export function MoveFolderDialog({ lib, id, name, count, onClose }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Every folder it can go into: not itself, not what it holds, not where it already is.
-  const choices: { id: string; name: string; depth: number }[] = []
-  const walk = (list: FolderInfo[], depth: number) => {
-    for (const f of list) {
-      if (inside.has(f.id)) continue
-      choices.push({ id: f.id, name: f.name, depth })
-      walk(f.children, depth + 1)
-    }
-  }
-  walk(lib.categories, 1)
-
   const destName = dest && dest !== rootId ? lib.folders.get(dest)?.name : undefined
 
   async function move() {
@@ -56,19 +46,16 @@ export function MoveFolderDialog({ lib, id, name, count, onClose }: Props) {
     }
   }
 
-  const option = (value: string, label: React.ReactNode, depth: number) => (
-    <label key={value} className="radio-row" style={{ paddingInlineStart: depth * 22 }}>
-      <input type="radio" name="move-dest" checked={dest === value} disabled={value === parentId} onChange={() => setDest(value)} />
-      <span>{label}</span>
-    </label>
-  )
-
   return (
     <Modal title={t('folders.moveTitle', { name })} onClose={onClose}>
-      <div className="move-list" style={{ maxBlockSize: '50vh', overflowY: 'auto' }}>
-        {option(rootId, <><bdi>{rootName}</bdi> <span className="hint">{t('folders.moveRootHint')}</span></>, 0)}
-        {choices.map((c) => option(c.id, <bdi>{c.name}</bdi>, c.depth))}
-      </div>
+      <FolderTreePicker
+        categories={lib.categories}
+        value={dest}
+        onChange={setDest}
+        hidden={inside}
+        disabledId={parentId}
+        root={{ id: rootId, label: <><bdi>{rootName}</bdi> <span className="hint">{t('folders.moveRootHint')}</span></> }}
+      />
       {dest && (
         <p className="hint">
           {dest === rootId ? t('folders.moveAsCategory') : t('folders.moveAsAlbum', { dest: destName })} {t('folders.moveWith', { count })}
