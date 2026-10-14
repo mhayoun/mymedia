@@ -33,9 +33,10 @@ import { createHash, randomUUID } from 'node:crypto'
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? '246067015646-63ga5nqjgihi3sd8mmb3ch0urb0i1q5m.apps.googleusercontent.com'
 // Without PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET, every model is free (test).
-const PAYPAL_ID = process.env.PAYPAL_CLIENT_ID ?? ''
-const PAYPAL_SECRET = process.env.PAYPAL_CLIENT_SECRET ?? ''
-const PAYPAL_API = process.env.PAYPAL_ENV === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com'
+const PAYPAL_ID = (process.env.PAYPAL_CLIENT_ID ?? '').trim()
+const PAYPAL_SECRET = (process.env.PAYPAL_CLIENT_SECRET ?? '').trim()
+// Keys from developer.paypal.com's Sandbox tab, unless PAYPAL_ENV=live (Live tab).
+const PAYPAL_API = process.env.PAYPAL_ENV?.trim() === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com'
 const paymentsLive = () => !!(PAYPAL_ID && PAYPAL_SECRET)
 /** MyMedia's commission, in % of the price. */
 const FEE = Math.min(Math.max(Number(process.env.MYMEDIA_FEE ?? 15) || 0, 0), 100)
@@ -201,7 +202,10 @@ async function paypal<T>(method: string, path: string, body?: unknown): Promise<
       headers: { Authorization: `Basic ${Buffer.from(`${PAYPAL_ID}:${PAYPAL_SECRET}`).toString('base64')}`, 'Content-Type': 'application/x-www-form-urlencoded' },
       body: 'grant_type=client_credentials',
     })
-    if (!r.ok) throw new Error(`PayPal sign-in ${r.status}`)
+    if (!r.ok) {
+      console.error(`PayPal sign-in ${r.status} at ${PAYPAL_API}: check PAYPAL_CLIENT_ID/SECRET and PAYPAL_ENV`)
+      throw new HttpError(502, 'payment unavailable (PayPal refused the shop\'s keys)')
+    }
     const t = (await r.json()) as { access_token: string; expires_in: number }
     paypalToken = { token: t.access_token, until: Date.now() + (t.expires_in - 60) * 1000 }
   }
