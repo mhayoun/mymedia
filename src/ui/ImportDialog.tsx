@@ -1,4 +1,4 @@
-import { ArrowRight, Check, FileArchive, FolderOpen, ImagePlus, Loader2, Play, X } from 'lucide-react'
+import { ArrowRight, Check, FileArchive, FolderOpen, ImagePlus, Loader2, Play, RefreshCw, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { extractFiles, FacebookFormatError, readFacebookZip, type FacebookExport } from '../import/facebook'
@@ -226,20 +226,26 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     const path = !fb && from && originPath.trim() !== from ? originPath.trim() : undefined
     if (path) rememberPath(path)
     auth.renewBefore(Math.max(10, selected.length / 10) * 60_000)
+    sendOpts.current = { from, path }
+    await send(selected)
+  }
+
+  const sendOpts = useRef<{ from: string; path?: string }>({ from: '' })
+  async function send(list: ImportItem[]) {
     setPhase('upload')
     const toSend = fb
-      ? selected.map((i) => {
+      ? list.map((i) => {
           const species = speciesOf(i)
           return species ? { ...i, relDir: [species], extra: { ...i.extra, species } } : i
         })
-      : selected
+      : list
     const r = await runImport(toSend, destId, {
       compress,
       keepFolders: !sortByModel,
-      from,
-      path,
+      ...sendOpts.current,
     }, (key, o) => setOutcomes((prev) => ({ ...prev, [key]: o })))
-    setResult(r)
+    // A retry adds to what was sent before.
+    setResult((prev) => (prev ? { count: prev.count + r.count, before: prev.before + r.before, after: prev.after + r.after } : r))
     setPhase('done')
   }
 
@@ -291,16 +297,23 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
         </span>
       )
     return (
-      <span className="error-text">
+      <span className="error-text" title={o.message}>
         <X size={14} /> {t('compress.failed')}
+        <br />
+        <span className="hint clamp-1">{o.message}</span>
       </span>
     )
   }
 
   const sent = selected.filter((i) => outcomes[i.key]?.status === 'done').length
-  const failedCount = selected.filter((i) => outcomes[i.key]?.status === 'error').length
+  const failed = selected.filter((i) => outcomes[i.key]?.status === 'error')
+  const failedCount = failed.length
 
-  const sortedItems = useMemo(() => [...items].sort((a, b) => a.takenAt.localeCompare(b.takenAt)), [items])
+  // Once sent, the files in error come first, so they are seen.
+  const sortedItems = useMemo(() => {
+    const bad = (i: ImportItem) => (phase === 'done' && outcomes[i.key]?.status === 'error' ? 0 : 1)
+    return [...items].sort((a, b) => bad(a) - bad(b) || a.takenAt.localeCompare(b.takenAt))
+  }, [items, phase, outcomes])
 
   return (
     <Modal wide title={t('import.title')} onClose={phase === 'upload' ? () => undefined : onClose}>
@@ -531,6 +544,9 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
               </strong>
             </p>
           )}
+          {phase === 'done' && failedCount > 0 && (
+            <p className="error-text">{t('import.failedHint', { count: failedCount })}</p>
+          )}
         </>
       )}
 
@@ -558,6 +574,11 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
         {phase === 'upload' && (
           <button className="btn" onClick={cancelImport}>
             {t('common.cancel')}
+          </button>
+        )}
+        {phase === 'done' && failed.length > 0 && (
+          <button className="btn" onClick={() => void send(failed)}>
+            <RefreshCw size={16} /> {t('import.retryFailed', { count: failed.length })}
           </button>
         )}
         {(phase === 'done' || phase === 'pick') && (

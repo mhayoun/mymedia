@@ -7,7 +7,7 @@
 import SparkMD5 from 'spark-md5'
 import { canCompressVideo, compressPhoto, compressVideo, localVideoDuration } from '../compress/media'
 import { db } from '../db/db'
-import { createMediaFile, ensureFolderPath } from '../drive/api'
+import { createMediaFile, DriveError, ensureFolderPath } from '../drive/api'
 import { isJpegMime, planCompression } from '../lib/compressPlan'
 import { exifDateTime, heicExif, jpegDimensions, jpegExif } from '../lib/jpeg'
 import { dateFromFileName, detectOrigin, localIso, mediaTypeOf, type MediaType } from '../lib/media'
@@ -47,7 +47,8 @@ export type ImportOutcome =
   | { status: 'compressing'; progress: number }
   | { status: 'uploading'; progress: number }
   | { status: 'done'; size: number }
-  | { status: 'error' }
+  /** Why, as Drive or the browser said it. */
+  | { status: 'error'; message: string }
 
 const MIME_BY_EXT: Record<string, string> = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', heic: 'image/heic', heif: 'image/heif',
@@ -172,6 +173,11 @@ export function cancelImport() {
 }
 
 /** Compresses (if chosen) and uploads each file into destId, with its real date. */
+function errorText(e: unknown): string {
+  if (e instanceof DriveError) return `Google Drive ${e.status}${e.reason ? ` (${e.reason})` : ''}: ${e.message}`
+  return e instanceof Error ? e.message || e.name : String(e)
+}
+
 export async function runImport(
   items: ImportItem[],
   destId: string,
@@ -213,11 +219,16 @@ export async function runImport(
         let compressed = false
         if (opts.compress && item.estimate !== null) {
           onItem(item.key, { status: 'compressing', progress: 0 })
-          const out =
-            item.type === 'photo'
-              ? await compressPhoto({ name, mimeType }, item.file, s)
-              : await compressVideo(item.file, s, (p) => onItem(item.key, { status: 'compressing', progress: p }), signal)
-          if (out.size <= item.file.size * (1 - s.minGain)) {
+          // A file the browser cannot compress (unknown format, damaged…) is sent as it is.
+          const out = await (item.type === 'photo'
+            ? compressPhoto({ name, mimeType }, item.file, s)
+            : compressVideo(item.file, s, (p) => onItem(item.key, { status: 'compressing', progress: p }), signal)
+          ).catch((e) => {
+            if (signal.aborted) throw e
+            console.warn('[MyMedia] not compressed, sent as it is', item.file.name, e)
+            return null
+          })
+          if (out && out.size <= item.file.size * (1 - s.minGain)) {
             blob = out
             compressed = true
             if (item.type === 'photo' && !isJpegMime(mimeType, name)) name = name.replace(/\.[^.]+$/, '') + '.jpg'
@@ -276,7 +287,7 @@ export async function runImport(
       } catch (e) {
         if (signal.aborted) break
         console.error('[MyMedia] import failed', item.file.name, e)
-        onItem(item.key, { status: 'error' })
+        onItem(item.key, { status: 'error', message: errorText(e) })
       }
     }
   } finally {
