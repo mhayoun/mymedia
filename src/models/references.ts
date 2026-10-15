@@ -8,7 +8,7 @@
 // the server says the licence is valid.
 
 import { db } from '../db/db'
-import { createTextFile, downloadText, findChildByName, folderNamed, getFile, isFolderEmpty, listFiles, sameFolderName, trashFile, updateTextFile } from '../drive/api'
+import { createTextFile, downloadText, findChildByName, folderNamed, listFiles, sameFolderName, trashFile, updateTextFile } from '../drive/api'
 import { albumsUnder, labeledSet, loadData, type ClassifyData } from '../classify/data'
 import { folderChain, parsePendingAlbum, pendingAlbumId, type FolderNode } from '../lib/tree'
 import { EMBED_DIM, MODEL_ID } from '../ml/protocol'
@@ -324,45 +324,6 @@ async function rememberAlbum(categoryId: string, path: string, folderId: string)
     a.folderId = folderId
     await saveModel({ ...m, categoryId })
   }
-}
-
-/**
- * Albums the install of a model created before (when it still made all of
- * them) that are still empty: moved to Drive's trash. Only folders made during
- * that install, so albums of the user's own are kept even if empty.
- */
-export async function removeEmptyAlbums(id: string): Promise<number> {
-  const rootId = app().rootId
-  if (!rootId) return 0
-  const m = (await installedModels()).find((x) => x.id === id)
-  const file = await findChildByName(rootId, fileName(id))
-  if (!m || !file) return 0
-  const installedAt = Date.parse((await getFile(file.id, 'id,createdTime')).createdTime ?? '')
-  if (!Number.isFinite(installedAt)) return 0
-  const d = db()
-  const folders = new Map((await d.folders.toArray()).map((f) => [f.id, f]))
-  const media = await d.media.toArray()
-  const used = new Set(media.map((r) => r.folderId))
-  // Deepest first, so "A / B" goes before "A" once it is empty too.
-  const albums = m.albums.filter((a) => a.folderId && folders.has(a.folderId)).sort((a, b) => b.path.split(SEP).length - a.path.split(SEP).length)
-  let removed = 0
-  for (const a of albums) {
-    const folderId = a.folderId!
-    if (used.has(folderId) || [...folders.values()].some((f) => f.parentId === folderId)) continue
-    const f = await getFile(folderId, 'id,createdTime')
-    const created = Date.parse(f.createdTime ?? '')
-    // Made by that install: in the hour before the model file was saved.
-    if (!(created <= installedAt && installedAt - created < 3600_000)) continue
-    if (!(await isFolderEmpty(folderId))) continue
-    await trashFile(folderId)
-    await d.folders.delete(folderId)
-    folders.delete(folderId)
-    a.folderId = null
-    removed++
-  }
-  if (removed) await saveModel(m)
-  await syncNow()
-  return removed
 }
 
 /** Stops using a model (its albums and the photos in them stay). */

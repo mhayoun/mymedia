@@ -1,10 +1,10 @@
-import { Download, FolderX, HandCoins, Loader2, Store, Trash2, Upload, Wallet } from 'lucide-react'
+import { Download, HandCoins, Loader2, Store, Trash2, Upload, Wallet } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { classifyPending } from '../classify/engine'
 import { LOCALES } from '../i18n'
 import { useFormat } from '../i18n/format'
-import { buildModel, installedModels, installModel, ModelError, removeEmptyAlbums, removeModel, type InstalledModel, type InstallStep } from '../models/references'
+import { buildModel, installedModels, installModel, ModelError, removeModel, type InstalledModel, type InstallStep } from '../models/references'
 import {
   buyModel,
   capturePayment,
@@ -171,14 +171,6 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
                   {t('models.examples', { count: m.labels.length })}
                 </div>
               </div>
-              <button
-                className="btn ghost"
-                disabled={!!busy}
-                title={t('models.emptyAlbumsHint')}
-                onClick={() => act(`empty:${m.id}`, async () => t('models.emptyAlbumsRemoved', { count: await removeEmptyAlbums(m.id) }))}
-              >
-                {busy === `empty:${m.id}` ? <Loader2 size={16} className="spin" /> : <FolderX size={16} />} {t('models.emptyAlbums')}
-              </button>
               <button className="btn ghost" disabled={!!busy} onClick={() => act(m.id, async () => (await removeModel(m.id), t('models.removed')))}>
                 <Trash2 size={16} /> {t('models.remove')}
               </button>
