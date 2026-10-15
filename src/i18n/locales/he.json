@@ -436,7 +436,8 @@
   "faces": {
     "itIs": "זה/זו…",
     "itIsNew": "אדם חדש…",
-    "itIsNobody": "אדם לא מוכר",
+    "itIsNobody": "לא ידוע, לא חשוב",
+    "unknownFace": "לא ידוע",
     "people": "אנשים",
     "allPeople": "כל האנשים",
     "toReview_one": "אחד לבדיקה",

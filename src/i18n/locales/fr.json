@@ -409,7 +409,8 @@
   "faces": {
     "itIs": "C'est…",
     "itIsNew": "Nouvelle personne…",
-    "itIsNobody": "Personne inconnue",
+    "itIsNobody": "Inconnu, sans importance",
+    "unknownFace": "Inconnu",
     "people": "Personnes",
     "allPeople": "Toutes les personnes",
     "toReview_one": "{{count}} à voir",

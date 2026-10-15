@@ -396,10 +396,10 @@ function InfoPanel({ item }: { item: LibraryItem }) {
             {faces.map((f) => {
               const p = f.personId ? people?.byId.get(f.personId) : undefined
               return (
-                <div key={f.id} className="info-face">
+                <div key={f.id} className={`info-face ${f.personId ? '' : 'unknown'}`}>
                   <button onClick={() => p && openPerson(p.id)} disabled={!p} title={p?.name ?? t('faces.nameIt')}>
                     <FaceImg face={f} size={48} />
-                    <span>{p?.name ? <bdi>{p.name}</bdi> : '?'}</span>
+                    <span>{p?.name ? <bdi>{p.name}</bdi> : f.personId ? '?' : t('faces.unknownFace')}</span>
                   </button>
                   <select
                     value=""
@@ -419,6 +419,7 @@ function InfoPanel({ item }: { item: LibraryItem }) {
                       </option>
                     ))}
                     <option value={NEW_PERSON}>{t('faces.itIsNew')}</option>
+                    {/* Not known and not wanted: out of its group, never grouped or asked again. */}
                     {f.personId && <option value={NO_PERSON}>{t('faces.itIsNobody')}</option>}
                   </select>
                 </div>

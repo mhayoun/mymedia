@@ -411,7 +411,8 @@
   "faces": {
     "itIs": "It is…",
     "itIsNew": "New person…",
-    "itIsNobody": "Unknown person",
+    "itIsNobody": "Unknown, doesn't matter",
+    "unknownFace": "Unknown",
     "people": "People",
     "allPeople": "All people",
     "toReview_one": "{{count}} to review",
