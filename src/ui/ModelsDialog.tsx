@@ -246,6 +246,28 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
             </h3>
             <p>{t('models.salesLine', { count: sales.count, owed: amounts(sales.owed), paid: amounts(sales.paidOut) })}</p>
             <p className="hint">{t('models.salesHint', { fee: sales.fee })}</p>
+            {!!sales.list?.length && (
+              <details className="sales-detail">
+                <summary>{t('models.salesDetail', { count: sales.list.length })}</summary>
+                {sales.list.map((s) => (
+                  <div key={s.order} className="model-row">
+                    <div>
+                      <strong>
+                        <bdi>{s.model}</bdi>
+                      </strong>{' '}
+                      {s.test && <span className="tag">{t('models.saleTest')}</span>}
+                      <div className="hint">
+                        {fmt.dateTime(s.at)} · {t('models.saleAmounts', { price: money(s.price, s.currency), fee: money(s.fee, s.currency), share: money(s.share, s.currency) })}
+                      </div>
+                      <div className="hint">
+                        {s.paidOut ? t('models.salePaidOut', { date: fmt.date(s.paidOut) }) : t('models.saleOwed')} · {t('models.saleOrder')}{' '}
+                        <bdi className="selectable">{s.order}</bdi>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </details>
+            )}
           </>
         )}
 

@@ -40,6 +40,24 @@ export interface MySales {
   owed: Amounts
   paidOut: Amounts
   fee: number
+  /** Each sale, newest first. */
+  list: SaleLine[]
+}
+
+export interface SaleLine {
+  /** The PayPal order. */
+  order: string
+  at: string
+  model: string
+  price: number
+  currency: string
+  /** MyMedia's commission. */
+  fee: number
+  /** What the seller gets. */
+  share: number
+  paidOut: string | null
+  /** Paid with PayPal's test money (sandbox). */
+  test: boolean
 }
 
 /** What MyMedia owes one seller in one currency. */

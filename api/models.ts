@@ -106,6 +106,8 @@ interface Sale {
   share: number
   /** When MyMedia sent the share to the seller. */
   paidOut: string | null
+  /** Paid in PayPal's sandbox (test money). Missing in older sales. */
+  test?: boolean
 }
 
 class HttpError extends Error {
@@ -368,6 +370,7 @@ async function capture(req: Request, id: string, orderId: string | null) {
     fee,
     share: cents(price - fee),
     paidOut: null,
+    test: !paymentsLive(),
   }
   await writeJson(`sales/${hashOf(i.sellerEmail)}/${orderId}.json`, sale)
   await giveLicence(i, email, price, orderId)
@@ -422,6 +425,10 @@ async function sales(req: Request) {
     owed: totals(all.filter((s) => !s.paidOut), (s) => s.share),
     paidOut: totals(all.filter((s) => s.paidOut), (s) => s.share),
     fee: FEE,
+    // Each sale, newest first (never who bought it).
+    list: all
+      .sort((a, b) => b.at.localeCompare(a.at))
+      .map((s) => ({ order: s.order, at: s.at, model: s.modelName, price: s.price, currency: s.currency, fee: s.fee, share: s.share, paidOut: s.paidOut, test: !!s.test })),
   })
 }
 

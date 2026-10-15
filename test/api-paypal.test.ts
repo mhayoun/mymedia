@@ -121,7 +121,11 @@ describe('model shop with PayPal', () => {
       orders.get(order)!.approved = true
       expect((await POST(req('POST', `?action=capture&id=${id}&order=${order}`, buyer))).status).toBe(200)
     }
-    expect(await (await GET(req('GET', '?action=sales', 'seller'))).json()).toEqual({ count: 2, owed: { ILS: 42.5 }, paidOut: {}, fee: 15 })
+    const mine = await (await GET(req('GET', '?action=sales', 'seller'))).json()
+    expect(mine).toMatchObject({ count: 2, owed: { ILS: 42.5 }, paidOut: {}, fee: 15 })
+    expect(mine.list).toHaveLength(2)
+    expect(mine.list[0]).toEqual({ order: expect.any(String), at: expect.any(String), model: expect.any(String), price: 25, currency: 'ILS', fee: 3.75, share: 21.25, paidOut: null, test: expect.any(Boolean) })
+    expect(JSON.stringify(mine)).not.toContain('buyer')
     expect(await (await GET(req('GET', '?action=sales', 'buyer'))).json()).toMatchObject({ count: 0 })
 
     expect((await GET(req('GET', '?action=payouts', 'seller'))).status).toBe(403)
