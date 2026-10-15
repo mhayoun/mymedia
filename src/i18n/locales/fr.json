@@ -379,6 +379,8 @@
     "duplicate": "déjà dans Drive",
     "duplicatesHint_one": "{{count}} fichier est déjà dans votre Drive (même photo) : décoché.",
     "duplicatesHint_other": "{{count}} fichiers sont déjà dans votre Drive (même photo) : décochés.",
+    "allImported_one": "Rien de nouveau : ce fichier est déjà dans MyMedia.",
+    "allImported_other": "Rien de nouveau : les {{count}} fichiers sont déjà dans MyMedia.",
     "compress": "Compresser avant l'envoi (envoi plus rapide, moins de place)",
     "compressing": "compression",
     "uploading": "envoi",

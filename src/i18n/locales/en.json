@@ -381,6 +381,8 @@
     "duplicate": "already in Drive",
     "duplicatesHint_one": "{{count}} file is already in your Drive (same photo): unticked.",
     "duplicatesHint_other": "{{count}} files are already in your Drive (same photo): unticked.",
+    "allImported_one": "Nothing new: this file is already in MyMedia.",
+    "allImported_other": "Nothing new: all {{count}} files are already in MyMedia.",
     "compress": "Compress before upload (faster upload, less space)",
     "compressing": "compressing",
     "uploading": "uploading",

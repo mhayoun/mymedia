@@ -527,7 +527,13 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
                   <span className="hint">{t('import.originPathHint')}</span>
                 </label>
               )}
-              {duplicates > 0 && <p className="hint">{t('import.duplicatesHint', { count: duplicates })}</p>}
+              {duplicates > 0 && duplicates === items.length ? (
+                <p className="ok-text">
+                  <Check size={16} /> <strong>{t('import.allImported', { count: duplicates })}</strong>
+                </p>
+              ) : (
+                duplicates > 0 && <p className="hint">{t('import.duplicatesHint', { count: duplicates })}</p>
+              )}
               {replacements > 0 && <p className="hint">{t('facebook.replaceHint', { count: replacements })}</p>}
               <p>
                 <strong>
