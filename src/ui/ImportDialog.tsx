@@ -109,7 +109,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [compress, setCompress] = useState(true)
   const [originPath, setOriginPath] = useState('')
-  const [createFolder, setCreateFolder] = useState(true)
+  const [createFolder, setCreateFolder] = useState(false)
   const [folderMode, setFolderMode] = useState<'folders' | 'sort'>('sort')
   const [outcomes, setOutcomes] = useState<Record<string, ImportOutcome>>({})
   const [result, setResult] = useState<{ count: number; before: number; after: number } | null>(null)
