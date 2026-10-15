@@ -108,7 +108,7 @@ export function MisfiledView({ lib }: { lib: Library }) {
                   <bdi>{t('misfiled.moveTo', { name: name(m.other) })}</bdi>
                 </button>
                 <div className="row">
-                  <AlbumSelect
+                  <AlbumSelect withModels
                     categories={lib.categories}
                     placeholder={t('classify.otherAlbum')}
                     disabled={isBusy}

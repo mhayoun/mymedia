@@ -212,6 +212,25 @@ function albumFolder(m: InstalledModel, k: number, data: ClassifyData, categoryI
   return folderAt(categoryId, a.path.split(SEP), data.folders) ?? pendingAlbumId(categoryId, a.path)
 }
 
+/** Albums of the installed models not created yet, by category: to offer them in the album lists. */
+export async function modelAlbumsToCreate(folders: ReadonlyMap<string, FolderNode>, rootId: string): Promise<Map<string, string[]>> {
+  const out = new Map<string, string[]>()
+  for (const m of await installedModels()) {
+    if (m.model !== MODEL_ID) continue
+    const categoryId = categoryOf(m, folders, rootId)
+    if (!categoryId) continue
+    const list = out.get(categoryId) ?? []
+    for (const a of m.albums) {
+      if (a.folderId && folders.has(a.folderId)) continue
+      if (folderAt(categoryId, a.path.split(SEP), folders)) continue
+      const id = pendingAlbumId(categoryId, a.path)
+      if (!list.includes(id)) list.push(id)
+    }
+    out.set(categoryId, list)
+  }
+  return out
+}
+
 /** The examples the installed models add to this account's own, and their albums not created yet. */
 export async function referenceExamples(
   data: ClassifyData,

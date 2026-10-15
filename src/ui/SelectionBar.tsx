@@ -67,7 +67,7 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
           <>
             <label className="row" title={t('select.moveTo')}>
               <FolderInput size={16} />
-              <AlbumSelect categories={lib.categories} placeholder={t('select.moveTo')} onChoose={(f) => each((id) => chooseFolder(id, f)).then(done)} />
+              <AlbumSelect withModels categories={lib.categories} placeholder={t('select.moveTo')} onChoose={(f) => each((id) => chooseFolder(id, f)).then(done)} />
             </label>
             <button className="btn" onClick={() => setAction('newAlbum')}>
               <FolderPlus size={16} /> <span className="only-desktop">{t('select.newAlbum')}</span>

@@ -203,6 +203,7 @@
     "showMore_two": "להציג עוד {{count}}",
     "showMore_other": "להציג עוד {{count}}",
     "categoryOnly": "{{name}} (בלי אלבום)",
+    "modelAlbum": "{{name}} (אלבום חדש)",
     "source": "מוין לפי",
     "sources": {
       "folder": "תיקייה",

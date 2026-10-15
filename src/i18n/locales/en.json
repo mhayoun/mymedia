@@ -200,6 +200,7 @@
     "showMore_one": "Show {{count}} more",
     "showMore_other": "Show {{count}} more",
     "categoryOnly": "{{name}} (no album)",
+    "modelAlbum": "{{name}} (new album)",
     "source": "Classified by",
     "sources": {
       "folder": "Folder",

@@ -135,7 +135,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                       : t('classify.groupMove', { count: sel.length, name: name(g.folderId).split(' / ').pop() })}
                   </button>
                 )}
-                <AlbumSelect
+                <AlbumSelect withModels
                   categories={lib.categories}
                   placeholder={t('classify.groupOther')}
                   disabled={isBusy || !sel.length}

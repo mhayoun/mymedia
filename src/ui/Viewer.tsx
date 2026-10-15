@@ -437,7 +437,7 @@ function InfoPanel({ item }: { item: LibraryItem }) {
       {lib && (
         <label className="field">
           {t('classify.moveTo')}
-          <AlbumSelect
+          <AlbumSelect withModels
             categories={lib.categories}
             placeholder={t('classify.otherAlbum')}
             disabled={moving}

@@ -198,6 +198,7 @@
     "showMore_one": "Afficher {{count}} de plus",
     "showMore_other": "Afficher {{count}} de plus",
     "categoryOnly": "{{name}} (sans album)",
+    "modelAlbum": "{{name}} (nouvel album)",
     "source": "Classé par",
     "sources": {
       "folder": "Dossier",

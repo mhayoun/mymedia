@@ -171,7 +171,7 @@ export function ReviewView({ lib, items, mode }: Props) {
                       <div className="hint">{analysed && !analysed(rec) ? t('classify.waitingAnalysis') : t('classify.noSuggestion')}</div>
                     )}
                     <div className="row">
-                      <AlbumSelect
+                      <AlbumSelect withModels
                         categories={lib.categories}
                         placeholder={t('classify.otherAlbum')}
                         disabled={isBusy}
@@ -199,7 +199,7 @@ export function ReviewView({ lib, items, mode }: Props) {
                       <button className="btn primary" disabled={isBusy} onClick={() => act(rec.id, () => confirmAuto([rec.id]))}>
                         <Check size={16} /> {t('classify.correct')}
                       </button>
-                      <AlbumSelect
+                      <AlbumSelect withModels
                         categories={lib.categories}
                         placeholder={t('classify.fix')}
                         disabled={isBusy}
