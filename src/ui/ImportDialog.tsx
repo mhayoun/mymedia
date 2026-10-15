@@ -10,6 +10,8 @@ import { importSourceName } from '../lib/provenance'
 import { useFormat } from '../i18n/format'
 import { placementOf } from '../lib/tree'
 import { auth } from '../auth/google'
+import { sameFolderName } from '../drive/api'
+import { installedModels } from '../models/references'
 import { useApp } from '../store'
 import { AlbumSelect } from './AlbumSelect'
 import { Modal } from './Dialog'
@@ -187,6 +189,13 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   // Into the root or a category that has albums, MyMedia can sort the photos itself.
   const canSort = destId === rootId || (lib.folders.get(destId)?.parentId === rootId && [...lib.folders.values()].some((f) => f.parentId === destId))
   const sortByModel = hasFolders && canSort && folderMode === 'sort'
+  // Photos put straight into a category are sorted into its albums (its own, or those of a model).
+  const [modelCategories, setModelCategories] = useState<string[]>([])
+  useEffect(() => {
+    installedModels().then((ms) => setModelCategories(ms.map((m) => m.category)), () => undefined)
+  }, [])
+  const destFolder = lib.folders.get(destId)
+  const sortsInside = canSort || (destFolder?.parentId === rootId && modelCategories.some((c) => sameFolderName(c, destFolder.name)))
   // Albums the chosen folder gives, as a tree: name, depth, photos, already in MyMedia or new.
   const albumTree = useMemo(() => {
     const counts = new Map<string, number>()
@@ -475,7 +484,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
                   <span>
                     {t('import.createFolder', { name: topFolder, dest: destName })}
                     <br />
-                    <span className="hint">{t('import.createFolderHint', { dest: destName })}</span>
+                    <span className="hint">{t(sortsInside ? 'import.createFolderHintSorted' : 'import.createFolderHint', { dest: destName })}</span>
                   </span>
                 </label>
               )}

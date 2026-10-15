@@ -359,6 +359,7 @@
   "import": {
     "createFolder": "Create the folder “{{name}}” in “{{dest}}”",
     "createFolderHint": "Unticked, its photos go straight into “{{dest}}”.",
+    "createFolderHintSorted": "Unticked, its photos go straight into “{{dest}}”. If there is a model or albums, MyMedia automatically puts each photo into its album (or suggests it in “To classify” when it is not sure).",
     "originPath": "Original folder (optional)",
     "originPathHint": "The browser only gives the folder's name. To keep where it was on the computer, paste its full path (in Files: Ctrl+L, then copy).",
     "button": "Add",

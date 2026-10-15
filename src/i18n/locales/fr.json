@@ -357,6 +357,7 @@
   "import": {
     "createFolder": "Créer le dossier « {{name}} » dans « {{dest}} »",
     "createFolderHint": "Sans cocher, ses photos vont directement dans « {{dest}} ».",
+    "createFolderHintSorted": "Sans cocher, ses photos vont directement dans « {{dest}} ». Si un modèle ou des albums existent, MyMedia range automatiquement chaque photo dans son album (ou vous la propose dans « À classer » s'il n'est pas sûr).",
     "originPath": "Dossier d'origine (facultatif)",
     "originPathHint": "Le navigateur ne donne que le nom du dossier. Pour garder où il était sur l'ordinateur, collez son chemin complet (dans Fichiers : Ctrl+L, puis copier).",
     "button": "Ajouter",
