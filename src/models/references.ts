@@ -2,17 +2,15 @@
 // used as extra examples (no photo is copied).
 //
 // Seller: `buildModel` packs the examples of one category for the shop.
-// Buyer: `installModel` creates the albums and keeps the model in a
-// mymedia-model-<id>.json file of their Drive, so every device of the account
-// uses it. It is used only by the account it was bought for, and only while
+// Buyer: `installModel` keeps the model in a mymedia-model-<id>.json file of
+// their Drive, so every device of the account uses it. Its albums are created
+// only when a first photo goes into one (`ensureAlbum`), not at install. It is used only by the account it was bought for, and only while
 // the server says the licence is valid.
 
 import { db } from '../db/db'
-import { createFolder, createTextFile, downloadText, findChildByName, folderNamed, listFiles, sameFolderName, trashFile, updateTextFile, type DriveFile } from '../drive/api'
-import { nameKey } from '../lib/filename'
-import { FOLDER_MIME } from '../lib/media'
+import { createTextFile, downloadText, findChildByName, folderNamed, getFile, isFolderEmpty, listFiles, sameFolderName, trashFile, updateTextFile } from '../drive/api'
 import { albumsUnder, labeledSet, loadData, type ClassifyData } from '../classify/data'
-import { folderChain } from '../lib/tree'
+import { folderChain, parsePendingAlbum, pendingAlbumId, type FolderNode } from '../lib/tree'
 import { EMBED_DIM, MODEL_ID } from '../ml/protocol'
 import { app } from '../store'
 import { syncNow } from '../sync/engine'
@@ -33,11 +31,13 @@ export interface InstalledModel {
   name: string
   seller: string
   category: string
+  /** The category folder in the buyer's Drive (renames keep it). Missing in older files. */
+  categoryId?: string
   /** The account the model was bought for. */
   buyer: string
   model: string
   dim: number
-  /** Album paths under the category, with the folder made for each (renames keep it). */
+  /** Album paths under the category, with its folder once there is one (renames keep it). */
   albums: { path: string; folderId: string | null }[]
   labels: number[]
   vecs: string
@@ -182,25 +182,51 @@ async function licensed(m: InstalledModel): Promise<boolean> {
   }
 }
 
-/** The folder of an album of the model in this account, or null (album deleted). */
-function albumFolder(m: InstalledModel, k: number, data: ClassifyData): string | null {
-  const a = m.albums[k]
-  if (a.folderId && data.folders.has(a.folderId)) return a.folderId
-  let parent: string | undefined = [...data.folders.values()].find((f) => f.parentId === data.rootId && sameFolderName(f.name, m.category))?.id
-  for (const name of a.path.split(SEP)) {
-    if (!parent) return null
-    const p: string = parent
-    parent = [...data.folders.values()].find((f) => f.parentId === p && sameFolderName(f.name, name))?.id
-  }
-  return parent ?? null
+/** The model's category in this account (found by name if it has no id yet, or it was replaced). */
+function categoryOf(m: InstalledModel, folders: ReadonlyMap<string, FolderNode>, rootId: string): string | null {
+  const own = m.categoryId ? folders.get(m.categoryId) : undefined
+  if (own?.parentId === rootId) return own.id
+  return [...folders.values()].find((f) => f.parentId === rootId && sameFolderName(f.name, m.category))?.id ?? null
 }
 
-/** The examples the installed models add to this account's own. */
-export async function referenceExamples(data: ClassifyData): Promise<{ ids: string[]; labels: string[]; vecs: Int8Array[] }> {
-  const out = { ids: [] as string[], labels: [] as string[], vecs: [] as Int8Array[] }
+/** The folder at `path` below `parent` (same names as the user sees them), or null. */
+function folderAt(parent: string, path: string[], folders: ReadonlyMap<string, FolderNode>): string | null {
+  let at: string | undefined = parent
+  for (const name of path) {
+    const p: string = at
+    at = [...folders.values()].find((f) => f.parentId === p && sameFolderName(f.name, name))?.id
+    if (!at) return null
+  }
+  return at ?? null
+}
+
+/**
+ * The folder of an album of the model in this account; when it has none yet,
+ * a pending id (`pendingAlbumId`), created with the first photo put in it.
+ * Null when the category is gone.
+ */
+function albumFolder(m: InstalledModel, k: number, data: ClassifyData, categoryId: string | null): string | null {
+  const a = m.albums[k]
+  if (a.folderId && data.folders.has(a.folderId)) return a.folderId
+  if (!categoryId) return null
+  return folderAt(categoryId, a.path.split(SEP), data.folders) ?? pendingAlbumId(categoryId, a.path)
+}
+
+/** The examples the installed models add to this account's own, and their albums not created yet. */
+export async function referenceExamples(
+  data: ClassifyData,
+): Promise<{ ids: string[]; labels: string[]; vecs: Int8Array[]; pending: Map<string, string[]> }> {
+  const out = { ids: [] as string[], labels: [] as string[], vecs: [] as Int8Array[], pending: new Map<string, string[]>() }
   for (const m of await installedModels()) {
     if (m.model !== MODEL_ID || m.dim !== EMBED_DIM || !(await licensed(m))) continue
-    const folders = m.albums.map((_, k) => albumFolder(m, k, data))
+    const categoryId = categoryOf(m, data.folders, data.rootId)
+    const folders = m.albums.map((_, k) => albumFolder(m, k, data, categoryId))
+    for (const f of folders) {
+      if (!f || !categoryId || !parsePendingAlbum(f)) continue
+      const list = out.pending.get(categoryId) ?? []
+      if (!list.includes(f)) list.push(f)
+      out.pending.set(categoryId, list)
+    }
     const all = fromBase64(m.vecs)
     m.labels.forEach((label, i) => {
       const folderId = folders[label]
@@ -213,62 +239,17 @@ export async function referenceExamples(data: ClassifyData): Promise<{ ids: stri
   return out
 }
 
-export type InstallStep = 'download' | 'albums' | 'save' | 'sync'
+export type InstallStep = 'download' | 'save' | 'sync'
 export type InstallProgress = (step: InstallStep, done: number, total: number) => void
 
-/**
- * Folders found or created by name, each Drive folder listed once and
- * several albums created at a time (101 albums one by one took minutes).
- */
-function folderMaker() {
-  const lists = new Map<string, Promise<DriveFile[]>>()
-  const made = new Map<string, Promise<string>>()
-  const listOf = (parent: string) => {
-    let p = lists.get(parent)
-    if (!p) {
-      p = (async () => {
-        const out: DriveFile[] = []
-        await listFiles(`'${parent}' in parents and mimeType = '${FOLDER_MIME}' and trashed = false`, (page) => void out.push(...page), undefined, 'id,name')
-        return out
-      })()
-      lists.set(parent, p)
-    }
-    return p
-  }
-  return (name: string, parent: string): Promise<string> => {
-    const key = `${parent}\n${nameKey(name) || name}`
-    let p = made.get(key)
-    if (!p) {
-      p = (async () => (await listOf(parent)).find((f) => sameFolderName(f.name, name))?.id ?? (await createFolder(name, parent)).id)()
-      made.set(key, p)
-    }
-    return p
-  }
-}
-
-/** Gets the model (the licence is there already) and creates its albums (then classify again). */
+/** Gets the model (the licence is there already); its albums come with their first photos (then classify again). */
 export async function installModel(id: string, onProgress: InstallProgress = () => undefined): Promise<InstalledModel> {
   const rootId = app().rootId
   if (!rootId) throw new ModelError('noRoot')
   onProgress('download', 0, 1)
   const { info, buyer, data } = await downloadModel(id)
   if (data.model !== MODEL_ID || data.dim !== EMBED_DIM) throw new ModelError('otherModel')
-  const folderIn = folderMaker()
   const category = await folderNamed(info.category, rootId)
-  const albums: InstalledModel['albums'] = data.albums.map((path) => ({ path, folderId: null }))
-  let done = 0
-  let next = 0
-  onProgress('albums', 0, albums.length)
-  const worker = async () => {
-    while (next < albums.length) {
-      const a = albums[next++]
-      let parent = category.id
-      for (const name of a.path.split(SEP)) parent = await folderIn(name, parent)
-      a.folderId = parent
-      onProgress('albums', ++done, albums.length)
-    }
-  }
-  await Promise.all(Array.from({ length: 4 }, worker))
   const m: InstalledModel = {
     format: 'mymedia-model',
     version: 1,
@@ -276,26 +257,112 @@ export async function installModel(id: string, onProgress: InstallProgress = () 
     name: info.name,
     seller: info.seller,
     category: info.category,
+    categoryId: category.id,
     buyer,
     model: data.model,
     dim: data.dim,
-    albums,
+    // Albums the account has already are found by name when classifying.
+    albums: data.albums.map((path) => ({ path, folderId: null })),
     labels: data.labels,
     vecs: data.vecs,
   }
   onProgress('save', 0, 1)
-  const existing = await findChildByName(rootId, fileName(id))
-  if (existing) await updateTextFile(existing.id, JSON.stringify(m))
-  else await createTextFile(fileName(id), rootId, JSON.stringify(m))
+  await saveModel(m)
   try {
     localStorage.setItem(licenceKey(id, buyer), String(Date.now()))
   } catch {
     // ignore
   }
-  cache = null
   onProgress('sync', 0, 1)
   await syncNow()
   return m
+}
+
+async function saveModel(m: InstalledModel): Promise<void> {
+  const rootId = app().rootId!
+  const existing = await findChildByName(rootId, fileName(m.id))
+  if (existing) await updateTextFile(existing.id, JSON.stringify(m))
+  else await createTextFile(fileName(m.id), rootId, JSON.stringify(m))
+  cache = null
+}
+
+const creating = new Map<string, Promise<string>>()
+
+/**
+ * The real folder for a destination: a pending album of a model is created
+ * now (with the folders above it), once even when several photos go there
+ * together, and remembered in the model so a rename keeps it.
+ */
+export function ensureAlbum(folderId: string): Promise<string> {
+  const pending = parsePendingAlbum(folderId)
+  if (!pending) return Promise.resolve(folderId)
+  let p = creating.get(folderId)
+  if (!p) {
+    p = (async () => {
+      const d = db()
+      let parent = pending.categoryId
+      for (const name of pending.path) {
+        const f = await folderNamed(name, parent)
+        await d.folders.put({ id: f.id, name: f.name, parentId: parent })
+        parent = f.id
+      }
+      await rememberAlbum(pending.categoryId, pending.path.join(SEP), parent).catch((e) => console.warn('[MyMedia] model album not remembered', e))
+      return parent
+    })().finally(() => creating.delete(folderId))
+    creating.set(folderId, p)
+  }
+  return p
+}
+
+async function rememberAlbum(categoryId: string, path: string, folderId: string): Promise<void> {
+  const rootId = app().rootId!
+  const folders = new Map((await db().folders.toArray()).map((f) => [f.id, f]))
+  for (const m of await installedModels()) {
+    if (categoryOf(m, folders, rootId) !== categoryId) continue
+    const a = m.albums.find((x) => x.path === path)
+    if (!a || a.folderId === folderId) continue
+    a.folderId = folderId
+    await saveModel({ ...m, categoryId })
+  }
+}
+
+/**
+ * Albums the install of a model created before (when it still made all of
+ * them) that are still empty: moved to Drive's trash. Only folders made during
+ * that install, so albums of the user's own are kept even if empty.
+ */
+export async function removeEmptyAlbums(id: string): Promise<number> {
+  const rootId = app().rootId
+  if (!rootId) return 0
+  const m = (await installedModels()).find((x) => x.id === id)
+  const file = await findChildByName(rootId, fileName(id))
+  if (!m || !file) return 0
+  const installedAt = Date.parse((await getFile(file.id, 'id,createdTime')).createdTime ?? '')
+  if (!Number.isFinite(installedAt)) return 0
+  const d = db()
+  const folders = new Map((await d.folders.toArray()).map((f) => [f.id, f]))
+  const media = await d.media.toArray()
+  const used = new Set(media.map((r) => r.folderId))
+  // Deepest first, so "A / B" goes before "A" once it is empty too.
+  const albums = m.albums.filter((a) => a.folderId && folders.has(a.folderId)).sort((a, b) => b.path.split(SEP).length - a.path.split(SEP).length)
+  let removed = 0
+  for (const a of albums) {
+    const folderId = a.folderId!
+    if (used.has(folderId) || [...folders.values()].some((f) => f.parentId === folderId)) continue
+    const f = await getFile(folderId, 'id,createdTime')
+    const created = Date.parse(f.createdTime ?? '')
+    // Made by that install: in the hour before the model file was saved.
+    if (!(created <= installedAt && installedAt - created < 3600_000)) continue
+    if (!(await isFolderEmpty(folderId))) continue
+    await trashFile(folderId)
+    await d.folders.delete(folderId)
+    folders.delete(folderId)
+    a.folderId = null
+    removed++
+  }
+  if (removed) await saveModel(m)
+  await syncNow()
+  return removed
 }
 
 /** Stops using a model (its albums and the photos in them stay). */

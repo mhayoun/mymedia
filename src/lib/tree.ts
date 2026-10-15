@@ -36,7 +36,31 @@ export function folderChain(folderId: string, folders: ReadonlyMap<string, Folde
   return chain
 }
 
+const PENDING = 'new:'
+
+/**
+ * An album of an installed model that is not in Drive yet: it is created when
+ * the first photo goes into it. Drive ids have no ':', so the id is safe to split.
+ */
+export function pendingAlbumId(categoryId: string, path: string): string {
+  return `${PENDING}${categoryId}:${path}`
+}
+
+export function parsePendingAlbum(id: string): { categoryId: string; path: string[] } | null {
+  if (!id.startsWith(PENDING)) return null
+  const rest = id.slice(PENDING.length)
+  const at = rest.indexOf(':')
+  if (at < 1) return null
+  return { categoryId: rest.slice(0, at), path: rest.slice(at + 1).split(ALBUM_SEPARATOR) }
+}
+
 export function placementOf(folderId: string, folders: ReadonlyMap<string, FolderNode>, rootId: string): Placement {
+  const pending = parsePendingAlbum(folderId)
+  if (pending) {
+    const category = folders.get(pending.categoryId)
+    if (!category || category.parentId !== rootId) return { category: null, album: null, categoryId: null, albumId: null }
+    return { category: category.name, categoryId: category.id, album: pending.path.join(ALBUM_SEPARATOR), albumId: null }
+  }
   const chain = folderChain(folderId, folders, rootId)
   if (!chain || chain.length === 0) return { category: null, album: null, categoryId: null, albumId: null }
   const album = chain.slice(1)

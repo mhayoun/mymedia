@@ -87,7 +87,12 @@ export function useLibrary(): Library {
       .sort((a, b) => collator.compare(a.name, b.name))
     const categoriesWithAlbums = new Set(categories.filter((c) => c.children.length > 0).map((c) => c.id))
     const toClassify = items.filter(
-      (i) => !i.meta?.keepHere && (i.rec.folderId === rootId || categoriesWithAlbums.has(i.rec.folderId)),
+      (i) =>
+        !i.meta?.keepHere &&
+        (i.rec.folderId === rootId ||
+          categoriesWithAlbums.has(i.rec.folderId) ||
+          // In a category whose albums come from a model and are not created yet.
+          (!!i.meta?.suggestions?.length && folders.get(i.rec.folderId)?.parentId === rootId)),
     )
     const autoItems = items.filter((i) => i.meta?.auto)
     const provenance = buildProvenance(items.map((i) => i.meta))

@@ -15,7 +15,7 @@ import { placementOf } from '../lib/tree'
 import type { Calibration } from '../lib/classifier'
 import { calibrate, predictMany } from '../ml/ml'
 import type { PackedSet } from '../ml/protocol'
-import { referenceExamples } from '../models/references'
+import { ensureAlbum, referenceExamples } from '../models/references'
 import { app } from '../store'
 import { markMetaDirty } from '../sync/metaStore'
 import { albumsUnder, allowedFor, isCandidate, labeledSet, loadData, type ClassifyData } from './data'
@@ -32,8 +32,10 @@ async function calibrationFor(set: PackedSet): Promise<Calibration> {
 }
 
 /** Moves a media to another folder in Drive and records how it was classified. */
-export async function moveMedia(rec: MediaRecord, toFolderId: string, patch: Partial<MediaMeta>): Promise<void> {
+export async function moveMedia(rec: MediaRecord, to: string, patch: Partial<MediaMeta>): Promise<void> {
   const rootId = app().rootId!
+  // An album of a model not created yet: created now, for its first photo.
+  const toFolderId = await ensureAlbum(to)
   if (toFolderId !== rec.folderId) await moveFile(rec.id, toFolderId, rec.folderId)
   const d = db()
   const folders = new Map((await d.folders.toArray()).map((f) => [f.id, f]))
@@ -71,6 +73,8 @@ async function run(): Promise<void> {
   if (!rootId) return
   const settings = app().settings
   const data = await loadData(rootId)
+  const refs = await referenceExamples(data).catch(() => undefined)
+  data.pending = refs?.pending
   const candidates = data.media.filter((r) => isCandidate(r, data))
   if (!candidates.length) return
   let changed = false
@@ -97,7 +101,7 @@ async function run(): Promise<void> {
   }
 
   // 3. Learned model.
-  const { set, counts } = labeledSet(data, await referenceExamples(data).catch(() => undefined))
+  const { set, counts } = labeledSet(data, refs)
   const queries = remaining.filter((r) => data.vecs.has(r.id))
   if (queries.length && counts.size >= 2) {
     const { tau, novelty } = await calibrationFor(set)

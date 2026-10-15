@@ -13,6 +13,8 @@ export interface ClassifyData {
   media: MediaRecord[]
   meta: Map<string, MediaMeta>
   vecs: Map<string, Int8Array>
+  /** Albums of installed models not created yet, by category (see `pendingAlbumId`). */
+  pending?: Map<string, string[]>
 }
 
 export async function loadData(rootId: string): Promise<ClassifyData> {
@@ -65,13 +67,13 @@ export function isCandidate(rec: MediaRecord, data: ClassifyData): boolean {
   if (data.meta.get(rec.id)?.keepHere) return false
   if (rec.folderId === data.rootId) return true
   if (inReservedFolder(rec.folderId, data)) return false
-  return isCategory(rec.folderId, data) && albumsUnder(rec.folderId, data).length > 0
+  return isCategory(rec.folderId, data) && (albumsUnder(rec.folderId, data).length > 0 || !!data.pending?.get(rec.folderId)?.length)
 }
 
 /** Where a candidate may go: any album/category for the root, the category's albums otherwise. */
 export function allowedFor(rec: MediaRecord, data: ClassifyData): string[] | null {
   if (rec.folderId === data.rootId) return null
-  return albumsUnder(rec.folderId, data).map((f) => f.id)
+  return [...albumsUnder(rec.folderId, data).map((f) => f.id), ...(data.pending?.get(rec.folderId) ?? [])]
 }
 
 /**
