@@ -6,7 +6,7 @@
 
 import SparkMD5 from 'spark-md5'
 import { canCompressVideo, compressPhoto, compressVideo, localVideoDuration } from '../compress/media'
-import { db } from '../db/db'
+import { db, type MediaRecord } from '../db/db'
 import { createMediaFile, DriveError, ensureFolderPath } from '../drive/api'
 import { isJpegMime, planCompression } from '../lib/compressPlan'
 import { exifDateTime, heicExif, jpegDimensions, jpegExif } from '../lib/jpeg'
@@ -72,9 +72,26 @@ export function mediaFiles(files: File[]): File[] {
   return files.filter((f) => mediaTypeOf(mimeOf(f), f.name) !== null)
 }
 
+/**
+ * What tells a file is in MyMedia already: its MD5, or for a compressed file
+ * (whose MD5 changed) the MD5 of the original it was made from. Files
+ * compressed before that was kept are known by original size + date.
+ */
+export function knownFiles(records: Pick<MediaRecord, 'md5' | 'appProperties'>[]): { md5: Set<string>; sizeDate: Set<string> } {
+  const md5 = new Set<string>()
+  const sizeDate = new Set<string>()
+  for (const r of records) {
+    const p = r.appProperties
+    if (r.md5) md5.add(r.md5)
+    if (p?.mymedia_source_md5) md5.add(p.mymedia_source_md5)
+    if (p?.mymedia_original_size && p.mymedia_taken) sizeDate.add(`${p.mymedia_original_size}|${p.mymedia_taken}`)
+  }
+  return { md5, sizeDate }
+}
+
 /** Reads date, MD5 and estimated compression of each file. */
 export async function analyze(files: File[], onProgress: (done: number) => void): Promise<ImportItem[]> {
-  const known = new Set((await db().media.toArray()).map((m) => m.md5).filter(Boolean))
+  const known = knownFiles(await db().media.toArray())
   const seen = new Set<string>()
   const s = app().settings.compress
   const videoOk = await canCompressVideo()
@@ -113,7 +130,7 @@ export async function analyze(files: File[], onProgress: (done: number) => void)
     if (!taken) taken = localIso(new Date(file.lastModified || Date.now()))
 
     const md5 = await md5Of(file)
-    const duplicate = known.has(md5) || seen.has(md5)
+    const duplicate = known.md5.has(md5) || known.sizeDate.has(`${file.size}|${taken}`) || seen.has(md5)
     seen.add(md5)
 
     const plan = planCompression(
@@ -249,6 +266,8 @@ export async function runImport(
             modifiedTime: date,
             appProperties: {
               mymedia_taken: item.takenAt,
+              // The original's, to know it again once compressed (its MD5 is then another).
+              mymedia_source_md5: item.md5,
               ...(compressed
                 ? { mymedia_compressed: '1', mymedia_quality: String(Math.round(s.quality * 100)), mymedia_original_size: String(item.file.size) }
                 : {}),

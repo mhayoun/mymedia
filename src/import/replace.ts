@@ -134,7 +134,7 @@ export async function replaceContent(
   const updated = await uploadNewContent(
     rec.id,
     item.file,
-    { mimeType: item.mimeType, appProperties: { mymedia_compressed: null, mymedia_quality: null, mymedia_original_size: null } },
+    { mimeType: item.mimeType, appProperties: { mymedia_compressed: null, mymedia_quality: null, mymedia_original_size: null, mymedia_source_md5: null } },
     onProgress,
     signal,
   )

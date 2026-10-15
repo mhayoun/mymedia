@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { insideDestination, pickedFolder, type ImportItem } from '../src/import/importer'
+import { insideDestination, knownFiles, pickedFolder, type ImportItem } from '../src/import/importer'
 
 const item = (relDir: string[]) => ({ key: relDir.join('/'), relDir }) as unknown as ImportItem
 
@@ -15,5 +15,18 @@ describe('insideDestination', () => {
     expect(pickedFolder([item(['esty']), item([])])).toBeNull()
     expect(pickedFolder([item(['a']), item(['b'])])).toBeNull()
     expect(insideDestination([item(['a']), item(['b'])], false).map((i) => i.relDir)).toEqual([['a'], ['b']])
+  })
+})
+
+describe('knownFiles', () => {
+  it('knows a compressed file by its original: MD5, or size and date when it was compressed before', () => {
+    const k = knownFiles([
+      { md5: 'aaa' },
+      { md5: 'compressed1', appProperties: { mymedia_source_md5: 'orig1', mymedia_original_size: '5000', mymedia_taken: '2024-05-01T10:00:00' } },
+      { md5: 'compressed2', appProperties: { mymedia_compressed: '1', mymedia_original_size: '7000', mymedia_taken: '2023-01-02T08:30:00' } },
+    ])
+    expect([...k.md5].sort()).toEqual(['aaa', 'compressed1', 'compressed2', 'orig1'])
+    expect(k.sizeDate.has('7000|2023-01-02T08:30:00')).toBe(true)
+    expect(k.sizeDate.has('7000|2023-01-02T08:31:00')).toBe(false)
   })
 })
