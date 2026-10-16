@@ -6,6 +6,7 @@
 // Receiver: accepts every offer, puts the folder at the same place in their own
 // MyMedia (merging with a folder of the same name) and takes the metadata.
 // Drive keeps the same file ids, so nothing is copied or uploaded again.
+// The people found on the photos go with them (faces/transfer.ts).
 
 import { db } from '../db/db'
 import {
@@ -26,6 +27,7 @@ import {
   trashFile,
   type DriveFile,
 } from '../drive/api'
+import { facesOfGivenMedia, facesOfMedia, importFaces, type TransferFaces } from '../faces/transfer'
 import { FOLDER_MIME } from '../lib/media'
 import type { MediaMeta } from '../lib/metadata'
 import { folderChain, subtreeIds } from '../lib/tree'
@@ -34,6 +36,8 @@ import { syncNow } from '../sync/engine'
 import { markMetaDirty } from '../sync/metaStore'
 
 export const TRANSFER_FILE_NAME = 'mymedia-transfer.json'
+/** Only the people of photos given earlier (before people went with them). */
+export const PEOPLE_FILE_NAME = 'mymedia-people-transfer.json'
 
 /**
  * MyMedia's own files at the root (index, faces, metadata, models bought):
@@ -46,7 +50,7 @@ export function isMyMediaFile(f: { name: string; mimeType: string }): boolean {
 
 /** A step that failed, with what the user needs to know. */
 export class TransferError extends Error {
-  step: 'notOwner' | 'send' | 'accept' | 'move'
+  step: 'notOwner' | 'send' | 'accept' | 'move' | 'peopleNotYet' | 'peopleNone'
   detail: string
   owner?: string
   constructor(step: TransferError['step'], detail: string, owner?: string) {
@@ -87,6 +91,10 @@ export interface TransferManifest {
   path: string[]
   createdAt: number
   items: Record<string, MediaMeta>
+  /** Who is on the photos (absent in transfers made before). */
+  faces?: TransferFaces
+  /** 'people': only `faces`, for photos given before. */
+  kind?: 'people'
 }
 
 type Progress = (done: number, total: number) => void
@@ -156,6 +164,7 @@ export async function sendFolder(folderId: string, email: string, message: strin
   if (!top.ownedByMe) throw new TransferError('notOwner', top.name, top.owners?.[0]?.emailAddress)
 
   const me = await about()
+  const faces = await facesOfMedia(new Set(media.map((m) => m.id)))
   const manifest: TransferManifest = {
     format: 'mymedia-transfer',
     version: 1,
@@ -165,6 +174,7 @@ export async function sendFolder(folderId: string, email: string, message: strin
     path: chain.map((f) => f.name),
     createdAt: Date.now(),
     items,
+    faces,
   }
   await step('send', async () => {
     // Replace an earlier manifest of the same folder (a transfer sent again).
@@ -198,7 +208,8 @@ export interface IncomingTransfer {
 export async function findIncoming(): Promise<IncomingTransfer[]> {
   const me = (await about()).email.toLowerCase()
   const out: IncomingTransfer[] = []
-  await listFiles(`name = '${TRANSFER_FILE_NAME}' and trashed = false and not 'me' in owners`, async (files) => {
+  const q = `(name = '${TRANSFER_FILE_NAME}' or name = '${PEOPLE_FILE_NAME}') and trashed = false and not 'me' in owners`
+  await listFiles(q, async (files) => {
     for (const f of files) {
       try {
         const manifest = JSON.parse(await downloadText(f.id)) as TransferManifest
@@ -208,7 +219,8 @@ export async function findIncoming(): Promise<IncomingTransfer[]> {
       }
     }
   }, undefined, 'id,name')
-  return out
+  // People last: their photos must be here first.
+  return out.sort((a, b) => Number(a.manifest.kind === 'people') - Number(b.manifest.kind === 'people'))
 }
 
 /** Moves the content of `from` into `to`, merging folders that have the same name. */
@@ -234,6 +246,7 @@ export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress):
   const rootId = app().rootId!
   const { manifest } = t
   const permissionId = await step('accept', myPermissionId)
+  if (manifest.kind === 'people') return acceptPeople(t, permissionId)
   const inside = await step('accept', () => walk(manifest.folderId))
   const all = [{ id: manifest.folderId }, ...inside]
   // Folders first (top down), so the files land in folders already ours.
@@ -274,5 +287,45 @@ export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress):
     await d.meta.put({ ...sent, id, name: cur.name, category: cur.category, album: cur.album, deleted: undefined, updatedAt: now })
   }
   await markMetaDirty()
+  if (manifest.faces) await importFaces(manifest.faces)
   return { total: all.length, failed, reason, skipped: 0, otherOwners: [] }
+}
+
+async function acceptPeople(t: IncomingTransfer, permissionId: string): Promise<TransferResult> {
+  await syncNow()
+  const n = await step('accept', () => importFaces(t.manifest.faces ?? { persons: [], faces: [] }))
+  // None of the photos here yet (their transfer not accepted): kept for later.
+  if (!n) throw new TransferError('peopleNotYet', '')
+  await acceptOwnership(t.manifestId, permissionId).catch(() => undefined)
+  await trashFile(t.manifestId).catch(() => undefined)
+  return { total: n, failed: 0, skipped: 0, otherOwners: [] }
+}
+
+// ---- People of photos given before --------------------------------------------
+
+/** Sends to `email` who is on the photos given before people went with them. Returns the number of photos. */
+export async function sendPeople(email: string): Promise<number> {
+  const rootId = app().rootId!
+  const faces = await facesOfGivenMedia()
+  if (!faces.faces.length) throw new TransferError('peopleNone', '')
+  const me = await about()
+  const manifest: TransferManifest = {
+    format: 'mymedia-transfer',
+    version: 1,
+    from: me.email,
+    to: email.trim().toLowerCase(),
+    folderId: rootId,
+    path: [],
+    createdAt: Date.now(),
+    items: {},
+    faces,
+    kind: 'people',
+  }
+  await step('send', async () => {
+    const old = await findChildByName(rootId, PEOPLE_FILE_NAME)
+    if (old) await trashFile(old.id).catch(() => undefined)
+    const file = await createTextFile(PEOPLE_FILE_NAME, rootId, JSON.stringify(manifest))
+    await offerOwnership(file.id, manifest.to, false)
+  })
+  return new Set(faces.faces.map((f) => f.mediaId)).size
 }

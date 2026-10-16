@@ -603,7 +603,7 @@
     "what": "What",
     "choose": "Tick one or more categories or albums (▸ shows a category's albums).",
     "everything": "All media",
-    "everythingHint": "All of MyMedia goes: every category and album, the photos not sorted yet, with species, texts and dates. On the other account they join its MyMedia (categories of the same name are merged). What is your account's own stays with you: recognised faces, what was learned, and models bought (the other account redoes or buys them).",
+    "everythingHint": "All of MyMedia goes: every category and album, the photos not sorted yet, with species, texts, dates and the people recognised. On the other account they join its MyMedia (categories of the same name are merged, and a person of the same name becomes the same person). What is your account's own stays with you: what was learned, and models bought (the other account redoes or buys them).",
     "to": "To (Gmail address)",
     "message": "Message (optional)",
     "confirm_one": "“{{name}}” ({{count}} photo) will be offered to {{email}}.",
@@ -619,10 +619,20 @@
     "failed": {
       "send": "Sending could not start (nothing was offered). Google says: {{message}}",
       "accept": "Accepting did not complete. Check that sending finished, then try again. Google says: {{message}}",
-      "move": "The files are yours, but the folder could not be placed in MyMedia. Try again. Google says: {{message}}"
+      "move": "The files are yours, but the folder could not be placed in MyMedia. Try again. Google says: {{message}}",
+      "peopleNotYet": "The photos of these people are not in your MyMedia yet. Accept the photos' transfer first, then this one.",
+      "peopleNone": "No given photo with recognised people was found on this device or in your account."
     },
     "confirmMany": "{{folders}} folders ({{count}} photos) will be offered to {{email}}.",
-    "acceptAll": "Accept all ({{count}} transfers)"
+    "acceptAll": "Accept all ({{count}} transfers)",
+    "peopleTitle": "People of photos already given",
+    "peopleHint": "Transfers made before 16 October 2026 did not take the people recognised on the photos. Type the Gmail address above, then click here: the other account gets them under “Received” and accepts them like a transfer.",
+    "sendPeople": "Send the people",
+    "peopleSent_one": "The people of {{count}} photo were offered to {{email}}.",
+    "peopleSent_other": "The people of {{count}} photos were offered to {{email}}.",
+    "peopleFrom": "People recognised, from {{email}}",
+    "peopleAccepted_one": "People added on {{count}} photo.",
+    "peopleAccepted_other": "People added on {{count}} photos."
   },
   "models": {
     "title": "Classification models",

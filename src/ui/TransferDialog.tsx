@@ -1,9 +1,9 @@
-import { Download, Loader2, Send } from 'lucide-react'
+import { Download, Loader2, Send, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFormat } from '../i18n/format'
 import { useApp } from '../store'
-import { acceptTransfer, findIncoming, sendFolder, TransferError, type IncomingTransfer, type TransferResult } from '../transfer/transfer'
+import { acceptTransfer, findIncoming, sendFolder, sendPeople, TransferError, type IncomingTransfer, type TransferResult } from '../transfer/transfer'
 import { Modal } from './Dialog'
 import { FolderChecklist } from './FolderChecklist'
 import { useLibraryContext } from './libraryContext'
@@ -126,7 +126,13 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
             {incoming.map((tr) => (
               <div key={tr.manifestId} className="row" style={{ marginBlockEnd: 8 }}>
                 <span>
-                  <bdi>{tr.manifest.path.length ? tr.manifest.path.join(' / ') : t('transfer.everything')}</bdi> — {t('transfer.fromWho', { email: tr.manifest.from, count: Object.keys(tr.manifest.items).length })}
+                  {tr.manifest.kind === 'people' ? (
+                    t('transfer.peopleFrom', { email: tr.manifest.from })
+                  ) : (
+                    <>
+                      <bdi>{tr.manifest.path.length ? tr.manifest.path.join(' / ') : t('transfer.everything')}</bdi> — {t('transfer.fromWho', { email: tr.manifest.from, count: Object.keys(tr.manifest.items).length })}
+                    </>
+                  )}
                 </span>
                 <button
                   className="btn primary"
@@ -134,7 +140,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
                   onClick={() =>
                     run(
                       () => acceptTransfer(tr, (done, total) => setBusy({ done, total })),
-                      'transfer.accepted',
+                      tr.manifest.kind === 'people' ? 'transfer.peopleAccepted' : 'transfer.accepted',
                     ).then(() => setIncoming((list) => list?.filter((x) => x !== tr) ?? null))
                   }
                 >
@@ -187,6 +193,23 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
           }
         >
           <Send size={16} /> {t('transfer.send')}
+        </button>
+
+        <h3>
+          <Users size={16} /> {t('transfer.peopleTitle')}
+        </h3>
+        <p className="hint">{t('transfer.peopleHint')}</p>
+        <button
+          className="btn"
+          disabled={!!busy || !validEmail}
+          onClick={() =>
+            run(async () => {
+              const n = await sendPeople(email)
+              return { total: n, failed: 0, skipped: 0, otherOwners: [] }
+            }, 'transfer.peopleSent')
+          }
+        >
+          <Users size={16} /> {t('transfer.sendPeople')}
         </button>
 
         {busy && (

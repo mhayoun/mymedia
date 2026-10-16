@@ -601,7 +601,7 @@
     "what": "Quoi",
     "choose": "Cochez une ou plusieurs catégories ou albums (▸ pour voir les albums d'une catégorie).",
     "everything": "Tous les médias",
-    "everythingHint": "Tout MyMedia part : toutes les catégories et tous les albums, les photos pas encore rangées, avec les espèces, textes et dates. Chez l'autre compte, ils rejoignent son MyMedia (les catégories de même nom sont réunies). Ce qui est propre à votre compte reste chez vous : les visages reconnus, l'apprentissage et les modèles achetés (l'autre compte les refait ou les achète).",
+    "everythingHint": "Tout MyMedia part : toutes les catégories et tous les albums, les photos pas encore rangées, avec les espèces, textes, dates et les personnes reconnues. Chez l'autre compte, ils rejoignent son MyMedia (les catégories de même nom sont réunies, et une personne de même nom devient la même personne). Ce qui est propre à votre compte reste chez vous : l'apprentissage et les modèles achetés (l'autre compte les refait ou les achète).",
     "to": "À (adresse Gmail)",
     "message": "Message (facultatif)",
     "confirm_one": "« {{name}} » ({{count}} photo) sera proposé à {{email}}.",
@@ -617,10 +617,20 @@
     "failed": {
       "send": "L'envoi n'a pas pu commencer (rien n'a été proposé). Détail de Google : {{message}}",
       "accept": "L'acceptation n'a pas abouti. Vérifiez que l'envoi s'est bien terminé, puis réessayez. Détail de Google : {{message}}",
-      "move": "Les fichiers sont à vous, mais le dossier n'a pas pu être placé dans MyMedia. Réessayez. Détail de Google : {{message}}"
+      "move": "Les fichiers sont à vous, mais le dossier n'a pas pu être placé dans MyMedia. Réessayez. Détail de Google : {{message}}",
+      "peopleNotYet": "Les photos de ces personnes ne sont pas encore dans votre MyMedia. Acceptez d'abord le transfert des photos, puis celui-ci.",
+      "peopleNone": "Aucune photo donnée avec des personnes reconnues n'a été trouvée sur cet appareil ni dans votre compte."
     },
     "confirmMany": "{{folders}} dossiers ({{count}} photos) seront proposés à {{email}}.",
-    "acceptAll": "Tout accepter ({{count}} envois)"
+    "acceptAll": "Tout accepter ({{count}} envois)",
+    "peopleTitle": "Personnes de photos déjà données",
+    "peopleHint": "Les transferts faits avant le 16 octobre 2026 n'emportaient pas les personnes reconnues sur les photos. Tapez l'adresse Gmail ci-dessus, puis cliquez ici : l'autre compte les reçoit dans « Reçus » et les accepte comme un transfert.",
+    "sendPeople": "Envoyer les personnes",
+    "peopleSent_one": "Les personnes de {{count}} photo ont été proposées à {{email}}.",
+    "peopleSent_other": "Les personnes de {{count}} photos ont été proposées à {{email}}.",
+    "peopleFrom": "Personnes reconnues de {{email}}",
+    "peopleAccepted_one": "Personnes ajoutées sur {{count}} photo.",
+    "peopleAccepted_other": "Personnes ajoutées sur {{count}} photos."
   },
   "models": {
     "title": "Modèles de classement",

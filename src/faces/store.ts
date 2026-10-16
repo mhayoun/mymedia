@@ -10,7 +10,7 @@ const FILE_NAME = 'mymedia-faces.json'
 const MODEL = 'yunet2023mar+sface2021dec'
 const SAVE_DELAY_MS = 4000
 
-interface FacesFile {
+export interface FacesFile {
   format: 'mymedia-faces'
   version: 1
   model: string
@@ -26,18 +26,18 @@ function serial<T>(task: () => Promise<T>): Promise<T> {
   return run
 }
 
-function toBase64(v: Int8Array): string {
+export function toBase64(v: Int8Array): string {
   return btoa(String.fromCharCode(...new Uint8Array(v.buffer, v.byteOffset, v.byteLength)))
 }
 
-function fromBase64(s: string): Int8Array {
+export function fromBase64(s: string): Int8Array {
   const bin = atob(s)
   const out = new Int8Array(bin.length)
   for (let i = 0; i < bin.length; i++) out[i] = (bin.charCodeAt(i) << 24) >> 24
   return out
 }
 
-async function readRemote(rootId: string): Promise<{ fileId: string | null; data: FacesFile | null }> {
+export async function readRemote(rootId: string): Promise<{ fileId: string | null; data: FacesFile | null }> {
   const f = await findChildByName(rootId, FILE_NAME)
   if (!f) return { fileId: null, data: null }
   try {
