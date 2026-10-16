@@ -148,7 +148,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
         <h3>
           <Send size={16} /> {t('transfer.sendTitle')}
         </h3>
-        <p className="hint">{t('transfer.sendHint')}</p>
+        <p className="hint" style={{ whiteSpace: 'pre-line' }}>{t('transfer.sendHint')}</p>
         <div className="field">
           {t('transfer.what')}
           <span className="hint">{t('transfer.choose')}</span>

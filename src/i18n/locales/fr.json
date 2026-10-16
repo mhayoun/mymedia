@@ -597,7 +597,7 @@
     "accepted_one": "Terminé : {{count}} élément est maintenant à vous, dans votre MyMedia.",
     "accepted_other": "Terminé : {{count}} éléments sont maintenant à vous, dans votre MyMedia.",
     "sendTitle": "Envoyer",
-    "sendHint": "L'autre compte reçoit un e-mail. Il ouvre ensuite MyMedia avec ce compte, Compte (sa photo en haut) → Transfert vers un autre compte → Accepter. Jusque-là, rien ne change chez vous.",
+    "sendHint": "Comment ça marche :\n1. Ici, cochez ce que vous donnez, tapez l'adresse Gmail de l'autre personne, puis cliquez « Envoyer ».\n2. L'autre personne reçoit un e-mail de Google.\n3. Elle ouvre MyMedia avec son propre compte Google, clique sur sa photo en haut de l'écran, choisit « Envoyer ou recevoir un transfert », puis clique « Accepter et ajouter à mon MyMedia ».\nTant qu'elle n'a pas accepté, rien ne change chez vous : vos photos restent dans votre MyMedia.",
     "what": "Quoi",
     "choose": "Cochez une ou plusieurs catégories ou albums (▸ pour voir les albums d'une catégorie).",
     "everything": "Tous les médias",
