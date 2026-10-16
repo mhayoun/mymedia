@@ -24,7 +24,16 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
   const set = useApp((s) => s.set)
 
   const facesEnabled = useApp((s) => s.settings.facesEnabled)
-  const select = (categoryId: string | null, albumId: string | null) => {
+  // The chosen category or album, clicked again, closes (or opens again) its sub-albums.
+  const [closed, setClosed] = useState<string | null>(null)
+  const select = (categoryId: string | null, albumId: string | null, hasChildren = false) => {
+    const id = albumId ?? categoryId
+    const current = filters.albumId ?? filters.categoryId
+    if (hasChildren && id === current) {
+      setClosed(closed === id ? null : id)
+      return
+    }
+    setClosed(null)
     setFilters({ categoryId, albumId, personId: null, provenance: null })
     set({ sidebarOpen: false })
   }
@@ -66,7 +75,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
             <button
               className="nav-item"
               aria-current={filters.categoryId === c.id && !filters.albumId}
-              onClick={() => select(c.id, null)}
+              onClick={() => select(c.id, null, c.children.length > 0)}
             >
               {filters.categoryId === c.id ? <FolderOpen size={18} /> : <Folder size={18} />}
               <span className="label">
@@ -74,9 +83,9 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
               </span>
               <span className="count">{c.count}</span>
             </button>
-            {filters.categoryId === c.id && c.children.length > 0 && (
+            {filters.categoryId === c.id && closed !== c.id && c.children.length > 0 && (
               <div className="nav-children">
-                <AlbumList folders={c.children} categoryId={c.id} activeId={filters.albumId} onSelect={select} />
+                <AlbumList folders={c.children} categoryId={c.id} activeId={filters.albumId} closed={closed} onSelect={select} />
               </div>
             )}
           </div>
@@ -247,21 +256,24 @@ function AlbumList({
   folders,
   categoryId,
   activeId,
+  closed,
   onSelect,
 }: {
   folders: FolderInfo[]
   categoryId: string
   activeId: string | null
-  onSelect: (categoryId: string, albumId: string) => void
+  /** The chosen album, when the user closed it. */
+  closed: string | null
+  onSelect: (categoryId: string, albumId: string, hasChildren: boolean) => void
 }) {
   // Only the albums on the way to the chosen one show their sub-albums.
   const holds = (f: FolderInfo): boolean => f.id === activeId || f.children.some(holds)
-  const opened = (f: FolderInfo) => activeId !== null && holds(f)
+  const opened = (f: FolderInfo) => activeId !== null && holds(f) && f.id !== closed
   return (
     <>
       {folders.map((a) => (
         <div key={a.id}>
-          <button className="nav-item" aria-current={activeId === a.id} onClick={() => onSelect(categoryId, a.id)}>
+          <button className="nav-item" aria-current={activeId === a.id} onClick={() => onSelect(categoryId, a.id, a.children.length > 0)}>
             {a.children.length > 0 && (opened(a) ? <ChevronDown size={14} /> : <ChevronRight size={14} className="flip-rtl" />)}
             <span className="label">
               <bdi>{a.name}</bdi>
@@ -270,7 +282,7 @@ function AlbumList({
           </button>
           {a.children.length > 0 && opened(a) && (
             <div className="nav-children">
-              <AlbumList folders={a.children} categoryId={categoryId} activeId={activeId} onSelect={onSelect} />
+              <AlbumList folders={a.children} categoryId={categoryId} activeId={activeId} closed={closed} onSelect={onSelect} />
             </div>
           )}
         </div>
