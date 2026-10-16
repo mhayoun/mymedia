@@ -2,6 +2,7 @@ import { Download, Loader2, Send } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFormat } from '../i18n/format'
+import { useApp } from '../store'
 import { acceptTransfer, findIncoming, sendFolder, TransferError, type IncomingTransfer, type TransferResult } from '../transfer/transfer'
 import { Modal } from './Dialog'
 import { useLibraryContext } from './libraryContext'
@@ -14,6 +15,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const lib = useLibraryContext()
+  const rootId = useApp((s) => s.rootId)
   const [folderId, setFolderId] = useState('')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
@@ -42,7 +44,8 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
     walk(lib?.categories ?? [], 0)
     return out
   }, [lib])
-  const chosen = folders.find((f) => f.id === folderId)
+  const everything = rootId ? { id: rootId, label: t('transfer.everything'), count: lib?.items.length ?? 0 } : null
+  const chosen = everything?.id === folderId ? everything : folders.find((f) => f.id === folderId)
   const validEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())
 
   const run = async (fn: () => Promise<TransferResult>, okKey: string) => {
@@ -84,7 +87,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
           incoming.map((tr) => (
             <div key={tr.manifestId} className="row" style={{ marginBlockEnd: 8 }}>
               <span>
-                <bdi>{tr.manifest.path.join(' / ')}</bdi> — {t('transfer.fromWho', { email: tr.manifest.from, count: Object.keys(tr.manifest.items).length })}
+                <bdi>{tr.manifest.path.length ? tr.manifest.path.join(' / ') : t('transfer.everything')}</bdi> — {t('transfer.fromWho', { email: tr.manifest.from, count: Object.keys(tr.manifest.items).length })}
               </span>
               <button
                 className="btn primary"
@@ -110,6 +113,11 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
           {t('transfer.what')}
           <select value={folderId} onChange={(e) => setFolderId(e.target.value)} disabled={!!busy}>
             <option value="">{t('transfer.choose')}</option>
+            {everything && (
+              <option value={everything.id}>
+                {everything.label} ({fmt.number(everything.count)})
+              </option>
+            )}
             {folders.map((f) => (
               <option key={f.id} value={f.id}>
                 {f.label} ({fmt.number(f.count)})
@@ -126,6 +134,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
           <input type="text" dir="auto" value={message} onChange={(e) => setMessage(e.target.value)} disabled={!!busy} />
         </label>
         {chosen && validEmail && <p>{t('transfer.confirm', { name: chosen.label.trim(), count: chosen.count, email: email.trim() })}</p>}
+        {chosen === everything && <p className="hint">{t('transfer.everythingHint')}</p>}
         <button
           className="btn primary"
           disabled={!!busy || !chosen || !validEmail}

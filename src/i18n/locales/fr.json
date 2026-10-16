@@ -600,6 +600,8 @@
     "sendHint": "L'autre compte reçoit un e-mail. Il ouvre ensuite MyMedia avec ce compte, Compte (sa photo en haut) → Transfert vers un autre compte → Accepter. Jusque-là, rien ne change chez vous.",
     "what": "Quoi",
     "choose": "Choisir une catégorie ou un album…",
+    "everything": "Tous les médias",
+    "everythingHint": "Tout MyMedia part : toutes les catégories et tous les albums, les photos pas encore rangées, avec les espèces, textes et dates. Chez l'autre compte, ils rejoignent son MyMedia (les catégories de même nom sont réunies). Ce qui est propre à votre compte reste chez vous : les visages reconnus, l'apprentissage et les modèles achetés (l'autre compte les refait ou les achète).",
     "to": "À (adresse Gmail)",
     "message": "Message (facultatif)",
     "confirm_one": "« {{name}} » ({{count}} photo) sera proposé à {{email}}.",

@@ -1,4 +1,4 @@
-// Gives a category or an album of MyMedia to another Google account.
+// Gives a category or an album of MyMedia, or all of it, to another Google account.
 //
 // Sender: every folder and file of the chosen folder is offered to the other
 // account (Drive "pending owner"); a mymedia-transfer.json in the folder carries
@@ -34,6 +34,15 @@ import { syncNow } from '../sync/engine'
 import { markMetaDirty } from '../sync/metaStore'
 
 export const TRANSFER_FILE_NAME = 'mymedia-transfer.json'
+
+/**
+ * MyMedia's own files at the root (index, faces, metadata, models bought):
+ * they belong to the account, so "everything" leaves them out. The transfer
+ * file itself goes with the photos.
+ */
+export function isMyMediaFile(f: { name: string; mimeType: string }): boolean {
+  return f.mimeType !== FOLDER_MIME && /^mymedia[-.]/i.test(f.name) && f.name !== TRANSFER_FILE_NAME
+}
 
 /** A step that failed, with what the user needs to know. */
 export class TransferError extends Error {
@@ -72,9 +81,9 @@ export interface TransferManifest {
   version: 1
   from: string
   to: string
-  /** The folder given (category or album). */
+  /** The folder given (category or album, or the MyMedia root for everything). */
   folderId: string
-  /** Names from the MyMedia root down to the folder, e.g. ["ציפורים"] or ["ציפורים", "חסידה"]. */
+  /** Names from the MyMedia root down to the folder, e.g. ["ציפורים"] or ["ציפורים", "חסידה"]; [] for everything. */
   path: string[]
   createdAt: number
   items: Record<string, MediaMeta>
@@ -91,6 +100,7 @@ async function walk(folderId: string): Promise<DriveFile[]> {
     for (let i = 0; i < level.length; i += 40) {
       await listFiles(childrenQuery(level.slice(i, i + 40)), (files) => {
         for (const f of files) {
+          if (isMyMediaFile(f)) continue
           out.push(f)
           if (f.mimeType === FOLDER_MIME) next.push(f.id)
         }
@@ -132,8 +142,9 @@ export async function sendFolder(folderId: string, email: string, message: strin
   const d = db()
   await syncNow()
   const folders = await d.folders.toArray()
-  const chain = folderChain(folderId, new Map(folders.map((f) => [f.id, f])), rootId)
-  if (!chain?.length) throw new Error('not in MyMedia')
+  // The root: all of MyMedia.
+  const chain = folderId === rootId ? [] : folderChain(folderId, new Map(folders.map((f) => [f.id, f])), rootId)
+  if (!chain || (!chain.length && folderId !== rootId)) throw new Error('not in MyMedia')
 
   const ids = subtreeIds(folderId, folders)
   const media = await d.media.where('folderId').anyOf([...ids]).toArray()
@@ -209,6 +220,8 @@ async function mergeInto(from: string, to: string): Promise<void> {
   const children: DriveFile[] = []
   await listFiles(childrenQuery([from]), (files) => void children.push(...files), undefined, 'id,name,mimeType')
   for (const c of children) {
+    // The sender's own MyMedia files stay theirs (only possible for "everything").
+    if (isMyMediaFile(c)) continue
     const same = c.mimeType === FOLDER_MIME ? existing.get(c.name.toLocaleLowerCase()) : undefined
     if (same) await mergeInto(c.id, same)
     else await moveFile(c.id, to, from)
@@ -230,6 +243,12 @@ export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress):
 
   await step('move', async () => {
     // Same place as in the sender's MyMedia: create the parents, merge with a folder of the same name.
+    if (!manifest.path.length) {
+      // Everything: its categories join this MyMedia's (same names merged), its unsorted photos its root.
+      await trashFile(t.manifestId).catch(() => undefined)
+      await mergeInto(manifest.folderId, rootId)
+      return
+    }
     let parent = rootId
     for (const name of manifest.path.slice(0, -1)) {
       parent = (await folderNamed(name, parent)).id
