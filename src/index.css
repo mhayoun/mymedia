@@ -458,3 +458,8 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 
 /* An address to copy in one tap (PayPal of a seller to pay). */
 .selectable { user-select: all; }
+.folder-checklist { max-block-size: 50vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 6px; margin-block: 6px 10px; }
+.check-row { display: flex; align-items: center; gap: 4px; min-block-size: 32px; }
+.check-row label { display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; min-width: 0; }
+.check-row .btn.icon { padding: 4px; min-inline-size: 0; }
+.check-row .icon-space { inline-size: 24px; flex: none; }

@@ -599,7 +599,7 @@
     "sendTitle": "Envoyer",
     "sendHint": "L'autre compte reçoit un e-mail. Il ouvre ensuite MyMedia avec ce compte, Compte (sa photo en haut) → Transfert vers un autre compte → Accepter. Jusque-là, rien ne change chez vous.",
     "what": "Quoi",
-    "choose": "Choisir une catégorie ou un album…",
+    "choose": "Cochez une ou plusieurs catégories ou albums (▸ pour voir les albums d'une catégorie).",
     "everything": "Tous les médias",
     "everythingHint": "Tout MyMedia part : toutes les catégories et tous les albums, les photos pas encore rangées, avec les espèces, textes et dates. Chez l'autre compte, ils rejoignent son MyMedia (les catégories de même nom sont réunies). Ce qui est propre à votre compte reste chez vous : les visages reconnus, l'apprentissage et les modèles achetés (l'autre compte les refait ou les achète).",
     "to": "À (adresse Gmail)",
@@ -618,7 +618,9 @@
       "send": "L'envoi n'a pas pu commencer (rien n'a été proposé). Détail de Google : {{message}}",
       "accept": "L'acceptation n'a pas abouti. Vérifiez que l'envoi s'est bien terminé, puis réessayez. Détail de Google : {{message}}",
       "move": "Les fichiers sont à vous, mais le dossier n'a pas pu être placé dans MyMedia. Réessayez. Détail de Google : {{message}}"
-    }
+    },
+    "confirmMany": "{{folders}} dossiers ({{count}} photos) seront proposés à {{email}}.",
+    "acceptAll": "Tout accepter ({{count}} envois)"
   },
   "models": {
     "title": "Modèles de classement",

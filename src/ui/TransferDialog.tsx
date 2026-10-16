@@ -5,6 +5,7 @@ import { useFormat } from '../i18n/format'
 import { useApp } from '../store'
 import { acceptTransfer, findIncoming, sendFolder, TransferError, type IncomingTransfer, type TransferResult } from '../transfer/transfer'
 import { Modal } from './Dialog'
+import { FolderChecklist } from './FolderChecklist'
 import { useLibraryContext } from './libraryContext'
 import type { FolderInfo } from './useLibrary'
 
@@ -16,7 +17,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
   const fmt = useFormat()
   const lib = useLibraryContext()
   const rootId = useApp((s) => s.rootId)
-  const [folderId, setFolderId] = useState('')
+  const [checked, setChecked] = useState<Set<string>>(new Set())
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState<Busy>(null)
@@ -33,20 +34,40 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
       })
   }, [])
 
-  const folders = useMemo(() => {
-    const out: { id: string; label: string; count: number }[] = []
-    const walk = (list: FolderInfo[], depth: number) => {
+  // What is sent: the ticked folders not inside another ticked one (it takes them along).
+  const chosen = useMemo(() => {
+    const out: { id: string; name: string; count: number }[] = []
+    if (rootId && checked.has(rootId)) return [{ id: rootId, name: t('transfer.everything'), count: lib?.items.length ?? 0 }]
+    const walk = (list: FolderInfo[]) => {
       for (const f of list) {
-        out.push({ id: f.id, label: ' '.repeat(depth * 3) + f.name, count: f.count })
-        walk(f.children, depth + 1)
+        if (checked.has(f.id)) out.push({ id: f.id, name: f.name, count: f.count })
+        else walk(f.children)
       }
     }
-    walk(lib?.categories ?? [], 0)
+    walk(lib?.categories ?? [])
     return out
-  }, [lib])
-  const everything = rootId ? { id: rootId, label: t('transfer.everything'), count: lib?.items.length ?? 0 } : null
-  const chosen = everything?.id === folderId ? everything : folders.find((f) => f.id === folderId)
+  }, [checked, lib, rootId, t])
+  const everything = chosen[0]?.id === rootId
+  const chosenCount = chosen.reduce((n, f) => n + f.count, 0)
+  const [current, setCurrent] = useState<{ n: number; total: number; name: string } | null>(null)
   const validEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())
+
+  /** Several transfers one after the other, their results added up. */
+  const runAll = async <T,>(list: T[], name: (x: T) => string, fn: (x: T) => Promise<TransferResult>): Promise<TransferResult> => {
+    const sum: TransferResult = { total: 0, failed: 0, skipped: 0, otherOwners: [] }
+    for (const [k, x] of list.entries()) {
+      setCurrent(list.length > 1 ? { n: k + 1, total: list.length, name: name(x) } : null)
+      setBusy({ done: 0, total: 0 })
+      const r = await fn(x)
+      sum.total += r.total
+      sum.failed += r.failed
+      sum.reason ??= r.reason
+      sum.skipped += r.skipped
+      sum.otherOwners = [...new Set([...sum.otherOwners, ...r.otherOwners])]
+    }
+    setCurrent(null)
+    return sum
+  }
 
   const run = async (fn: () => Promise<TransferResult>, okKey: string) => {
     setError(null)
@@ -68,6 +89,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
       )
     } finally {
       setBusy(null)
+      setCurrent(null)
     }
   }
 
@@ -84,47 +106,61 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
         ) : incoming.length === 0 ? (
           <p className="hint">{t('transfer.noneReceived')}</p>
         ) : (
-          incoming.map((tr) => (
-            <div key={tr.manifestId} className="row" style={{ marginBlockEnd: 8 }}>
-              <span>
-                <bdi>{tr.manifest.path.length ? tr.manifest.path.join(' / ') : t('transfer.everything')}</bdi> — {t('transfer.fromWho', { email: tr.manifest.from, count: Object.keys(tr.manifest.items).length })}
-              </span>
+          <>
+            {incoming.length > 1 && (
               <button
                 className="btn primary"
+                style={{ marginBlockEnd: 8 }}
                 disabled={!!busy}
-                onClick={() =>
-                  run(
-                    () => acceptTransfer(tr, (done, total) => setBusy({ done, total })),
+                onClick={() => {
+                  const list = incoming
+                  void run(
+                    () => runAll(list, (tr) => (tr.manifest.path.length ? tr.manifest.path.join(' / ') : t('transfer.everything')), (tr) => acceptTransfer(tr, (done, total) => setBusy({ done, total }))),
                     'transfer.accepted',
-                  ).then(() => setIncoming((list) => list?.filter((x) => x !== tr) ?? null))
-                }
+                  ).then(() => setIncoming((l) => l?.filter((x) => !list.includes(x)) ?? null))
+                }}
               >
-                {t('transfer.accept')}
+                {t('transfer.acceptAll', { count: incoming.length })}
               </button>
-            </div>
-          ))
+            )}
+            {incoming.map((tr) => (
+              <div key={tr.manifestId} className="row" style={{ marginBlockEnd: 8 }}>
+                <span>
+                  <bdi>{tr.manifest.path.length ? tr.manifest.path.join(' / ') : t('transfer.everything')}</bdi> — {t('transfer.fromWho', { email: tr.manifest.from, count: Object.keys(tr.manifest.items).length })}
+                </span>
+                <button
+                  className="btn primary"
+                  disabled={!!busy}
+                  onClick={() =>
+                    run(
+                      () => acceptTransfer(tr, (done, total) => setBusy({ done, total })),
+                      'transfer.accepted',
+                    ).then(() => setIncoming((list) => list?.filter((x) => x !== tr) ?? null))
+                  }
+                >
+                  {t('transfer.accept')}
+                </button>
+              </div>
+            ))}
+          </>
         )}
 
         <h3>
           <Send size={16} /> {t('transfer.sendTitle')}
         </h3>
         <p className="hint">{t('transfer.sendHint')}</p>
-        <label className="field">
+        <div className="field">
           {t('transfer.what')}
-          <select value={folderId} onChange={(e) => setFolderId(e.target.value)} disabled={!!busy}>
-            <option value="">{t('transfer.choose')}</option>
-            {everything && (
-              <option value={everything.id}>
-                {everything.label} ({fmt.number(everything.count)})
-              </option>
-            )}
-            {folders.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.label} ({fmt.number(f.count)})
-              </option>
-            ))}
-          </select>
-        </label>
+          <span className="hint">{t('transfer.choose')}</span>
+          <FolderChecklist
+            categories={lib?.categories ?? []}
+            checked={checked}
+            onChange={setChecked}
+            disabled={!!busy}
+            root={rootId ? { id: rootId, label: `${t('transfer.everything')} (${fmt.number(lib?.items.length ?? 0)})` } : undefined}
+            extra={(f) => <span className="hint">({fmt.number(f.count)})</span>}
+          />
+        </div>
         <label className="field">
           {t('transfer.to')}
           <input type="email" dir="ltr" placeholder="name@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} disabled={!!busy} />
@@ -133,19 +169,35 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
           {t('transfer.message')}
           <input type="text" dir="auto" value={message} onChange={(e) => setMessage(e.target.value)} disabled={!!busy} />
         </label>
-        {chosen && validEmail && <p>{t('transfer.confirm', { name: chosen.label.trim(), count: chosen.count, email: email.trim() })}</p>}
-        {chosen === everything && <p className="hint">{t('transfer.everythingHint')}</p>}
+        {chosen.length > 0 && validEmail && (
+          <p>
+            {chosen.length === 1
+              ? t('transfer.confirm', { name: chosen[0].name, count: chosen[0].count, email: email.trim() })
+              : t('transfer.confirmMany', { folders: chosen.length, count: chosenCount, email: email.trim() })}
+          </p>
+        )}
+        {everything && <p className="hint">{t('transfer.everythingHint')}</p>}
         <button
           className="btn primary"
-          disabled={!!busy || !chosen || !validEmail}
-          onClick={() => run(() => sendFolder(folderId, email, message, (done, total) => setBusy({ done, total })), 'transfer.sent')}
+          disabled={!!busy || !chosen.length || !validEmail}
+          onClick={() =>
+            run(() => runAll(chosen, (f) => f.name, (f) => sendFolder(f.id, email, message, (done, total) => setBusy({ done, total }))), 'transfer.sent').then(() =>
+              setChecked(new Set()),
+            )
+          }
         >
           <Send size={16} /> {t('transfer.send')}
         </button>
 
         {busy && (
           <p>
-            <Loader2 size={14} className="spin" /> {busy.total ? t('select.working', { done: fmt.number(busy.done), total: fmt.number(busy.total) }) : t('transfer.preparing')}
+            <Loader2 size={14} className="spin" />{' '}
+            {current && (
+              <>
+                <bdi>{current.name}</bdi> ({fmt.number(current.n)} / {fmt.number(current.total)}) ·{' '}
+              </>
+            )}
+            {busy.total ? t('select.working', { done: fmt.number(busy.done), total: fmt.number(busy.total) }) : t('transfer.preparing')}
           </p>
         )}
         {result && <p className="ok-text">{result}</p>}

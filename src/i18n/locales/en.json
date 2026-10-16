@@ -601,7 +601,7 @@
     "sendTitle": "Send",
     "sendHint": "The other account gets an e-mail. Then they open MyMedia with that account, Account (their photo at the top) → Transfer to another account → Accept. Until then nothing changes for you.",
     "what": "What",
-    "choose": "Choose a category or album…",
+    "choose": "Tick one or more categories or albums (▸ shows a category's albums).",
     "everything": "All media",
     "everythingHint": "All of MyMedia goes: every category and album, the photos not sorted yet, with species, texts and dates. On the other account they join its MyMedia (categories of the same name are merged). What is your account's own stays with you: recognised faces, what was learned, and models bought (the other account redoes or buys them).",
     "to": "To (Gmail address)",
@@ -620,7 +620,9 @@
       "send": "Sending could not start (nothing was offered). Google says: {{message}}",
       "accept": "Accepting did not complete. Check that sending finished, then try again. Google says: {{message}}",
       "move": "The files are yours, but the folder could not be placed in MyMedia. Try again. Google says: {{message}}"
-    }
+    },
+    "confirmMany": "{{folders}} folders ({{count}} photos) will be offered to {{email}}.",
+    "acceptAll": "Accept all ({{count}} transfers)"
   },
   "models": {
     "title": "Classification models",
