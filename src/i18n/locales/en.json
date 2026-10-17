@@ -503,7 +503,12 @@
     "compressTitle_one": "Compress the selected file",
     "compressTitle_other": "Compress the {{count}} selected files",
     "deleteTitle_one": "Delete the selected file?",
-    "deleteTitle_other": "Delete the {{count}} selected files?"
+    "deleteTitle_other": "Delete the {{count}} selected files?",
+    "moveTitle_one": "Move {{count}} photo to…",
+    "moveTitle_other": "Move {{count}} photos to…",
+    "moveSearch": "Search an album",
+    "moveNone": "No album with that name.",
+    "move": "Move"
   },
   "export": {
     "button": "Export",

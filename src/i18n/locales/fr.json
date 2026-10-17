@@ -501,7 +501,12 @@
     "compressTitle_one": "Compresser le fichier choisi",
     "compressTitle_other": "Compresser les {{count}} fichiers choisis",
     "deleteTitle_one": "Supprimer le fichier choisi ?",
-    "deleteTitle_other": "Supprimer les {{count}} fichiers choisis ?"
+    "deleteTitle_other": "Supprimer les {{count}} fichiers choisis ?",
+    "moveTitle_one": "Déplacer {{count}} photo vers…",
+    "moveTitle_other": "Déplacer {{count}} photos vers…",
+    "moveSearch": "Chercher un album",
+    "moveNone": "Aucun album de ce nom.",
+    "move": "Déplacer"
   },
   "export": {
     "button": "Exporter",

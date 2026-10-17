@@ -22,7 +22,7 @@ interface Props {
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
 /** Albums of installed models that are not in Drive yet, by category. */
-function useModelAlbums(categories: FolderInfo[], enabled: boolean): Map<string, string[]> {
+export function useModelAlbums(categories: FolderInfo[], enabled: boolean): Map<string, string[]> {
   const rootId = useApp((s) => s.rootId)
   const [albums, setAlbums] = useState<Map<string, string[]>>(new Map())
   useEffect(() => {

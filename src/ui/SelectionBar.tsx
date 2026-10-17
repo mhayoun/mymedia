@@ -1,17 +1,16 @@
 import { CheckSquare, FolderInput, FolderPlus, Minimize2, Pencil, Trash2, UserPlus, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { chooseFolder } from '../classify/engine'
 import { app, useApp } from '../store'
 import { addPersonByHand, setDescription, trashMedia } from '../sync/media'
-import { AlbumSelect } from './AlbumSelect'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog, PromptDialog } from './Dialog'
+import { MoveMediaDialog } from './MoveMediaDialog'
 import { NewAlbumDialog } from './NewAlbumDialog'
 import type { Library, LibraryItem } from './useLibrary'
 import type { People } from './usePeople'
 
-type Action = 'newAlbum' | 'description' | 'person' | 'compress' | 'delete' | null
+type Action = 'move' | 'newAlbum' | 'description' | 'person' | 'compress' | 'delete' | null
 
 /** Actions on the selected media (bottom bar). */
 export function SelectionBar({ lib, people, items, parentId }: { lib: Library; people: People; items: LibraryItem[]; parentId: string }) {
@@ -65,10 +64,9 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
         <span className="grow" />
         {ids.length > 0 && !busy && (
           <>
-            <label className="row" title={t('select.moveTo')}>
-              <FolderInput size={16} />
-              <AlbumSelect withModels categories={lib.categories} placeholder={t('select.moveTo')} onChoose={(f) => each((id) => chooseFolder(id, f)).then(done)} />
-            </label>
+            <button className="btn" onClick={() => setAction('move')} title={t('select.moveTo')}>
+              <FolderInput size={16} /> <span className="only-desktop">{t('select.moveTo')}</span>
+            </button>
             <button className="btn" onClick={() => setAction('newAlbum')}>
               <FolderPlus size={16} /> <span className="only-desktop">{t('select.newAlbum')}</span>
             </button>
@@ -88,6 +86,7 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
         )}
       </div>
 
+      {action === 'move' && <MoveMediaDialog lib={lib} ids={ids} onDone={done} onClose={() => setAction(null)} />}
       {action === 'newAlbum' && (
         <NewAlbumDialog
           lib={lib}

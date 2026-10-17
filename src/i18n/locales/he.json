@@ -540,7 +540,13 @@
     "compressTitle_other": "דחיסת {{count}} הקבצים שנבחרו",
     "deleteTitle_one": "למחוק את הקובץ שנבחר?",
     "deleteTitle_two": "למחוק את {{count}} הקבצים שנבחרו?",
-    "deleteTitle_other": "למחוק את {{count}} הקבצים שנבחרו?"
+    "deleteTitle_other": "למחוק את {{count}} הקבצים שנבחרו?",
+    "moveTitle_one": "העברת תמונה אחת אל…",
+    "moveTitle_two": "העברת {{count}} תמונות אל…",
+    "moveTitle_other": "העברת {{count}} תמונות אל…",
+    "moveSearch": "חיפוש אלבום",
+    "moveNone": "אין אלבום בשם הזה.",
+    "move": "העברה"
   },
   "export": {
     "button": "ייצוא",

@@ -83,7 +83,8 @@ export function NewAlbumDialog({ lib, ids, parentId, onDone, onClose }: Props) {
 }
 
 /** The category all the media are in, if they share one. */
-function commonCategory(lib: Library, ids: string[], rootId: string): string | null {
+/** The category all these media are in, or null. */
+export function commonCategory(lib: Library, ids: string[], rootId: string): string | null {
   const byId = new Map(lib.items.map((i) => [i.rec.id, i.rec.folderId]))
   let found: string | null = null
   for (const id of ids) {
