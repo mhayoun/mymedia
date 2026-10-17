@@ -5,11 +5,14 @@
 import { afterLoadCompression } from './compress/engine'
 import { repairKatiaProvenance } from './import/katia'
 import { startIndexer } from './ml/indexer'
+import { kick as sendMoves } from './sync/moveQueue'
 import { fixVideoDates } from './sync/videoDates'
 
 let running: Promise<void> | null = null
 
 export function afterSync(): Promise<void> {
+  // Moves left from an earlier visit (offline, closed too soon).
+  sendMoves()
   running ??= (async () => {
     try {
       await afterLoadCompression()

@@ -103,6 +103,8 @@ interface AppState {
   rootId: string | null
   settings: Settings
   sync: SyncProgress | null
+  /** Photos moved here, not yet in their new folder on Drive. */
+  moving: number
   /** Background learning progress (fingerprints of media). */
   indexing: { done: number; total: number } | null
   statsOpen: boolean
@@ -138,6 +140,7 @@ export const useApp = create<AppState>((set, get) => ({
   rootId: null,
   settings: loadSettings(),
   sync: null,
+  moving: 0,
   indexing: null,
   statsOpen: false,
   compressing: null,

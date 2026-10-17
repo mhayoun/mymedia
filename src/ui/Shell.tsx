@@ -1,4 +1,4 @@
-import { Brain, CircleHelp, FolderInput, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Store, Trash2, UserRound, WifiOff, X } from 'lucide-react'
+import { Brain, CircleHelp, FolderInput, FolderSync, FolderPlus, ImagePlus, LayoutGrid, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Store, Trash2, UserRound, WifiOff, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -280,6 +280,7 @@ function TopBar() {
   const lastSyncAt = useApp((s) => s.lastSyncAt)
   const indexing = useApp((s) => s.indexing)
   const compressing = useApp((s) => s.compressing)
+  const moving = useApp((s) => s.moving)
   const set = useApp((s) => s.set)
   const online = useOnline()
 
@@ -305,6 +306,13 @@ function TopBar() {
       {!online && (
         <span className="sync-info" title={t('sync.offline')}>
           <WifiOff size={18} />
+        </span>
+      )}
+      {moving > 0 && (
+        <span className="sync-info" title={t('sync.movingHint')}>
+          <FolderSync size={14} />
+          <span className="only-desktop"> {t('sync.moving', { count: fmt.number(moving) })}</span>
+          <span className="only-mobile-inline">{fmt.number(moving)}</span>
         </span>
       )}
       {compressing && (

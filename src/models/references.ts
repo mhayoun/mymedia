@@ -325,7 +325,7 @@ export function ensureAlbum(folderId: string): Promise<string> {
         await d.folders.put({ id: f.id, name: f.name, parentId: parent })
         parent = f.id
       }
-      await rememberAlbum(pending.categoryId, pending.path.join(SEP), parent).catch((e) => console.warn('[MyMedia] model album not remembered', e))
+      rememberAlbum(pending.categoryId, pending.path.join(SEP), parent)
       return parent
     })().finally(() => creating.delete(folderId))
     creating.set(folderId, p)
@@ -333,15 +333,37 @@ export function ensureAlbum(folderId: string): Promise<string> {
   return p
 }
 
-async function rememberAlbum(categoryId: string, path: string, folderId: string): Promise<void> {
+/** Albums created, written in their model a little later, all at once. */
+const toRemember: { categoryId: string; path: string; folderId: string }[] = []
+let rememberTimer: ReturnType<typeof setTimeout> | null = null
+let remembering: Promise<void> = Promise.resolve()
+const REMEMBER_DELAY_MS = 3000
+
+function rememberAlbum(categoryId: string, path: string, folderId: string): void {
+  toRemember.push({ categoryId, path, folderId })
+  if (rememberTimer) clearTimeout(rememberTimer)
+  rememberTimer = setTimeout(() => {
+    rememberTimer = null
+    remembering = remembering.then(saveRemembered).catch((e) => console.warn('[MyMedia] model albums not remembered', e))
+  }, REMEMBER_DELAY_MS)
+}
+
+async function saveRemembered(): Promise<void> {
+  const list = toRemember.splice(0)
+  if (!list.length) return
   const rootId = app().rootId!
   const folders = new Map((await db().folders.toArray()).map((f) => [f.id, f]))
   for (const m of await installedModels()) {
-    if (categoryOf(m, folders, rootId) !== categoryId) continue
-    const a = m.albums.find((x) => x.path === path)
-    if (!a || a.folderId === folderId) continue
-    a.folderId = folderId
-    await saveModel({ ...m, categoryId })
+    const categoryId = categoryOf(m, folders, rootId)
+    let changed = false
+    for (const r of list) {
+      if (r.categoryId !== categoryId) continue
+      const a = m.albums.find((x) => x.path === r.path)
+      if (!a || a.folderId === r.folderId) continue
+      a.folderId = r.folderId
+      changed = true
+    }
+    if (changed) await saveModel({ ...m, categoryId: categoryId! })
   }
 }
 

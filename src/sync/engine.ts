@@ -16,6 +16,7 @@ import {
 } from '../drive/api'
 import { auth } from '../auth/google'
 import { planChanges } from '../lib/changes'
+import { keepPendingPlaces } from './moveQueue'
 import { dateFromFileName, detectOrigin, FOLDER_MIME, mediaTypeOf, parseExifDate } from '../lib/media'
 import type { MediaMeta } from '../lib/metadata'
 import { placementOf, subtreeIds, type FolderNode } from '../lib/tree'
@@ -172,6 +173,7 @@ async function fullScan(rootId: string, signal: AbortSignal) {
     app().set({ sync: { step: 'sync.scanning', done: files, total: 0 } }),
   )
   signal.throwIfAborted()
+  await keepPendingPlaces(media)
   const d = db()
   await d.transaction('rw', [d.media, d.folders, d.kv], async () => {
     await d.media.clear()
@@ -223,6 +225,7 @@ async function applyChanges(rootId: string, signal: AbortSignal) {
   const upsertMedia = [...scanned.media, ...plan.upsertMedia.map((f) => toRecord(f as DriveFile))].filter(
     (r): r is MediaRecord => r !== null,
   )
+  await keepPendingPlaces(upsertMedia)
   await d.transaction('rw', [d.media, d.folders, d.kv], async () => {
     if (removedFolderIds.size) {
       await d.folders.bulkDelete([...removedFolderIds])

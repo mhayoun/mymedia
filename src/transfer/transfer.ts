@@ -34,6 +34,7 @@ import { folderChain, subtreeIds } from '../lib/tree'
 import { app } from '../store'
 import { syncNow } from '../sync/engine'
 import { markMetaDirty } from '../sync/metaStore'
+import { flushMoves } from '../sync/moveQueue'
 
 export const TRANSFER_FILE_NAME = 'mymedia-transfer.json'
 /** Only the people of photos given earlier (before people went with them). */
@@ -148,6 +149,8 @@ async function each<T>(items: T[], fn: (item: T) => Promise<void>, onProgress: P
 export async function sendFolder(folderId: string, email: string, message: string, onProgress: Progress): Promise<TransferResult> {
   const rootId = app().rootId!
   const d = db()
+  // Photos just moved must be in their folder on Drive before it is given.
+  await step('send', flushMoves)
   await syncNow()
   const folders = await d.folders.toArray()
   // The root: all of MyMedia.

@@ -8,7 +8,6 @@
 // User decisions always win (keepHere, manual moves, corrections).
 
 import { db, type MediaRecord } from '../db/db'
-import { moveFile } from '../drive/api'
 import { albumInName, meaningfulName, nameKey } from '../lib/filename'
 import type { MediaMeta } from '../lib/metadata'
 import { placementOf } from '../lib/tree'
@@ -18,6 +17,7 @@ import type { PackedSet } from '../ml/protocol'
 import { ensureAlbum, referenceExamples } from '../models/references'
 import { app } from '../store'
 import { markMetaDirty } from '../sync/metaStore'
+import { queueMove } from '../sync/moveQueue'
 import { albumsUnder, allowedFor, isCandidate, labeledSet, loadData, type ClassifyData } from './data'
 
 let running: Promise<void> | null = null
@@ -36,7 +36,8 @@ export async function moveMedia(rec: MediaRecord, to: string, patch: Partial<Med
   const rootId = app().rootId!
   // An album of a model not created yet: created now, for its first photo.
   const toFolderId = await ensureAlbum(to)
-  if (toFolderId !== rec.folderId) await moveFile(rec.id, toFolderId, rec.folderId)
+  // Here at once; Drive in the background.
+  if (toFolderId !== rec.folderId) await queueMove(rec.id, toFolderId, rec.folderId)
   const d = db()
   const folders = new Map((await d.folders.toArray()).map((f) => [f.id, f]))
   const place = placementOf(toFolderId, folders, rootId)
