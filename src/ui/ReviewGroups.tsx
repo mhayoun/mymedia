@@ -1,4 +1,4 @@
-import { Check, Loader2, Trash2 } from 'lucide-react'
+import { Check, FolderPlus, Loader2, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder, confirmAuto } from '../classify/engine'
@@ -9,6 +9,7 @@ import { trashMedia } from '../sync/media'
 import { prepareLinks } from '../sync/thumbs'
 import { AlbumSelect } from './AlbumSelect'
 import { ConfirmDialog } from './Dialog'
+import { NewAlbumDialog } from './NewAlbumDialog'
 import { Thumb } from './Thumb'
 import { useAnalysed } from './useAnalysed'
 import type { Library, LibraryItem } from './useLibrary'
@@ -38,6 +39,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
   const [shown, setShown] = useState<Record<string, number>>({})
   const [toDelete, setToDelete] = useState<{ key: string; ids: string[] } | null>(null)
+  const [newAlbumFor, setNewAlbumFor] = useState<string[] | null>(null)
   const analysed = useAnalysed()
 
   const groups = useMemo<Group[]>(() => {
@@ -145,6 +147,15 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                 <button
                   className="btn ghost"
                   disabled={isBusy || !sel.length}
+                  onClick={() => setNewAlbumFor(sel)}
+                  title={t('select.newAlbum')}
+                  aria-label={t('select.newAlbum')}
+                >
+                  <FolderPlus size={16} />
+                </button>
+                <button
+                  className="btn ghost"
+                  disabled={isBusy || !sel.length}
                   onClick={() => setToDelete({ key, ids: sel })}
                   title={t('common.delete')}
                   aria-label={t('common.delete')}
@@ -177,6 +188,14 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
           </section>
         )
       })}
+      {newAlbumFor && (
+        <NewAlbumDialog
+          lib={lib}
+          ids={newAlbumFor}
+          onDone={() => setPicked((p) => new Set([...p].filter((id) => !newAlbumFor.includes(id))))}
+          onClose={() => setNewAlbumFor(null)}
+        />
+      )}
       {toDelete && (
         <ConfirmDialog
           title={t('select.deleteTitle', { count: toDelete.ids.length })}
