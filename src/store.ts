@@ -103,6 +103,8 @@ interface AppState {
   rootId: string | null
   settings: Settings
   sync: SyncProgress | null
+  /** Background step shown with a spinner (i18n key): preparing the analysis, sorting… */
+  working: string | null
   /** Photos moved here, not yet in their new folder on Drive. */
   moving: number
   /** Background learning progress (fingerprints of media). */
@@ -141,6 +143,7 @@ export const useApp = create<AppState>((set, get) => ({
   settings: loadSettings(),
   sync: null,
   moving: 0,
+  working: null,
   indexing: null,
   statsOpen: false,
   compressing: null,
@@ -172,3 +175,16 @@ export const useApp = create<AppState>((set, get) => ({
 }))
 
 export const app = () => useApp.getState()
+
+const steps: string[] = []
+/** Shows `key` in the top bar while `fn` runs (the latest step started wins). */
+export async function withStep<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  steps.push(key)
+  app().set({ working: key })
+  try {
+    return await fn()
+  } finally {
+    steps.splice(steps.lastIndexOf(key), 1)
+    app().set({ working: steps[steps.length - 1] ?? null })
+  }
+}

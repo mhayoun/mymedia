@@ -234,7 +234,10 @@
     "groupOther": "Other album for the selection…",
     "zoom": "Enlarge",
     "groupWaiting": "Waiting for analysis",
-    "waitingAnalysis": "Waiting for analysis: the suggestion will come once this photo is analysed."
+    "waitingAnalysis": "Waiting for analysis: the suggestion will come once this photo is analysed.",
+    "preparing": "Preparing the analysis…",
+    "sorting": "Sorting photos…",
+    "workingHint": "MyMedia is preparing or sorting the photos “Waiting for analysis”. You can keep using the app."
   },
   "misfiled": {
     "title": "Possibly misfiled photos",

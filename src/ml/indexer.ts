@@ -6,7 +6,7 @@ import { addFaces } from '../faces/engine'
 import { pullFaces, saveFaces } from '../faces/store'
 import { inReservedFolder, loadData } from '../classify/data'
 import { db, type MediaRecord } from '../db/db'
-import { app } from '../store'
+import { app, withStep } from '../store'
 import { afterScreenThumbs, driveThumbnail, localPhotoPreview } from '../sync/thumbs'
 import { videoKeyFrames } from '../sync/videoFrame'
 import { mediaVersion, pullIndex, saveIndex } from './indexStore'
@@ -37,10 +37,12 @@ async function run(signal: AbortSignal) {
   if (!rootId || !navigator.onLine) return
   const d = db()
   const rebuilding = !!(await d.getKv<boolean>('rebuilding'))
-  if (!rebuilding) await pullIndex().catch((e) => console.warn('[MyMedia] index download failed', e))
-  const data = await loadData(rootId)
   const faces = app().settings.facesEnabled
-  if (faces) await pullFaces().catch((e) => console.warn('[MyMedia] faces download failed', e))
+  const data = await withStep('classify.preparing', async () => {
+    if (!rebuilding) await pullIndex().catch((e) => console.warn('[MyMedia] index download failed', e))
+    if (faces) await pullFaces().catch((e) => console.warn('[MyMedia] faces download failed', e))
+    return loadData(rootId)
+  })
   const existing = new Map((await d.embeddings.toArray()).map((e) => [e.id, e]))
   const scanned = new Map((await d.faceScans.toArray()).map((s) => [s.id, s.version]))
   const needsVec = (m: MediaRecord) => existing.get(m.id)?.version !== mediaVersion(m)

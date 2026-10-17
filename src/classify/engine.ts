@@ -15,7 +15,7 @@ import type { Calibration } from '../lib/classifier'
 import { calibrate, predictMany } from '../ml/ml'
 import type { PackedSet } from '../ml/protocol'
 import { ensureAlbum, referenceExamples } from '../models/references'
-import { app } from '../store'
+import { app, withStep } from '../store'
 import { markMetaDirty } from '../sync/metaStore'
 import { queueMove } from '../sync/moveQueue'
 import { albumsUnder, allowedFor, isCandidate, labeledSet, loadData, type ClassifyData } from './data'
@@ -135,7 +135,7 @@ async function run(): Promise<void> {
 
 /** Classifies the media waiting at the root or in a category. Concurrent calls share one run. */
 export function classifyPending(): Promise<void> {
-  running ??= run()
+  running ??= withStep('classify.sorting', run)
     .catch((e) => console.error('[MyMedia] classification failed', e))
     .finally(() => {
       running = null

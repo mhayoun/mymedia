@@ -5,6 +5,7 @@
 import { afterLoadCompression } from './compress/engine'
 import { repairKatiaProvenance } from './import/katia'
 import { startIndexer } from './ml/indexer'
+import { withStep } from './store'
 import { kick as sendMoves } from './sync/moveQueue'
 import { fixVideoDates } from './sync/videoDates'
 
@@ -19,8 +20,10 @@ export function afterSync(): Promise<void> {
     } catch (e) {
       console.error('[MyMedia] automatic compression failed', e)
     }
-    await fixVideoDates().catch((e) => console.warn('[MyMedia] video dates', e))
-    await repairKatiaProvenance().catch((e) => console.warn('[MyMedia] Katia provenance', e))
+    await withStep('classify.preparing', async () => {
+      await fixVideoDates().catch((e) => console.warn('[MyMedia] video dates', e))
+      await repairKatiaProvenance().catch((e) => console.warn('[MyMedia] Katia provenance', e))
+    })
     await startIndexer()
   })().finally(() => {
     running = null
