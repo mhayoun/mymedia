@@ -33,6 +33,7 @@ export function Gallery({ items, folderId, folders }: { items: LibraryItem[]; fo
   const viewerId = useApp((s) => s.viewerId)
   const set = useApp((s) => s.set)
   const rootId = useApp((s) => s.rootId)
+  const sort = useApp((s) => s.settings.sort)
   const scrollRef = useRef<HTMLDivElement>(null)
   const width = useWidth(scrollRef)
 
@@ -48,7 +49,7 @@ export function Gallery({ items, folderId, folders }: { items: LibraryItem[]; fo
       }
     }
     if (view === 'albums') {
-      for (const g of groupByAlbum(items, folderId && folders && rootId ? { id: folderId, folders, rootId } : undefined)) {
+      for (const g of groupByAlbum(items, folderId && folders && rootId ? { id: folderId, folders, rootId } : undefined, sort === 'name')) {
         // Each name is isolated so Hebrew and Latin names keep their own direction.
         const parts = [g.category, ...(g.album?.split(ALBUM_SEPARATOR) ?? [])].filter((p): p is string => !!p)
         out.push({ kind: 'header', key: `h:${g.key}`, parts: parts.length ? parts : [t('nav.unfiled')], count: g.items.length })
@@ -56,7 +57,7 @@ export function Gallery({ items, folderId, folders }: { items: LibraryItem[]; fo
       }
     } else chunk(items, 'all')
     return out
-  }, [items, cols, view, t, folderId, folders, rootId])
+  }, [items, cols, view, t, folderId, folders, rootId, sort])
 
   const orderedIds = useMemo(
     () => rows.flatMap((r) => (r.kind === 'cells' ? r.items.map((i) => i.rec.id) : [])),

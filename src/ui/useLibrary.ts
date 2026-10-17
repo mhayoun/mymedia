@@ -163,9 +163,15 @@ export interface AlbumGroup {
 
 /**
  * Media by album. In an open folder (`under`), one group per sub-folder of it:
- * what is deeper goes into its sub-folder's group.
+ * what is deeper goes into its sub-folder's group. Albums are in name order
+ * when `byName`; otherwise in the order of the sorted items (newest first: the
+ * album with the newest photo first).
  */
-export function groupByAlbum(items: LibraryItem[], under?: { id: string; folders: ReadonlyMap<string, FolderNode>; rootId: string }): AlbumGroup[] {
+export function groupByAlbum(
+  items: LibraryItem[],
+  under?: { id: string; folders: ReadonlyMap<string, FolderNode>; rootId: string },
+  byName = true,
+): AlbumGroup[] {
   const groups = new Map<string, AlbumGroup>()
   for (const it of items) {
     let key = it.place.albumId ?? it.place.categoryId ?? 'root'
@@ -186,6 +192,7 @@ export function groupByAlbum(items: LibraryItem[], under?: { id: string; folders
     }
     g.items.push(it)
   }
+  if (!byName) return [...groups.values()]
   return [...groups.values()].sort((a, b) =>
     collator.compare(`${a.category ?? ''}\u0000${a.album ?? ''}`, `${b.category ?? ''}\u0000${b.album ?? ''}`),
   )
