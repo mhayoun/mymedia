@@ -372,7 +372,7 @@
     "changeDest": "Autre dossier…",
     "intro": "Choisissez des photos et vidéos sur cet appareil, une clé USB ou une carte SD. MyMedia les envoie dans Google Drive avec leur vraie date.",
     "chooseFiles": "Choisir des photos / vidéos",
-    "chooseFolder": "Choisir un dossier entier",
+    "chooseFolder": "Choisir un ou plusieurs dossiers entiers",
     "dateHint": "La date vient de la photo (EXIF) ou de l'enregistrement de la vidéo, sinon du nom du fichier, sinon du fichier lui-même — pas de la date d'envoi.",
     "analyzing": "Lecture des dates et recherche des doublons… {{done}} / {{total}}",
     "source": {
@@ -410,7 +410,9 @@
     "albumNew": "nouvel album",
     "modeFolders": "Garder les dossiers comme albums",
     "modeSort": "Tout mettre dans « {{dest}} » et laisser MyMedia ranger chaque photo dans l'album de son espèce",
-    "modeSortHint": "Les dossiers de l'ordinateur ne sont pas recopiés en albums : toutes les photos vont directement dans « {{dest}} » (rien ne change sur l'ordinateur). Après l'envoi et l'apprentissage, MyMedia reconnaît chaque photo : sûr à 85 % ou plus, elle va seule dans son album (à vérifier dans « Classés automatiquement ») ; sinon elle attend dans « À classer » avec une proposition, ou « Nouveau ? » si elle ne ressemble à aucun album."
+    "modeSortHint": "Les dossiers de l'ordinateur ne sont pas recopiés en albums : toutes les photos vont directement dans « {{dest}} » (rien ne change sur l'ordinateur). Après l'envoi et l'apprentissage, MyMedia reconnaît chaque photo : sûr à 85 % ou plus, elle va seule dans son album (à vérifier dans « Classés automatiquement ») ; sinon elle attend dans « À classer » avec une proposition, ou « Nouveau ? » si elle ne ressemble à aucun album.",
+    "addFolder": "Ajouter un autre dossier",
+    "chosenFolders": "Dossiers choisis : {{names}}"
   },
   "faces": {
     "itIs": "C'est…",

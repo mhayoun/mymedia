@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { extractFiles, FacebookFormatError, readFacebookZip, type FacebookExport } from '../import/facebook'
 import { findReplacements } from '../import/replace'
 import { loadThumb } from '../sync/thumbs'
-import { analyze, cancelImport, insideDestination, pickedFolder, mediaFiles, runImport, withFacebookPosts, type ImportItem, type ImportOutcome } from '../import/importer'
+import { addPicked, analyze, cancelImport, insideDestination, pickedFolder, mediaFiles, runImport, withFacebookPosts, type ImportItem, type ImportOutcome } from '../import/importer'
 import { speciesInText } from '../lib/katia'
 import { importSourceName } from '../lib/provenance'
 import { useFormat } from '../i18n/format'
@@ -117,6 +117,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const [result, setResult] = useState<{ count: number; before: number; after: number } | null>(null)
   const filesInput = useRef<HTMLInputElement>(null)
   const folderInput = useRef<HTMLInputElement>(null)
+  const folderInput2 = useRef<HTMLInputElement>(null)
   const zipInput = useRef<HTMLInputElement>(null)
   const canPickFolder = typeof window !== 'undefined' && 'webkitdirectory' in document.createElement('input') && !/Android|iPhone|iPad/i.test(navigator.userAgent)
 
@@ -135,12 +136,14 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function onFiles(list: FileList | File[] | null, posts?: FacebookExport['posts']) {
+  async function onFiles(list: FileList | File[] | null, posts?: FacebookExport['posts'], add = false) {
     const files = mediaFiles([...(list ?? [])])
     if (!files.length) return
     setPhase('analyze')
     setAnalyzed({ done: 0, total: files.length })
     let result = await analyze(files, (done) => setAnalyzed({ done, total: files.length }))
+    // Another folder: added to the ones chosen before (ticks kept).
+    if (add) result = addPicked(picked, result)
     if (posts) {
       result = await withFacebookPosts(result, posts)
       setPhase('match')
@@ -149,7 +152,8 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     }
     setItems(result)
     if (!posts) setOriginPath(suggestedPath(importSourceName({ relDirs: result.map((i) => i.relDir) })))
-    setChecked(new Set(result.filter((i) => !i.duplicate).map((i) => i.key)))
+    const before = new Set(picked.map((i) => i.key))
+    setChecked((cur) => new Set([...(add ? [...cur] : []), ...result.filter((i) => !i.duplicate && !(add && before.has(i.key))).map((i) => i.key)]))
     setPhase('choose')
   }
 
@@ -372,6 +376,18 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
           />
         </>
       )}
+      {/* Another folder, after the first: the browser chooses one folder at a time. */}
+      <input
+        ref={folderInput2}
+        type="file"
+        hidden
+        {...({ webkitdirectory: '', directory: '' } as Record<string, string>)}
+        onChange={(e) => {
+          const files = e.target.files ? [...e.target.files] : []
+          e.target.value = ''
+          void onFiles(files, undefined, true)
+        }}
+      />
 
       {phase === 'zip' && (
         <p>
@@ -436,6 +452,16 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
 
       {(phase === 'choose' || phase === 'upload' || phase === 'done') && (
         <>
+          {phase === 'choose' && canPickFolder && !fb && picked.some((i) => i.relDir.length > 0) && (
+            <div className="row">
+              <span className="hint">
+                {t('import.chosenFolders', { names: [...new Set(picked.map((i) => i.relDir[0]).filter(Boolean))].join(', ') })}
+              </span>
+              <button className="btn" onClick={() => folderInput2.current?.click()}>
+                <FolderOpen size={16} /> {t('import.addFolder')}
+              </button>
+            </div>
+          )}
           <ul className="compress-list">
             {sortedItems.map((i) => (
               <li key={i.key} className={checked.has(i.key) ? '' : 'off'}>

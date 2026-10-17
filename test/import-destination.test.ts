@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { insideDestination, knownFiles, pickedFolder, type ImportItem } from '../src/import/importer'
+import { addPicked, insideDestination, knownFiles, pickedFolder, type ImportItem } from '../src/import/importer'
 
 const item = (relDir: string[]) => ({ key: relDir.join('/'), relDir }) as unknown as ImportItem
 
@@ -28,5 +28,15 @@ describe('knownFiles', () => {
     expect([...k.md5].sort()).toEqual(['aaa', 'compressed1', 'compressed2', 'orig1'])
     expect(k.sizeDate.has('7000|2023-01-02T08:30:00')).toBe(true)
     expect(k.sizeDate.has('7000|2023-01-02T08:31:00')).toBe(false)
+  })
+})
+
+describe('addPicked (another folder chosen after the first)', () => {
+  const it0 = (key: string, md5: string, dir: string) =>
+    ({ key, md5, relDir: [dir], duplicate: false }) as unknown as ImportItem
+  it('adds the files, keeps keys unique, marks files already chosen as duplicates', () => {
+    const out = addPicked([it0('a.jpg:0', 'x', 'A')], [it0('a.jpg:0', 'y', 'B'), it0('b.jpg:1', 'x', 'B')])
+    expect(new Set(out.map((i) => i.key)).size).toBe(3)
+    expect(out.map((i) => i.duplicate)).toEqual([false, false, true])
   })
 })

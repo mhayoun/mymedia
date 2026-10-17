@@ -374,7 +374,7 @@
     "changeDest": "Another folder…",
     "intro": "Choose photos and videos from this device, a USB stick or an SD card. MyMedia uploads them to Google Drive with their real date.",
     "chooseFiles": "Choose photos / videos",
-    "chooseFolder": "Choose a whole folder",
+    "chooseFolder": "Choose one or more whole folders",
     "dateHint": "The date is taken from the photo (EXIF) or the video recording, else from the file name, else from the file itself — not the upload date.",
     "analyzing": "Reading dates and checking for duplicates… {{done}} / {{total}}",
     "source": {
@@ -412,7 +412,9 @@
     "albumNew": "new album",
     "modeFolders": "Keep the folders as albums",
     "modeSort": "Put everything in “{{dest}}” and let MyMedia file each photo in its species album",
-    "modeSortHint": "The computer's folders are not copied as albums: all the photos go straight into “{{dest}}” (nothing changes on the computer). After the upload and the learning, MyMedia recognises each photo: 85 % sure or more, it goes into its album on its own (check in “Classified automatically”); otherwise it waits in “To classify” with a suggestion, or “New?” if it resembles no album."
+    "modeSortHint": "The computer's folders are not copied as albums: all the photos go straight into “{{dest}}” (nothing changes on the computer). After the upload and the learning, MyMedia recognises each photo: 85 % sure or more, it goes into its album on its own (check in “Classified automatically”); otherwise it waits in “To classify” with a suggestion, or “New?” if it resembles no album.",
+    "addFolder": "Add another folder",
+    "chosenFolders": "Folders chosen: {{names}}"
   },
   "faces": {
     "itIs": "It is…",

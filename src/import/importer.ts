@@ -153,6 +153,24 @@ export function pickedFolder(items: ImportItem[]): string | null {
 }
 
 /**
+ * Another folder chosen after the first ones: its files are added, those
+ * already in the list are marked as duplicates (keys stay unique).
+ */
+export function addPicked(prev: ImportItem[], more: ImportItem[]): ImportItem[] {
+  const md5 = new Set(prev.map((i) => i.md5))
+  const keys = new Set(prev.map((i) => i.key))
+  const batch = new Set(prev.map((i) => i.key.split('|')[0])).size
+  return [
+    ...prev,
+    ...more.map((i) => ({
+      ...i,
+      key: keys.has(i.key) ? `${batch}|${i.key}` : i.key,
+      duplicate: i.duplicate || md5.has(i.md5),
+    })),
+  ]
+}
+
+/**
  * The picked folder not created in the destination: its photos go straight
  * into it, its sub-folders become albums there.
  */
