@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { acceptConfident, chooseFolder, classifyPending, confirmAuto, keepHere } from '../classify/engine'
 import { useFormat } from '../i18n/format'
 import { placementOf } from '../lib/tree'
+import { startIndexer } from '../ml/indexer'
 import { app, useApp } from '../store'
 import { trashMedia } from '../sync/media'
 import { AlbumSelect } from './AlbumSelect'
@@ -92,7 +93,11 @@ export function ReviewView({ lib, items, mode }: Props) {
             <button className="btn primary" disabled={bulkBusy || !confident.length} onClick={() => bulk(() => acceptConfident(confident))}>
               <Check size={16} /> {t('classify.acceptAll', { count: confident.length, percent: fmt.percent(medium) })}
             </button>
-            <button className="btn" disabled={bulkBusy} onClick={() => bulk(classifyPending)}>
+            <button className="btn" disabled={bulkBusy} onClick={() => {
+              // Also resumes a paused analysis: the photos waiting for it are sorted as they are analysed.
+              void startIndexer()
+              void bulk(classifyPending)
+            }}>
               <Wand2 size={16} /> {t('classify.runNow')}
             </button>
             {!grouped && (
