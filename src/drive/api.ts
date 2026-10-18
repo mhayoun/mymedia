@@ -439,11 +439,11 @@ export async function uploadNewContent(
 }
 
 /** Server-side copy of a file into another folder. */
-export async function copyFile(id: string, name: string, parentId: string): Promise<DriveFile> {
-  const res = await request(`${API}/files/${id}/copy?supportsAllDrives=true&fields=id,name,parents`, {
+export async function copyFile(id: string, name: string, parentId: string, extra?: Partial<DriveFile>, fields = 'id,name,parents'): Promise<DriveFile> {
+  const res = await request(`${API}/files/${id}/copy?supportsAllDrives=true&fields=${encodeURIComponent(fields)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, parents: [parentId] }),
+    body: JSON.stringify({ ...extra, name, parents: [parentId] }),
   })
   return res.json()
 }

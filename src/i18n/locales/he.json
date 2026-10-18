@@ -787,5 +787,33 @@
   "account": {
     "title": "חשבון",
     "reconnectHint": "התחברות מחדש: כש-Google מבקשת לחדש את החיבור (בעיקר באייפון). החלפת חשבון: פתיחת MyMedia עם חשבון Google אחר."
+  },
+  "driveImport": {
+    "button": "מ-Google Drive",
+    "buttonHint": "קבצים שחשבון Google אחר שיתף איתך: Google מעתיק אותם ל-MyMedia, בלי לעבור דרך המכשיר הזה.",
+    "title": "ייבוא מ-Google Drive",
+    "hint": "קבצים ותיקיות שחשבונות Google אחרים שיתפו עם החשבון הזה. Google מעתיק אותם ישירות ל-MyMedia: שום דבר לא עובר דרך המכשיר, והמקור נשאר בחשבון השני.\nלא ברשימה? ב-Google Drive של החשבון השני: לחיצה ימנית ← שיתוף, והוספת הכתובת של החשבון הזה.",
+    "where": "מיקום",
+    "shared": "שותפו איתי",
+    "loading": "קורא את Google Drive…",
+    "none": "עדיין לא שותף שום דבר עם החשבון הזה.",
+    "emptyFolder": "אין תמונה או סרטון בתיקייה הזו.",
+    "open": "פתיחת התיקייה",
+    "dest": "לשים ב",
+    "keepFolders": "לשמור את תתי־התיקיות כאלבומים",
+    "sortHint": "התמונות נכנסות ישירות ליעד, ו-MyMedia ממיין כל אחת לאלבום שלה (או מציע אותה ב„למיון”).",
+    "collecting": "מחפש תמונות וסרטונים… נמצאו {{count}}",
+    "start_one": "ייבוא (פריט אחד)",
+    "start_two": "ייבוא ({{count}} פריטים)",
+    "start_other": "ייבוא ({{count}} פריטים)",
+    "done_one": "קובץ אחד הועתק ל-MyMedia.",
+    "done_two": "{{count}} קבצים הועתקו ל-MyMedia.",
+    "done_other": "{{count}} קבצים הועתקו ל-MyMedia.",
+    "dups_one": "קובץ אחד כבר היה ב-MyMedia: הוא לא הועתק.",
+    "dups_two": "{{count}} קבצים כבר היו ב-MyMedia: הם לא הועתקו.",
+    "dups_other": "{{count}} קבצים כבר היו ב-MyMedia: הם לא הועתקו.",
+    "failed_one": "קובץ אחד לא הועתק. פרטים מ-Google: {{reason}}",
+    "failed_two": "{{count}} קבצים לא הועתקו. פרטים מ-Google: {{reason}}",
+    "failed_other": "{{count}} קבצים לא הועתקו. פרטים מ-Google: {{reason}}"
   }
 }

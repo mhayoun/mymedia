@@ -731,5 +731,29 @@
   "account": {
     "title": "Account",
     "reconnectHint": "Reconnect: when Google asks to renew the connection (mostly on iPhone). Switch account: open MyMedia with another Google account."
+  },
+  "driveImport": {
+    "button": "From Google Drive",
+    "buttonHint": "Files another Google account shared with you: Google copies them into MyMedia, without going through this device.",
+    "title": "Import from Google Drive",
+    "hint": "Files and folders other Google accounts shared with this account. Google copies them straight into MyMedia: nothing goes through this device, and the originals stay with the other account.\nNot in the list? In the other account's Google Drive, right-click → Share, and add this account's address.",
+    "where": "Location",
+    "shared": "Shared with me",
+    "loading": "Reading Google Drive…",
+    "none": "Nothing is shared with this account yet.",
+    "emptyFolder": "No photo or video in this folder.",
+    "open": "Open the folder",
+    "dest": "Put in",
+    "keepFolders": "Keep the sub-folders as albums",
+    "sortHint": "The photos go straight into the destination, and MyMedia files each one in its album (or offers it in “To classify”).",
+    "collecting": "Looking for photos and videos… {{count}} found",
+    "start_one": "Import ({{count}} item)",
+    "start_other": "Import ({{count}} items)",
+    "done_one": "{{count}} file copied into MyMedia.",
+    "done_other": "{{count}} files copied into MyMedia.",
+    "dups_one": "{{count}} file was already in MyMedia: it was not copied.",
+    "dups_other": "{{count}} files were already in MyMedia: they were not copied.",
+    "failed_one": "{{count}} file could not be copied. Google's detail: {{reason}}",
+    "failed_other": "{{count}} files could not be copied. Google's detail: {{reason}}"
   }
 }

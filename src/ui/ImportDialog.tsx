@@ -1,4 +1,4 @@
-import { ArrowRight, Check, FileArchive, FolderOpen, ImagePlus, Loader2, Play, RefreshCw, X } from 'lucide-react'
+import { ArrowRight, Check, Cloud, FileArchive, FolderOpen, ImagePlus, Loader2, Play, RefreshCw, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { extractFiles, FacebookFormatError, readFacebookZip, type FacebookExport } from '../import/facebook'
@@ -15,6 +15,7 @@ import { installedModels } from '../models/references'
 import { useApp } from '../store'
 import { AlbumSelect } from './AlbumSelect'
 import { Modal } from './Dialog'
+import { DriveImportDialog } from './DriveImportDialog'
 import type { Library } from './useLibrary'
 
 interface Props {
@@ -118,6 +119,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const filesInput = useRef<HTMLInputElement>(null)
   const folderInput = useRef<HTMLInputElement>(null)
   const folderInput2 = useRef<HTMLInputElement>(null)
+  const [fromDrive, setFromDrive] = useState(false)
   const zipInput = useRef<HTMLInputElement>(null)
   const canPickFolder = typeof window !== 'undefined' && 'webkitdirectory' in document.createElement('input') && !/Android|iPhone|iPad/i.test(navigator.userAgent)
 
@@ -319,6 +321,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     return [...items].sort((a, b) => bad(a) - bad(b) || a.takenAt.localeCompare(b.takenAt))
   }, [items, phase, outcomes])
 
+  if (fromDrive) return <DriveImportDialog lib={lib} destId={destId} onClose={onClose} />
   return (
     <Modal wide title={t('import.title')} onClose={phase === 'upload' ? () => undefined : onClose}>
       <div className="row" style={{ marginBlockEnd: 10 }}>
@@ -360,6 +363,9 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
             )}
             <button className="btn" onClick={() => zipInput.current?.click()}>
               <FileArchive size={18} /> {t('facebook.choose')}
+            </button>
+            <button className="btn" onClick={() => setFromDrive(true)} title={t('driveImport.buttonHint')}>
+              <Cloud size={18} /> {t('driveImport.button')}
             </button>
           </div>
           {zipError && <p className="error-text">{zipError}</p>}

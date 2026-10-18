@@ -729,5 +729,29 @@
   "account": {
     "title": "Compte",
     "reconnectHint": "Se reconnecter : quand Google demande de renouveler la connexion (surtout sur iPhone). Changer de compte : ouvrir MyMedia avec un autre compte Google."
+  },
+  "driveImport": {
+    "button": "Depuis Google Drive",
+    "buttonHint": "Fichiers qu'un autre compte Google a partagés avec vous : Google les copie dans MyMedia, sans passer par cet appareil.",
+    "title": "Importer depuis Google Drive",
+    "hint": "Fichiers et dossiers que d'autres comptes Google ont partagés avec ce compte. Google les copie directement dans MyMedia : rien ne passe par cet appareil, et les originaux restent chez l'autre compte.\nPas dans la liste ? Dans le Google Drive de l'autre compte, faites clic droit → Partager, et ajoutez l'adresse de ce compte.",
+    "where": "Emplacement",
+    "shared": "Partagés avec moi",
+    "loading": "Lecture de Google Drive…",
+    "none": "Rien n'est partagé avec ce compte pour l'instant.",
+    "emptyFolder": "Pas de photo ni de vidéo dans ce dossier.",
+    "open": "Ouvrir le dossier",
+    "dest": "Mettre dans",
+    "keepFolders": "Garder les sous-dossiers comme albums",
+    "sortHint": "Les photos vont directement dans la destination, et MyMedia range chacune dans son album (ou vous la propose dans « À classer »).",
+    "collecting": "Recherche des photos et vidéos… {{count}} trouvées",
+    "start_one": "Importer ({{count}} élément)",
+    "start_other": "Importer ({{count}} éléments)",
+    "done_one": "{{count}} fichier copié dans MyMedia.",
+    "done_other": "{{count}} fichiers copiés dans MyMedia.",
+    "dups_one": "{{count}} fichier était déjà dans MyMedia : il n'a pas été copié.",
+    "dups_other": "{{count}} fichiers étaient déjà dans MyMedia : ils n'ont pas été copiés.",
+    "failed_one": "{{count}} fichier n'a pas pu être copié. Détail de Google : {{reason}}",
+    "failed_other": "{{count}} fichiers n'ont pas pu être copiés. Détail de Google : {{reason}}"
   }
 }
