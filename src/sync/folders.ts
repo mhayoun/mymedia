@@ -10,23 +10,39 @@ function cleanName(name: string): string {
   return name.trim().replace(/\s+/g, ' ')
 }
 
+/**
+ * Creates a folder and puts it in the menu at once (a load from Drive running
+ * meanwhile may not report it yet).
+ */
+export async function newFolder(name: string, parentId: string): Promise<{ id: string; name: string }> {
+  const f = await createNewFolder(cleanName(name), parentId)
+  await db().folders.put({ id: f.id, name: f.name, parentId })
+  return f
+}
+
+/** Shows a category or album (and what it is in). */
+export async function showFolder(id: string): Promise<void> {
+  const rootId = app().rootId!
+  const folders = new Map((await db().folders.toArray()).map((x) => [x.id, x]))
+  const chain = folderChain(id, folders, rootId)
+  const categoryId = chain?.[0]?.id ?? id
+  app().setFilters({ categoryId, albumId: categoryId === id ? null : id, personId: null, provenance: null })
+}
+
 /** Creates the category and shows it. */
 export async function createCategory(name: string): Promise<void> {
   const rootId = app().rootId
   if (!rootId) return
-  const f = await createNewFolder(cleanName(name), rootId)
+  const f = await newFolder(name, rootId)
   await syncNow()
   app().setFilters({ categoryId: f.id, albumId: null, personId: null, provenance: null })
 }
 
 /** Creates the album and shows it. */
 export async function createAlbum(name: string, parentId: string): Promise<void> {
-  const f = await createNewFolder(cleanName(name), parentId)
+  const f = await newFolder(name, parentId)
   await syncNow()
-  const folders = new Map((await db().folders.toArray()).map((x) => [x.id, x]))
-  // From the parent, which is known even if Drive has not reported the new folder yet.
-  const categoryId = folderChain(parentId, folders, app().rootId!)?.[0]?.id ?? parentId
-  app().setFilters({ categoryId, albumId: f.id, personId: null, provenance: null })
+  await showFolder(f.id)
 }
 
 export async function renameFolder(id: string, name: string): Promise<void> {

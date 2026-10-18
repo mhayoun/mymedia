@@ -197,3 +197,16 @@ export function groupByAlbum(
     collator.compare(`${a.category ?? ''}\u0000${a.album ?? ''}`, `${b.category ?? ''}\u0000${b.album ?? ''}`),
   )
 }
+
+/** The category all these media are in, or null. */
+export function commonCategory(lib: Library, ids: string[], rootId: string): string | null {
+  const byId = new Map(lib.items.map((i) => [i.rec.id, i.rec.folderId]))
+  let found: string | null = null
+  for (const id of ids) {
+    const folderId = byId.get(id)
+    const cat = folderId ? placementOf(folderId, lib.folders, rootId).categoryId : null
+    if (!cat || (found && cat !== found)) return null
+    found = cat
+  }
+  return found
+}

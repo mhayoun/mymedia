@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder } from '../classify/engine'
-import { createNewFolder, FolderExistsError, sameFolderName } from '../drive/api'
-import { placementOf } from '../lib/tree'
+import { FolderExistsError, sameFolderName } from '../drive/api'
 import { useApp } from '../store'
 import { syncNow } from '../sync/engine'
+import { newFolder, showFolder } from '../sync/folders'
 import { Modal } from './Dialog'
 import { FolderTreePicker } from './FolderTreePicker'
-import type { Library } from './useLibrary'
+import { commonCategory, type Library } from './useLibrary'
 
 interface Props {
   lib: Library
@@ -42,14 +42,16 @@ export function NewAlbumDialog({ lib, ids, parentId, onDone, onClose }: Props) {
     setError(null)
     setProgress({ done: 0, total: ids.length })
     try {
-      const folder = await createNewFolder(v, parent)
-      await syncNow()
+      const folder = await newFolder(v, parent)
       for (const [n, id] of ids.entries()) {
         await chooseFolder(id, folder.id)
         setProgress({ done: n + 1, total: ids.length })
       }
       onDone?.()
       onClose()
+      // The new album, with its photos, in the menu and on screen.
+      await showFolder(folder.id)
+      void syncNow()
     } catch (ex) {
       setError(ex instanceof FolderExistsError ? t('folders.exists') : t('errors.generic', { message: (ex as Error).message }))
       setProgress(null)
@@ -83,15 +85,3 @@ export function NewAlbumDialog({ lib, ids, parentId, onDone, onClose }: Props) {
 }
 
 /** The category all the media are in, if they share one. */
-/** The category all these media are in, or null. */
-export function commonCategory(lib: Library, ids: string[], rootId: string): string | null {
-  const byId = new Map(lib.items.map((i) => [i.rec.id, i.rec.folderId]))
-  let found: string | null = null
-  for (const id of ids) {
-    const folderId = byId.get(id)
-    const cat = folderId ? placementOf(folderId, lib.folders, rootId).categoryId : null
-    if (!cat || (found && cat !== found)) return null
-    found = cat
-  }
-  return found
-}

@@ -9,8 +9,7 @@ import { parsePendingAlbum } from '../lib/tree'
 import { useApp } from '../store'
 import { useModelAlbums } from './AlbumSelect'
 import { Modal } from './Dialog'
-import { commonCategory } from './NewAlbumDialog'
-import type { FolderInfo, Library } from './useLibrary'
+import { commonCategory, type FolderInfo, type Library } from './useLibrary'
 
 interface Node {
   id: string
