@@ -14,9 +14,9 @@ import { auth } from '../auth/google'
 import { sameFolderName } from '../drive/api'
 import { installedModels } from '../models/references'
 import { useApp } from '../store'
-import { AlbumSelect } from './AlbumSelect'
 import { Modal } from './Dialog'
 import { DriveImportDialog } from './DriveImportDialog'
+import { FolderTreePicker } from './FolderTreePicker'
 import type { Library } from './useLibrary'
 
 interface Props {
@@ -121,6 +121,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
   const folderInput = useRef<HTMLInputElement>(null)
   const folderInput2 = useRef<HTMLInputElement>(null)
   const [fromDrive, setFromDrive] = useState(false)
+  const [treeOpen, setTreeOpen] = useState(false)
   const zipInput = useRef<HTMLInputElement>(null)
   const canPickFolder = typeof window !== 'undefined' && 'webkitdirectory' in document.createElement('input') && !/Android|iPhone|iPad/i.test(navigator.userAgent)
 
@@ -347,19 +348,29 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
           <bdi>{destName}</bdi>
         </strong>
         {(phase === 'pick' || phase === 'groups' || phase === 'choose') && (
-          <AlbumSelect
-            categories={lib.categories}
-            placeholder={t('import.changeDest')}
-            onChoose={setDestId}
-            exclude={destId}
-          />
+          <button className="btn ghost" aria-expanded={treeOpen} onClick={() => setTreeOpen((o) => !o)}>
+            <FolderOpen size={16} /> {t('import.changeDest')}
+          </button>
         )}
       </div>
+      {treeOpen && (phase === 'pick' || phase === 'groups' || phase === 'choose') && (
+        <div style={{ marginBlockEnd: 10 }}>
+          <FolderTreePicker
+            categories={lib.categories}
+            value={destId}
+            onChange={(id) => {
+              setDestId(id)
+              setTreeOpen(false)
+            }}
+            root={{ id: rootId, label: <bdi>{useApp.getState().settings.rootName}</bdi> }}
+          />
+        </div>
+      )}
 
       {(phase === 'pick' || phase === 'groups' || phase === 'choose') && recent.length > 0 && (
         <div className="chip-list">
           {recent.map((id) => (
-            <button key={id} className="chip-btn" onClick={() => setDestId(id)}>
+            <button key={id} className="chip-btn" onClick={() => { setDestId(id); setTreeOpen(false) }}>
               <bdi>{nameOf(id)}</bdi>
             </button>
           ))}
