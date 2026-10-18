@@ -464,7 +464,9 @@
     "deleteAllText": "Tous les visages, groupes et noms sont supprimés de cet appareil et de votre Drive (mymedia-faces.json). Vos photos ne sont pas touchées. Si la reconnaissance reste activée, les visages seront de nouveau recherchés.",
     "settingsTitle": "Visages",
     "stats": "{{named}} personnes nommées, {{groups}} groupes de visages.",
-    "inThisPhoto": "Personnes sur cette photo"
+    "inThisPhoto": "Personnes sur cette photo",
+    "fixedOthers_one": "{{count}} autre photo de cette personne corrigée aussi",
+    "fixedOthers_other": "{{count}} autres photos de cette personne corrigées aussi"
   },
   "filters": {
     "search": "Rechercher",

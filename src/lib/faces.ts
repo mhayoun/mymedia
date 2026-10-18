@@ -138,3 +138,41 @@ export function bestGroup(emb: Int8Array, known: KnownFace[], rejected: string[]
   }
   return best
 }
+
+export interface GroupedFace {
+  id: string
+  personId: string | null
+  emb: Int8Array
+  by: 'auto' | 'manual'
+  rejected?: string[]
+}
+
+/**
+ * After the user put faces into `targetId`: the faces MyMedia grouped itself
+ * in one of the `from` groups that look more like this person than like the
+ * rest of their own group follow them (again and again, as the group grows).
+ * Faces the user decided stay where they are. Returns face id → new person.
+ */
+export function facesToFollow(faces: GroupedFace[], targetId: string, from: ReadonlySet<string>, threshold = SAME_PERSON): Map<string, string> {
+  const moved = new Map<string, string>()
+  const groupOf = (f: GroupedFace) => moved.get(f.id) ?? f.personId
+  for (let round = 0; round < 20; round++) {
+    const target = faces.filter((f) => groupOf(f) === targetId)
+    let changed = false
+    for (const c of faces) {
+      const group = groupOf(c)
+      if (c.by !== 'auto' || !group || group === targetId || !from.has(group) || c.rejected?.includes(targetId)) continue
+      let toTarget = -1
+      for (const m of target) toTarget = Math.max(toTarget, faceSimilarity(c.emb, m.emb))
+      if (toTarget < threshold) continue
+      let toOwn = -1
+      for (const o of faces) if (o !== c && groupOf(o) === group) toOwn = Math.max(toOwn, faceSimilarity(c.emb, o.emb))
+      if (toTarget > toOwn) {
+        moved.set(c.id, targetId)
+        changed = true
+      }
+    }
+    if (!changed) break
+  }
+  return moved
+}

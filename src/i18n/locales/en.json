@@ -466,7 +466,9 @@
     "deleteAllText": "All faces, groups and names are deleted from this device and from your Drive (mymedia-faces.json). Your photos are not touched. If recognition stays on, faces will be searched for again.",
     "settingsTitle": "Faces",
     "stats": "{{named}} people named, {{groups}} groups of faces.",
-    "inThisPhoto": "People in this photo"
+    "inThisPhoto": "People in this photo",
+    "fixedOthers_one": "{{count}} other photo of this person fixed too",
+    "fixedOthers_other": "{{count}} other photos of this person fixed too"
   },
   "filters": {
     "search": "Search",

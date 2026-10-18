@@ -498,7 +498,10 @@
     "deleteAllText": "כל הפנים, הקבוצות והשמות יימחקו מהמכשיר הזה ומה-Drive שלך (mymedia-faces.json). התמונות עצמן לא ייפגעו. אם הזיהוי נשאר פעיל, הפנים יחופשו מחדש.",
     "settingsTitle": "פנים",
     "stats": "{{named}} אנשים עם שם, {{groups}} קבוצות פנים.",
-    "inThisPhoto": "אנשים בתמונה הזו"
+    "inThisPhoto": "אנשים בתמונה הזו",
+    "fixedOthers_one": "תוקנה גם תמונה נוספת של האדם הזה",
+    "fixedOthers_two": "תוקנו גם {{count}} תמונות נוספות של האדם הזה",
+    "fixedOthers_other": "תוקנו גם {{count}} תמונות נוספות של האדם הזה"
   },
   "filters": {
     "search": "חיפוש",

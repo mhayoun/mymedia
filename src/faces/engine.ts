@@ -2,9 +2,10 @@
 // "people" of each media in mymedia.json up to date.
 
 import { db, type FaceRecord, type MediaRecord, type PersonRecord } from '../db/db'
-import { bestGroup, faceSimilarity, SAME_PERSON, type KnownFace } from '../lib/faces'
+import { bestGroup, faceSimilarity, facesToFollow, SAME_PERSON, type KnownFace } from '../lib/faces'
 import type { FoundFace } from '../ml/faceModel'
 import { markMetaDirty } from '../sync/metaStore'
+import { app } from '../store'
 import { markFacesDirty } from './store'
 
 /** Below SAME_PERSON but above this: "Is this X?" (asked to the user). */
@@ -137,6 +138,28 @@ export async function mergePersons(targetId: string, sourceIds: string[]): Promi
   await markFacesDirty()
 }
 
+/**
+ * The user put faces into `targetId`: the other photos of that person that
+ * MyMedia had put in the same wrong group (or in a group without a name) are
+ * fixed too. Returns how many faces moved.
+ */
+async function fixOthers(targetId: string, oldGroups: (string | null)[]): Promise<number> {
+  const d = db()
+  const persons = await d.persons.toArray()
+  const from = new Set([...oldGroups.filter((g): g is string => !!g), ...persons.filter((p) => !p.name && !p.mergedInto).map((p) => p.id)])
+  from.delete(targetId)
+  if (!from.size) return 0
+  const all = await d.faces.toArray()
+  const moved = facesToFollow(all, targetId, from)
+  if (!moved.size) return 0
+  const now = Date.now()
+  const changed = all.filter((f) => moved.has(f.id)).map((f) => ({ ...f, personId: targetId, suggested: undefined, updatedAt: now }))
+  await d.faces.bulkPut(changed)
+  await updatePeople(changed.map((f) => f.mediaId))
+  app().set({ toast: { key: 'faces.fixedOthers', count: changed.length } })
+  return changed.length
+}
+
 /** These faces are another person: they form a new group. */
 export async function splitFaces(faceIds: string[]): Promise<string> {
   const d = db()
@@ -151,6 +174,7 @@ export async function splitFaces(faceIds: string[]): Promise<string> {
     }
   })
   await updatePeople(faces.map((f) => f.mediaId))
+  await fixOthers(id, faces.map((f) => f.personId))
   await markFacesDirty()
   return id
 }
@@ -177,6 +201,7 @@ export async function assignFaces(faceIds: string[], personId: string): Promise<
     await d.faces.put({ ...f, personId, by: 'manual', suggested: undefined, rejected: f.rejected?.filter((r) => r !== personId), updatedAt: now })
   }
   await updatePeople(faces.map((f) => f.mediaId))
+  await fixOthers(personId, faces.map((f) => f.personId))
   await markFacesDirty()
 }
 
