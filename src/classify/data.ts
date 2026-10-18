@@ -13,6 +13,8 @@ export interface ClassifyData {
   media: MediaRecord[]
   meta: Map<string, MediaMeta>
   vecs: Map<string, Int8Array>
+  /** Media already analysed (fingerprint made, or failed), in their current version. */
+  analysed: Set<string>
   /** Albums of installed models not created yet, by category (see `pendingAlbumId`). */
   pending?: Map<string, string[]>
 }
@@ -27,14 +29,35 @@ export async function loadData(rootId: string): Promise<ClassifyData> {
   ])
   const versions = new Map(media.map((m) => [m.id, mediaVersion(m)]))
   const vecs = new Map<string, Int8Array>()
-  for (const e of embeddings) if (e.vec && versions.get(e.id) === e.version) vecs.set(e.id, e.vec)
+  const analysed = new Set<string>()
+  for (const e of embeddings) {
+    if (versions.get(e.id) !== e.version) continue
+    analysed.add(e.id)
+    if (e.vec) vecs.set(e.id, e.vec)
+  }
   return {
     rootId,
     folders: new Map(folders.map((f) => [f.id, f])),
     media,
     meta: new Map(metas.map((m) => [m.id, m])),
     vecs,
+    analysed,
   }
+}
+
+/**
+ * Albums with photos not analysed yet: what the model knows of them is
+ * incomplete, so a photo that could go there waits (e.g. 45 photos of a
+ * species not analysed yet, while a new import is analysed first).
+ */
+export function albumsNotReady(data: ClassifyData): Set<string> {
+  const out = new Set<string>()
+  for (const rec of data.media) {
+    if (data.analysed.has(rec.id) || rec.folderId === data.rootId || !data.folders.has(rec.folderId)) continue
+    if (inReservedFolder(rec.folderId, data) || isCandidate(rec, data)) continue
+    out.add(rec.folderId)
+  }
+  return out
 }
 
 /** True for media in "_Originals", "_Inbox"… (never examples, never classified). */

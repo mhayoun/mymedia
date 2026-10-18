@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { allowedFor, isCandidate, type ClassifyData } from '../src/classify/data'
+import { albumsNotReady, allowedFor, isCandidate, type ClassifyData } from '../src/classify/data'
 import type { MediaRecord } from '../src/db/db'
 import { parsePendingAlbum, pendingAlbumId, placementOf, type FolderNode } from '../src/lib/tree'
 
@@ -30,6 +30,7 @@ describe('pending albums of a model', () => {
       media: [],
       meta: new Map(),
       vecs: new Map(),
+      analysed: new Set(),
       pending: new Map([['fish', [pied]], ['birds', [pendingAlbumId('birds', 'Pied')]]]),
     }
     const rec = (folderId: string) => ({ id: 'x', folderId }) as MediaRecord
@@ -37,5 +38,25 @@ describe('pending albums of a model', () => {
     expect(allowedFor(rec('fish'), data)).toEqual([pied])
     expect(allowedFor(rec('birds'), data)).toEqual(['owl', pendingAlbumId('birds', 'Pied')])
     expect(isCandidate(rec('fish'), { ...data, pending: undefined })).toBe(false)
+  })
+})
+
+describe('albumsNotReady', () => {
+  it('lists the albums with photos not analysed yet, not the photos waiting to be sorted', () => {
+    const data: ClassifyData = {
+      rootId: 'root',
+      folders: new Map([...folders, ['robin', { id: 'robin', name: 'Robin', parentId: 'birds' }]]),
+      media: [
+        { id: 'o1', folderId: 'owl' },
+        { id: 'r1', folderId: 'robin' },
+        { id: 'r2', folderId: 'robin' },
+        { id: 'new', folderId: 'birds' },
+      ] as MediaRecord[],
+      meta: new Map(),
+      vecs: new Map(),
+      analysed: new Set(['o1', 'r1']),
+    }
+    expect([...albumsNotReady(data)]).toEqual(['robin'])
+    expect(albumsNotReady({ ...data, analysed: new Set(['o1', 'r1', 'r2']) }).size).toBe(0)
   })
 })

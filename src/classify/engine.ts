@@ -18,7 +18,7 @@ import { ensureAlbum, referenceExamples } from '../models/references'
 import { app, withStep } from '../store'
 import { markMetaDirty } from '../sync/metaStore'
 import { queueMove } from '../sync/moveQueue'
-import { albumsUnder, allowedFor, isCandidate, labeledSet, loadData, type ClassifyData } from './data'
+import { albumsNotReady, albumsUnder, allowedFor, isCandidate, labeledSet, loadData, type ClassifyData } from './data'
 
 let running: Promise<void> | null = null
 
@@ -103,7 +103,13 @@ async function run(): Promise<void> {
 
   // 3. Learned model.
   const { set, counts } = labeledSet(data, refs)
-  const queries = remaining.filter((r) => data.vecs.has(r.id))
+  // Not while albums it could go to are still being analysed: done again at the end.
+  const notReady = albumsNotReady(data)
+  const ready = (r: MediaRecord) => {
+    const allowed = allowedFor(r, data)
+    return allowed ? !allowed.some((a) => notReady.has(a)) : notReady.size === 0
+  }
+  const queries = remaining.filter((r) => data.vecs.has(r.id) && ready(r))
   if (queries.length && counts.size >= 2) {
     const { tau, novelty } = await calibrationFor(set)
     const preds = await predictMany(
