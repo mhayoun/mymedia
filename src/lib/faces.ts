@@ -147,27 +147,42 @@ export interface GroupedFace {
   rejected?: string[]
 }
 
+/** A face named before (by the user or a merge) changes person only when this alike. */
+export const SURELY_SAME = 0.5
+
 /**
- * After the user put faces into `targetId`: the faces MyMedia grouped itself
- * in one of the `from` groups that look more like this person than like the
- * rest of their own group follow them (again and again, as the group grows).
- * Faces the user decided stay where they are. Returns face id → new person.
+ * After the user put faces into `targetId`: the other faces that look like
+ * this person more than like the faces that stay in their own group follow
+ * them (again and again, as the group grows), even from a named group: 50
+ * near copies of a photo are fixed with one correction. A face the user took
+ * out of this person never comes back. Returns face id → new person.
  */
-export function facesToFollow(faces: GroupedFace[], targetId: string, from: ReadonlySet<string>, threshold = SAME_PERSON): Map<string, string> {
+export function facesToFollow(faces: GroupedFace[], targetId: string, threshold = SAME_PERSON): Map<string, string> {
   const moved = new Map<string, string>()
   const groupOf = (f: GroupedFace) => moved.get(f.id) ?? f.personId
+  const byGroup = new Map<string, GroupedFace[]>()
+  for (const f of faces) if (f.personId) byGroup.set(f.personId, [...(byGroup.get(f.personId) ?? []), f])
   for (let round = 0; round < 20; round++) {
     const target = faces.filter((f) => groupOf(f) === targetId)
+    const toTarget = new Map<string, number>()
+    for (const f of faces) {
+      if (groupOf(f) === targetId || !f.personId) continue
+      let best = -1
+      for (const m of target) best = Math.max(best, faceSimilarity(f.emb, m.emb))
+      toTarget.set(f.id, best)
+    }
+    const needed = (f: GroupedFace) => (f.by === 'auto' ? threshold : SURELY_SAME)
+    const alike = (f: GroupedFace) => (toTarget.get(f.id) ?? -1) >= needed(f) && !f.rejected?.includes(targetId)
     let changed = false
     for (const c of faces) {
       const group = groupOf(c)
-      if (c.by !== 'auto' || !group || group === targetId || !from.has(group) || c.rejected?.includes(targetId)) continue
-      let toTarget = -1
-      for (const m of target) toTarget = Math.max(toTarget, faceSimilarity(c.emb, m.emb))
-      if (toTarget < threshold) continue
-      let toOwn = -1
-      for (const o of faces) if (o !== c && groupOf(o) === group) toOwn = Math.max(toOwn, faceSimilarity(c.emb, o.emb))
-      if (toTarget > toOwn) {
+      if (!group || group === targetId || !alike(c)) continue
+      // Compared with the faces of its group that do not look like the person.
+      let toStaying = -1
+      for (const o of byGroup.get(group) ?? []) {
+        if (o !== c && groupOf(o) === group && !alike(o)) toStaying = Math.max(toStaying, faceSimilarity(c.emb, o.emb))
+      }
+      if (toTarget.get(c.id)! > toStaying) {
         moved.set(c.id, targetId)
         changed = true
       }

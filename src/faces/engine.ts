@@ -140,20 +140,16 @@ export async function mergePersons(targetId: string, sourceIds: string[]): Promi
 
 /**
  * The user put faces into `targetId`: the other photos of that person that
- * MyMedia had put in the same wrong group (or in a group without a name) are
- * fixed too. Returns how many faces moved.
+ * MyMedia had put elsewhere (even under another name) are fixed too.
  */
-async function fixOthers(targetId: string, oldGroups: (string | null)[]): Promise<number> {
+async function fixOthers(targetId: string): Promise<number> {
   const d = db()
-  const persons = await d.persons.toArray()
-  const from = new Set([...oldGroups.filter((g): g is string => !!g), ...persons.filter((p) => !p.name && !p.mergedInto).map((p) => p.id)])
-  from.delete(targetId)
-  if (!from.size) return 0
-  const all = await d.faces.toArray()
-  const moved = facesToFollow(all, targetId, from)
+  const merged = new Set((await d.persons.toArray()).filter((p) => p.mergedInto).map((p) => p.id))
+  const all = (await d.faces.toArray()).filter((f) => !f.personId || !merged.has(f.personId))
+  const moved = facesToFollow(all, targetId)
   if (!moved.size) return 0
   const now = Date.now()
-  const changed = all.filter((f) => moved.has(f.id)).map((f) => ({ ...f, personId: targetId, suggested: undefined, updatedAt: now }))
+  const changed = all.filter((f) => moved.has(f.id)).map((f) => ({ ...f, personId: targetId, by: 'auto' as const, suggested: undefined, updatedAt: now }))
   await d.faces.bulkPut(changed)
   await updatePeople(changed.map((f) => f.mediaId))
   app().set({ toast: { key: 'faces.fixedOthers', count: changed.length } })
@@ -174,7 +170,7 @@ export async function splitFaces(faceIds: string[]): Promise<string> {
     }
   })
   await updatePeople(faces.map((f) => f.mediaId))
-  await fixOthers(id, faces.map((f) => f.personId))
+  await fixOthers(id)
   await markFacesDirty()
   return id
 }
@@ -201,7 +197,7 @@ export async function assignFaces(faceIds: string[], personId: string): Promise<
     await d.faces.put({ ...f, personId, by: 'manual', suggested: undefined, rejected: f.rejected?.filter((r) => r !== personId), updatedAt: now })
   }
   await updatePeople(faces.map((f) => f.mediaId))
-  await fixOthers(personId, faces.map((f) => f.personId))
+  await fixOthers(personId)
   await markFacesDirty()
 }
 
