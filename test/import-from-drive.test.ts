@@ -38,13 +38,14 @@ describe('import from Google Drive', () => {
 })
 
 describe('topShared', () => {
-  it('keeps what was shared, not what is inside a shared folder', async () => {
+  it('keeps what was shared, not what is inside a shared folder nor what this account owns', async () => {
     const { topShared } = await import('../src/import/fromDrive')
     const out = topShared([
       { id: 'f', name: 'נחל יהודיה', mimeType: FOLDER },
       { id: 'in', name: 'IMG_1.JPG', mimeType: 'image/jpeg', parents: ['f'] },
       { id: 'alone', name: 'IMG_2.JPG', mimeType: 'image/jpeg', parents: ['notVisible'] },
       { id: 'noParent', name: 'IMG_3.JPG', mimeType: 'image/jpeg' },
+      { id: 'mine', name: 'Camera', mimeType: FOLDER, ownedByMe: true },
     ])
     expect(out.map((f) => f.id)).toEqual(['f', 'alone', 'noParent'])
   })

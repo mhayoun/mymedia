@@ -10,7 +10,7 @@ import { markMetaDirty } from '../sync/metaStore'
 import { knownFiles } from './importer'
 
 const MEDIA = `(mimeType = '${FOLDER_MIME}' or mimeType contains 'image/' or mimeType contains 'video/')`
-const FIELDS = 'id,name,mimeType,size,md5Checksum,createdTime,imageMediaMetadata(time),owners(emailAddress)'
+const FIELDS = 'id,name,mimeType,size,md5Checksum,createdTime,imageMediaMetadata(time),owners(emailAddress),ownedByMe'
 
 export const isFolder = (f: DriveFile) => f.mimeType === FOLDER_MIME
 
@@ -38,10 +38,15 @@ export async function listShared(folderId: string | null): Promise<DriveFile[]> 
   return sorted(topShared([...byId.values()]))
 }
 
-/** Items not inside another of the listed folders (a shared folder brings what it holds). */
+/**
+ * Items not inside another of the listed folders (a shared folder brings what
+ * it holds). Items this account owns are left out: Google still says "shared
+ * with me" of what was given to it by a transfer.
+ */
 export function topShared(files: DriveFile[]): DriveFile[] {
-  const folders = new Set(files.filter(isFolder).map((f) => f.id))
-  return files.filter((f) => !f.parents?.some((p) => folders.has(p)))
+  const others = files.filter((f) => f.ownedByMe !== true)
+  const folders = new Set(others.filter(isFolder).map((f) => f.id))
+  return others.filter((f) => !f.parents?.some((p) => folders.has(p)))
 }
 
 export interface DriveEntry {
