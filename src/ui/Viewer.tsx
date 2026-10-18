@@ -12,7 +12,7 @@ import { streamUrl } from '../sync/stream'
 import { loadOriginal, loadPreview, prefetchPreviews, previewIsOriginal, showable } from '../sync/previews'
 import { cachedThumbUrl } from '../sync/thumbs'
 import { chooseFolder } from '../classify/engine'
-import { assignFaces, removeFaces, splitFaces } from '../faces/engine'
+import { assignFaces, namePerson, removeFaces, splitFaces } from '../faces/engine'
 import { AlbumSelect } from './AlbumSelect'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog } from './Dialog'
@@ -306,6 +306,19 @@ function InfoPanel({ item }: { item: LibraryItem }) {
     [people],
   )
   const [description, setDescription] = useState(meta?.description ?? '')
+  // The face being given a new name here, and the name typed.
+  const [naming, setNaming] = useState<string | null>(null)
+  const [newName, setNewName] = useState('')
+  const giveName = async (f: (typeof faces)[number]) => {
+    const name = newName.trim()
+    if (!name) return
+    const p = f.personId ? people?.byId.get(f.personId) : undefined
+    // A group without a name is named (all its faces); a named face becomes this new person.
+    if (p && !p.name) await namePerson(p.id, name)
+    else await namePerson(await splitFaces([f.id]), name)
+    setNaming(null)
+    setNewName('')
+  }
 
   const saveDescription = () => {
     const value = description.trim()
@@ -407,7 +420,10 @@ function InfoPanel({ item }: { item: LibraryItem }) {
                     onChange={async (e) => {
                       const v = e.target.value
                       if (!v) return
-                      if (v === NEW_PERSON) openPerson(await splitFaces([f.id]))
+                      if (v === NEW_PERSON) {
+                        setNewName('')
+                        setNaming(f.id)
+                      }
                       else if (v === NO_PERSON) await removeFaces([f.id])
                       else await assignFaces([f.id], v)
                     }}
@@ -422,6 +438,30 @@ function InfoPanel({ item }: { item: LibraryItem }) {
                     {/* Not known and not wanted: out of its group, never grouped or asked again. */}
                     {f.personId && <option value={NO_PERSON}>{t('faces.itIsNobody')}</option>}
                   </select>
+                  {naming === f.id && (
+                    <form
+                      className="row"
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        void giveName(f)
+                      }}
+                    >
+                      <input
+                        autoFocus
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        placeholder={t('faces.namePlaceholder')}
+                        aria-label={t('faces.nameIt')}
+                        onKeyDown={(e) => e.key === 'Escape' && (e.stopPropagation(), setNaming(null))}
+                      />
+                      <button className="btn primary" type="submit" disabled={!newName.trim()}>
+                        {t('common.ok')}
+                      </button>
+                      <button className="btn ghost" type="button" onClick={() => setNaming(null)}>
+                        {t('common.cancel')}
+                      </button>
+                    </form>
+                  )}
                 </div>
               )
             })}

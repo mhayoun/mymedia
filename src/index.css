@@ -363,8 +363,11 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .info-face.unknown { opacity: 0.55; }
 .info-face select { min-inline-size: 130px; font-size: 1rem; padding: 6px 4px; }
 .info-face select option { font-size: 1rem; padding: 4px; }
+.info-face form { display: flex; flex-wrap: wrap; gap: 4px; max-inline-size: 200px; }
+.info-face form input { inline-size: 100%; font-size: 1rem; padding: 6px; }
 .info-faces button { display: grid; justify-items: center; gap: 2px; border: none; background: none; cursor: pointer; font-size: 0.82rem; max-inline-size: 72px; }
 .info-faces button span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-inline-size: 72px; }
+.info-faces form button.btn { display: inline-flex; max-inline-size: none; font-size: 0.9rem; }
 
 /* ---------- Search & filters ---------- */
 .filter-bar { padding: 8px 14px; border-block-end: 1px solid var(--border); display: grid; gap: 8px; }
