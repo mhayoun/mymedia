@@ -151,13 +151,13 @@ export interface GroupedFace {
 export const SURELY_SAME = 0.5
 
 /**
- * After the user put faces into `targetId`: the other faces that look like
- * this person more than like the faces that stay in their own group follow
- * them (again and again, as the group grows), even from a named group: 50
- * near copies of a photo are fixed with one correction. A face the user took
- * out of this person never comes back. Returns face id → new person.
+ * After the user put faces into `targetId`: the faces of the `from` groups
+ * (the groups without a name) that look like this person more than like the
+ * faces that stay in their own group follow them (again and again, as the
+ * group grows). A face the user took out of this person never comes back.
+ * Returns face id → new person.
  */
-export function facesToFollow(faces: GroupedFace[], targetId: string, threshold = SAME_PERSON): Map<string, string> {
+export function facesToFollow(faces: GroupedFace[], targetId: string, from: ReadonlySet<string>, threshold = SAME_PERSON): Map<string, string> {
   const moved = new Map<string, string>()
   const groupOf = (f: GroupedFace) => moved.get(f.id) ?? f.personId
   const byGroup = new Map<string, GroupedFace[]>()
@@ -176,7 +176,7 @@ export function facesToFollow(faces: GroupedFace[], targetId: string, threshold 
     let changed = false
     for (const c of faces) {
       const group = groupOf(c)
-      if (!group || group === targetId || !alike(c)) continue
+      if (!group || group === targetId || !from.has(group) || !alike(c)) continue
       // Compared with the faces of its group that do not look like the person.
       let toStaying = -1
       for (const o of byGroup.get(group) ?? []) {

@@ -139,14 +139,17 @@ export async function mergePersons(targetId: string, sourceIds: string[]): Promi
 }
 
 /**
- * The user put faces into `targetId`: the other photos of that person that
- * MyMedia had put elsewhere (even under another name) are fixed too.
+ * The user put faces into `targetId`: the other photos of that person that do
+ * not have a name yet are named too (named photos are left as they are).
  */
 async function fixOthers(targetId: string): Promise<number> {
   const d = db()
-  const merged = new Set((await d.persons.toArray()).filter((p) => p.mergedInto).map((p) => p.id))
+  const persons = await d.persons.toArray()
+  const unnamed = new Set(persons.filter((p) => !p.name && !p.mergedInto && p.id !== targetId).map((p) => p.id))
+  if (!unnamed.size) return 0
+  const merged = new Set(persons.filter((p) => p.mergedInto).map((p) => p.id))
   const all = (await d.faces.toArray()).filter((f) => !f.personId || !merged.has(f.personId))
-  const moved = facesToFollow(all, targetId)
+  const moved = facesToFollow(all, targetId, unnamed)
   if (!moved.size) return 0
   const now = Date.now()
   const changed = all.filter((f) => moved.has(f.id)).map((f) => ({ ...f, personId: targetId, by: 'auto' as const, suggested: undefined, updatedAt: now }))
