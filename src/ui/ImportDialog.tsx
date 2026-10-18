@@ -1,7 +1,8 @@
 import { ArrowRight, Check, Cloud, FileArchive, FolderOpen, ImagePlus, Loader2, Play, RefreshCw, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { extractFiles, FacebookFormatError, readFacebookZip, type FacebookExport } from '../import/facebook'
+import { extractFiles, FacebookFormatError, isFacebookZip, readFacebookZip, type FacebookExport } from '../import/facebook'
+import { zipMedia } from '../import/zip'
 import { findReplacements } from '../import/replace'
 import { loadThumb } from '../sync/thumbs'
 import { addPicked, analyze, cancelImport, insideDestination, pickedFolder, mediaFiles, runImport, withFacebookPosts, type ImportItem, type ImportOutcome } from '../import/importer'
@@ -159,19 +160,35 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
     setPhase('choose')
   }
 
-  async function onZip(file: File | undefined) {
-    if (!file) return
+  /** A Facebook export (its groups are chosen next), or any ZIPs of photos (imported like a chosen folder). */
+  async function onZip(list: File[]) {
+    if (!list.length) return
     setZipError(null)
     setPhase('zip')
     try {
-      const read = await readFacebookZip(file)
-      const groups = [...read.groups.entries()].sort((a, b) => b[1] - a[1])
-      setFb(read)
-      setZipName(file.name)
-      setFbGroups(new Set(groups.slice(0, 1).map(([g]) => g)))
-      setPhase('groups')
+      const { default: JSZip } = await import('jszip')
+      const files: File[] = []
+      for (const file of list) {
+        const zip = await JSZip.loadAsync(file)
+        if (list.length === 1 && isFacebookZip(zip)) {
+          const read = await readFacebookZip(file, zip)
+          const groups = [...read.groups.entries()].sort((a, b) => b[1] - a[1])
+          setFb(read)
+          setZipName(file.name)
+          setFbGroups(new Set(groups.slice(0, 1).map(([g]) => g)))
+          setPhase('groups')
+          return
+        }
+        files.push(...(await zipMedia(zip, file.name, () => undefined)))
+      }
+      if (!files.length) {
+        setZipError(t('import.zipNoMedia'))
+        setPhase('pick')
+        return
+      }
+      await onFiles(files)
     } catch (e) {
-      console.error('[MyMedia] Facebook ZIP not read', e)
+      console.error('[MyMedia] ZIP not read', e)
       setZipError(e instanceof FacebookFormatError ? t('facebook.notExport') : t('facebook.unreadable'))
       setPhase('pick')
     }
@@ -371,7 +388,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
           {zipError && <p className="error-text">{zipError}</p>}
           <p className="hint">{t('import.dateHint')}</p>
           <p className="hint">{t('facebook.hint')}</p>
-          <input ref={zipInput} type="file" hidden accept=".zip,application/zip" onChange={(e) => void onZip(e.target.files?.[0])} />
+          <input ref={zipInput} type="file" multiple hidden accept=".zip,application/zip" onChange={(e) => void onZip(e.target.files ? [...e.target.files] : [])} />
           <input ref={filesInput} type="file" multiple hidden accept="image/*,video/*,.heic,.heif,.mov" onChange={(e) => onFiles(e.target.files)} />
           <input
             ref={folderInput}

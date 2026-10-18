@@ -56,10 +56,13 @@ export function parsePostsHtml(html: string): Map<string, FacebookPost> {
   return posts
 }
 
+/** A Facebook export ("Download your information", HTML): it has the posts page. */
+export const isFacebookZip = (zip: JSZip) => zip.file(POSTS_HTML).length > 0
+
 /** Opens the ZIP and reads the posts. Throws FacebookFormatError when it is not a Facebook export. */
-export async function readFacebookZip(file: File): Promise<FacebookExport> {
+export async function readFacebookZip(file: File, opened?: JSZip): Promise<FacebookExport> {
   const { default: JSZip } = await import('jszip')
-  const zip = await JSZip.loadAsync(file)
+  const zip = opened ?? (await JSZip.loadAsync(file))
   const htmlFiles = zip.file(POSTS_HTML)
   if (!htmlFiles.length) throw new FacebookFormatError('group_posts_and_comments.html not found')
   const posts = new Map<string, FacebookPost>()

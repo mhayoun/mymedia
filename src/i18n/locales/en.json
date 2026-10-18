@@ -414,7 +414,8 @@
     "modeSort": "Put everything in “{{dest}}” and let MyMedia file each photo in its species album",
     "modeSortHint": "The computer's folders are not copied as albums: all the photos go straight into “{{dest}}” (nothing changes on the computer). After the upload and the learning, MyMedia recognises each photo: 85 % sure or more, it goes into its album on its own (check in “Classified automatically”); otherwise it waits in “To classify” with a suggestion, or “New?” if it resembles no album.",
     "addFolder": "Add another folder",
-    "chosenFolders": "Folders chosen: {{names}}"
+    "chosenFolders": "Folders chosen: {{names}}",
+    "zipNoMedia": "This ZIP has no photo or video."
   },
   "faces": {
     "itIs": "It is…",
@@ -541,8 +542,8 @@
     "mine": "MyMedia: {{size}}"
   },
   "facebook": {
-    "choose": "Facebook export (ZIP)",
-    "hint": "Facebook export: on Facebook, \"Download your information\", HTML format, then choose the ZIP file you received. Each photo keeps the date and text of its post; photos already sent are unticked.",
+    "choose": "ZIP file (photos or Facebook export)",
+    "hint": "ZIP file: one or more ZIPs of photos and videos (e.g. downloaded from Google Drive: select → Download), imported like a folder, sub-folders included. Or a Facebook export (“Download your information”, HTML format): each photo keeps the date and text of its post. Photos already in MyMedia are unticked. On a phone, prefer ZIPs under 1 GB.",
     "reading": "Reading the ZIP file…",
     "notExport": "This ZIP is not a Facebook export in HTML format (group_posts_and_comments.html not found).",
     "unreadable": "This ZIP file cannot be read.",

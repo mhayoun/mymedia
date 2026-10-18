@@ -412,7 +412,8 @@
     "modeSort": "Tout mettre dans « {{dest}} » et laisser MyMedia ranger chaque photo dans l'album de son espèce",
     "modeSortHint": "Les dossiers de l'ordinateur ne sont pas recopiés en albums : toutes les photos vont directement dans « {{dest}} » (rien ne change sur l'ordinateur). Après l'envoi et l'apprentissage, MyMedia reconnaît chaque photo : sûr à 85 % ou plus, elle va seule dans son album (à vérifier dans « Classés automatiquement ») ; sinon elle attend dans « À classer » avec une proposition, ou « Nouveau ? » si elle ne ressemble à aucun album.",
     "addFolder": "Ajouter un autre dossier",
-    "chosenFolders": "Dossiers choisis : {{names}}"
+    "chosenFolders": "Dossiers choisis : {{names}}",
+    "zipNoMedia": "Ce ZIP ne contient ni photo ni vidéo."
   },
   "faces": {
     "itIs": "C'est…",
@@ -539,8 +540,8 @@
     "mine": "MyMedia : {{size}}"
   },
   "facebook": {
-    "choose": "Export Facebook (ZIP)",
-    "hint": "Export Facebook : sur Facebook, « Télécharger vos informations », format HTML, puis choisissez le fichier ZIP reçu. Chaque photo garde la date et le texte de son post ; les photos déjà envoyées sont décochées.",
+    "choose": "Fichier ZIP (photos ou export Facebook)",
+    "hint": "Fichier ZIP : un ou plusieurs ZIP de photos et vidéos (par exemple téléchargés depuis Google Drive : sélection → Télécharger), importés comme un dossier, sous-dossiers compris. Ou un export Facebook (« Télécharger vos informations », format HTML) : chaque photo garde la date et le texte de son post. Les photos déjà dans MyMedia sont décochées. Sur téléphone, préférez des ZIP de moins de 1 Go.",
     "reading": "Lecture du fichier ZIP…",
     "notExport": "Ce ZIP n'est pas un export Facebook au format HTML (fichier group_posts_and_comments.html introuvable).",
     "unreadable": "Impossible de lire ce fichier ZIP.",
