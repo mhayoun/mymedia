@@ -25,7 +25,9 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
 
   const facesEnabled = useApp((s) => s.settings.facesEnabled)
   // The chosen category or album, clicked again, closes (or opens again) its sub-albums.
-  const [closed, setClosed] = useState<string | null>(null)
+  const [closedId, setClosed] = useState<string | null>(null)
+  // Only while it is still the chosen one (a new album opened elsewhere shows its category open).
+  const closed = closedId === (filters.albumId ?? filters.categoryId) ? closedId : null
   const select = (categoryId: string | null, albumId: string | null, hasChildren = false) => {
     const id = albumId ?? categoryId
     const current = filters.albumId ?? filters.categoryId

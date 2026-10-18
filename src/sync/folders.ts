@@ -4,7 +4,7 @@ import { createNewFolder, FolderExistsError, findFolderNamed, getFile, moveInto,
 import { db } from '../db/db'
 import { folderChain } from '../lib/tree'
 import { app } from '../store'
-import { syncNow } from './engine'
+import { madeFolder, syncNow } from './engine'
 
 function cleanName(name: string): string {
   return name.trim().replace(/\s+/g, ' ')
@@ -16,7 +16,9 @@ function cleanName(name: string): string {
  */
 export async function newFolder(name: string, parentId: string): Promise<{ id: string; name: string }> {
   const f = await createNewFolder(cleanName(name), parentId)
-  await db().folders.put({ id: f.id, name: f.name, parentId })
+  const rec = { id: f.id, name: f.name, parentId }
+  madeFolder(rec)
+  await db().folders.put(rec)
   return f
 }
 
@@ -34,15 +36,15 @@ export async function createCategory(name: string): Promise<void> {
   const rootId = app().rootId
   if (!rootId) return
   const f = await newFolder(name, rootId)
-  await syncNow()
-  app().setFilters({ categoryId: f.id, albumId: null, personId: null, provenance: null })
+  await showFolder(f.id)
+  void syncNow()
 }
 
 /** Creates the album and shows it. */
 export async function createAlbum(name: string, parentId: string): Promise<void> {
   const f = await newFolder(name, parentId)
-  await syncNow()
   await showFolder(f.id)
+  void syncNow()
 }
 
 export async function renameFolder(id: string, name: string): Promise<void> {

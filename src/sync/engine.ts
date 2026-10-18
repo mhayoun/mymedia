@@ -30,6 +30,12 @@ export class SyncCancelled extends Error {}
 let running: Promise<void> | null = null
 let abort: AbortController | null = null
 
+/** Folders made on this device, kept in the menu until a full load from Drive lists them. */
+const madeHere = new Map<string, FolderNode>()
+export function madeFolder(f: FolderNode): void {
+  madeHere.set(f.id, f)
+}
+
 export function toRecord(f: DriveFile): MediaRecord | null {
   const type = mediaTypeOf(f.mimeType, f.name)
   const folderId = f.parents?.[0]
@@ -174,6 +180,12 @@ async function fullScan(rootId: string, signal: AbortSignal) {
   )
   signal.throwIfAborted()
   await keepPendingPlaces(media)
+  // A folder made while the scan ran is not in it yet.
+  const listed = new Set(folders.map((f) => f.id))
+  for (const [id, f] of madeHere) {
+    if (listed.has(id)) madeHere.delete(id)
+    else folders.push(f)
+  }
   const d = db()
   await d.transaction('rw', [d.media, d.folders, d.kv], async () => {
     await d.media.clear()
