@@ -1,10 +1,10 @@
-import { Images, Loader2, Merge, Scissors, UserMinus } from 'lucide-react'
+import { Images, Loader2, Merge, Scissors, UserMinus, UserX } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { assignFaces, mergePersons, namePerson, removeFaces, splitFaces } from '../faces/engine'
 import { useFormat } from '../i18n/format'
 import { useApp } from '../store'
-import { Modal } from './Dialog'
+import { ConfirmDialog, Modal } from './Dialog'
 import { FaceImg } from './FaceImg'
 import type { People } from './usePeople'
 
@@ -21,6 +21,7 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [shown, setShown] = useState(PAGE)
   const [busy, setBusy] = useState(false)
+  const [forgetOpen, setForgetOpen] = useState(false)
   if (!person) return null
 
   const others = [...people.named, ...people.unnamed].filter((p) => p.id !== person.id)
@@ -75,6 +76,9 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
         >
           <Images size={16} /> {t('faces.seePhotos', { count: person.mediaIds.size })}
         </button>
+        <button className="btn" disabled={busy} onClick={() => setForgetOpen(true)} title={t('faces.forgetHint')}>
+          <UserX size={16} /> {t('faces.forget')}
+        </button>
         {others.length > 0 && (
           <label className="row">
             <Merge size={16} />
@@ -90,6 +94,16 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
         )}
       </div>
 
+      {forgetOpen && (
+        <ConfirmDialog
+          title={t('faces.forgetTitle', { name: person.name ?? t('faces.unnamed') })}
+          text={t('faces.forgetText', { count: person.mediaIds.size })}
+          confirmLabel={t('faces.forget')}
+          danger
+          onConfirm={() => run(() => removeFaces(person.faces.map((f) => f.id))).then(onClose)}
+          onClose={() => setForgetOpen(false)}
+        />
+      )}
       <p className="hint">{t('faces.facesHint', { count: person.faces.length, n: fmt.number(person.faces.length) })}</p>
       <div className="face-grid">
         {person.faces.slice(0, shown).map((f) => (

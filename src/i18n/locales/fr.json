@@ -466,7 +466,12 @@
     "stats": "{{named}} personnes nommées, {{groups}} groupes de visages.",
     "inThisPhoto": "Personnes sur cette photo",
     "fixedOthers_one": "{{count}} autre photo de cette personne corrigée aussi",
-    "fixedOthers_other": "{{count}} autres photos de cette personne corrigées aussi"
+    "fixedOthers_other": "{{count}} autres photos de cette personne corrigées aussi",
+    "forget": "Inconnu, sans nom",
+    "forgetHint": "Retire ce nom de toutes ses photos : ses visages deviennent « Inconnu ».",
+    "forgetTitle": "Retirer « {{name}} » de toutes ses photos ?",
+    "forgetText_one": "Le visage de {{count}} photo devient « Inconnu » et n'est plus nommé. MyMedia ne le remettra pas dans ce groupe. Vos photos ne sont pas touchées.",
+    "forgetText_other": "Les visages de {{count}} photos deviennent « Inconnu » et ne sont plus nommés. MyMedia ne les remettra pas dans ce groupe. Vos photos ne sont pas touchées."
   },
   "filters": {
     "search": "Rechercher",
