@@ -17,12 +17,31 @@ export const isFolder = (f: DriveFile) => f.mimeType === FOLDER_MIME
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 const sorted = (files: DriveFile[]) => files.sort((a, b) => Number(isFolder(b)) - Number(isFolder(a)) || collator.compare(a.name, b.name))
 
-/** What other accounts shared with this one (`folderId` null), or what a shared folder holds. */
+/**
+ * What other accounts shared with this one (`folderId` null), or what a
+ * shared folder holds. Google's "Shared with me" leaves out items from someone
+ * unknown until they are opened once: the files of other owners are asked
+ * too, and only the top ones kept (not those inside a shared folder).
+ */
 export async function listShared(folderId: string | null): Promise<DriveFile[]> {
-  const out: DriveFile[] = []
-  const q = folderId ? `${childrenQuery([folderId])} and ${MEDIA}` : `sharedWithMe = true and trashed = false and ${MEDIA}`
-  await listFiles(q, (files) => void out.push(...files), undefined, FIELDS)
-  return sorted(out)
+  if (folderId) {
+    const out: DriveFile[] = []
+    await listFiles(`${childrenQuery([folderId])} and ${MEDIA}`, (files) => void out.push(...files), undefined, FIELDS)
+    return sorted(out)
+  }
+  const byId = new Map<string, DriveFile>()
+  const add = (files: DriveFile[]) => files.forEach((f) => byId.set(f.id, f))
+  await Promise.all([
+    listFiles(`sharedWithMe = true and trashed = false and ${MEDIA}`, add, undefined, `${FIELDS},parents`),
+    listFiles(`not 'me' in owners and trashed = false and ${MEDIA}`, add, undefined, `${FIELDS},parents`),
+  ])
+  return sorted(topShared([...byId.values()]))
+}
+
+/** Items not inside another of the listed folders (a shared folder brings what it holds). */
+export function topShared(files: DriveFile[]): DriveFile[] {
+  const folders = new Set(files.filter(isFolder).map((f) => f.id))
+  return files.filter((f) => !f.parents?.some((p) => folders.has(p)))
 }
 
 export interface DriveEntry {

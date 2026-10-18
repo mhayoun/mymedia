@@ -36,3 +36,16 @@ describe('import from Google Drive', () => {
     expect(takenAtOf({ id: '3', name: 'x.jpg', mimeType: 'image/jpeg', createdTime: '2019-03-02T08:00:00Z' })).toMatch(/^2019-03-0[12]T/)
   })
 })
+
+describe('topShared', () => {
+  it('keeps what was shared, not what is inside a shared folder', async () => {
+    const { topShared } = await import('../src/import/fromDrive')
+    const out = topShared([
+      { id: 'f', name: 'נחל יהודיה', mimeType: FOLDER },
+      { id: 'in', name: 'IMG_1.JPG', mimeType: 'image/jpeg', parents: ['f'] },
+      { id: 'alone', name: 'IMG_2.JPG', mimeType: 'image/jpeg', parents: ['notVisible'] },
+      { id: 'noParent', name: 'IMG_3.JPG', mimeType: 'image/jpeg' },
+    ])
+    expect(out.map((f) => f.id)).toEqual(['f', 'alone', 'noParent'])
+  })
+})
