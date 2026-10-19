@@ -16,6 +16,8 @@ export interface Prediction {
   confidence: number
   /** Raw resemblance to the album (mean cosine of its closest examples). */
   similarity: number
+  /** Resemblance of its closest example (the same photo: about 1). */
+  closest?: number
 }
 
 const SCALE = 127 * 127
@@ -50,11 +52,13 @@ export function labelScores(
   labeled: LabeledVec[],
   allowed: ReadonlySet<string> | null,
   excludeId?: string,
+  closest?: Map<string, number>,
 ): Map<string, number> {
   const best = new Map<string, number[]>()
   for (const e of labeled) {
     if (e.id === excludeId || (allowed && !allowed.has(e.label))) continue
     const s = cosine(query, e.vec)
+    if (closest && s > (closest.get(e.label) ?? -1)) closest.set(e.label, s)
     const list = best.get(e.label)
     if (!list) best.set(e.label, [s])
     else if (list.length < TOP_K) list.push(s)
@@ -86,9 +90,23 @@ export function rank(scores: Map<string, number>, tau: number, top = 4): Predict
     .slice(0, top)
 }
 
-export function predict(query: Vec, labeled: LabeledVec[], allowed: ReadonlySet<string> | null, tau: number, excludeId?: string) {
-  return rank(labelScores(query, labeled, allowed, excludeId), tau)
+export function predict(query: Vec, labeled: LabeledVec[], allowed: ReadonlySet<string> | null, tau: number, excludeId?: string): Prediction[] {
+  const closest = new Map<string, number>()
+  const scores = labelScores(query, labeled, allowed, excludeId, closest)
+  const preds = rank(scores, tau).map((p) => ({ ...p, closest: closest.get(p.label) }))
+  // The same photo is among the examples (e.g. one a model was made with): its album, whatever the others say.
+  let same: string | null = null
+  for (const [label, s] of closest) if (s >= SAME_PHOTO && (!same || s > closest.get(same)!)) same = label
+  if (!same) return preds
+  const first = { label: same, confidence: 1, similarity: scores.get(same)!, closest: closest.get(same) }
+  return [first, ...preds.filter((p) => p.label !== same).slice(0, 3).map((p) => ({ ...p, confidence: 0 }))]
 }
+
+/**
+ * Two fingerprints of one photo (another account, a copy, a compressed copy)
+ * are above this; two shots of a burst usually are not.
+ */
+export const SAME_PHOTO = 0.97
 
 /** Deterministic sample of indexes (same result for the same data). */
 function sample(n: number, max: number): number[] {

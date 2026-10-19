@@ -11,7 +11,7 @@ import { db, type MediaRecord } from '../db/db'
 import { albumInName, meaningfulName, nameKey } from '../lib/filename'
 import type { MediaMeta } from '../lib/metadata'
 import { placementOf } from '../lib/tree'
-import type { Calibration } from '../lib/classifier'
+import { SAME_PHOTO, type Calibration } from '../lib/classifier'
 import { calibrate, predictMany } from '../ml/ml'
 import type { PackedSet } from '../ml/protocol'
 import { ensureAlbum, referenceExamples } from '../models/references'
@@ -122,7 +122,7 @@ async function run(): Promise<void> {
       const top = preds[i][0]
       if (!top) continue
       const examples = counts.get(top.label) ?? 0
-      const novel = novelty != null && top.similarity < novelty
+      const novel = novelty != null && top.similarity < novelty && (top.closest ?? 0) < SAME_PHOTO
       if (!novel && settings.classifyAuto && top.confidence >= settings.thresholdHigh && examples >= 3) {
         await moveMedia(rec, top.label, { source: 'model', confidence: top.confidence, auto: true })
         continue
