@@ -682,7 +682,7 @@
     "withdraw": "Withdraw from the shop",
     "withdrawn": "Withdrawn from the shop. Those who already got it keep it.",
     "publishTitle": "Publish my model",
-    "publishHint": "Choose a category that has albums (for example ציפורים). The fingerprints of its sorted photos are sent to the shop (5,600 at most in all, shared between the albums: 56 an album for 100 albums), with the album names. Your photos stay in your Drive.",
+    "publishHint": "Choose a category that has albums (for example ציפורים). The fingerprints of its sorted photos are sent to the shop, with the album names: all of them, up to 5,600 in all (beyond, the biggest albums are limited). Your photos stay in your Drive.",
     "category": "Category",
     "chooseCategory": "Choose a category…",
     "name": "Model name",

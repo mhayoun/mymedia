@@ -680,7 +680,7 @@
     "withdraw": "Retirer de la boutique",
     "withdrawn": "Retiré de la boutique. Ceux qui l'ont déjà obtenu le gardent.",
     "publishTitle": "Publier mon modèle",
-    "publishHint": "Choisissez une catégorie qui a des albums (par exemple ציפורים). Les empreintes de ses photos rangées sont envoyées à la boutique (5 600 au plus en tout, réparties entre les albums : 56 par album pour 100 albums), avec les noms des albums. Vos photos restent dans votre Drive.",
+    "publishHint": "Choisissez une catégorie qui a des albums (par exemple ציפורים). Les empreintes de ses photos rangées sont envoyées à la boutique, avec les noms des albums : toutes, jusqu'à 5 600 en tout (au-delà, les plus grands albums sont limités). Vos photos restent dans votre Drive.",
     "category": "Catégorie",
     "chooseCategory": "Choisir une catégorie…",
     "name": "Nom du modèle",

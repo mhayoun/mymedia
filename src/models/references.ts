@@ -18,9 +18,8 @@ import { checkLicence, downloadModel, ShopError, type ModelData, type PublishInp
 
 const FILE_PREFIX = 'mymedia-model-'
 const SEP = ' / '
-// As the shop takes (api/models.ts): with 100 albums, 56 photos each.
+// As the shop takes (api/models.ts).
 const MAX_EXAMPLES = 5600
-const PER_ALBUM = 200
 /** A licence confirmed by the server is trusted that long without asking again (offline use). */
 const LICENCE_TTL_MS = 3 * 24 * 3600 * 1000
 
@@ -69,6 +68,24 @@ const fileName = (id: string) => `${FILE_PREFIX}${id}.json`
 
 // ---- Seller -------------------------------------------------------------------
 
+/**
+ * Photos kept per album: the biggest number that keeps the model within
+ * MAX_EXAMPLES. The room small albums leave goes to the big ones, so every
+ * photo is kept when they all fit.
+ */
+export function albumCap(sizes: number[], max = MAX_EXAMPLES): number {
+  const sum = (cap: number) => sizes.reduce((n, s) => n + Math.min(s, cap), 0)
+  let lo = Math.min(5, ...sizes)
+  let hi = Math.max(lo, ...sizes)
+  if (sum(hi) <= max) return hi
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2)
+    if (sum(mid) <= max) lo = mid
+    else hi = mid - 1
+  }
+  return Math.max(lo, 5)
+}
+
 /** The examples of a category (its albums' sorted photos), ready to publish. */
 export async function buildModel(categoryId: string): Promise<Pick<PublishInput, keyof ModelData | 'category'> & { photos: number; left: string[] }> {
   const rootId = app().rootId
@@ -84,7 +101,7 @@ export async function buildModel(categoryId: string): Promise<Pick<PublishInput,
   })
   if (byAlbum.size < 2) throw new ModelError('tooFew')
   const total = [...byAlbum.values()].reduce((n, l) => n + l.length, 0)
-  const cap = Math.max(5, Math.min(PER_ALBUM, Math.floor(MAX_EXAMPLES / byAlbum.size)))
+  const cap = albumCap([...byAlbum.values()].map((l) => l.length))
   const albums: string[] = []
   const labels: number[] = []
   const picked: number[] = []
