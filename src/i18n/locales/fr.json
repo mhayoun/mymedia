@@ -235,7 +235,9 @@
     "waitingAnalysis": "En attente d'analyse : la suggestion viendra quand cette photo sera analysée.",
     "preparing": "Préparation de l'analyse…",
     "sorting": "Tri des photos…",
-    "workingHint": "MyMedia prépare ou range les photos « En attente d'analyse ». Vous pouvez continuer à utiliser l'appli."
+    "workingHint": "MyMedia prépare ou range les photos « En attente d'analyse ». Vous pouvez continuer à utiliser l'appli.",
+    "findAlbum": "Chercher un album…",
+    "noAlbumFound": "Aucun album ne correspond."
   },
   "misfiled": {
     "title": "Photos peut-être mal rangées",

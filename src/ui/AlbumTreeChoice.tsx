@@ -1,7 +1,9 @@
 import { FolderOpen } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { nameKey } from '../lib/filename'
 import { parsePendingAlbum } from '../lib/tree'
+import { Modal } from './Dialog'
 import { useModelAlbums } from './AlbumSelect'
 import { FolderTreePicker } from './FolderTreePicker'
 import type { FolderInfo } from './useLibrary'
@@ -38,27 +40,62 @@ interface Props {
   exclude?: string
 }
 
-/** A button that opens the tree of albums below it, in a wrapping row; a choice closes it. */
+/** The folders whose name, or a sub-folder's name, contains the text. */
+function filterTree(list: FolderInfo[], q: string): FolderInfo[] {
+  return list.flatMap((f) => {
+    if (nameKey(f.name).includes(q)) return [f]
+    const children = filterTree(f.children, q)
+    return children.length ? [{ ...f, children }] : []
+  })
+}
+
+/** A button that opens the tree of albums in a window, with a search; a choice closes it. */
 export function AlbumTreeChoice({ categories, label, onChoose, disabled, exclude }: Props) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
   const tree = useChoiceTree(categories)
+  const q = nameKey(query.trim())
+  const shown = useMemo(() => (q ? filterTree(tree, q) : tree), [tree, q])
+  const close = () => {
+    setOpen(false)
+    setQuery('')
+  }
   return (
     <>
-      <button className="btn ghost" disabled={disabled} aria-expanded={open} onClick={() => setOpen((o) => !o)}>
+      <button className="btn ghost" disabled={disabled} onClick={() => setOpen(true)}>
         <FolderOpen size={16} /> {label}
       </button>
       {open && !disabled && (
-        <div style={{ flex: '1 1 100%', order: 99 }}>
-          <FolderTreePicker
-            categories={tree}
-            value={null}
-            disabledId={exclude}
-            onChange={(f) => {
-              setOpen(false)
-              onChoose(f)
-            }}
+        <Modal title={label} onClose={close}>
+          <input
+            type="search"
+            dir="auto"
+            autoFocus
+            value={query}
+            placeholder={t('classify.findAlbum')}
+            onChange={(e) => setQuery(e.target.value)}
+            style={{ marginBlockEnd: 10 }}
           />
-        </div>
+          {shown.length ? (
+            <FolderTreePicker
+              categories={shown}
+              value={null}
+              disabledId={exclude}
+              onChange={(f) => {
+                close()
+                onChoose(f)
+              }}
+            />
+          ) : (
+            <p className="hint">{t('classify.noAlbumFound')}</p>
+          )}
+          <div className="actions">
+            <button className="btn" onClick={close}>
+              {t('common.cancel')}
+            </button>
+          </div>
+        </Modal>
       )}
     </>
   )
