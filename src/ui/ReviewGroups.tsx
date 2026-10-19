@@ -1,20 +1,22 @@
-import { Check, FolderPlus, Loader2, Trash2 } from 'lucide-react'
+import { Check, FolderOpen, FolderPlus, Loader2, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder, confirmAuto } from '../classify/engine'
 import { useFormat } from '../i18n/format'
-import { placementOf } from '../lib/tree'
+import { parsePendingAlbum, placementOf } from '../lib/tree'
 import { app, useApp } from '../store'
 import { trashMedia } from '../sync/media'
 import { prepareLinks } from '../sync/thumbs'
-import { AlbumSelect } from './AlbumSelect'
+import { useModelAlbums } from './AlbumSelect'
 import { ConfirmDialog } from './Dialog'
+import { FolderTreePicker } from './FolderTreePicker'
 import { NewAlbumDialog } from './NewAlbumDialog'
 import { Thumb } from './Thumb'
 import { useAnalysed } from './useAnalysed'
-import type { Library, LibraryItem } from './useLibrary'
+import type { FolderInfo, Library, LibraryItem } from './useLibrary'
 
 const PAGE = 48
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 const NONE = ''
 /** No suggestion because not analysed yet. */
 const WAITING = 'waiting'
@@ -40,7 +42,26 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
   const [shown, setShown] = useState<Record<string, number>>({})
   const [toDelete, setToDelete] = useState<{ key: string; ids: string[] } | null>(null)
   const [newAlbumFor, setNewAlbumFor] = useState<string[] | null>(null)
+  const [treeFor, setTreeFor] = useState<string | null>(null)
   const analysed = useAnalysed()
+  const toCreate = useModelAlbums(lib.categories, true)
+  // The tree also offers the albums of installed models not created yet (created for their first photo).
+  const tree = useMemo<FolderInfo[]>(
+    () =>
+      lib.categories.map((c) => {
+        const extra = (toCreate.get(c.id) ?? []).map((id) => ({
+          id,
+          name: t('classify.modelAlbum', { name: parsePendingAlbum(id)!.path.join(' / ') }),
+          parentId: c.id,
+          count: 0,
+          children: [],
+        }))
+        if (!extra.length) return c
+        const children = [...c.children, ...extra].sort((a, b) => collator.compare(a.name, b.name))
+        return { ...c, children }
+      }),
+    [lib.categories, toCreate, t],
+  )
 
   const groups = useMemo<Group[]>(() => {
     const map = new Map<string, LibraryItem[]>()
@@ -137,13 +158,14 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                       : t('classify.groupMove', { count: sel.length, name: name(g.folderId).split(' / ').pop() })}
                   </button>
                 )}
-                <AlbumSelect withModels
-                  categories={lib.categories}
-                  placeholder={t('classify.groupOther')}
+                <button
+                  className="btn ghost"
                   disabled={isBusy || !sel.length}
-                  exclude={mode === 'auto' ? g.folderId : undefined}
-                  onChoose={(f) => run(key, sel, (id) => chooseFolder(id, f))}
-                />
+                  aria-expanded={treeFor === key}
+                  onClick={() => setTreeFor((k) => (k === key ? null : key))}
+                >
+                  <FolderOpen size={16} /> {t('classify.groupOther')}
+                </button>
                 <button
                   className="btn ghost"
                   disabled={isBusy || !sel.length}
@@ -163,6 +185,19 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                   <Trash2 size={16} />
                 </button>
               </span>
+              {treeFor === key && sel.length > 0 && !isBusy && (
+                <div style={{ flex: '1 1 100%' }}>
+                  <FolderTreePicker
+                    categories={tree}
+                    value={null}
+                    disabledId={mode === 'auto' ? g.folderId : undefined}
+                    onChange={(f) => {
+                      setTreeFor(null)
+                      void run(key, sel, (id) => chooseFolder(id, f))
+                    }}
+                  />
+                </div>
+              )}
               {busy === key && progress && (
                 <span className="hint">
                   <Loader2 size={14} className="spin" /> {t('select.working', { done: fmt.number(progress.done), total: fmt.number(progress.total) })}
