@@ -473,7 +473,9 @@
     "forgetHint": "Removes this name from all its photos: its faces become \"Unknown\".",
     "forgetTitle": "Remove \"{{name}}\" from all its photos?",
     "forgetText_one": "The face on {{count}} photo becomes \"Unknown\" and is no longer named. MyMedia won't put it back in this group. Your photos are not touched.",
-    "forgetText_other": "The faces on {{count}} photos become \"Unknown\" and are no longer named. MyMedia won't put them back in this group. Your photos are not touched."
+    "forgetText_other": "The faces on {{count}} photos become \"Unknown\" and are no longer named. MyMedia won't put them back in this group. Your photos are not touched.",
+    "useAsCover": "Photo for this person",
+    "coverHint": "To choose the photo that shows this person, tick a single face, then “Photo for this person”."
   },
   "filters": {
     "search": "Search",

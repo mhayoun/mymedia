@@ -67,6 +67,12 @@ export function usePeople(): People {
       info.mediaIds.add(f.mediaId)
       if (f.score * f.box[2] > info.cover.score * info.cover.box[2]) info.cover = f
     }
+    // The face the user chose, while it is still that person's.
+    for (const info of byId.values()) {
+      const chosen = persons.get(info.id)?.cover
+      const face = chosen ? info.faces.find((f) => f.id === chosen) : undefined
+      if (face) info.cover = face
+    }
     const all = [...byId.values()]
     const collator = new Intl.Collator(undefined, { sensitivity: 'base' })
     const toConfirm = data.faces.filter((f) => f.suggested && resolve(f.suggested)?.name && resolve(f.personId)?.id !== resolve(f.suggested)?.id && !resolve(f.personId)?.name)

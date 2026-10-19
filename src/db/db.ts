@@ -74,6 +74,8 @@ export interface PersonRecord {
   updatedAt: number
   /** This group was merged into another one. */
   mergedInto?: string
+  /** The face chosen to show this person (else the best one). */
+  cover?: string
 }
 
 export interface KvRecord {

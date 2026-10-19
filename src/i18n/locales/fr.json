@@ -471,7 +471,9 @@
     "forgetHint": "Retire ce nom de toutes ses photos : ses visages deviennent « Inconnu ».",
     "forgetTitle": "Retirer « {{name}} » de toutes ses photos ?",
     "forgetText_one": "Le visage de {{count}} photo devient « Inconnu » et n'est plus nommé. MyMedia ne le remettra pas dans ce groupe. Vos photos ne sont pas touchées.",
-    "forgetText_other": "Les visages de {{count}} photos deviennent « Inconnu » et ne sont plus nommés. MyMedia ne les remettra pas dans ce groupe. Vos photos ne sont pas touchées."
+    "forgetText_other": "Les visages de {{count}} photos deviennent « Inconnu » et ne sont plus nommés. MyMedia ne les remettra pas dans ce groupe. Vos photos ne sont pas touchées.",
+    "useAsCover": "Photo de la personne",
+    "coverHint": "Pour choisir la photo qui représente la personne, cochez un seul visage puis « Photo de la personne »."
   },
   "filters": {
     "search": "Rechercher",

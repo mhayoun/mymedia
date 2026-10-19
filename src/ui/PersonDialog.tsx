@@ -1,7 +1,7 @@
-import { CheckSquare, Images, Loader2, Merge, Scissors, UserMinus, UserX } from 'lucide-react'
+import { CheckSquare, CircleHelp, Images, Loader2, Merge, Scissors, UserMinus, UserRound, UserX } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { assignFaces, mergePersons, namePerson, removeFaces, splitFaces } from '../faces/engine'
+import { assignFaces, mergePersons, namePerson, removeFaces, setCover, splitFaces } from '../faces/engine'
 import { useFormat } from '../i18n/format'
 import { useApp } from '../store'
 import { ConfirmDialog, Modal } from './Dialog'
@@ -22,6 +22,7 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
   const [shown, setShown] = useState(PAGE)
   const [busy, setBusy] = useState(false)
   const [forgetOpen, setForgetOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   if (!person) return null
 
   const allSelected = person.faces.length > 0 && person.faces.every((f) => selected.has(f.id))
@@ -54,7 +55,7 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
         }}
       >
         <FaceImg face={person.cover} size={72} />
-        <input type="text" dir="auto" list="people-names" value={name} placeholder={t('faces.namePlaceholder')} onChange={(e) => setName(e.target.value)} style={{ flex: 1, inlineSize: 'auto' }} />
+        <input type="text" dir="auto" list="people-names" value={name} placeholder={t('faces.namePlaceholder')} onChange={(e) => setName(e.target.value)} style={{ inlineSize: 'auto', flex: '0 1 16rem', minInlineSize: 0 }} />
         <datalist id="people-names">
           {people.named.filter((p) => p.id !== person.id).map((p) => (
             <option key={p.id} value={p.name} />
@@ -64,7 +65,6 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
           {busy && <Loader2 size={14} className="spin" />} {t('common.save')}
         </button>
       </form>
-      <p className="hint">{t('faces.nameHint')}</p>
 
       <div className="row" style={{ marginBlock: 10 }}>
         <button
@@ -93,7 +93,24 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
             </select>
           </label>
         )}
+        <button
+          className="btn ghost"
+          disabled={busy}
+          onClick={() => setSelected(allSelected ? new Set() : new Set(person.faces.map((f) => f.id)))}
+        >
+          <CheckSquare size={16} /> {allSelected ? t('select.none') : t('select.all')}
+        </button>
+        <button className="btn ghost" aria-expanded={helpOpen} onClick={() => setHelpOpen((o) => !o)} title={t('nav.help')} aria-label={t('nav.help')}>
+          <CircleHelp size={16} />
+        </button>
       </div>
+      {helpOpen && (
+        <div className="hint" style={{ marginBlockEnd: 10 }}>
+          <p>{t('faces.nameHint')}</p>
+          <p>{t('faces.facesHint', { count: person.faces.length, n: fmt.number(person.faces.length) })}</p>
+          <p>{t('faces.coverHint')}</p>
+        </div>
+      )}
 
       {forgetOpen && (
         <ConfirmDialog
@@ -105,16 +122,6 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
           onClose={() => setForgetOpen(false)}
         />
       )}
-      <p className="hint">{t('faces.facesHint', { count: person.faces.length, n: fmt.number(person.faces.length) })}</p>
-      <div className="row" style={{ marginBlockEnd: 8 }}>
-        <button
-          className="btn ghost"
-          disabled={busy}
-          onClick={() => setSelected(allSelected ? new Set() : new Set(person.faces.map((f) => f.id)))}
-        >
-          <CheckSquare size={16} /> {allSelected ? t('select.none') : t('select.all')}
-        </button>
-      </div>
       <div className="face-grid">
         {person.faces.slice(0, shown).map((f) => (
           <label key={f.id} className={`face-pick ${selected.has(f.id) ? 'on' : ''}`}>
@@ -135,6 +142,11 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
           <button className="btn" disabled={busy} onClick={() => run(() => removeFaces([...selected]))}>
             <UserMinus size={16} /> {person.name ? t('faces.notThisPerson', { name: person.name }) : t('faces.notThisGroup')}
           </button>
+          {selected.size === 1 && (
+            <button className="btn" disabled={busy || person.cover.id === [...selected][0]} onClick={() => run(() => setCover(person.id, [...selected][0]))}>
+              <UserRound size={16} /> {t('faces.useAsCover')}
+            </button>
+          )}
           <button className="btn" disabled={busy} onClick={() => run(() => splitFaces([...selected]))}>
             <Scissors size={16} /> {t('faces.newPerson')}
           </button>

@@ -121,6 +121,12 @@ export async function namePerson(personId: string, name: string): Promise<void> 
   await markFacesDirty()
 }
 
+/** The face that shows this person. */
+export async function setCover(personId: string, faceId: string): Promise<void> {
+  await db().persons.update(personId, { cover: faceId, updatedAt: Date.now() })
+  await markFacesDirty()
+}
+
 /** Moves every face of `sources` into `target`. */
 export async function mergePersons(targetId: string, sourceIds: string[]): Promise<void> {
   const d = db()
