@@ -9,7 +9,7 @@ import type { FolderInfo } from './useLibrary'
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' })
 
 /** Every category and album, with the albums of installed models not created yet (created for their first photo). */
-export function useChoiceTree(categories: FolderInfo[]): FolderInfo[] {
+function useChoiceTree(categories: FolderInfo[]): FolderInfo[] {
   const { t } = useTranslation()
   const toCreate = useModelAlbums(categories, true)
   return useMemo(
