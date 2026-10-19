@@ -119,24 +119,71 @@ export interface KnownFace {
   emb: Int8Array
   /** People this face was explicitly removed from. */
   rejected?: string[]
+  /** Put in its person by the user (named, merged, moved): counts a bit more. */
+  manual?: boolean
+}
+
+/** A face gets a name on its own only this alike (else "Is this X?"). */
+export const NAME_SURE = 0.5
+/** Faces narrower than this share of the photo are blurry: never named on their own. */
+export const SMALL_FACE = 0.07
+/** "Is this X?" from this likeness. */
+export const MAYBE_SAME = 0.32
+/** A person is judged on its closest faces, not one: a single wrong face does not pull others in. */
+const TOP_FACES = 3
+const MANUAL_BONUS = 0.04
+
+/** Each person's likeness to a face: the mean of its closest faces (those the user placed count a bit more). */
+export function personScores(emb: Int8Array, known: KnownFace[], rejected: string[] = []): Map<string, number> {
+  const sims = new Map<string, number[]>()
+  for (const k of known) {
+    if (rejected.includes(k.personId)) continue
+    const s = faceSimilarity(emb, k.emb) + (k.manual ? MANUAL_BONUS : 0)
+    const list = sims.get(k.personId)
+    if (list) list.push(s)
+    else sims.set(k.personId, [s])
+  }
+  const scores = new Map<string, number>()
+  for (const [personId, list] of sims) {
+    const top = list.sort((a, b) => b - a).slice(0, TOP_FACES)
+    scores.set(personId, top.reduce((n, x) => n + x, 0) / top.length)
+  }
+  return scores
 }
 
 /**
- * Best existing group for a new face: the group of its most similar face,
- * if similar enough and not rejected for that face. Null = new group.
+ * Best existing group for a new face, if alike enough and not rejected for
+ * that face. Null = new group.
  */
 export function bestGroup(emb: Int8Array, known: KnownFace[], rejected: string[] = [], threshold = SAME_PERSON): { personId: string; similarity: number } | null {
-  const bestByPerson = new Map<string, number>()
-  for (const k of known) {
-    if (rejected.includes(k.personId)) continue
-    const s = faceSimilarity(emb, k.emb)
-    if (s > (bestByPerson.get(k.personId) ?? -1)) bestByPerson.set(k.personId, s)
-  }
   let best: { personId: string; similarity: number } | null = null
-  for (const [personId, similarity] of bestByPerson) {
+  for (const [personId, similarity] of personScores(emb, known, rejected)) {
     if (similarity >= threshold && (!best || similarity > best.similarity)) best = { personId, similarity }
   }
   return best
+}
+
+/**
+ * Where a new face goes. A named person needs NAME_SURE and a face big enough;
+ * an unnamed group SAME_PERSON. A named person alike but not enough is only
+ * suggested ("Is this X?"). personId null = a new group.
+ */
+export function placeFace(
+  emb: Int8Array,
+  width: number,
+  known: KnownFace[],
+  isNamed: (personId: string) => boolean,
+): { personId: string | null; suggested?: string } {
+  let best: { personId: string; s: number } | null = null
+  let maybe: { personId: string; s: number } | null = null
+  for (const [personId, s] of personScores(emb, known)) {
+    const named = isNamed(personId)
+    const sure = named ? s >= NAME_SURE && width >= SMALL_FACE : s >= SAME_PERSON
+    if (sure && (!best || s > best.s)) best = { personId, s }
+    if (named && s >= MAYBE_SAME && (!maybe || s > maybe.s)) maybe = { personId, s }
+  }
+  if (best && isNamed(best.personId)) return { personId: best.personId }
+  return { personId: best?.personId ?? null, suggested: maybe?.personId }
 }
 
 export interface GroupedFace {

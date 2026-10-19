@@ -2,14 +2,12 @@
 // "people" of each media in mymedia.json up to date.
 
 import { db, type FaceRecord, type MediaRecord, type PersonRecord } from '../db/db'
-import { bestGroup, faceSimilarity, facesToFollow, SAME_PERSON, type KnownFace } from '../lib/faces'
+import { faceSimilarity, facesToFollow, placeFace, SAME_PERSON, type KnownFace } from '../lib/faces'
 import type { FoundFace } from '../ml/faceModel'
 import { markMetaDirty } from '../sync/metaStore'
 import { app } from '../store'
 import { markFacesDirty } from './store'
 
-/** Below SAME_PERSON but above this: "Is this X?" (asked to the user). */
-const MAYBE_SAME = 0.32
 /** Two faces found in different frames of one video are the same person above this. */
 const SAME_IN_VIDEO = 0.55
 
@@ -19,7 +17,7 @@ async function knownFaces(): Promise<KnownFace[]> {
   const persons = new Map((await db().persons.toArray()).map((p) => [p.id, p]))
   return (await db().faces.toArray())
     .filter((f) => f.personId && !persons.get(f.personId)?.mergedInto)
-    .map((f) => ({ id: f.id, personId: f.personId!, emb: f.emb, rejected: f.rejected }))
+    .map((f) => ({ id: f.id, personId: f.personId!, emb: f.emb, rejected: f.rejected, manual: f.by === 'manual' }))
 }
 
 /** Video frames often show the same face several times: keep the best one per person. */
@@ -44,15 +42,12 @@ export async function addFaces(rec: MediaRecord, version: string, frames: FoundF
   const newPersons: PersonRecord[] = []
   for (const [n, f] of found.entries()) {
     const id = `${rec.id}#${n}`
-    const group = bestGroup(f.emb, known, [], SAME_PERSON)
-    let personId: string
-    let suggested: string | undefined
-    if (group) personId = group.personId
-    else {
+    const place = placeFace(f.emb, f.box[2], known, (p) => !!persons.get(p)?.name)
+    const suggested = place.suggested
+    let personId = place.personId
+    if (!personId) {
       personId = newId()
       newPersons.push({ id: personId, updatedAt: now })
-      const maybe = bestGroup(f.emb, known.filter((k) => persons.get(k.personId)?.name), [], MAYBE_SAME)
-      suggested = maybe?.personId
     }
     const face: FaceRecord = { id, mediaId: rec.id, version, box: f.box, score: f.score, emb: f.emb, personId, by: 'auto', suggested, updatedAt: now }
     faces.push(face)
