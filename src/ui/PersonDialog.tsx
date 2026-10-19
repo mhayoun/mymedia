@@ -64,10 +64,8 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
         <button className="btn primary" type="submit" disabled={busy || !name.trim() || name.trim() === person.name}>
           {busy && <Loader2 size={14} className="spin" />} {t('common.save')}
         </button>
-      </form>
-
-      <div className="row" style={{ marginBlock: 10 }}>
         <button
+          type="button"
           className="btn"
           onClick={() => {
             setFilters({ personId: person.id, categoryId: null, albumId: null, provenance: null })
@@ -77,6 +75,9 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
         >
           <Images size={16} /> {t('faces.seePhotos', { count: person.mediaIds.size })}
         </button>
+      </form>
+
+      <div className="row" style={{ marginBlock: 10 }}>
         <button className="btn" disabled={busy} onClick={() => setForgetOpen(true)} title={t('faces.forgetHint')}>
           <UserX size={16} /> {t('faces.forget')}
         </button>
