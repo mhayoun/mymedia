@@ -114,8 +114,40 @@ export async function shopModels(): Promise<Shop> {
   return call<Shop>('GET', '')
 }
 
+function base64ToBytes(text: string): Uint8Array {
+  const s = atob(text)
+  const out = new Uint8Array(s.length)
+  for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i)
+  return out
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let s = ''
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000))
+  return btoa(s)
+}
+
+/** As the server's `pack`: JSON length (4 bytes), JSON, fingerprints as bytes. */
+function pack(head: unknown, bytes: Uint8Array): Uint8Array {
+  const text = new TextEncoder().encode(JSON.stringify(head))
+  const out = new Uint8Array(4 + text.length + bytes.length)
+  new DataView(out.buffer).setUint32(0, text.length)
+  out.set(text, 4)
+  out.set(bytes, 4 + text.length)
+  return out
+}
+
+/** Fingerprints go as bytes (a third smaller than base64): more of them fit in a request. */
 export async function publishModel(input: PublishInput): Promise<ShopModel> {
-  return (await call<{ model: ShopModel }>('POST', '', input)).model
+  const { vecs, ...head } = input
+  const res = await fetch('/api/models', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${await auth.getToken()}`, 'Content-Type': 'application/octet-stream' },
+    body: pack(head, base64ToBytes(vecs)) as BodyInit,
+  })
+  const out = (await res.json().catch(() => ({}))) as { model: ShopModel; error?: string }
+  if (!res.ok) throw new ShopError(res.status, out.error ?? res.statusText)
+  return out.model
 }
 
 export async function withdrawModel(id: string): Promise<void> {
@@ -135,8 +167,20 @@ export async function capturePayment(id: string, order: string): Promise<void> {
   await call('POST', `?action=capture&id=${encodeURIComponent(id)}&order=${encodeURIComponent(order)}`)
 }
 
-export async function downloadModel(id: string): Promise<{ info: Omit<ShopModel, 'mine' | 'owned' | 'paymentsLive'>; buyer: string; data: ModelData }> {
-  return call('GET', `?action=data&id=${encodeURIComponent(id)}`)
+type Downloaded = { info: Omit<ShopModel, 'mine' | 'owned' | 'paymentsLive'>; buyer: string; data: ModelData }
+
+export async function downloadModel(id: string): Promise<Downloaded> {
+  const res = await fetch(`/api/models?action=data&format=bin&id=${encodeURIComponent(id)}`, {
+    headers: { Authorization: `Bearer ${await auth.getToken()}` },
+  })
+  if (!res.ok) {
+    const out = (await res.json().catch(() => ({}))) as { error?: string }
+    throw new ShopError(res.status, out.error ?? res.statusText)
+  }
+  const buf = new Uint8Array(await res.arrayBuffer())
+  const n = new DataView(buf.buffer, buf.byteOffset, buf.byteLength).getUint32(0)
+  const head = JSON.parse(new TextDecoder().decode(buf.subarray(4, 4 + n))) as Omit<Downloaded, 'data'> & { data: Omit<ModelData, 'vecs'> }
+  return { ...head, data: { ...head.data, vecs: bytesToBase64(buf.subarray(4 + n)) } }
 }
 
 /** This account's sales as a seller. */

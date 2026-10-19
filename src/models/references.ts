@@ -18,8 +18,9 @@ import { checkLicence, downloadModel, ShopError, type ModelData, type PublishInp
 
 const FILE_PREFIX = 'mymedia-model-'
 const SEP = ' / '
-const MAX_EXAMPLES = 4000
-const PER_ALBUM = 60
+// As the shop takes (api/models.ts): with 100 albums, 56 photos each.
+const MAX_EXAMPLES = 5600
+const PER_ALBUM = 200
 /** A licence confirmed by the server is trusted that long without asking again (offline use). */
 const LICENCE_TTL_MS = 3 * 24 * 3600 * 1000
 

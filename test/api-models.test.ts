@@ -50,6 +50,35 @@ const publishBody = {
 describe('model shop', () => {
   beforeEach(() => store.clear())
 
+  it('takes 5,600 fingerprints as bytes, under the 4.5 MB of a request, and gives them back as bytes', async () => {
+    const n = 5600
+    const albums = Array.from({ length: 100 }, (_, i) => `מין ציפור ארוך מאוד מספר ${i}`)
+    const head = { ...publishBody, albums, labels: Array.from({ length: n }, (_, i) => i % 100), vecs: undefined }
+    const vecs = new Uint8Array(n * 768).map((_, i) => i % 251)
+    const pack = (h: unknown, bytes: Uint8Array) => {
+      const text = new TextEncoder().encode(JSON.stringify(h))
+      const out = new Uint8Array(4 + text.length + bytes.length)
+      new DataView(out.buffer).setUint32(0, text.length)
+      out.set(text, 4)
+      out.set(bytes, 4 + text.length)
+      return out
+    }
+    const body = pack(head, vecs)
+    expect(body.length).toBeLessThan(4.5e6)
+    const r = await POST(
+      new Request('https://x/api/models', { method: 'POST', headers: { Authorization: 'Bearer seller', 'Content-Type': 'application/octet-stream' }, body }),
+    )
+    expect(r.status).toBe(200)
+    const id = (await r.json()).model.id as string
+    const got = new Uint8Array(await (await GET(req('GET', `?action=data&format=bin&id=${id}`, 'seller'))).arrayBuffer())
+    expect(got.length).toBeLessThan(4.5e6)
+    const len = new DataView(got.buffer).getUint32(0)
+    const back = JSON.parse(new TextDecoder().decode(got.subarray(4, 4 + len)))
+    expect(back.data.labels).toHaveLength(n)
+    expect(back.data.vecs).toBeUndefined()
+    expect(Buffer.compare(Buffer.from(got.subarray(4 + len)), Buffer.from(vecs))).toBe(0)
+  })
+
   it('publishes, gives a licence to the buyer only, and lets the seller withdraw', async () => {
     const pub = await (await POST(req('POST', '', 'seller', publishBody))).json()
     const id = pub.model.id as string

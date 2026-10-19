@@ -41,8 +41,9 @@ const paymentsLive = () => !!(PAYPAL_ID && PAYPAL_SECRET)
 /** MyMedia's commission, in % of the price. */
 const FEE = Math.min(Math.max(Number(process.env.MYMEDIA_FEE ?? 15) || 0, 0), 100)
 const ADMINS = (process.env.MYMEDIA_ADMINS ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean)
-// Vercel takes 4.5 MB a request: 4,000 fingerprints (≈ 4.1 MB in base64).
-const MAX_EXAMPLES = 4000
+// Vercel takes 4.5 MB a request or a response: fingerprints are sent as bytes
+// (see `pack`), 5,600 of them ≈ 4.3 MB with the album names and labels.
+const MAX_EXAMPLES = 5600
 const DIM = 768
 
 interface ModelInfo {
@@ -116,6 +117,27 @@ class HttpError extends Error {
     super(message)
     this.status = status
   }
+}
+
+/**
+ * Binary body (application/octet-stream): 4 bytes (big-endian length of the
+ * JSON), the JSON, then the fingerprints as raw bytes (base64 would take a
+ * third more).
+ */
+function pack(head: unknown, bytes: Uint8Array): Uint8Array {
+  const text = new TextEncoder().encode(JSON.stringify(head))
+  const out = new Uint8Array(4 + text.length + bytes.length)
+  new DataView(out.buffer).setUint32(0, text.length)
+  out.set(text, 4)
+  out.set(bytes, 4 + text.length)
+  return out
+}
+
+function unpack<T>(buf: Uint8Array): { head: T; bytes: Uint8Array } {
+  if (buf.length < 4) throw new HttpError(400, 'bad data')
+  const n = new DataView(buf.buffer, buf.byteOffset, buf.byteLength).getUint32(0)
+  if (4 + n > buf.length) throw new HttpError(400, 'bad data')
+  return { head: JSON.parse(new TextDecoder().decode(buf.subarray(4, 4 + n))) as T, bytes: buf.subarray(4 + n) }
 }
 
 const json = (body: unknown, status = 200) =>
@@ -252,7 +274,17 @@ async function shop(req: Request) {
 
 async function publish(req: Request) {
   const email = await account(req)
-  const b = (await req.json()) as PublishBody
+  let b: PublishBody
+  let bytes: Buffer
+  if (req.headers.get('Content-Type')?.startsWith('application/octet-stream')) {
+    const { head, bytes: raw } = unpack<PublishBody>(new Uint8Array(await req.arrayBuffer()))
+    b = head
+    bytes = Buffer.from(raw)
+  } else {
+    // Older MyMedia: JSON, fingerprints in base64.
+    b = (await req.json()) as PublishBody
+    bytes = Buffer.from(typeof b.vecs === 'string' ? b.vecs : '', 'base64')
+  }
   const text = (v: unknown, max: number) => (typeof v === 'string' ? v.trim().slice(0, max) : '')
   const name = text(b.name, 80)
   const category = text(b.category, 80)
@@ -266,7 +298,6 @@ async function publish(req: Request) {
   if (b.dim !== DIM || typeof b.model !== 'string') throw new HttpError(400, 'bad model')
   const albums = Array.isArray(b.albums) ? b.albums.map((a) => text(a, 120)) : []
   const labels = Array.isArray(b.labels) ? b.labels : []
-  const bytes = Buffer.from(typeof b.vecs === 'string' ? b.vecs : '', 'base64')
   if (!albums.length || !labels.length || labels.length > MAX_EXAMPLES || bytes.length !== labels.length * DIM) throw new HttpError(400, 'bad data')
   if (labels.some((l) => !Number.isInteger(l) || l < 0 || l >= albums.length)) throw new HttpError(400, 'bad labels')
 
@@ -385,6 +416,12 @@ async function download(req: Request, id: string) {
   const data = await readJson<ModelData>(`models/${id}/data.json`)
   if (!data) throw new HttpError(404, 'model not found')
   const { sellerEmail: _, ...pub } = i
+  if (new URL(req.url).searchParams.get('format') === 'bin') {
+    const { vecs, ...rest } = data
+    return new Response(pack({ info: pub, buyer: email, data: rest }, Buffer.from(vecs, 'base64')) as BodyInit, {
+      headers: { 'Content-Type': 'application/octet-stream', 'Cache-Control': 'no-store' },
+    })
+  }
   return json({ info: pub, buyer: email, data })
 }
 
