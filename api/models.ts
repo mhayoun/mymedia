@@ -42,8 +42,8 @@ const paymentsLive = () => !!(PAYPAL_ID && PAYPAL_SECRET)
 const FEE = Math.min(Math.max(Number(process.env.MYMEDIA_FEE ?? 15) || 0, 0), 100)
 const ADMINS = (process.env.MYMEDIA_ADMINS ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean)
 // Vercel takes 4.5 MB a request or a response: fingerprints are sent as bytes
-// (see `pack`), 5,600 of them ≈ 4.3 MB with the album names and labels.
-const MAX_EXAMPLES = 5600
+// (see `pack`), 5,400 of them ≈ 4.35 MB with the album names, labels and file hashes.
+const MAX_EXAMPLES = 5400
 const DIM = 768
 
 interface ModelInfo {
@@ -72,6 +72,8 @@ interface ModelData {
   labels: number[]
   /** Int8 vectors, `dim` bytes each, base64. */
   vecs: string
+  /** For each vector, the start (12 hex) of the md5s of its photo's file. Missing in older models. */
+  hashes?: string[][]
 }
 
 interface PublishBody extends ModelData {
@@ -302,7 +304,11 @@ async function publish(req: Request) {
   if (labels.some((l) => !Number.isInteger(l) || l < 0 || l >= albums.length)) throw new HttpError(400, 'bad labels')
 
   const id = randomUUID()
-  const data: ModelData = { model: b.model, dim: DIM, albums, labels, vecs: bytes.toString('base64') }
+  const hashes =
+    Array.isArray(b.hashes) && b.hashes.length === labels.length
+      ? b.hashes.map((h) => (Array.isArray(h) ? h.filter((x): x is string => typeof x === 'string' && /^[0-9a-f]{12}$/.test(x)).slice(0, 2) : []))
+      : undefined
+  const data: ModelData = { model: b.model, dim: DIM, albums, labels, vecs: bytes.toString('base64'), hashes }
   const i: ModelInfo = {
     id,
     name,

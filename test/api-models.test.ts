@@ -50,10 +50,10 @@ const publishBody = {
 describe('model shop', () => {
   beforeEach(() => store.clear())
 
-  it('takes 5,600 fingerprints as bytes, under the 4.5 MB of a request, and gives them back as bytes', async () => {
-    const n = 5600
+  it('takes 5,400 fingerprints and file hashes as bytes, under the 4.5 MB of a request, and gives them back as bytes', async () => {
+    const n = 5400
     const albums = Array.from({ length: 100 }, (_, i) => `מין ציפור ארוך מאוד מספר ${i}`)
-    const head = { ...publishBody, albums, labels: Array.from({ length: n }, (_, i) => i % 100), vecs: undefined }
+    const head = { ...publishBody, albums, labels: Array.from({ length: n }, (_, i) => i % 100), vecs: undefined, hashes: Array.from({ length: n }, (_, i) => [i.toString(16).padStart(12, '0'), 'abcdefabcdef']) }
     const vecs = new Uint8Array(n * 768).map((_, i) => i % 251)
     const pack = (h: unknown, bytes: Uint8Array) => {
       const text = new TextEncoder().encode(JSON.stringify(h))
@@ -76,6 +76,7 @@ describe('model shop', () => {
     const back = JSON.parse(new TextDecoder().decode(got.subarray(4, 4 + len)))
     expect(back.data.labels).toHaveLength(n)
     expect(back.data.vecs).toBeUndefined()
+    expect(back.data.hashes[7]).toEqual(['000000000007', 'abcdefabcdef'])
     expect(Buffer.compare(Buffer.from(got.subarray(4 + len)), Buffer.from(vecs))).toBe(0)
   })
 

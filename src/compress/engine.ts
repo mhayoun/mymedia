@@ -140,6 +140,8 @@ async function compressOne(rec: MediaRecord, signal: AbortSignal, onFile: (p: nu
         mymedia_compressed: '1',
         mymedia_quality: String(Math.round(s.quality * 100)),
         mymedia_original_size: String(rec.size),
+        // The file it was made from: the same photo is still recognised (another account, a model).
+        ...(rec.appProperties?.mymedia_source_md5 || rec.md5 ? { mymedia_source_md5: rec.appProperties?.mymedia_source_md5 ?? rec.md5 } : {}),
       },
     },
     (p) => onFile(0.5 + p * 0.5),

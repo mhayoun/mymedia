@@ -14,7 +14,7 @@ import { placementOf } from '../lib/tree'
 import { SAME_PHOTO, type Calibration } from '../lib/classifier'
 import { calibrate, predictMany } from '../ml/ml'
 import type { PackedSet } from '../ml/protocol'
-import { ensureAlbum, referenceExamples } from '../models/references'
+import { ensureAlbum, fileHashes, referenceExamples } from '../models/references'
 import { app, withStep } from '../store'
 import { markMetaDirty } from '../sync/metaStore'
 import { queueMove } from '../sync/moveQueue'
@@ -83,6 +83,13 @@ async function run(): Promise<void> {
   // 2. File names that are, or contain, the name of an album.
   const remaining: MediaRecord[] = []
   for (const rec of candidates) {
+    // The very file of an example of a model (e.g. the same photos imported on another account): its album.
+    const known = fileHashes(rec).map((h) => refs?.files.get(h)).find((f): f is string => !!f)
+    const allowed = known ? allowedFor(rec, data) : null
+    if (known && !data.meta.get(rec.id)?.keepHere && (!allowed || allowed.includes(known))) {
+      await moveMedia(rec, known, { source: 'model', confidence: 1, auto: true })
+      continue
+    }
     const text = meaningfulName(rec.name)
     const meta = data.meta.get(rec.id)
     const pool = (rec.folderId === rootId ? [...data.folders.values()] : albumsUnder(rec.folderId, data)).filter((f) => f.id !== rootId)
@@ -123,7 +130,9 @@ async function run(): Promise<void> {
       if (!top) continue
       const examples = counts.get(top.label) ?? 0
       const novel = novelty != null && top.similarity < novelty && (top.closest ?? 0) < SAME_PHOTO
-      if (!novel && settings.classifyAuto && top.confidence >= settings.thresholdHigh && examples >= 3) {
+      // The same photo as an example: sure, even for an album with only one or two examples.
+      const samePhoto = (top.closest ?? 0) >= SAME_PHOTO
+      if (!novel && settings.classifyAuto && top.confidence >= settings.thresholdHigh && (examples >= 3 || samePhoto)) {
         await moveMedia(rec, top.label, { source: 'model', confidence: top.confidence, auto: true })
         continue
       }

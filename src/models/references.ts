@@ -7,7 +7,7 @@
 // only when a first photo goes into one (`ensureAlbum`), not at install. It is used only by the account it was bought for, and only while
 // the server says the licence is valid.
 
-import { db } from '../db/db'
+import { db, type MediaRecord } from '../db/db'
 import { createTextFile, downloadText, findChildByName, folderNamed, listFiles, sameFolderName, trashFile, updateTextFile } from '../drive/api'
 import { albumsUnder, labeledSet, loadData, type ClassifyData } from '../classify/data'
 import { folderChain, parsePendingAlbum, pendingAlbumId, type FolderNode } from '../lib/tree'
@@ -19,7 +19,7 @@ import { checkLicence, downloadModel, ShopError, type ModelData, type PublishInp
 const FILE_PREFIX = 'mymedia-model-'
 const SEP = ' / '
 // As the shop takes (api/models.ts).
-const MAX_EXAMPLES = 5600
+const MAX_EXAMPLES = 5400
 /** A licence confirmed by the server is trusted that long without asking again (offline use). */
 const LICENCE_TTL_MS = 3 * 24 * 3600 * 1000
 
@@ -41,6 +41,8 @@ export interface InstalledModel {
   albums: { path: string; folderId: string | null }[]
   labels: number[]
   vecs: string
+  /** For each example, the start of its file's md5 (and of the file it was made from). Missing in older models. */
+  hashes?: string[][]
 }
 
 export class ModelError extends Error {
@@ -67,6 +69,17 @@ function fromBase64(text: string): Int8Array {
 const fileName = (id: string) => `${FILE_PREFIX}${id}.json`
 
 // ---- Seller -------------------------------------------------------------------
+
+/**
+ * The same file, whatever the account: the start of its md5 in Drive and of
+ * the file it was made from (before MyMedia compressed it).
+ */
+export function fileHashes(rec: Pick<MediaRecord, 'md5' | 'appProperties'> | undefined): string[] {
+  if (!rec) return []
+  const all = [rec.md5, rec.appProperties?.mymedia_source_md5].filter((h): h is string => !!h && /^[0-9a-f]{32}$/i.test(h))
+  return [...new Set(all.map((h) => h.slice(0, HASH_LEN).toLowerCase()))]
+}
+const HASH_LEN = 12
 
 /**
  * Photos kept per album: the biggest number that keeps the model within
@@ -116,6 +129,8 @@ export async function buildModel(categoryId: string): Promise<Pick<PublishInput,
       labels.push(albums.length - 1)
     }
   }
+  const recs = new Map(data.media.map((r) => [r.id, r]))
+  const hashes = picked.map((i) => fileHashes(recs.get(set.ids[i])))
   const vecs = new Uint8Array(picked.length * EMBED_DIM)
   picked.forEach((i, k) => vecs.set(new Uint8Array(set.data.buffer, set.data.byteOffset + i * EMBED_DIM, EMBED_DIM), k * EMBED_DIM))
   return {
@@ -125,6 +140,7 @@ export async function buildModel(categoryId: string): Promise<Pick<PublishInput,
     albums,
     labels,
     vecs: toBase64(vecs),
+    hashes,
     photos: total,
     // Albums without any example: empty, not analysed yet, or only automatic moves not checked yet.
     left: albumsUnder(categoryId, data)
@@ -252,8 +268,9 @@ export async function modelAlbumsToCreate(folders: ReadonlyMap<string, FolderNod
 /** The examples the installed models add to this account's own, and their albums not created yet. */
 export async function referenceExamples(
   data: ClassifyData,
-): Promise<{ ids: string[]; labels: string[]; vecs: Int8Array[]; pending: Map<string, string[]> }> {
-  const out = { ids: [] as string[], labels: [] as string[], vecs: [] as Int8Array[], pending: new Map<string, string[]>() }
+): Promise<{ ids: string[]; labels: string[]; vecs: Int8Array[]; pending: Map<string, string[]>; files: Map<string, string> }> {
+  const out = { ids: [] as string[], labels: [] as string[], vecs: [] as Int8Array[], pending: new Map<string, string[]>(), files: new Map<string, string>() }
+  const twice = new Set<string>()
   for (const m of await installedModels()) {
     if (m.model !== MODEL_ID || m.dim !== EMBED_DIM || !(await licensed(m))) continue
     const categoryId = categoryOf(m, data.folders, data.rootId)
@@ -271,8 +288,14 @@ export async function referenceExamples(
       out.ids.push(`model:${m.id}:${i}`)
       out.labels.push(folderId)
       out.vecs.push(all.subarray(i * EMBED_DIM, (i + 1) * EMBED_DIM))
+      for (const h of m.hashes?.[i] ?? []) {
+        if (out.files.has(h) && out.files.get(h) !== folderId) twice.add(h)
+        else out.files.set(h, folderId)
+      }
     })
   }
+  // One file in two albums: not sure, left to the fingerprints.
+  for (const h of twice) out.files.delete(h)
   return out
 }
 
@@ -302,6 +325,7 @@ export async function installModel(id: string, onProgress: InstallProgress = () 
     albums: data.albums.map((path) => ({ path, folderId: null })),
     labels: data.labels,
     vecs: data.vecs,
+    hashes: data.hashes,
   }
   onProgress('save', 0, 1)
   await saveModel(m)

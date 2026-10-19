@@ -79,6 +79,8 @@ export interface ModelData {
   albums: string[]
   labels: number[]
   vecs: string
+  /** For each example, the start of its file's md5s (see `fileHashes`). */
+  hashes?: string[][]
 }
 
 export interface PublishInput extends ModelData {
