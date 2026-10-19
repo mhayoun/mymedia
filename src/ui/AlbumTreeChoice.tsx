@@ -75,7 +75,7 @@ export function AlbumTreeChoice({ categories, label, onChoose, disabled, exclude
             value={query}
             placeholder={t('classify.findAlbum')}
             onChange={(e) => setQuery(e.target.value)}
-            style={{ marginBlockEnd: 10, inlineSize: '50%', minInlineSize: '12rem' }}
+            style={{ marginBlockEnd: 10 }}
           />
           {shown.length ? (
             <FolderTreePicker
