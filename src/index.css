@@ -372,7 +372,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 /* ---------- Search & filters ---------- */
 .filter-bar { padding: 8px 14px; border-block-end: 1px solid var(--border); display: grid; gap: 8px; }
 .filter-bar > .row:first-child { flex-wrap: nowrap; }
-.filter-bar .search { display: flex; align-items: center; gap: 6px; flex: 0 1 100px; min-inline-size: 0; max-inline-size: 100px; border: 1px solid var(--border); border-radius: 8px; padding-inline: 10px 4px; background: var(--surface); color: var(--text-2); }
+.filter-bar .search { display: flex; align-items: center; gap: 6px; flex: 1 1 120px; min-inline-size: 0; max-inline-size: 210px; border: 1px solid var(--border); border-radius: 8px; padding-inline: 10px 4px; background: var(--surface); color: var(--text-2); }
 .filter-bar .search input { border: none; padding-inline: 0; background: transparent; outline: none; }
 .filter-panel { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px 12px; align-items: end; }
 .filter-panel .field { margin: 0; }
