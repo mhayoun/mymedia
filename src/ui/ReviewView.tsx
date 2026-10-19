@@ -7,7 +7,7 @@ import { placementOf } from '../lib/tree'
 import { startIndexer } from '../ml/indexer'
 import { app, useApp } from '../store'
 import { trashMedia } from '../sync/media'
-import { AlbumSelect } from './AlbumSelect'
+import { AlbumTreeChoice } from './AlbumTreeChoice'
 import { ConfirmDialog } from './Dialog'
 import { NewAlbumDialog } from './NewAlbumDialog'
 import { ReviewGroups } from './ReviewGroups'
@@ -176,9 +176,9 @@ export function ReviewView({ lib, items, mode }: Props) {
                       <div className="hint">{analysed && !analysed(rec) ? t('classify.waitingAnalysis') : t('classify.noSuggestion')}</div>
                     )}
                     <div className="row">
-                      <AlbumSelect withModels
+                      <AlbumTreeChoice
                         categories={lib.categories}
-                        placeholder={t('classify.otherAlbum')}
+                        label={t('classify.otherAlbum')}
                         disabled={isBusy}
                         exclude={rec.folderId}
                         onChoose={(f) => act(rec.id, () => chooseFolder(rec.id, f))}
@@ -204,9 +204,9 @@ export function ReviewView({ lib, items, mode }: Props) {
                       <button className="btn primary" disabled={isBusy} onClick={() => act(rec.id, () => confirmAuto([rec.id]))}>
                         <Check size={16} /> {t('classify.correct')}
                       </button>
-                      <AlbumSelect withModels
+                      <AlbumTreeChoice
                         categories={lib.categories}
-                        placeholder={t('classify.fix')}
+                        label={t('classify.fix')}
                         disabled={isBusy}
                         exclude={rec.folderId}
                         onChoose={(f) => act(rec.id, () => chooseFolder(rec.id, f))}
