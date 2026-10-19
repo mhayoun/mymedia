@@ -1,4 +1,4 @@
-import { Images, Loader2, Merge, Scissors, UserMinus, UserX } from 'lucide-react'
+import { CheckSquare, Images, Loader2, Merge, Scissors, UserMinus, UserX } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { assignFaces, mergePersons, namePerson, removeFaces, splitFaces } from '../faces/engine'
@@ -24,6 +24,7 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
   const [forgetOpen, setForgetOpen] = useState(false)
   if (!person) return null
 
+  const allSelected = person.faces.length > 0 && person.faces.every((f) => selected.has(f.id))
   const others = [...people.named, ...people.unnamed].filter((p) => p.id !== person.id)
   const label = (p: { name?: string; faces: unknown[] }) => p.name ?? t('faces.unnamedCount', { count: p.faces.length })
   const run = async (fn: () => Promise<unknown>) => {
@@ -105,6 +106,15 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
         />
       )}
       <p className="hint">{t('faces.facesHint', { count: person.faces.length, n: fmt.number(person.faces.length) })}</p>
+      <div className="row" style={{ marginBlockEnd: 8 }}>
+        <button
+          className="btn ghost"
+          disabled={busy}
+          onClick={() => setSelected(allSelected ? new Set() : new Set(person.faces.map((f) => f.id)))}
+        >
+          <CheckSquare size={16} /> {allSelected ? t('select.none') : t('select.all')}
+        </button>
+      </div>
       <div className="face-grid">
         {person.faces.slice(0, shown).map((f) => (
           <label key={f.id} className={`face-pick ${selected.has(f.id) ? 'on' : ''}`}>

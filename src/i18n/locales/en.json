@@ -498,6 +498,7 @@
     "button": "Select",
     "title": "Selection",
     "all": "Select all",
+    "none": "Deselect all",
     "moveTo": "Move to…",
     "newAlbum": "New album",
     "person": "Person",
