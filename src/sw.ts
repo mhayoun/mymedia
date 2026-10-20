@@ -59,36 +59,64 @@ const VIDEO_CACHE = 'mymedia-videos'
 /** Videos kept on the device: each up to 200 MB, 1 GB in all (oldest removed first). */
 const VIDEO_MAX_FILE = 200 * 1024 * 1024
 const VIDEO_MAX_TOTAL = 1024 * 1024 * 1024
-const caching = new Set<string>()
+/** Videos being kept while they play: a jump elsewhere in the video stops it, for the jump to get all the bandwidth. */
+const keeping = new Map<string, AbortController>()
 
 const driveMedia = (id: string) => `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media&supportsAllDrives=true`
 const videoKey = (id: string, version: string) => new Request(`${self.registration.scope}__video/${encodeURIComponent(id)}?v=${encodeURIComponent(version)}`)
 
-/** Downloads the whole video once, in the background, for the next plays. */
-async function keepVideo(id: string, version: string, size: number, type: string) {
-  if (caching.has(id) || size > VIDEO_MAX_FILE || !driveToken) return
-  caching.add(id)
-  try {
-    const res = await fetch(driveMedia(id), { headers: { Authorization: `Bearer ${driveToken}` } })
-    if (!res.ok) return
-    const blob = await res.blob()
-    if (blob.size !== size) return
-    const cache = await caches.open(VIDEO_CACHE)
-    for (const k of await cache.keys()) if (k.url.includes(`/__video/${encodeURIComponent(id)}?`)) await cache.delete(k)
-    await cache.put(videoKey(id, version), new Response(blob, { headers: { 'Content-Type': type, 'X-Size': String(size) } }))
-    // Oldest first: remove until under the limit.
-    const keys = await cache.keys()
-    const sizes = await Promise.all(keys.map(async (k) => Number((await cache.match(k))?.headers.get('X-Size') ?? 0)))
-    let total = sizes.reduce((a, b) => a + b, 0)
-    for (let i = 0; i < keys.length - 1 && total > VIDEO_MAX_TOTAL; i++) {
-      await cache.delete(keys[i])
-      total -= sizes[i]
-    }
-  } catch {
-    // not kept: it will stream again next time
-  } finally {
-    caching.delete(id)
+async function storeVideo(id: string, version: string, size: number, type: string, blob: Blob) {
+  if (blob.size !== size) return
+  const cache = await caches.open(VIDEO_CACHE)
+  for (const k of await cache.keys()) if (k.url.includes(`/__video/${encodeURIComponent(id)}?`)) await cache.delete(k)
+  await cache.put(videoKey(id, version), new Response(blob, { headers: { 'Content-Type': type, 'X-Size': String(size) } }))
+  // Oldest first: remove until under the limit.
+  const keys = await cache.keys()
+  const sizes = await Promise.all(keys.map(async (k) => Number((await cache.match(k))?.headers.get('X-Size') ?? 0)))
+  let total = sizes.reduce((a, b) => a + b, 0)
+  for (let i = 0; i < keys.length - 1 && total > VIDEO_MAX_TOTAL; i++) {
+    await cache.delete(keys[i])
+    total -= sizes[i]
   }
+}
+
+/**
+ * Plays the video from its start and keeps it from the same download (one
+ * download, not two: on mobile data a second, parallel one made the video
+ * stop and go). Stops when the video stops reading (viewer closed).
+ */
+function playAndKeep(body: ReadableStream<Uint8Array>, abort: AbortController, keep: (blob: Blob) => Promise<void>): { stream: ReadableStream<Uint8Array>; done: Promise<void> } {
+  const [toVideo, toCache] = body.tee()
+  const done = (async () => {
+    const chunks: Uint8Array[] = []
+    const reader = toCache.getReader()
+    try {
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) break
+        chunks.push(value)
+      }
+      await keep(new Blob(chunks as BlobPart[]))
+    } catch {
+      // stopped: it will stream again next time
+    }
+  })()
+  const reader = toVideo.getReader()
+  const stream = new ReadableStream<Uint8Array>({
+    async pull(c) {
+      try {
+        const { done, value } = await reader.read()
+        if (done) c.close()
+        else c.enqueue(value)
+      } catch (e) {
+        c.error(e)
+      }
+    },
+    cancel() {
+      abort.abort()
+    },
+  })
+  return { stream, done }
 }
 
 registerRoute(
@@ -113,13 +141,32 @@ registerRoute(
     }
 
     if (!driveToken || !size) return new Response(null, { status: 401 })
-    if (version) (event as ExtendableEvent).waitUntil(keepVideo(id, version, size, type))
-    const res = await fetch(driveMedia(id), {
-      headers: { Authorization: `Bearer ${driveToken}`, Range: `bytes=${start}-${end}` },
-    })
-    if (!res.ok) return new Response(null, { status: res.status })
+    // From the start to the end: the whole file, kept while it plays. Elsewhere (a jump): that part only.
+    const whole = start === 0 && end === size - 1 && !!version && size <= VIDEO_MAX_FILE && !keeping.has(id)
+    if (!whole) keeping.get(id)?.abort()
+    const abort = new AbortController()
+    if (whole) keeping.set(id, abort)
+    let res: Response
+    try {
+      res = await fetch(driveMedia(id), {
+        headers: { Authorization: `Bearer ${driveToken}`, Range: `bytes=${start}-${end}` },
+        signal: abort.signal,
+      })
+    } catch {
+      if (keeping.get(id) === abort) keeping.delete(id)
+      return new Response(null, { status: 504 })
+    }
+    if (!res.ok || !res.body) {
+      if (keeping.get(id) === abort) keeping.delete(id)
+      return new Response(null, { status: res.status })
+    }
     const headers = new Headers({ 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Content-Length': String(end - start + 1) })
     if (m) headers.set('Content-Range', `bytes ${start}-${end}/${size}`)
+    if (whole) {
+      const { stream, done } = playAndKeep(res.body, abort, (blob) => storeVideo(id, version, size, type, blob))
+      ;(event as ExtendableEvent).waitUntil(done.finally(() => keeping.get(id) === abort && keeping.delete(id)))
+      return new Response(stream, { status: m ? 206 : 200, headers })
+    }
     return new Response(res.body, { status: m ? 206 : 200, headers })
   },
 )
