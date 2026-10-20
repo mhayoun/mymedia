@@ -14,6 +14,7 @@ import { cachedThumbUrl } from '../sync/thumbs'
 import { chooseFolder } from '../classify/engine'
 import { assignFaces, namePerson, removeFaces, splitFaces } from '../faces/engine'
 import { AlbumSelect } from './AlbumSelect'
+import { AlbumTreeChoice } from './AlbumTreeChoice'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog } from './Dialog'
 import { FaceImg } from './FaceImg'
@@ -475,11 +476,11 @@ function InfoPanel({ item }: { item: LibraryItem }) {
       )}
       {compressOpen && <CompressDialog mode="manual" title={t('compress.titleFor', { name: rec.name })} items={[rec]} onClose={() => setCompressOpen(false)} />}
       {lib && (
-        <label className="field">
+        <div className="field">
           {t('classify.moveTo')}
-          <AlbumSelect withModels
+          <AlbumTreeChoice
             categories={lib.categories}
-            placeholder={t('classify.otherAlbum')}
+            label={t('classify.otherAlbum')}
             disabled={moving}
             exclude={rec.folderId}
             onChoose={async (folderId) => {
@@ -491,7 +492,7 @@ function InfoPanel({ item }: { item: LibraryItem }) {
               }
             }}
           />
-        </label>
+        </div>
       )}
       {lib && (
         <button type="button" className="btn" style={{ marginBlockEnd: 12 }} disabled={moving} onClick={() => setNewAlbumOpen(true)}>
