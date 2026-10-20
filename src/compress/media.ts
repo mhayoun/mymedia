@@ -69,6 +69,22 @@ export function canCompressVideo(): Promise<boolean> {
   return videoCheck
 }
 
+let aacReady: Promise<void> | null = null
+
+/**
+ * Browsers that cannot make AAC sound themselves (Chrome on Linux, Firefox…)
+ * get an encoder in WebAssembly: camera videos with uncompressed sound
+ * (e.g. Canon MVI_….MOV) can then be compressed too.
+ */
+function aacEncoder(canEncodeAudio: (codec: 'aac') => Promise<boolean>): Promise<void> {
+  aacReady ??= (async () => {
+    if (await canEncodeAudio('aac')) return
+    const { registerAacEncoder } = await import('@mediabunny/aac-encoder')
+    registerAacEncoder()
+  })()
+  return aacReady
+}
+
 /**
  * Re-encodes a video to H.264/AAC MP4. The original is either a Drive file
  * (read piece by piece) or a local file being imported.
@@ -79,7 +95,8 @@ export async function compressVideo(
   onProgress: (p: number) => void,
   signal: AbortSignal,
 ): Promise<Blob> {
-  const { ALL_FORMATS, BlobSource, BufferTarget, Conversion, CustomSource, Input, Mp4OutputFormat, Output } = await import('mediabunny')
+  const { ALL_FORMATS, BlobSource, BufferTarget, canEncodeAudio, Conversion, CustomSource, Input, Mp4OutputFormat, Output } = await import('mediabunny')
+  await aacEncoder(canEncodeAudio)
   const input = new Input({
     formats: ALL_FORMATS,
     source:
@@ -108,7 +125,7 @@ export async function compressVideo(
       audio: (track) => (track.codec === 'aac' ? {} : { codec: 'aac', bitrate: 128_000 }),
       tags: (tags) => tags, // keep creation date, location…
     })
-    if (!conversion.isValid) throw new Error('video format not supported')
+    if (!conversion.isValid) throw new Error(conversion.discardedTracks.map((d) => `${d.track.type} ${d.track.codec ?? '?'}: ${d.reason}`).join(', ') || 'video format not supported')
     // Never produce a silent video: if the sound cannot be kept, leave the file alone.
     if (conversion.discardedTracks.some((d) => d.track.type === 'audio')) throw new Error('the sound of this video cannot be kept')
     conversion.onProgress = onProgress

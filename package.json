@@ -13,6 +13,7 @@
     "prebuild": "node scripts/prepare-assets.mjs"
   },
   "dependencies": {
+    "@mediabunny/aac-encoder": "^1.61.3",
     "@tanstack/react-virtual": "^3.14.13",
     "@vercel/blob": "^2.8.1",
     "dexie": "^4.4.6",

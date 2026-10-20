@@ -167,7 +167,7 @@ async function compressOne(rec: MediaRecord, signal: AbortSignal, onFile: (p: nu
   return blob.size
 }
 
-export type Outcome = { status: 'done'; after: number } | { status: 'nogain' } | { status: 'error' } | { status: 'pending' }
+export type Outcome = { status: 'done'; after: number } | { status: 'nogain' } | { status: 'error'; reason?: string } | { status: 'pending' }
 
 /** Runs compressions one after another; each file's outcome is published as it finishes. */
 function runQueue(items: MediaRecord[]): Promise<{ count: number; saved: number }> {
@@ -193,7 +193,7 @@ function runQueue(items: MediaRecord[]): Promise<{ count: number; saved: number 
       } catch (e) {
         if (signal.aborted) break
         console.error('[MyMedia] compression failed', rec.name, e)
-        outcome(rec.id, { status: 'error' })
+        outcome(rec.id, { status: 'error', reason: e instanceof Error ? e.message || e.name : String(e) })
       }
       done++
     }

@@ -111,8 +111,9 @@ export function CompressDialog(props: Props) {
       )
     if (o.status === 'nogain') return <span className="hint">{t('compress.keptUnchanged')}</span>
     return (
-      <span className="error-text">
+      <span className="error-text" title={o.reason}>
         <X size={14} /> {t('compress.failed')}
+        {o.reason && <span className="hint"> ({o.reason})</span>}
       </span>
     )
   }
