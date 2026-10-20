@@ -5,6 +5,7 @@ import { downloadBlob } from '../drive/api'
 import { useFormat } from '../i18n/format'
 import { ORIGINS, type Origin } from '../lib/media'
 import { ALBUM_SEPARATOR } from '../lib/tree'
+import { bytesBeforePlay, VIDEO_CHANNEL, type VideoProgress } from '../lib/videoBuffer'
 import { useApp } from '../store'
 import { trashMedia } from '../sync/media'
 import { updateMeta } from '../sync/metaStore'
@@ -218,6 +219,75 @@ function PhotoStage({ item }: { item: LibraryItem }) {
   )
 }
 
+/** Wi-Fi or a wired connection: no need to wait before playing (where the browser tells). */
+function fastConnection(): boolean {
+  const type = (navigator as Navigator & { connection?: { type?: string } }).connection?.type
+  return type === 'wifi' || type === 'ethernet'
+}
+
+/** Without news from the service worker this long, the video just plays. */
+const NO_NEWS_MS = 4000
+/** The speed is measured over at least this long before deciding. */
+const MEASURE_MS = 1500
+
+/**
+ * On mobile data: the video loads, paused, until the rest will arrive before
+ * it is needed, then plays without stopping. Returns the share loaded of
+ * what is needed, null when playing (or not waiting).
+ */
+function useBufferBeforePlay(
+  video: React.RefObject<HTMLVideoElement | null>,
+  id: string,
+  durationMs: number | undefined,
+  active: boolean,
+): number | null {
+  const [share, setShare] = useState(0)
+  const [playing, setPlaying] = useState(false)
+  useEffect(() => {
+    if (!active) return
+    let done = false
+    let first: { at: number; loaded: number } | null = null
+    const start = () => {
+      if (done) return
+      done = true
+      setPlaying(true)
+      // Refused (e.g. iPhone, not right after a tap): the controls are there.
+      video.current?.play().catch(() => undefined)
+    }
+    const timer = setTimeout(() => !first && start(), NO_NEWS_MS)
+    const channel = new BroadcastChannel(VIDEO_CHANNEL)
+    channel.onmessage = (e: MessageEvent<VideoProgress>) => {
+      const { id: of, loaded, size } = e.data
+      if (of !== id || done) return
+      if (loaded >= size) return start()
+      const now = Date.now()
+      if (!first) first = { at: now, loaded }
+      const elapsed = (now - first.at) / 1000
+      if (elapsed * 1000 < MEASURE_MS) return
+      const rate = (loaded - first.loaded) / elapsed
+      const d = video.current?.duration
+      const duration = d && Number.isFinite(d) ? d : (durationMs ?? 0) / 1000
+      const needed = bytesBeforePlay(size, rate, duration)
+      if (loaded >= needed) start()
+      else setShare(loaded / needed)
+    }
+    // The user pressed play: they decide.
+    const v = video.current
+    const onPlay = () => {
+      done = true
+      setPlaying(true)
+    }
+    v?.addEventListener('play', onPlay)
+    return () => {
+      done = true
+      clearTimeout(timer)
+      channel.close()
+      v?.removeEventListener('play', onPlay)
+    }
+  }, [video, id, durationMs, active])
+  return active && !playing ? share : null
+}
+
 function VideoStage({ item }: { item: LibraryItem }) {
   const { t } = useTranslation()
   const fmt = useFormat()
@@ -228,6 +298,18 @@ function VideoStage({ item }: { item: LibraryItem }) {
   const [failed, setFailed] = useState(false)
   const abort = useRef<AbortController | null>(null)
   useEffect(() => () => abort.current?.abort(), [])
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  // Closed or another photo: the service worker stops downloading this video.
+  useEffect(() => {
+    const id = item.rec.id
+    return () => {
+      const c = new BroadcastChannel(VIDEO_CHANNEL)
+      c.postMessage({ stop: id })
+      c.close()
+    }
+  }, [item.rec.id])
+  const [buffered] = useState(() => !fastConnection())
+  const waiting = useBufferBeforePlay(videoRef, item.rec.id, item.rec.durationMs, !!stream && buffered)
 
   async function download() {
     abort.current = new AbortController()
@@ -250,18 +332,27 @@ function VideoStage({ item }: { item: LibraryItem }) {
 
   if (stream && !failed)
     return (
-      <video
-        src={stream}
-        poster={poster}
-        controls
-        autoPlay
-        playsInline
-        onError={() => {
-          // Streaming refused (e.g. token being renewed): download instead.
-          setStream(null)
-          void download()
-        }}
-      />
+      <>
+        <video
+          ref={videoRef}
+          src={stream}
+          poster={poster}
+          controls
+          autoPlay={!buffered}
+          preload="auto"
+          playsInline
+          onError={() => {
+            // Streaming refused (e.g. token being renewed): download instead.
+            setStream(null)
+            void download()
+          }}
+        />
+        {waiting !== null && (
+          <div className="status">
+            <span>{t('viewer.buffering', { percent: fmt.percent(waiting) })}</span>
+          </div>
+        )}
+      </>
     )
   if (src && !failed) return <video src={src} controls autoPlay playsInline onError={() => setFailed(true)} />
   return (

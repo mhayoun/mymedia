@@ -141,7 +141,8 @@
     "group": "קבוצת פייסבוק",
     "imported": "יובא מ",
     "loadingOriginal": "איכות מלאה… {{percent}}",
-    "newAlbum": "אלבום חדש עם התמונה"
+    "newAlbum": "אלבום חדש עם התמונה",
+    "buffering": "טוען לפני הניגון, כדי שלא ייעצר… {{percent}}"
   },
   "origin": {
     "camera": "מצלמה / טלפון",

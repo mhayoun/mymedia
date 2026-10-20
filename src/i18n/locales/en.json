@@ -140,7 +140,8 @@
     "group": "Facebook group",
     "imported": "Imported from",
     "loadingOriginal": "Full quality… {{percent}}",
-    "newAlbum": "New album with this photo"
+    "newAlbum": "New album with this photo",
+    "buffering": "Loading before playing, so it does not stop… {{percent}}"
   },
   "origin": {
     "camera": "Camera / phone",

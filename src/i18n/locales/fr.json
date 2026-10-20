@@ -138,7 +138,8 @@
     "group": "Groupe Facebook",
     "imported": "Importée de",
     "loadingOriginal": "Pleine qualité… {{percent}}",
-    "newAlbum": "Nouvel album avec cette photo"
+    "newAlbum": "Nouvel album avec cette photo",
+    "buffering": "Chargement avant lecture, pour qu’elle ne s’arrête pas… {{percent}}"
   },
   "origin": {
     "camera": "Appareil photo / téléphone",

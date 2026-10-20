@@ -5,6 +5,7 @@
 // (a limited amount) so they start at once the next time.
 
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
+import { VIDEO_CHANNEL, type VideoProgress } from './lib/videoBuffer'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { clientsClaim } from 'workbox-core'
 
@@ -59,8 +60,10 @@ const VIDEO_CACHE = 'mymedia-videos'
 /** Videos kept on the device: each up to 200 MB, 1 GB in all (oldest removed first). */
 const VIDEO_MAX_FILE = 200 * 1024 * 1024
 const VIDEO_MAX_TOTAL = 1024 * 1024 * 1024
-/** Videos being kept while they play: a jump elsewhere in the video stops it, for the jump to get all the bandwidth. */
-const keeping = new Map<string, AbortController>()
+/** A part this far past what has arrived does not wait for it: it is asked for directly. */
+const NEAR = 4 * 1024 * 1024
+/** How much of a playing video has arrived, for the viewer to start when the rest will come in time. */
+const progress = new BroadcastChannel(VIDEO_CHANNEL)
 
 const driveMedia = (id: string) => `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(id)}?alt=media&supportsAllDrives=true`
 const videoKey = (id: string, version: string) => new Request(`${self.registration.scope}__video/${encodeURIComponent(id)}?v=${encodeURIComponent(version)}`)
@@ -81,42 +84,96 @@ async function storeVideo(id: string, version: string, size: number, type: strin
 }
 
 /**
- * Plays the video from its start and keeps it from the same download (one
- * download, not two: on mobile data a second, parallel one made the video
- * stop and go). Stops when the video stops reading (viewer closed).
+ * A video playing: downloaded once, from start to end, as fast as the
+ * network allows, whatever the player reads; the player reads from it.
+ * On mobile data a second, parallel download (to keep the video) made it
+ * stop and go. Kept on the device once complete.
  */
-function playAndKeep(body: ReadableStream<Uint8Array>, abort: AbortController, keep: (blob: Blob) => Promise<void>): { stream: ReadableStream<Uint8Array>; done: Promise<void> } {
-  const [toVideo, toCache] = body.tee()
-  const done = (async () => {
-    const chunks: Uint8Array[] = []
-    const reader = toCache.getReader()
+interface Download {
+  chunks: Uint8Array[]
+  /** Offset of each chunk in the file. */
+  offsets: number[]
+  loaded: number
+  size: number
+  state: 'loading' | 'done' | 'failed'
+  abort: AbortController
+  wake: Set<() => void>
+  done?: Promise<void>
+}
+const downloads = new Map<string, Download>()
+
+function startDownload(id: string, version: string, size: number, type: string): Download {
+  const dl: Download = { chunks: [], offsets: [], loaded: 0, size, state: 'loading', abort: new AbortController(), wake: new Set() }
+  downloads.set(id, dl)
+  const notify = () => {
+    for (const w of dl.wake) w()
+    dl.wake.clear()
+  }
+  dl.done = (async () => {
+    let told = 0
     try {
+      const res = await fetch(driveMedia(id), { headers: { Authorization: `Bearer ${driveToken}` }, signal: dl.abort.signal })
+      if (!res.ok || !res.body) throw new Error(String(res.status))
+      const reader = res.body.getReader()
       for (;;) {
         const { done, value } = await reader.read()
         if (done) break
-        chunks.push(value)
+        dl.offsets.push(dl.loaded)
+        dl.chunks.push(value)
+        dl.loaded += value.byteLength
+        notify()
+        if (Date.now() - told > 250) {
+          told = Date.now()
+          progress.postMessage({ id, loaded: dl.loaded, size } satisfies VideoProgress)
+        }
       }
-      await keep(new Blob(chunks as BlobPart[]))
+      dl.state = 'done'
+      progress.postMessage({ id, loaded: dl.loaded, size } satisfies VideoProgress)
+      notify()
+      await storeVideo(id, version, size, type, new Blob(dl.chunks as BlobPart[]))
     } catch {
-      // stopped: it will stream again next time
+      dl.state = 'failed'
+      notify()
+    } finally {
+      if (downloads.get(id) === dl) downloads.delete(id)
     }
   })()
-  const reader = toVideo.getReader()
-  const stream = new ReadableStream<Uint8Array>({
+  return dl
+}
+
+/** Bytes start..end of a download, as they arrive. */
+function readFrom(dl: Download, start: number, end: number): ReadableStream<Uint8Array> {
+  let pos = start
+  return new ReadableStream<Uint8Array>({
     async pull(c) {
-      try {
-        const { done, value } = await reader.read()
-        if (done) c.close()
-        else c.enqueue(value)
-      } catch (e) {
-        c.error(e)
+      while (pos > end || dl.loaded <= pos) {
+        if (pos > end) return c.close()
+        if (dl.state === 'failed') return c.error(new Error('video download failed'))
+        if (dl.state === 'done') return c.close()
+        await new Promise<void>((r) => dl.wake.add(r))
       }
-    },
-    cancel() {
-      abort.abort()
+      // The chunk holding pos (chunks are in order).
+      let lo = 0
+      let hi = dl.offsets.length - 1
+      while (lo < hi) {
+        const mid = (lo + hi + 1) >> 1
+        if (dl.offsets[mid] <= pos) lo = mid
+        else hi = mid - 1
+      }
+      const chunk = dl.chunks[lo]
+      const from = pos - dl.offsets[lo]
+      const part = chunk.subarray(from, Math.min(chunk.byteLength, from + end - pos + 1))
+      pos += part.byteLength
+      c.enqueue(part)
     },
   })
-  return { stream, done }
+}
+
+// The viewer closed this video: stop downloading it.
+progress.onmessage = (e: MessageEvent<{ stop?: string }>) => {
+  const id = e.data?.stop
+  const dl = id ? downloads.get(id) : undefined
+  if (dl && dl.state === 'loading') dl.abort.abort()
 }
 
 registerRoute(
@@ -134,6 +191,7 @@ registerRoute(
     // Already on the device: no network at all.
     const kept = version ? await (await caches.open(VIDEO_CACHE)).match(videoKey(id, version)) : undefined
     if (kept && size) {
+      progress.postMessage({ id, loaded: size, size } satisfies VideoProgress)
       const part = (await kept.blob()).slice(start, end + 1)
       const headers = new Headers({ 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Content-Length': String(part.size) })
       if (m) headers.set('Content-Range', `bytes ${start}-${end}/${size}`)
@@ -141,32 +199,20 @@ registerRoute(
     }
 
     if (!driveToken || !size) return new Response(null, { status: 401 })
-    // From the start to the end: the whole file, kept while it plays. Elsewhere (a jump): that part only.
-    const whole = start === 0 && end === size - 1 && !!version && size <= VIDEO_MAX_FILE && !keeping.has(id)
-    if (!whole) keeping.get(id)?.abort()
-    const abort = new AbortController()
-    if (whole) keeping.set(id, abort)
-    let res: Response
-    try {
-      res = await fetch(driveMedia(id), {
-        headers: { Authorization: `Bearer ${driveToken}`, Range: `bytes=${start}-${end}` },
-        signal: abort.signal,
-      })
-    } catch {
-      if (keeping.get(id) === abort) keeping.delete(id)
-      return new Response(null, { status: 504 })
-    }
-    if (!res.ok || !res.body) {
-      if (keeping.get(id) === abort) keeping.delete(id)
-      return new Response(null, { status: res.status })
-    }
     const headers = new Headers({ 'Content-Type': type, 'Accept-Ranges': 'bytes', 'Content-Length': String(end - start + 1) })
     if (m) headers.set('Content-Range', `bytes ${start}-${end}/${size}`)
-    if (whole) {
-      const { stream, done } = playAndKeep(res.body, abort, (blob) => storeVideo(id, version, size, type, blob))
-      ;(event as ExtendableEvent).waitUntil(done.finally(() => keeping.get(id) === abort && keeping.delete(id)))
-      return new Response(stream, { status: m ? 206 : 200, headers })
+    // A part far past what has arrived (a jump, the end of the file read first): asked for directly.
+    let dl = downloads.get(id)
+    if (dl && dl.state !== 'done' && start > dl.loaded + NEAR) dl = undefined
+    else if (!dl && version && size <= VIDEO_MAX_FILE && start <= NEAR) {
+      dl = startDownload(id, version, size, type)
+      ;(event as ExtendableEvent).waitUntil(dl.done!)
     }
+    if (dl && dl.state !== 'failed') return new Response(readFrom(dl, start, end), { status: m ? 206 : 200, headers })
+    const res = await fetch(driveMedia(id), {
+      headers: { Authorization: `Bearer ${driveToken}`, Range: `bytes=${start}-${end}` },
+    })
+    if (!res.ok) return new Response(null, { status: res.status })
     return new Response(res.body, { status: m ? 206 : 200, headers })
   },
 )
