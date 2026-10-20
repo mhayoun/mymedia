@@ -13,7 +13,6 @@ import { loadOriginal, loadPreview, prefetchPreviews, previewIsOriginal, showabl
 import { cachedThumbUrl } from '../sync/thumbs'
 import { chooseFolder } from '../classify/engine'
 import { assignFaces, namePerson, removeFaces, splitFaces } from '../faces/engine'
-import { AlbumSelect } from './AlbumSelect'
 import { AlbumTreeChoice } from './AlbumTreeChoice'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog } from './Dialog'
