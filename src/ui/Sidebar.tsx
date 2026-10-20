@@ -37,7 +37,8 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
     }
     setClosed(null)
     setFilters({ categoryId, albumId, personId: null, provenance: null })
-    set({ sidebarOpen: false })
+    // A folder with sub-folders: the menu stays open (on a phone) to choose one of them.
+    if (!hasChildren) set({ sidebarOpen: false })
   }
   const total = lib.items.length
 
