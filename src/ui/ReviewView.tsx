@@ -231,7 +231,8 @@ export function ReviewView({ lib, items, mode }: Props) {
       )}
       </>
       )}
-      {viewerId && <Viewer ids={ids} items={items} />}
+      {/* The groups open their own viewer, in their order. */}
+      {viewerId && !grouped && <Viewer ids={ids} items={items} />}
       {toDelete && (
         <ConfirmDialog
           title={t('viewer.deleteTitle', { name: toDelete.name })}

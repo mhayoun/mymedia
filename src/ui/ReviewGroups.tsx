@@ -12,6 +12,7 @@ import { ConfirmDialog } from './Dialog'
 import { NewAlbumDialog } from './NewAlbumDialog'
 import { Thumb } from './Thumb'
 import { useAnalysed } from './useAnalysed'
+import { Viewer } from './Viewer'
 import type { Library, LibraryItem } from './useLibrary'
 
 const PAGE = 48
@@ -34,6 +35,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
   const set = useApp((s) => s.set)
+  const viewerId = useApp((s) => s.viewerId)
   const [picked, setPicked] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
@@ -56,6 +58,9 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
       .map(([folderId, list]) => ({ folderId, items: list.sort((a, b) => conf(b) - conf(a)) }))
       .sort((a, b) => last(a.folderId) - last(b.folderId) || b.items.length - a.items.length)
   }, [items, mode, analysed])
+
+  // Previous / next follow the groups as shown.
+  const orderedIds = useMemo(() => groups.flatMap((g) => g.items.map((i) => i.rec.id)), [groups])
 
   useEffect(() => {
     prepareLinks(groups.flatMap((g) => g.items.slice(0, PAGE).map((i) => i.rec)))
@@ -188,6 +193,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
           </section>
         )
       })}
+      {viewerId && <Viewer ids={orderedIds} items={items} />}
       {newAlbumFor && (
         <NewAlbumDialog
           lib={lib}
