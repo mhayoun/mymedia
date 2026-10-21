@@ -276,8 +276,14 @@ export function screenLoading(): boolean {
 }
 
 /** Waits until the thumbnails on screen are loaded (other work gives way to them). */
+let viewing = false
+/** A photo is open in the viewer: background work (analysis, thumbnails in advance) waits, the photo gets the network and the processor. */
+export function setViewing(on: boolean): void {
+  viewing = on
+}
+
 export async function afterScreenThumbs(): Promise<void> {
-  while (screenLoading()) await sleep(300)
+  while (screenLoading() || viewing) await sleep(300)
 }
 
 /**
@@ -303,7 +309,7 @@ export function warmThumbs(all: MediaRecord[]): void {
     const worker = async () => {
       while (next < todo.length) {
         if (gen !== warmGen || !navigator.onLine) return
-        while (screenLoading() || active >= MAX_PARALLEL - 4) {
+        while (screenLoading() || viewing || active >= MAX_PARALLEL - 4) {
           await sleep(200)
           if (gen !== warmGen) return
         }

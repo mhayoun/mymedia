@@ -11,7 +11,7 @@ import { trashMedia } from '../sync/media'
 import { updateMeta } from '../sync/metaStore'
 import { streamUrl } from '../sync/stream'
 import { loadOriginal, loadPreview, prefetchPreviews, previewIsOriginal, showable } from '../sync/previews'
-import { cachedThumbUrl } from '../sync/thumbs'
+import { cachedThumbUrl, setViewing } from '../sync/thumbs'
 import { chooseFolder } from '../classify/engine'
 import { assignFaces, namePerson, removeFaces, splitFaces } from '../faces/engine'
 import { AlbumTreeChoice } from './AlbumTreeChoice'
@@ -43,9 +43,13 @@ export function Viewer({ ids, items }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const rtl = i18n.dir() === 'rtl'
 
+  useEffect(() => {
+    setViewing(true)
+    return () => setViewing(false)
+  }, [])
   // The next and previous photos are prepared while this one is looked at.
   useEffect(() => {
-    const t = setTimeout(() => prefetchPreviews([1, -1, 2].map((d) => byId.get(ids[index + d])?.rec)), 300)
+    const t = setTimeout(() => prefetchPreviews([1, -1, 2, 3].map((d) => byId.get(ids[index + d])?.rec)), 300)
     return () => clearTimeout(t)
   }, [byId, ids, index])
 
