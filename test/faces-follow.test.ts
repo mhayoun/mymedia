@@ -11,7 +11,7 @@ const face = (id: string, personId: string | null, emb: Int8Array, by: 'auto' | 
 describe('facesToFollow', () => {
   const hadas = v(1, 0, 0)
   const noa = v(0, 1, 0)
-  it('names the look-alikes without a name, near copies included, one after the other', () => {
+  it('names the look-alikes without a name, near copies included', () => {
     const faces = [
       face('fixed', 'H', hadas, 'manual'),
       ...Array.from({ length: 50 }, (_, i) => face(`copy${i}`, 'U', v(1, 0.05, 0.01 * i))),
@@ -29,6 +29,21 @@ describe('facesToFollow', () => {
       face('r', 'U', v(1, 0.1, 0), 'auto', ['H']),
       face('nobody', null, v(1, 0, 0)),
     ]
+    expect(facesToFollow(faces, 'H', new Set(['U'])).size).toBe(0)
+  })
+  it('compares with the faces the user placed, not with faces that followed: no chain', () => {
+    // a → b → c each alike their neighbour, c not alike the face placed by the user.
+    const faces = [
+      face('fixed', 'H', v(1, 0, 0), 'manual'),
+      face('a', 'U', v(1, 0.5, 0)),
+      face('c', 'U', v(0.3, 1, 0)),
+    ]
+    const moved = facesToFollow(faces, 'H', new Set(['U']))
+    expect(moved.has('a')).toBe(true)
+    expect(moved.has('c')).toBe(false)
+  })
+  it('never moves a small face', () => {
+    const faces = [face('fixed', 'H', v(1, 0, 0), 'manual'), { ...face('s', 'U', v(1, 0.05, 0)), width: 0.03 }]
     expect(facesToFollow(faces, 'H', new Set(['U'])).size).toBe(0)
   })
   it('keeps a face closer to the faces staying in its group', () => {

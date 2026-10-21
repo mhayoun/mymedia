@@ -19,22 +19,23 @@ describe('placing a new face', () => {
     expect(r.suggested).toBeUndefined()
   })
 
-  it('a named person needs 0.5: between 0.32 and 0.5 it is only suggested', () => {
-    const known: KnownFace[] = [{ id: 'n1', personId: 'N', emb: unit(0.45) }]
+  it('a named person needs 0.6: between 0.4 and 0.6 it is only suggested, below nothing', () => {
+    const known: KnownFace[] = [{ id: 'n1', personId: 'N', emb: unit(0.55) }]
     expect(placeFace(v(1, 0, 0), 0.2, known, named)).toEqual({ personId: null, suggested: 'N' })
-    expect(placeFace(v(1, 0, 0), 0.2, [{ id: 'n1', personId: 'N', emb: unit(0.6) }], named)).toEqual({ personId: 'N' })
+    expect(placeFace(v(1, 0, 0), 0.2, [{ id: 'n1', personId: 'N', emb: unit(0.35) }], named)).toEqual({ personId: null, suggested: undefined })
+    expect(placeFace(v(1, 0, 0), 0.2, [{ id: 'n1', personId: 'N', emb: unit(0.65) }], named)).toEqual({ personId: 'N' })
   })
 
   it('a small face is never named on its own, only suggested; it may join an unnamed group', () => {
     const known: KnownFace[] = [
       { id: 'n1', personId: 'N', emb: unit(0.8) },
-      { id: 'u1', personId: 'U', emb: unit(0.5) },
+      { id: 'u1', personId: 'U', emb: unit(0.55) },
     ]
     expect(placeFace(v(1, 0, 0), 0.03, known, named)).toEqual({ personId: 'U', suggested: 'N' })
   })
 
   it('faces placed by the user count a bit more', () => {
-    const auto: KnownFace[] = [{ id: 'n1', personId: 'N', emb: unit(0.48) }]
+    const auto: KnownFace[] = [{ id: 'n1', personId: 'N', emb: unit(0.58) }]
     expect(placeFace(v(1, 0, 0), 0.2, auto, named).personId).toBeNull()
     expect(placeFace(v(1, 0, 0), 0.2, [{ ...auto[0], manual: true }], named).personId).toBe('N')
   })

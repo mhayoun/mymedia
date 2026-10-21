@@ -2,7 +2,7 @@
 // "people" of each media in mymedia.json up to date.
 
 import { db, type FaceRecord, type MediaRecord, type PersonRecord } from '../db/db'
-import { faceSimilarity, facesToFollow, placeFace, SAME_PERSON, type KnownFace } from '../lib/faces'
+import { faceSimilarity, facesToFollow, NAME_SURE, placeFace, SAME_PERSON, type KnownFace } from '../lib/faces'
 import type { FoundFace } from '../ml/faceModel'
 import { markMetaDirty } from '../sync/metaStore'
 import { app } from '../store'
@@ -150,7 +150,13 @@ async function fixOthers(targetId: string): Promise<number> {
   if (!unnamed.size) return 0
   const merged = new Set(persons.filter((p) => p.mergedInto).map((p) => p.id))
   const all = (await d.faces.toArray()).filter((f) => !f.personId || !merged.has(f.personId))
-  const moved = facesToFollow(all, targetId, unnamed)
+  const named = !!persons.find((p) => p.id === targetId)?.name
+  const moved = facesToFollow(
+    all.map((f) => ({ ...f, width: f.box[2] })),
+    targetId,
+    unnamed,
+    named ? NAME_SURE : SAME_PERSON,
+  )
   if (!moved.size) return 0
   const now = Date.now()
   const changed = all.filter((f) => moved.has(f.id)).map((f) => ({ ...f, personId: targetId, by: 'auto' as const, suggested: undefined, updatedAt: now }))
