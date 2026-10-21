@@ -1,9 +1,9 @@
-// Thumbnail packs: the thumbnails of an album in one file of the _thumbs
-// folder (150 a file, oldest first, so new photos change only the last one).
+// Thumbnail packs: the thumbnails of an album in a few files of the _thumbs
+// folder (60 a file, about 1 MB, oldest first, so new photos change only the last one).
 // A device opening an album for the first time downloads one file instead
-// of asking Drive for each thumbnail. Made by the devices that can write the
-// library, after each load from Drive; read by every device, the read-only
-// ones too. What is not in a pack (yet) is loaded one by one as before.
+// of asking Drive for each thumbnail. Made by the computers that can write
+// the library (not phones: it would slow what they show), after each load
+// from Drive; read by every device, the read-only ones too. What is not in a pack (yet) is loaded one by one as before.
 
 import { db, type MediaRecord } from '../db/db'
 import { createFolder, deleteFilePermanently, downloadBlob, findChildByName, listFiles, writeDataFile } from '../drive/api'
@@ -12,7 +12,7 @@ import { app, withStep } from '../store'
 import { afterScreenThumbs, driveThumbnail, isFastConnection, thumbVersion } from './thumbs'
 
 export const PACKS_FOLDER = '_thumbs'
-const CHUNK = 150
+const CHUNK = 60
 const PACK_SIZE = 320
 const QUALITY = 0.72
 const MAGIC = 'MMT1'
@@ -27,7 +27,14 @@ interface PackFile {
 let packs = new Map<string, PackFile>()
 /** Media id → its pack and how many thumbnails the pack holds. */
 let index = new Map<string, { key: string; count: number }>()
-const loads = new Map<string, Promise<void>>()
+/** Downloaded packs: their thumbnails, by media id (shown from memory, kept on the device meanwhile). */
+const loads = new Map<string, Promise<Map<string, PackThumb>>>()
+
+export interface PackThumb {
+  id: string
+  version: string
+  blob: Blob
+}
 
 export function packOf(mediaId: string): { key: string; count: number } | undefined {
   return index.get(mediaId)
@@ -38,7 +45,7 @@ export function packLoaded(key: string): boolean {
   return loads.has(key)
 }
 
-/** The media of each folder, in packs: oldest first, 150 a pack. */
+/** The media of each folder, in packs: oldest first, 60 a pack. */
 export function packGroups(media: MediaRecord[]): Map<string, MediaRecord[]> {
   const byFolder = new Map<string, MediaRecord[]>()
   for (const r of media) {
@@ -114,23 +121,26 @@ export async function preparePacks(): Promise<void> {
   }
 }
 
-/** Downloads a pack once and keeps its thumbnails on the device. */
-export function loadPack(key: string): Promise<void> {
+/** Downloads a pack once; its thumbnails are given at once and kept on the device in the background. */
+export function loadPack(key: string): Promise<Map<string, PackThumb>> {
   let run = loads.get(key)
   if (!run) {
     run = (async () => {
       const file = packs.get(key)
-      if (!file) return
-      const bytes = new Uint8Array(await (await downloadBlob(file.id)).arrayBuffer())
-      const thumbs = readPack(bytes)
-      if (thumbs.length) await db().thumbs.bulkPut(thumbs)
-    })().catch((e) => console.warn('[MyMedia] thumbnail pack', key, e))
+      if (!file) return new Map<string, PackThumb>()
+      const thumbs = readPack(new Uint8Array(await (await downloadBlob(file.id)).arrayBuffer()))
+      if (thumbs.length) void db().thumbs.bulkPut(thumbs).catch(() => undefined)
+      return new Map(thumbs.map((t) => [t.id, t]))
+    })().catch((e) => {
+      console.warn('[MyMedia] thumbnail pack', key, e)
+      return new Map<string, PackThumb>()
+    })
     loads.set(key, run)
   }
   return run
 }
 
-export function readPack(bytes: Uint8Array): { id: string; version: string; blob: Blob }[] {
+export function readPack(bytes: Uint8Array): PackThumb[] {
   if (new TextDecoder().decode(bytes.subarray(0, 4)) !== MAGIC) return []
   const len = new DataView(bytes.buffer, bytes.byteOffset + 4, 4).getUint32(0, true)
   const header = JSON.parse(new TextDecoder().decode(bytes.subarray(8, 8 + len))) as { items: [string, string, number, number][] }
@@ -200,9 +210,11 @@ async function thumbsFor(list: MediaRecord[]): Promise<{ id: string; version: st
 
 let building: Promise<void> | null = null
 
-/** Makes the missing or outdated packs (devices that can write the library, on Wi-Fi). */
+const isPhone = () => /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)
+
+/** Makes the missing or outdated packs (computers that can write the library). */
 export function buildPacks(): Promise<void> {
-  if (app().readOnly || !app().rootId || !navigator.onLine || !isFastConnection()) return Promise.resolve()
+  if (app().readOnly || !app().rootId || !navigator.onLine || isPhone() || !isFastConnection()) return Promise.resolve()
   building ??= (async () => {
     const groups = packGroups(await packable())
     if (!groups.size) return

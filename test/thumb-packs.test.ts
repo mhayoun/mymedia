@@ -6,12 +6,12 @@ const rec = (id: string, folderId: string, takenAt: string): MediaRecord =>
   ({ id, folderId, takenAt, name: id, mimeType: 'image/jpeg', type: 'photo', size: 1, createdTime: takenAt, modifiedTime: takenAt, md5: `m${id}` }) as MediaRecord
 
 describe('thumbnail packs', () => {
-  it('groups by folder, oldest first, 150 a pack', () => {
-    const media = Array.from({ length: 160 }, (_, i) => rec(`a${i}`, 'F', `2020-01-01T00:00:${String(i % 60).padStart(2, '0')}`))
+  it('groups by folder, oldest first, 60 a pack', () => {
+    const media = Array.from({ length: 70 }, (_, i) => rec(`a${i}`, 'F', `2020-01-01T00:00:${String(i % 60).padStart(2, '0')}`))
     media.push(rec('b', 'G', '2021-01-01T00:00:00'))
     const g = packGroups(media)
     expect([...g.keys()].sort()).toEqual(['F.0', 'F.1', 'G.0'])
-    expect(g.get('F.0')!.length).toBe(150)
+    expect(g.get('F.0')!.length).toBe(60)
     expect(g.get('F.1')!.length).toBe(10)
   })
   it('hash changes with a photo', () => {

@@ -10,8 +10,8 @@ import { videoFrameThumbnail } from './videoFrame'
 /** Phones show smaller cells: smaller thumbnails (a third lighter), as sharp on their screen. */
 const THUMB_SIZE = typeof matchMedia === 'function' && matchMedia('(max-width: 800px)').matches ? 320 : 400
 const MAX_PARALLEL = 20
-/** On mobile data, a pack is downloaded when this many of its thumbnails are wanted (or 40 % of it). */
-const PACK_MIN_WANTED = 25
+/** A pack is downloaded for the screen when this many of its thumbnails are wanted (or this share of it): fewer, one by one is quicker. */
+const PACK_MIN_WANTED = { fast: [12, 0.3], mobile: [25, 0.4] } as const
 const MAX_URLS = 800
 const LOCAL_RESIZE_MAX_BYTES = 25 * 1024 * 1024
 
@@ -261,15 +261,16 @@ export function isFastConnection(): boolean {
 /** Waiting for the pack being downloaded, by pack. */
 const waitingPack = new Map<string, Task[]>()
 
-/** Its pack is worth downloading: always on Wi-Fi; on mobile data when much of it is wanted. */
+/** Its pack is worth downloading: when much of it is on screen (more on mobile data). */
 function packToWaitFor(task: Task): string | null {
   if (task.noPack) return null
   const pack = packOf(task.rec.id)
   if (!pack || (packLoaded(pack.key) && !waitingPack.has(pack.key))) return null
-  if (waitingPack.has(pack.key) || isFastConnection()) return pack.key
+  if (waitingPack.has(pack.key)) return pack.key
   let wanted = 1
   for (const t of queue) if (!t.cancelled && packOf(t.rec.id)?.key === pack.key) wanted++
-  return wanted >= Math.min(PACK_MIN_WANTED, Math.ceil(pack.count * 0.4)) ? pack.key : null
+  const [min, share] = PACK_MIN_WANTED[isFastConnection() ? 'fast' : 'mobile']
+  return wanted >= Math.min(min, Math.ceil(pack.count * share)) ? pack.key : null
 }
 
 function waitForPack(task: Task, key: string) {
@@ -277,20 +278,19 @@ function waitForPack(task: Task, key: string) {
   if (list) return void list.push(task)
   waitingPack.set(key, [task])
   active++
-  void loadPack(key).finally(async () => {
+  void loadPack(key).then((thumbs) => {
     active--
     const tasks = waitingPack.get(key) ?? []
     waitingPack.delete(key)
-    const stored = await db().thumbs.bulkGet(tasks.map((t) => t.rec.id)).catch(() => [])
-    tasks.forEach((t, i) => {
-      const s = stored[i]
+    for (const t of tasks) {
+      const s = thumbs.get(t.rec.id)
       if (s && (s.version === thumbVersion(t.rec) || s.version === t.rec.modifiedTime)) t.resolve(remember(t.rec.id, s.blob))
       else {
         // Not in the pack (newer than it): on its own.
         t.noPack = true
         queue.push(t)
       }
-    })
+    }
     pump()
   })
 }
@@ -392,7 +392,7 @@ let warmGen = 0
 
 /** True while thumbnails asked for by the screen are still loading. */
 export function screenLoading(): boolean {
-  return queue.length > 0
+  return queue.length > 0 || waitingPack.size > 0
 }
 
 /** Waits until the thumbnails on screen are loaded (other work gives way to them). */
@@ -442,12 +442,8 @@ export function warmThumbs(all: MediaRecord[]): void {
         try {
           // On Wi-Fi, its whole pack at once (the next ones of the list are then already here).
           const pack = fast ? packOf(rec.id) : undefined
-          if (pack && !packLoaded(pack.key)) {
-            await loadPack(pack.key)
-            const s = await db().thumbs.get(rec.id)
-            if (s && (s.version === thumbVersion(rec) || s.version === rec.modifiedTime)) continue
-          } else if (pack) {
-            const s = await db().thumbs.get(rec.id)
+          if (pack) {
+            const s = (await loadPack(pack.key)).get(rec.id)
             if (s && (s.version === thumbVersion(rec) || s.version === rec.modifiedTime)) continue
           }
           const blob = await produce(rec)
