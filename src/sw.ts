@@ -22,23 +22,30 @@ precacheAndRoute(self.__WB_MANIFEST)
 registerRoute(
   ({ url, request }) => request.method === 'POST' && url.pathname.endsWith('/share-target'),
   async ({ request }) => {
-    const form = await request.formData()
-    const files = form.getAll('media').filter((f): f is File => f instanceof File)
-    const cache = await caches.open(SHARED_CACHE)
-    for (const key of await cache.keys()) await cache.delete(key)
-    for (const [i, file] of files.entries()) {
-      await cache.put(
-        new Request(`${self.registration.scope}shared/${i}`),
-        new Response(file, {
-          headers: {
-            'content-type': file.type || 'application/octet-stream',
-            'x-name': encodeURIComponent(file.name),
-            'x-modified': String(file.lastModified || Date.now()),
-          },
-        }),
-      )
+    let count = 0
+    try {
+      const form = await request.formData()
+      const files = form.getAll('media').filter((f): f is File => f instanceof File)
+      const cache = await caches.open(SHARED_CACHE)
+      for (const key of await cache.keys()) await cache.delete(key)
+      for (const [i, file] of files.entries()) {
+        await cache.put(
+          new Request(`${self.registration.scope}shared/${i}`),
+          new Response(file, {
+            headers: {
+              'content-type': file.type || 'application/octet-stream',
+              'x-name': encodeURIComponent(file.name),
+              'x-modified': String(file.lastModified || Date.now()),
+            },
+          }),
+        )
+        count++
+      }
+    } catch (e) {
+      // Too big for the device's storage, or unreadable: the app opens anyway and says so.
+      console.error('[MyMedia] shared files not kept', e)
     }
-    return Response.redirect(`${self.registration.scope}?shared=${files.length}`, 303)
+    return Response.redirect(`${self.registration.scope}?shared=${count}`, 303)
   },
   'POST',
 )

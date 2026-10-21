@@ -795,5 +795,10 @@
     "shareHint": "Pour montrer votre MyMedia à quelqu'un sans lui donner votre compte : dans Google Drive, partagez le dossier « {{name}} » avec son adresse Gmail, rôle « Lecteur ». En ouvrant MyMedia avec son compte, il le trouvera ici, en lecture seule.",
     "setupShared": "Un MyMedia est partagé avec vous, vous pouvez l’ouvrir :",
     "lost": "Le MyMedia partagé n'est plus accessible (le partage a été retiré) : votre propre bibliothèque est ouverte."
+  },
+  "shareIn": {
+    "readOnlyTitle": "Lecture seule",
+    "readOnlyText": "Le MyMedia ouvert est partagé avec vous en lecture seule : on ne peut rien y ajouter. Ouvrez votre propre bibliothèque pour y envoyer ces fichiers.",
+    "notReceived": "Les fichiers partagés ne sont pas arrivés jusqu'à MyMedia. Réessayez ; si cela recommence, désinstallez puis réinstallez MyMedia depuis Chrome."
   }
 }

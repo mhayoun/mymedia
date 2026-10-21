@@ -10,6 +10,7 @@ import { cancelCompression } from '../compress/engine'
 import { subtreeIds } from '../lib/tree'
 import { stopIndexer } from '../ml/indexer'
 import { setLibraryForWarm } from '../sync/thumbs'
+import { openLibrary } from '../sync/library'
 import { cancelSync, syncNow } from '../sync/engine'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog, PromptDialog } from './Dialog'
@@ -87,11 +88,17 @@ export function Shell() {
   }, [rootId])
 
   // Files shared to MyMedia from another app (Android Share menu).
+  const [sharedReadOnly, setSharedReadOnly] = useState(false)
   useEffect(() => {
-    if (!rootId || app().readOnly || !hasSharedFiles()) return
+    if (!rootId || !hasSharedFiles()) return
+    // A library shared for viewing cannot take them: offer to open the user's own (the files wait).
+    if (app().readOnly) return setSharedReadOnly(true)
     readSharedFiles().then((files) => {
       if (files.length) setDialog({ kind: 'import', destId: rootId, files })
-      else void clearSharedFiles()
+      else {
+        void clearSharedFiles()
+        app().set({ toast: { key: 'shareIn.notReceived' } })
+      }
     })
   }, [rootId])
 
@@ -229,6 +236,22 @@ export function Shell() {
       )}
       {filters.categoryId !== PEOPLE && rootId && !readOnly && (
         <SelectionBar lib={lib} people={people} items={items} parentId={filters.albumId ?? (filters.categoryId && lib.folders.has(filters.categoryId) ? filters.categoryId : rootId)} />
+      )}
+      {sharedReadOnly && (
+        <ConfirmDialog
+          title={t('shareIn.readOnlyTitle')}
+          text={t('shareIn.readOnlyText')}
+          confirmLabel={t('library.backToMine')}
+          onConfirm={() => {
+            // The page opens again on the user's own library, the shared files still waiting.
+            openLibrary(app().user!.email, null)
+            return new Promise<void>(() => {})
+          }}
+          onClose={() => {
+            setSharedReadOnly(false)
+            void clearSharedFiles()
+          }}
+        />
       )}
       {personOpen && <PersonDialog people={people} personId={personOpen} onClose={() => setPersonOpen(null)} />}
       {!readOnly && <FacesIntro people={people} />}
