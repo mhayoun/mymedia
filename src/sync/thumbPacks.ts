@@ -145,11 +145,22 @@ export function readPack(bytes: Uint8Array): PackThumb[] {
   const len = new DataView(bytes.buffer, bytes.byteOffset + 4, 4).getUint32(0, true)
   const header = JSON.parse(new TextDecoder().decode(bytes.subarray(8, 8 + len))) as { items: [string, string, number, number][] }
   const base = 8 + len
-  return header.items.map(([id, version, offset, length]) => ({
-    id,
-    version,
-    blob: new Blob([bytes.slice(base + offset, base + offset + length)], { type: 'image/jpeg' }),
-  }))
+  const out: PackThumb[] = []
+  for (const [id, version, offset, length] of header.items) {
+    const data = bytes.slice(base + offset, base + offset + length)
+    const type = imageType(data)
+    // Only pictures (a damaged pack must not show empty squares).
+    if (type && data.length === length) out.push({ id, version, blob: new Blob([data], { type }) })
+  }
+  return out
+}
+
+function imageType(b: Uint8Array): string | null {
+  if (b[0] === 0xff && b[1] === 0xd8) return 'image/jpeg'
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return 'image/png'
+  if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46) return 'image/webp'
+  if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46) return 'image/gif'
+  return null
 }
 
 export async function writePack(items: { id: string; version: string; blob: Blob }[]): Promise<Blob> {

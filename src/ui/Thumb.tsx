@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { MediaRecord } from '../db/db'
 import { useFormat } from '../i18n/format'
 import { useApp } from '../store'
-import { cachedThumbUrl, loadThumb, screenOrder } from '../sync/thumbs'
+import { cachedThumbUrl, loadThumb, reloadThumb, screenOrder } from '../sync/thumbs'
 
 interface Props {
   rec: MediaRecord
@@ -25,6 +25,7 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, o
   const bySize = useApp((s) => s.settings.sort === 'largest' || s.settings.sort === 'smallest')
   const [url, setUrl] = useState<string | null | undefined>(() => cachedThumbUrl(rec.id))
   const mounted = useRef(true)
+  const retried = useRef(false)
   const el = useRef<HTMLButtonElement>(null)
   const press = useRef<{ timer: ReturnType<typeof setTimeout>; fired: boolean } | null>(null)
 
@@ -73,7 +74,19 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, o
       title={rec.name}
     >
       {url ? (
-        <img src={url} alt="" loading="lazy" decoding="async" draggable={false} />
+        <img
+          src={url}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          draggable={false}
+          onError={() => {
+            // Not a picture the browser can draw: loaded again on its own, once.
+            if (retried.current) return setUrl(null)
+            retried.current = true
+            void reloadThumb(rec, () => mounted.current, () => screenOrder(el.current)).then((u) => mounted.current && setUrl(u))
+          }}
+        />
       ) : url === null ? (
         <span className="fallback">
           <bdi>{rec.name}</bdi>

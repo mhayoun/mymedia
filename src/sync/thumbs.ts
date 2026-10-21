@@ -260,6 +260,8 @@ export function isFastConnection(): boolean {
 
 /** Waiting for the pack being downloaded, by pack. */
 const waitingPack = new Map<string, Task[]>()
+/** A pack slower than this: its thumbnails are loaded one by one (the pack still arrives for later). */
+const PACK_WAIT_MS = 5000
 
 /** Its pack is worth downloading: when much of it is on screen (more on mobile data). */
 function packToWaitFor(task: Task): string | null {
@@ -278,7 +280,10 @@ function waitForPack(task: Task, key: string) {
   if (list) return void list.push(task)
   waitingPack.set(key, [task])
   active++
-  void loadPack(key).then((thumbs) => {
+  let settled = false
+  const release = (thumbs: Map<string, { version: string; blob: Blob }>) => {
+    if (settled) return
+    settled = true
     active--
     const tasks = waitingPack.get(key) ?? []
     waitingPack.delete(key)
@@ -292,7 +297,12 @@ function waitForPack(task: Task, key: string) {
       }
     }
     pump()
-  })
+  }
+  void loadPack(key).then(release)
+  setTimeout(() => {
+    if (!settled) console.warn('[MyMedia] thumbnail pack slow, loading one by one', key)
+    release(new Map())
+  }, PACK_WAIT_MS)
 }
 
 let pumpTimer: ReturnType<typeof setTimeout> | null = null
@@ -337,6 +347,21 @@ function pump() {
  * `isWanted` lets a scrolled-away cell drop its queued request; `order` (see
  * `screenOrder`) puts it in line, on-screen first (default: right away).
  */
+/** The thumbnail shown could not be drawn: forgotten, and loaded again on its own (not from a pack). */
+export async function reloadThumb(rec: MediaRecord, isWanted: () => boolean, order: () => number = () => 0): Promise<string | null> {
+  const url = urls.get(rec.id)
+  if (url) {
+    urls.delete(rec.id)
+    URL.revokeObjectURL(url)
+  }
+  await db().thumbs.delete(rec.id).catch(() => undefined)
+  if (!navigator.onLine || !isWanted()) return null
+  return new Promise<string | null>((resolve) => {
+    queue.push({ rec, resolve, cancelled: false, order, noPack: true })
+    schedulePump()
+  })
+}
+
 export function loadThumb(rec: MediaRecord, isWanted: () => boolean, order: () => number = () => 0): Promise<string | null> {
   const hit = cachedThumbUrl(rec.id)
   if (hit) return Promise.resolve(hit)

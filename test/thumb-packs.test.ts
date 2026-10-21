@@ -21,11 +21,11 @@ describe('thumbnail packs', () => {
   })
   it('reads what it wrote', async () => {
     const blob = await writePack([
-      { id: 'x', version: 'v1', blob: new Blob([new Uint8Array([1, 2, 3])]) },
-      { id: 'y', version: 'v2', blob: new Blob([new Uint8Array([4, 5])]) },
+      { id: 'x', version: 'v1', blob: new Blob([new Uint8Array([0xff, 0xd8, 3])]) },
+      { id: 'y', version: 'v2', blob: new Blob([new Uint8Array([0xff, 0xd8])]) },
     ])
     const items = readPack(new Uint8Array(await blob.arrayBuffer()))
     expect(items.map((i) => [i.id, i.version, i.blob.size])).toEqual([['x', 'v1', 3], ['y', 'v2', 2]])
-    expect([...new Uint8Array(await items[1].blob.arrayBuffer())]).toEqual([4, 5])
+    expect([...new Uint8Array(await items[1].blob.arrayBuffer())]).toEqual([0xff, 0xd8])
   })
 })
