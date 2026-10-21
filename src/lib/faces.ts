@@ -240,3 +240,29 @@ export function facesToFollow(faces: GroupedFace[], targetId: string, from: Read
   }
   return moved
 }
+
+/**
+ * Faces named automatically that do not look like their person enough:
+ * compared with the faces the user placed (else with the person's other
+ * faces), on the mean of the closest ones. Small faces too. Faces the user
+ * placed are never doubted. Returns their ids.
+ */
+export function doubtfulFaces(faces: GroupedFace[], threshold = NAME_SURE): string[] {
+  const doubtful: string[] = []
+  const byPerson = new Map<string, GroupedFace[]>()
+  for (const f of faces) if (f.personId) byPerson.set(f.personId, [...(byPerson.get(f.personId) ?? []), f])
+  for (const group of byPerson.values()) {
+    const placed = group.filter((f) => f.by === 'manual')
+    for (const f of group) {
+      if (f.by === 'manual') continue
+      if (f.width !== undefined && f.width < SMALL_FACE) {
+        doubtful.push(f.id)
+        continue
+      }
+      const anchors = placed.length ? placed : group.filter((o) => o !== f)
+      if (!anchors.length) continue // alone: nothing to compare with
+      if (topMean(anchors.map((a) => faceSimilarity(f.emb, a.emb))) < threshold) doubtful.push(f.id)
+    }
+  }
+  return doubtful
+}

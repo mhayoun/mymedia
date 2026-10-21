@@ -476,7 +476,15 @@
     "forgetText_one": "Le visage de {{count}} photo devient « Inconnu » et n'est plus nommé. MyMedia ne le remettra pas dans ce groupe. Vos photos ne sont pas touchées.",
     "forgetText_other": "Les visages de {{count}} photos deviennent « Inconnu » et ne sont plus nommés. MyMedia ne les remettra pas dans ce groupe. Vos photos ne sont pas touchées.",
     "useAsCover": "Photo de la personne",
-    "coverHint": "Pour choisir la photo qui représente la personne, cochez un seul visage puis « Photo de la personne »."
+    "coverHint": "Pour choisir la photo qui représente la personne, cochez un seul visage puis « Photo de la personne ».",
+    "recheck": "Revérifier les noms",
+    "recheckHint": "Retire le nom des visages nommés automatiquement qui ne ressemblent pas assez à leur personne ; ils passent dans « À confirmer ».",
+    "recheckText_one": "{{count}} visage nommé automatiquement ne ressemble pas assez à sa personne. Il perdra le nom et apparaîtra dans « À confirmer ». Les visages que vous avez placés vous-même ne changent pas.",
+    "recheckText_other": "{{count}} visages nommés automatiquement ne ressemblent pas assez à leur personne. Ils perdront le nom et apparaîtront dans « À confirmer ». Les visages que vous avez placés vous-même ne changent pas.",
+    "recheckNone": "Tous les noms donnés automatiquement sont assez sûrs : rien à changer.",
+    "recheckDone_one": "{{count}} visage à confirmer",
+    "recheckDone_other": "{{count}} visages à confirmer",
+    "otherPerson": "Quelqu’un d’autre…"
   },
   "filters": {
     "search": "Rechercher",

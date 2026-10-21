@@ -478,7 +478,15 @@
     "forgetText_one": "The face on {{count}} photo becomes \"Unknown\" and is no longer named. MyMedia won't put it back in this group. Your photos are not touched.",
     "forgetText_other": "The faces on {{count}} photos become \"Unknown\" and are no longer named. MyMedia won't put them back in this group. Your photos are not touched.",
     "useAsCover": "Photo for this person",
-    "coverHint": "To choose the photo that shows this person, tick a single face, then “Photo for this person”."
+    "coverHint": "To choose the photo that shows this person, tick a single face, then “Photo for this person”.",
+    "recheck": "Check the names again",
+    "recheckHint": "Removes the name from faces named automatically that do not look enough like their person; they go to “To confirm”.",
+    "recheckText_one": "{{count}} face named automatically does not look enough like its person. It will lose the name and appear in “To confirm”. Faces you placed yourself do not change.",
+    "recheckText_other": "{{count}} faces named automatically do not look enough like their person. They will lose the name and appear in “To confirm”. Faces you placed yourself do not change.",
+    "recheckNone": "Every name given automatically is sure enough: nothing to change.",
+    "recheckDone_one": "{{count}} face to confirm",
+    "recheckDone_other": "{{count}} faces to confirm",
+    "otherPerson": "Someone else…"
   },
   "filters": {
     "search": "Search",

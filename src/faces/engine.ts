@@ -2,7 +2,7 @@
 // "people" of each media in mymedia.json up to date.
 
 import { db, type FaceRecord, type MediaRecord, type PersonRecord } from '../db/db'
-import { faceSimilarity, facesToFollow, NAME_SURE, placeFace, SAME_PERSON, type KnownFace } from '../lib/faces'
+import { doubtfulFaces, faceSimilarity, facesToFollow, NAME_SURE, placeFace, SAME_PERSON, type KnownFace } from '../lib/faces'
 import type { FoundFace } from '../ml/faceModel'
 import { markMetaDirty } from '../sync/metaStore'
 import { app } from '../store'
@@ -163,6 +163,28 @@ async function fixOthers(targetId: string): Promise<number> {
   await d.faces.bulkPut(changed)
   await updatePeople(changed.map((f) => f.mediaId))
   app().set({ toast: { key: 'faces.fixedOthers', count: changed.length } })
+  return changed.length
+}
+
+/**
+ * "Check the names again": the faces named automatically that do not look
+ * like their person enough lose the name and are asked about ("Is this X?").
+ * `apply` false: only counts them.
+ */
+export async function recheckNames(apply: boolean): Promise<number> {
+  const d = db()
+  const persons = await d.persons.toArray()
+  const named = new Set(persons.filter((p) => p.name && !p.mergedInto).map((p) => p.id))
+  const faces = (await d.faces.toArray()).filter((f) => f.personId && named.has(f.personId))
+  const ids = new Set(doubtfulFaces(faces.map((f) => ({ ...f, width: f.box[2] }))))
+  if (!apply || !ids.size) return ids.size
+  const now = Date.now()
+  const changed = faces
+    .filter((f) => ids.has(f.id))
+    .map((f) => ({ ...f, personId: null, suggested: f.personId!, by: 'auto' as const, updatedAt: now }))
+  await d.faces.bulkPut(changed)
+  await updatePeople(changed.map((f) => f.mediaId))
+  await markFacesDirty()
   return changed.length
 }
 

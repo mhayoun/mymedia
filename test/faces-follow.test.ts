@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { facesToFollow, type GroupedFace } from '../src/lib/faces'
+import { doubtfulFaces, facesToFollow, type GroupedFace } from '../src/lib/faces'
 
 // Unit vectors in 3D, scaled to int8: similarity = cosine.
 const v = (x: number, y: number, z: number) => {
@@ -49,5 +49,18 @@ describe('facesToFollow', () => {
   it('keeps a face closer to the faces staying in its group', () => {
     const faces = [face('fixed', 'H', hadas, 'manual'), face('c', 'U', v(0.6, 1, 0)), face('u1', 'U', noa)]
     expect(facesToFollow(faces, 'H', new Set(['U'])).size).toBe(0)
+  })
+})
+
+describe('doubtfulFaces', () => {
+  it('doubts automatic faces unlike the faces the user placed, and small ones; never the placed ones', () => {
+    const faces = [
+      face('m', 'P', v(1, 0, 0), 'manual'),
+      face('ok', 'P', v(1, 0.2, 0)),
+      face('bad', 'P', v(0, 1, 0)),
+      { ...face('small', 'P', v(1, 0.1, 0)), width: 0.03 },
+      face('m2', 'Q', v(0, 0, 1), 'manual'),
+    ]
+    expect(doubtfulFaces(faces).sort()).toEqual(['bad', 'small'])
   })
 })
