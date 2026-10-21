@@ -109,21 +109,48 @@ export function thumbVersion(rec: MediaRecord): string {
 // Drive's preview links expire after a few hours. When one has expired, the
 // others of the same folder have too: renew them all with one request.
 const LINKS_TTL_MS = 3 * 3600 * 1000
+/** A link failed although renewed this recently: not renewed again (the file simply has no preview). */
+const RETRY_AFTER_MS = 60 * 1000
 const freshLinks = new Map<string, { at: number; run: Promise<void> }>()
 
-function renewFolderLinks(folderId: string): Promise<void> {
-  return renewLinks([folderId])
+// When each folder's links were renewed, kept across visits: the app opened
+// again within a few hours shows its thumbnails at once, without listing the
+// folders first.
+const RENEWED_KEY = 'mymedia-links-renewed'
+function renewedAt(): Record<string, number> {
+  try {
+    return JSON.parse(localStorage.getItem(RENEWED_KEY) ?? '{}') as Record<string, number>
+  } catch {
+    return {}
+  }
+}
+function saveRenewed(ids: string[], at: number) {
+  try {
+    const all = renewedAt()
+    for (const [id, t] of Object.entries(all)) if (at - t > LINKS_TTL_MS) delete all[id]
+    for (const id of ids) all[id] = at
+    localStorage.setItem(RENEWED_KEY, JSON.stringify(all))
+  } catch {
+    // private mode: renewed once per visit
+  }
+}
+const stored = renewedAt()
+for (const [id, at] of Object.entries(stored)) if (Date.now() - at < LINKS_TTL_MS) freshLinks.set(id, { at, run: Promise.resolve() })
+
+function renewFolderLinks(folderId: string, force = false): Promise<void> {
+  return renewLinks([folderId], force)
 }
 
 /**
  * Renews the preview links of several folders with one listing (40 folders a
  * request), so the albums on screen do not each wait for their own request.
+ * `force`: a link failed, renew unless it was just done.
  */
-function renewLinks(folderIds: string[]): Promise<void> {
+function renewLinks(folderIds: string[], force = false): Promise<void> {
   const now = Date.now()
   const todo = [...new Set(folderIds)].filter((id) => {
     const cur = freshLinks.get(id)
-    return !(cur && now - cur.at < LINKS_TTL_MS)
+    return !(cur && now - cur.at < (force ? RETRY_AFTER_MS : LINKS_TTL_MS))
   })
   const waits = folderIds.map((id) => freshLinks.get(id)?.run).filter((r): r is Promise<void> => !!r)
   if (todo.length) {
@@ -137,6 +164,7 @@ function renewLinks(folderIds: string[]): Promise<void> {
       await db().transaction('rw', db().media, async () => {
         for (const [id, thumbnailLink] of links) await db().media.update(id, { thumbnailLink })
       })
+      saveRenewed(todo, now)
     })().catch(() => {
       for (const id of todo) freshLinks.delete(id)
     })
@@ -160,7 +188,7 @@ export function prepareLinks(recs: MediaRecord[]): void {
 
 /** Drive's own preview image of a file (works for HEIC and videos too), or null. */
 export async function driveThumbnail(rec: MediaRecord, size = THUMB_SIZE): Promise<Blob | null> {
-  // Saved links are probably old: renew the folder's once per session, before trying them.
+  // Saved links older than a few hours have expired: renew the folder's before trying them.
   if (!freshLinks.has(rec.folderId)) {
     await renewFolderLinks(rec.folderId)
     rec.thumbnailLink = (await db().media.get(rec.id))?.thumbnailLink ?? rec.thumbnailLink
@@ -170,7 +198,7 @@ export async function driveThumbnail(rec: MediaRecord, size = THUMB_SIZE): Promi
     if (b) return b
   }
   const failed = rec.thumbnailLink
-  await renewFolderLinks(rec.folderId)
+  await renewFolderLinks(rec.folderId, true)
   const link = (await db().media.get(rec.id))?.thumbnailLink
   if (link && link !== failed) {
     rec.thumbnailLink = link
