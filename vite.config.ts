@@ -37,7 +37,7 @@ export default defineConfig({
           action: `${base}share-target`,
           method: 'POST',
           enctype: 'multipart/form-data',
-          params: { files: [{ name: 'media', accept: ['image/*', 'video/*', '.heic', '.heif', '.mov'] }] },
+          params: { files: [{ name: 'media', accept: ['image/*', 'video/*'] }] },
         },
         background_color: '#101418',
         theme_color: '#1f6feb',

@@ -28,7 +28,13 @@ registerRoute(
       const form = await request.formData()
       const files = form.getAll('media').filter((f): f is File => f instanceof File)
       // Nothing usable: what came, for the app to say.
-      if (!files.length) why = `received ${[...form.entries()].map(([k, v]) => `${k}:${typeof v === 'string' ? 'text' : v.type || 'file'}`).join(',') || 'nothing'}`
+      if (!files.length) {
+        const got = [...form.entries()].map(([k, v]) => `${k}:${typeof v === 'string' ? 'text' : v.type || 'file'}`).join(',') || 'nothing'
+        const type = request.headers.get('content-type')?.split(';')[0] ?? 'no type'
+        const browser = /SamsungBrowser\/[\d.]+|EdgA\/[\d.]+|Firefox\/[\d.]+|Chrome\/\d+/.exec(self.navigator.userAgent)?.[0] ?? '?'
+        const android = /Android [\d.]+/.exec(self.navigator.userAgent)?.[0] ?? ''
+        why = `received ${got} · ${type} · ${request.headers.get('content-length') ?? '?'} B · ${browser} ${android}`
+      }
       const cache = await caches.open(SHARED_CACHE)
       for (const key of await cache.keys()) await cache.delete(key)
       for (const [i, file] of files.entries()) {
