@@ -6,7 +6,7 @@
 // from Drive; read by every device, the read-only ones too. What is not in a pack (yet) is loaded one by one as before.
 
 import { db, type MediaRecord } from '../db/db'
-import { createFolder, deleteFilePermanently, downloadBlob, findChildByName, listFiles, writeDataFile } from '../drive/api'
+import { createFolder, deleteFilePermanently, downloadBlob, driveStats, findChildByName, listFiles, writeDataFile } from '../drive/api'
 import { folderChain, isReservedFolderName, parsePendingAlbum, type FolderNode } from '../lib/tree'
 import { app, withStep } from '../store'
 import { afterScreenThumbs, driveThumbnail, isFastConnection, thumbVersion } from './thumbs'
@@ -16,7 +16,9 @@ const CHUNK = 60
 const PACK_SIZE = 320
 const QUALITY = 0.72
 const MAGIC = 'MMT1'
-const BUILD_PARALLEL = 6
+const BUILD_PARALLEL = 2
+/** Between two packs: Drive limits the requests of an account, all its devices together. */
+const BUILD_PAUSE_MS = 1500
 
 interface PackFile {
   id: string
@@ -248,8 +250,15 @@ export function buildPacks(): Promise<void> {
     const stale = [...existing].filter(([key]) => !groups.has(key))
     if (todo.length || stale.length) {
       await withStep('sync.packing', async () => {
+        const limitedBefore = driveStats.limited
         for (const [key, list] of todo) {
           if (app().readOnly || !navigator.onLine || !isFastConnection()) break
+          // Drive asked to slow down: the rest waits for the next load (the other devices keep the network).
+          if (driveStats.limited > limitedBefore) {
+            console.warn('[MyMedia] thumbnail packs paused: Drive asks to slow down')
+            break
+          }
+          await new Promise((r) => setTimeout(r, BUILD_PAUSE_MS))
           const items = await thumbsFor(list)
           if (!items.length) continue
           try {

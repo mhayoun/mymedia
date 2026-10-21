@@ -61,6 +61,9 @@ function waitOnline(): Promise<void> {
   return new Promise((resolve) => window.addEventListener('online', () => resolve(), { once: true }))
 }
 
+/** Requests to Drive and how many Drive asked to slow down (diagnosis in the settings). */
+export const driveStats = { requests: 0, limited: 0, failed: 0, last: '' }
+
 let readOnly = false
 /** A library shared for viewing only: nothing is ever sent that would change Drive. */
 export function setDriveReadOnly(on: boolean): void {
@@ -76,6 +79,7 @@ async function request(url: string, init: RequestInit = {}, signal?: AbortSignal
     const token = await auth.getToken()
     signal?.throwIfAborted()
     let res: Response
+    driveStats.requests++
     try {
       res = await fetch(url, {
         ...init,
@@ -84,6 +88,8 @@ async function request(url: string, init: RequestInit = {}, signal?: AbortSignal
       })
     } catch (e) {
       if (signal?.aborted) throw e
+      driveStats.failed++
+      driveStats.last = 'network'
       if (attempt >= 5) throw e
       await sleep(delay)
       delay *= 2
@@ -106,6 +112,10 @@ async function request(url: string, init: RequestInit = {}, signal?: AbortSignal
     }
     const retryable =
       res.status === 429 || res.status >= 500 || reason === 'rateLimitExceeded' || reason === 'userRateLimitExceeded'
+    if (retryable) {
+      driveStats.limited++
+      driveStats.last = `${res.status} ${reason ?? ''}`.trim()
+    }
     if (retryable && attempt < 6) {
       await sleep(delay + Math.random() * 500)
       delay *= 2

@@ -354,7 +354,7 @@ function ThumbDiagnosis() {
   return (
     <p className="hint" dir="ltr" style={{ textAlign: 'start', fontFamily: 'monospace', fontSize: '0.8rem' }}>
       {t('settings.thumbDiagnosis')}: {s.size}px · net {s.type}
-      {s.fast ? ' fast' : ''} · auth {auth.status} · active {s.active} · queued {s.queued} · making {s.making} (oldest {s.oldestSeconds}s) · ok {s.ok} · failed {s.failed} · packs known {p.known} ({p.media} photos) · loading {p.loading} · loaded {p.loaded} ({p.thumbs}) · failed {p.failed} · waiting {s.waitingPacks} · slow {s.slowPacks}
+      {s.fast ? ' fast' : ''} · auth {auth.status} · active {s.active} · queued {s.queued} · making {s.making} (oldest {s.oldestSeconds}s) · ok {s.ok} · failed {s.failed} · packs known {p.known} ({p.media} photos) · loading {p.loading} · loaded {p.loaded} ({p.thumbs}) · failed {p.failed} · waiting {s.waitingPacks} · slow {s.slowPacks} · drive {s.drive.requests} req, limited {s.drive.limited}, failed {s.drive.failed} {s.drive.last}
     </p>
   )
 }

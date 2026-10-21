@@ -2,7 +2,7 @@
 // IndexedDB for offline browsing. Loaded lazily, what is on screen first, in reading order.
 
 import { db, type MediaRecord } from '../db/db'
-import { childrenQuery, downloadBlob, getFile, listFiles } from '../drive/api'
+import { childrenQuery, downloadBlob, driveStats, getFile, listFiles } from '../drive/api'
 import { sizedThumbnailLink } from '../lib/media'
 import { loadPack, packLoaded, packOf } from './thumbPacks'
 import { videoFrameThumbnail } from './videoFrame'
@@ -83,7 +83,7 @@ export function cachedThumbUrl(id: string): string | undefined {
 
 async function fetchThumbLink(link: string, size = THUMB_SIZE): Promise<Blob | null> {
   try {
-    const res = await fetch(sizedThumbnailLink(link, size), { credentials: 'omit', referrerPolicy: 'no-referrer' })
+    const res = await fetch(sizedThumbnailLink(link, size), { credentials: 'omit', referrerPolicy: 'no-referrer', signal: AbortSignal.timeout(15000) })
     if (!res.ok) return null
     const blob = await res.blob()
     return blob.type.startsWith('image/') ? blob : null
@@ -201,14 +201,20 @@ export function prepareLinks(recs: MediaRecord[]): void {
 
 /** Drive's own preview image of a file (works for HEIC and videos too), or null. */
 export async function driveThumbnail(rec: MediaRecord, size = THUMB_SIZE): Promise<Blob | null> {
-  // Saved links older than a few hours have expired: renew the folder's before trying them.
-  if (!freshLinks.has(rec.folderId)) {
-    await renewFolderLinks(rec.folderId)
-    rec.thumbnailLink = (await db().media.get(rec.id))?.thumbnailLink ?? rec.thumbnailLink
-  }
+  // The saved link first: it often still works, and needs no request to Drive (which may be
+  // slowing down this account, e.g. while a computer makes the packs). Renewed when it failed.
   if (rec.thumbnailLink) {
     const b = await fetchThumbLink(rec.thumbnailLink, size)
     if (b) return b
+  }
+  if (!freshLinks.has(rec.folderId)) {
+    await renewFolderLinks(rec.folderId)
+    const link = (await db().media.get(rec.id))?.thumbnailLink
+    if (link && link !== rec.thumbnailLink) {
+      rec.thumbnailLink = link
+      const b = await fetchThumbLink(link, size)
+      if (b) return b
+    }
   }
   const failed = rec.thumbnailLink
   await renewFolderLinks(rec.folderId, true)
@@ -261,7 +267,7 @@ async function produce(rec: MediaRecord): Promise<Blob | null> {
 /** What the thumbnails are doing now (diagnosis in the settings). */
 export function thumbState() {
   const oldest = running.size ? Math.round((performance.now() - Math.min(...running)) / 1000) : 0
-  return { size: THUMB_SIZE, active, queued: queue.length, waitingPacks: waitingPack.size, making: running.size, oldestSeconds: oldest, fast: isFastConnection(), type: connection()?.type ?? '?', ...stats }
+  return { drive: driveStats, size: THUMB_SIZE, active, queued: queue.length, waitingPacks: waitingPack.size, making: running.size, oldestSeconds: oldest, fast: isFastConnection(), type: connection()?.type ?? '?', ...stats }
 }
 
 type ConnectionInfo = { saveData?: boolean; type?: string; effectiveType?: string }
