@@ -81,14 +81,27 @@ export function cachedThumbUrl(id: string): string | undefined {
   return url
 }
 
+/** Preview links tried: waiting, received, refused (by HTTP status), too slow, failed (diagnosis). */
+const links = { pending: 0, ok: 0, timeout: 0, error: 0, notImage: 0, status: {} as Record<number, number> }
+
 async function fetchThumbLink(link: string, size = THUMB_SIZE): Promise<Blob | null> {
+  links.pending++
   try {
     const res = await fetch(sizedThumbnailLink(link, size), { credentials: 'omit', referrerPolicy: 'no-referrer', signal: AbortSignal.timeout(15000) })
-    if (!res.ok) return null
+    if (!res.ok) {
+      links.status[res.status] = (links.status[res.status] ?? 0) + 1
+      return null
+    }
     const blob = await res.blob()
+    if (!blob.type.startsWith('image/')) links.notImage++
+    else links.ok++
     return blob.type.startsWith('image/') ? blob : null
-  } catch {
+  } catch (e) {
+    if ((e as Error).name === 'TimeoutError') links.timeout++
+    else links.error++
     return null
+  } finally {
+    links.pending--
   }
 }
 
@@ -267,7 +280,7 @@ async function produce(rec: MediaRecord): Promise<Blob | null> {
 /** What the thumbnails are doing now (diagnosis in the settings). */
 export function thumbState() {
   const oldest = running.size ? Math.round((performance.now() - Math.min(...running)) / 1000) : 0
-  return { drive: driveStats, size: THUMB_SIZE, active, queued: queue.length, waitingPacks: waitingPack.size, making: running.size, oldestSeconds: oldest, fast: isFastConnection(), type: connection()?.type ?? '?', ...stats }
+  return { links, drive: driveStats, size: THUMB_SIZE, active, queued: queue.length, waitingPacks: waitingPack.size, making: running.size, oldestSeconds: oldest, fast: isFastConnection(), type: connection()?.type ?? '?', ...stats }
 }
 
 type ConnectionInfo = { saveData?: boolean; type?: string; effectiveType?: string }
