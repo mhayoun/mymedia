@@ -354,7 +354,7 @@ function ThumbDiagnosis() {
   return (
     <p className="hint" dir="ltr" style={{ textAlign: 'start', fontFamily: 'monospace', fontSize: '0.8rem' }}>
       {t('settings.thumbDiagnosis')}: {s.size}px · net {s.type}
-      {s.fast ? ' fast' : ''} · auth {auth.status} · active {s.active} · queued {s.queued} · making {s.making} (oldest {s.oldestSeconds}s) · ok {s.ok} · failed {s.failed} · packs known {p.known} ({p.media} photos) · loading {p.loading} · loaded {p.loaded} ({p.thumbs}) · failed {p.failed} · waiting {s.waitingPacks} · slow {s.slowPacks} · drive {s.drive.requests} req, limited {s.drive.limited}, failed {s.drive.failed} {s.drive.last} · links waiting {s.links.pending}, ok {s.links.ok}, timeout {s.links.timeout}, error {s.links.error}, not image {s.links.notImage}, refused {JSON.stringify(s.links.status)}
+      {s.fast ? ' fast' : ''} · auth {auth.status} · active {s.active} · queued {s.queued} · making {s.making} (oldest {s.oldestSeconds}s) · ok {s.ok} · failed {s.failed} · packs known {p.known} ({p.media} photos) · loading {p.loading} · loaded {p.loaded} ({p.thumbs}) · failed {p.failed} · waiting {s.waitingPacks} · slow {s.slowPacks} · drive {s.drive.requests} req, limited {s.drive.limited}, failed {s.drive.failed} {s.drive.last} · links waiting {s.links.pending}, ok {s.links.ok}, timeout {s.links.timeout}, error {s.links.error}, not image {s.links.notImage}, refused {JSON.stringify(s.links.status)}, shown direct {s.links.direct} {s.links.lastError}
     </p>
   )
 }

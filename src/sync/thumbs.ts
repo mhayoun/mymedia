@@ -19,6 +19,8 @@ interface Task {
   rec: MediaRecord
   /** Its pack was tried: loaded on its own. */
   noPack?: boolean
+  /** Shown from Google's address failed: made another way. */
+  noDirect?: boolean
   resolve: (url: string | null) => void
   cancelled: boolean
   /** Lower loads first (see `screenOrder`). */
@@ -67,8 +69,14 @@ function remember(id: string, blob: Blob): string {
   if (urls.size > MAX_URLS) {
     const [oldId, oldUrl] = urls.entries().next().value as [string, string]
     urls.delete(oldId)
-    URL.revokeObjectURL(oldUrl)
+    if (oldUrl.startsWith('blob:')) URL.revokeObjectURL(oldUrl)
   }
+  return url
+}
+
+/** A thumbnail shown straight from Google's address (not kept on the device). */
+function rememberUrl(id: string, url: string): string {
+  urls.set(id, url)
   return url
 }
 
@@ -82,7 +90,14 @@ export function cachedThumbUrl(id: string): string | undefined {
 }
 
 /** Preview links tried: waiting, received, refused (by HTTP status), too slow, failed (diagnosis). */
-const links = { pending: 0, ok: 0, timeout: 0, error: 0, notImage: 0, status: {} as Record<number, number> }
+const links = { pending: 0, ok: 0, timeout: 0, error: 0, notImage: 0, status: {} as Record<number, number>, lastError: '', direct: 0 }
+
+/**
+ * This browser cannot read Google's previews (seen on a phone: every request
+ * fails at once), although it can show them. They are then shown straight
+ * from their address, instead of downloading each original to make one.
+ */
+let showDirect = false
 
 async function fetchThumbLink(link: string, size = THUMB_SIZE): Promise<Blob | null> {
   links.pending++
@@ -98,7 +113,11 @@ async function fetchThumbLink(link: string, size = THUMB_SIZE): Promise<Blob | n
     return blob.type.startsWith('image/') ? blob : null
   } catch (e) {
     if ((e as Error).name === 'TimeoutError') links.timeout++
-    else links.error++
+    else {
+      links.error++
+      links.lastError = `${(e as Error).name}: ${(e as Error).message}`.slice(0, 80)
+      if (links.ok === 0 && links.error >= 3) showDirect = true
+    }
     return null
   } finally {
     links.pending--
@@ -261,6 +280,17 @@ export async function localPhotoPreview(rec: MediaRecord, size = THUMB_SIZE): Pr
   }
 }
 
+/** The preview's address to show as it is (`renew`: the one shown did not load). */
+async function directUrl(rec: MediaRecord, renew = false): Promise<string | null> {
+  if (renew || !freshLinks.has(rec.folderId)) {
+    await renewFolderLinks(rec.folderId, renew)
+    rec.thumbnailLink = (await db().media.get(rec.id))?.thumbnailLink ?? rec.thumbnailLink
+  }
+  if (!rec.thumbnailLink) return null
+  links.direct++
+  return sizedThumbnailLink(rec.thumbnailLink, THUMB_SIZE)
+}
+
 const stats = { ok: 0, failed: 0, slowPacks: 0 }
 /** When each thumbnail being made started (to see one that never ends). */
 const running = new Set<number>()
@@ -363,6 +393,21 @@ function pump() {
       waitForPack(task, pack)
       continue
     }
+    if (showDirect && !task.noDirect) {
+      active++
+      directUrl(task.rec)
+        .catch(() => null)
+        .then((url) => {
+          if (url) return task.resolve(rememberUrl(task.rec.id, url))
+          task.noDirect = true
+          queue.push(task)
+        })
+        .finally(() => {
+          active--
+          pump()
+        })
+      continue
+    }
     active++
     produce(task.rec)
       .then(async (blob) => {
@@ -389,10 +434,15 @@ export async function reloadThumb(rec: MediaRecord, isWanted: () => boolean, ord
   const url = urls.get(rec.id)
   if (url) {
     urls.delete(rec.id)
-    URL.revokeObjectURL(url)
+    if (url.startsWith('blob:')) URL.revokeObjectURL(url)
   }
   await db().thumbs.delete(rec.id).catch(() => undefined)
   if (!navigator.onLine || !isWanted()) return null
+  // Shown from Google's address: its link had expired, a new one.
+  if (url && !url.startsWith('blob:')) {
+    const fresh = await directUrl(rec, true).catch(() => null)
+    if (fresh && fresh !== url) return rememberUrl(rec.id, fresh)
+  }
   return new Promise<string | null>((resolve) => {
     queue.push({ rec, resolve, cancelled: false, order, noPack: true })
     schedulePump()
@@ -508,6 +558,8 @@ export function warmThumbs(all: MediaRecord[]): void {
             const s = (await loadPack(pack.key)).get(rec.id)
             if (s && (s.version === thumbVersion(rec) || s.version === rec.modifiedTime)) continue
           }
+          // Google's previews cannot be read here: not the originals in advance (only packs).
+          if (showDirect) continue
           const blob = await produce(rec)
           if (blob) await db().thumbs.put({ id: rec.id, version: thumbVersion(rec), blob })
         } catch {

@@ -196,7 +196,7 @@ function PhotoStage({ item }: { item: LibraryItem }) {
   const alt = item.meta?.description ?? item.rec.name
   return (
     <>
-      {placeholder && !loaded && <img className="placeholder" src={placeholder} alt="" />}
+      {placeholder && !loaded && <img className="placeholder" src={placeholder} alt="" referrerPolicy="no-referrer" />}
       {/* The preview stays until the full-quality photo is ready, then gives way to it. */}
       {preview && !originalShown && <img src={preview} alt={alt} onLoad={() => setLoaded(true)} />}
       {original && !failed && (

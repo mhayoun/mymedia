@@ -28,6 +28,7 @@ async function picture(face: FaceRecord): Promise<Picture | null> {
 function imageRatio(url: string): Promise<number> {
   return new Promise((resolve) => {
     const img = new Image()
+    img.referrerPolicy = 'no-referrer'
     img.onload = () => resolve(img.naturalWidth / (img.naturalHeight || 1))
     img.onerror = () => resolve(1)
     img.src = url
@@ -72,7 +73,7 @@ export function FaceImg({ face, size = 64 }: { face: FaceRecord; size?: number }
   return (
     <span className="face" style={{ inlineSize: size, blockSize: size }}>
       {pic?.kind === 'crop' && <img src={pic.url} alt="" />}
-      {pic?.kind === 'thumb' && <img src={pic.url} alt="" className="zoomed" style={zoomOnFace(face.box, pic.ratio)} />}
+      {pic?.kind === 'thumb' && <img src={pic.url} alt="" referrerPolicy="no-referrer" className="zoomed" style={zoomOnFace(face.box, pic.ratio)} />}
       {!pic && <User size={size * 0.5} />}
     </span>
   )

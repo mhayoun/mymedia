@@ -80,6 +80,7 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, o
           loading="lazy"
           decoding="async"
           draggable={false}
+          referrerPolicy="no-referrer"
           onError={() => {
             // Not a picture the browser can draw: loaded again on its own, once.
             if (retried.current) return setUrl(null)
