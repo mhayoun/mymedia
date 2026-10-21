@@ -486,7 +486,12 @@
     "recheckNone": "Every name given automatically is sure enough: nothing to change.",
     "recheckDone_one": "{{count}} face to confirm",
     "recheckDone_other": "{{count}} faces to confirm",
-    "otherPerson": "Someone else…"
+    "otherPerson": "Someone else…",
+    "yesFor_one": "Yes, it is {{name}}",
+    "yesFor_other": "Yes, all {{name}} ({{count}})",
+    "noFor_one": "No",
+    "noFor_other": "No ({{count}})",
+    "toConfirmHint": "By person: every face is ticked. Untick those that are not them, then “Yes”."
   },
   "filters": {
     "search": "Search",

@@ -234,6 +234,15 @@ export async function assignFaces(faceIds: string[], personId: string): Promise<
 }
 
 /** "No, it's not X": the suggestion is dropped. */
+/** "No" for several faces at once. */
+export async function rejectSuggestions(faceIds: string[]): Promise<void> {
+  const d = db()
+  const now = Date.now()
+  const faces = (await d.faces.bulkGet(faceIds)).filter((f): f is FaceRecord => !!f?.suggested)
+  await d.faces.bulkPut(faces.map((f) => ({ ...f, rejected: [...new Set([...(f.rejected ?? []), f.suggested!])], suggested: undefined, updatedAt: now })))
+  await markFacesDirty()
+}
+
 export async function rejectSuggestion(faceId: string): Promise<void> {
   const d = db()
   const f = await d.faces.get(faceId)

@@ -522,7 +522,14 @@
     "recheckDone_one": "פנים אחת לאישור",
     "recheckDone_two": "{{count}} פנים לאישור",
     "recheckDone_other": "{{count}} פנים לאישור",
-    "otherPerson": "מישהו אחר…"
+    "otherPerson": "מישהו אחר…",
+    "yesFor_one": "כן, זה {{name}}",
+    "yesFor_two": "כן, כולם {{name}} ({{count}})",
+    "yesFor_other": "כן, כולם {{name}} ({{count}})",
+    "noFor_one": "לא",
+    "noFor_two": "לא ({{count}})",
+    "noFor_other": "לא ({{count}})",
+    "toConfirmHint": "לפי אדם: כל הפנים מסומנות. בטלו את הסימון של מי שאינו האדם, ואז „כן”."
   },
   "filters": {
     "search": "חיפוש",

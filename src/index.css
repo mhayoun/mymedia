@@ -466,3 +466,5 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .check-row label { display: flex; align-items: center; gap: 8px; cursor: pointer; flex: 1; min-width: 0; }
 .check-row .btn.icon { padding: 4px; min-inline-size: 0; }
 .check-row .icon-space { inline-size: 24px; flex: none; }
+.confirm-group { padding: 10px; margin-block-end: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.confirm-group[aria-busy='true'] { opacity: 0.6; pointer-events: none; }

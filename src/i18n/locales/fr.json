@@ -484,7 +484,12 @@
     "recheckNone": "Tous les noms donnés automatiquement sont assez sûrs : rien à changer.",
     "recheckDone_one": "{{count}} visage à confirmer",
     "recheckDone_other": "{{count}} visages à confirmer",
-    "otherPerson": "Quelqu’un d’autre…"
+    "otherPerson": "Quelqu’un d’autre…",
+    "yesFor_one": "Oui, c’est {{name}}",
+    "yesFor_other": "Oui, c’est {{name}} ({{count}})",
+    "noFor_one": "Non",
+    "noFor_other": "Non ({{count}})",
+    "toConfirmHint": "Par personne : tous les visages sont cochés. Décochez ceux qui ne sont pas elle, puis « Oui »."
   },
   "filters": {
     "search": "Rechercher",
