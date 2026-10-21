@@ -801,6 +801,7 @@
   "shareIn": {
     "readOnlyTitle": "View only",
     "readOnlyText": "The MyMedia open is shared with you to view only: nothing can be added to it. Open your own library to send these files there.",
-    "notReceived": "The shared files did not reach MyMedia ({{detail}}). Try again; if it happens again, send this message."
+    "notReceived": "The shared files did not reach MyMedia ({{detail}}). Try again; if it happens again, send this message.",
+    "chromeEmpty": "Chrome did not pass on the shared file (a fault of Chrome on Android since version 153). Pick it here with “Choose photos / videos”."
   }
 }

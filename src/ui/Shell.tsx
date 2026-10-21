@@ -99,7 +99,12 @@ export function Shell() {
         // Why, for the user to tell: what the service worker received, or how many it kept.
         const why = new URLSearchParams(location.search).get('why') ?? `kept ${new URLSearchParams(location.search).get('shared')}`
         void clearSharedFiles()
-        app().set({ toast: { key: 'shareIn.notReceived', detail: why } })
+        if (why.startsWith('received nothing')) {
+          // Chrome on Android (since version 153) sends the share without its files: the user picks them here instead.
+          console.warn('[MyMedia] share without files', why)
+          setDialog({ kind: 'import', destId: rootId })
+          app().set({ toast: { key: 'shareIn.chromeEmpty' } })
+        } else app().set({ toast: { key: 'shareIn.notReceived', detail: why } })
       }
     })
   }, [rootId])
