@@ -114,7 +114,8 @@
     "never": "Pas encore chargé",
     "offline": "Hors ligne – affichage des miniatures enregistrées",
     "moving": "Rangement dans Drive : {{count}}",
-    "movingHint": "Photos déjà rangées dans MyMedia, que Google Drive met dans leur dossier en arrière-plan. Vous pouvez continuer ; s'il n'y a pas de connexion, ce sera fait plus tard."
+    "movingHint": "Photos déjà rangées dans MyMedia, que Google Drive met dans leur dossier en arrière-plan. Vous pouvez continuer ; s'il n'y a pas de connexion, ce sera fait plus tard.",
+    "packing": "Préparation des miniatures"
   },
   "viewer": {
     "info": "Informations",

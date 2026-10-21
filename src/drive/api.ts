@@ -379,6 +379,12 @@ export function createBinaryFile(name: string, parentId: string, content: Blob, 
   return upload('POST', '', { name, parents: [parentId], mimeType: mime }, content, mime)
 }
 
+/** Creates (no id) or replaces a binary data file of MyMedia, with its hidden properties. */
+export function writeDataFile(id: string | null, name: string, parentId: string, content: Blob, appProperties: Record<string, string>): Promise<DriveFile> {
+  const mime = 'application/octet-stream'
+  return id ? upload('PATCH', `/${id}`, { appProperties }, content, mime) : upload('POST', '', { name, parents: [parentId], mimeType: mime, appProperties }, content, mime)
+}
+
 export function updateBinaryFile(id: string, content: Blob, mime = 'application/octet-stream'): Promise<DriveFile> {
   return upload('PATCH', `/${id}`, {}, content, mime)
 }

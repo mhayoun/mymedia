@@ -4,15 +4,21 @@
 import { db, type MediaRecord } from '../db/db'
 import { childrenQuery, downloadBlob, getFile, listFiles } from '../drive/api'
 import { sizedThumbnailLink } from '../lib/media'
+import { loadPack, packLoaded, packOf } from './thumbPacks'
 import { videoFrameThumbnail } from './videoFrame'
 
-const THUMB_SIZE = 400
-const MAX_PARALLEL = 12
+/** Phones show smaller cells: smaller thumbnails (a third lighter), as sharp on their screen. */
+const THUMB_SIZE = typeof matchMedia === 'function' && matchMedia('(max-width: 800px)').matches ? 320 : 400
+const MAX_PARALLEL = 20
+/** On mobile data, a pack is downloaded when this many of its thumbnails are wanted (or 40 % of it). */
+const PACK_MIN_WANTED = 25
 const MAX_URLS = 800
 const LOCAL_RESIZE_MAX_BYTES = 25 * 1024 * 1024
 
 interface Task {
   rec: MediaRecord
+  /** Its pack was tried: loaded on its own. */
+  noPack?: boolean
   resolve: (url: string | null) => void
   cancelled: boolean
   /** Lower loads first (see `screenOrder`). */
@@ -243,11 +249,71 @@ async function produce(rec: MediaRecord): Promise<Blob | null> {
   return localPhotoPreview(rec)
 }
 
+type ConnectionInfo = { saveData?: boolean; type?: string; effectiveType?: string }
+const connection = () => (navigator as Navigator & { connection?: ConnectionInfo }).connection
+
+/** Wi-Fi or cable (a computer without the information counts as such; a phone does not). */
+export function isFastConnection(): boolean {
+  const c = connection()
+  return c?.type === 'wifi' || c?.type === 'ethernet' || (!c?.type && !/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent))
+}
+
+/** Waiting for the pack being downloaded, by pack. */
+const waitingPack = new Map<string, Task[]>()
+
+/** Its pack is worth downloading: always on Wi-Fi; on mobile data when much of it is wanted. */
+function packToWaitFor(task: Task): string | null {
+  if (task.noPack) return null
+  const pack = packOf(task.rec.id)
+  if (!pack || (packLoaded(pack.key) && !waitingPack.has(pack.key))) return null
+  if (waitingPack.has(pack.key) || isFastConnection()) return pack.key
+  let wanted = 1
+  for (const t of queue) if (!t.cancelled && packOf(t.rec.id)?.key === pack.key) wanted++
+  return wanted >= Math.min(PACK_MIN_WANTED, Math.ceil(pack.count * 0.4)) ? pack.key : null
+}
+
+function waitForPack(task: Task, key: string) {
+  const list = waitingPack.get(key)
+  if (list) return void list.push(task)
+  waitingPack.set(key, [task])
+  active++
+  void loadPack(key).finally(async () => {
+    active--
+    const tasks = waitingPack.get(key) ?? []
+    waitingPack.delete(key)
+    const stored = await db().thumbs.bulkGet(tasks.map((t) => t.rec.id)).catch(() => [])
+    tasks.forEach((t, i) => {
+      const s = stored[i]
+      if (s && (s.version === thumbVersion(t.rec) || s.version === t.rec.modifiedTime)) t.resolve(remember(t.rec.id, s.blob))
+      else {
+        // Not in the pack (newer than it): on its own.
+        t.noPack = true
+        queue.push(t)
+      }
+    })
+    pump()
+  })
+}
+
+let pumpTimer: ReturnType<typeof setTimeout> | null = null
+/** Started a moment later: the cells of a screen ask together, so their pack is seen as wanted. */
+function schedulePump() {
+  pumpTimer ??= setTimeout(() => {
+    pumpTimer = null
+    pump()
+  }, 30)
+}
+
 function pump() {
   while (active < MAX_PARALLEL && queue.length) {
     const task = nextTask()!
     if (task.cancelled) {
       task.resolve(null)
+      continue
+    }
+    const pack = packToWaitFor(task)
+    if (pack) {
+      waitForPack(task, pack)
       continue
     }
     active++
@@ -293,7 +359,7 @@ export function loadThumb(rec: MediaRecord, isWanted: () => boolean, order: () =
         resolve(url)
       }
       task.resolve = done
-      pump()
+      schedulePump()
     })
   })().finally(() => inflight.delete(rec.id))
   inflight.set(rec.id, p)
@@ -348,9 +414,9 @@ export async function afterScreenThumbs(): Promise<void> {
 export function warmThumbs(all: MediaRecord[]): void {
   const gen = ++warmGen
   // Data saver or slow network: nothing in advance; mobile data: the first 200 only.
-  const c = (navigator as Navigator & { connection?: { saveData?: boolean; type?: string; effectiveType?: string } }).connection
+  const c = connection()
   if (c?.saveData || /2g|3g/.test(c?.effectiveType ?? '')) return
-  const fast = c?.type === 'wifi' || c?.type === 'ethernet' || (!c?.type && !/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent))
+  const fast = isFastConnection()
   // On Wi-Fi, then the rest of the library: every album opens at once the first time too.
   const inList = new Set(all.map((r) => r.id))
   const recs = c?.type === 'cellular' ? all.slice(0, 200) : fast ? [...all, ...libraryWarm.filter((r) => !inList.has(r.id))] : all
@@ -374,6 +440,16 @@ export function warmThumbs(all: MediaRecord[]): void {
         if (urls.has(rec.id) || inflight.has(rec.id)) continue
         active++
         try {
+          // On Wi-Fi, its whole pack at once (the next ones of the list are then already here).
+          const pack = fast ? packOf(rec.id) : undefined
+          if (pack && !packLoaded(pack.key)) {
+            await loadPack(pack.key)
+            const s = await db().thumbs.get(rec.id)
+            if (s && (s.version === thumbVersion(rec) || s.version === rec.modifiedTime)) continue
+          } else if (pack) {
+            const s = await db().thumbs.get(rec.id)
+            if (s && (s.version === thumbVersion(rec) || s.version === rec.modifiedTime)) continue
+          }
           const blob = await produce(rec)
           if (blob) await db().thumbs.put({ id: rec.id, version: thumbVersion(rec), blob })
         } catch {

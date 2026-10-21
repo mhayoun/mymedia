@@ -116,7 +116,8 @@
     "never": "Not loaded yet",
     "offline": "Offline – showing saved thumbnails",
     "moving": "Filing in Drive: {{count}}",
-    "movingHint": "Photos already filed in MyMedia that Google Drive is putting in their folder in the background. You can carry on; without a connection it is done later."
+    "movingHint": "Photos already filed in MyMedia that Google Drive is putting in their folder in the background. You can carry on; without a connection it is done later.",
+    "packing": "Preparing thumbnails"
   },
   "viewer": {
     "info": "Information",
