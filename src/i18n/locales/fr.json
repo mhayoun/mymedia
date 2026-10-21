@@ -799,6 +799,6 @@
   "shareIn": {
     "readOnlyTitle": "Lecture seule",
     "readOnlyText": "Le MyMedia ouvert est partagé avec vous en lecture seule : on ne peut rien y ajouter. Ouvrez votre propre bibliothèque pour y envoyer ces fichiers.",
-    "notReceived": "Les fichiers partagés ne sont pas arrivés jusqu'à MyMedia. Réessayez ; si cela recommence, désinstallez puis réinstallez MyMedia depuis Chrome."
+    "notReceived": "Les fichiers partagés ne sont pas arrivés jusqu'à MyMedia ({{detail}}). Réessayez ; si cela recommence, envoyez-moi ce message."
   }
 }

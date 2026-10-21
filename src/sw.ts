@@ -23,9 +23,12 @@ registerRoute(
   ({ url, request }) => request.method === 'POST' && url.pathname.endsWith('/share-target'),
   async ({ request }) => {
     let count = 0
+    let why = ''
     try {
       const form = await request.formData()
       const files = form.getAll('media').filter((f): f is File => f instanceof File)
+      // Nothing usable: what came, for the app to say.
+      if (!files.length) why = `received ${[...form.entries()].map(([k, v]) => `${k}:${typeof v === 'string' ? 'text' : v.type || 'file'}`).join(',') || 'nothing'}`
       const cache = await caches.open(SHARED_CACHE)
       for (const key of await cache.keys()) await cache.delete(key)
       for (const [i, file] of files.entries()) {
@@ -44,8 +47,10 @@ registerRoute(
     } catch (e) {
       // Too big for the device's storage, or unreadable: the app opens anyway and says so.
       console.error('[MyMedia] shared files not kept', e)
+      why = `error ${(e as Error)?.name ?? ''} ${(e as Error)?.message ?? e}`.slice(0, 200)
     }
-    return Response.redirect(`${self.registration.scope}?shared=${count}`, 303)
+    const whyParam = why ? `&why=${encodeURIComponent(why)}` : ''
+    return Response.redirect(`${self.registration.scope}?shared=${count}${whyParam}`, 303)
   },
   'POST',
 )

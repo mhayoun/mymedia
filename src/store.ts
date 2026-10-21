@@ -121,7 +121,7 @@ interface AppState {
   /** Result of each file in the current/last compression run. */
   compressOutcome: Record<string, Outcome>
   /** Short message shown at the bottom of the screen (i18n key + values). */
-  toast: { key: string; count?: number; bytes?: number } | null
+  toast: { key: string; count?: number; bytes?: number; detail?: string } | null
   lastSyncAt: number | null
   error: string | null
   filters: Filters

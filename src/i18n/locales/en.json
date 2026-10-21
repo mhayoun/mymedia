@@ -801,6 +801,6 @@
   "shareIn": {
     "readOnlyTitle": "View only",
     "readOnlyText": "The MyMedia open is shared with you to view only: nothing can be added to it. Open your own library to send these files there.",
-    "notReceived": "The shared files did not reach MyMedia. Try again; if it happens again, uninstall and reinstall MyMedia from Chrome."
+    "notReceived": "The shared files did not reach MyMedia ({{detail}}). Try again; if it happens again, send this message."
   }
 }

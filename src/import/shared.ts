@@ -35,5 +35,6 @@ export async function clearSharedFiles(): Promise<void> {
   }
   const url = new URL(location.href)
   url.searchParams.delete('shared')
+  url.searchParams.delete('why')
   history.replaceState(null, '', url)
 }

@@ -96,8 +96,10 @@ export function Shell() {
     readSharedFiles().then((files) => {
       if (files.length) setDialog({ kind: 'import', destId: rootId, files })
       else {
+        // Why, for the user to tell: what the service worker received, or how many it kept.
+        const why = new URLSearchParams(location.search).get('why') ?? `kept ${new URLSearchParams(location.search).get('shared')}`
         void clearSharedFiles()
-        app().set({ toast: { key: 'shareIn.notReceived' } })
+        app().set({ toast: { key: 'shareIn.notReceived', detail: why } })
       }
     })
   }, [rootId])
@@ -640,7 +642,7 @@ function Toast() {
   if (!toast) return null
   return (
     <div className="toast" role="status">
-      {t(toast.key, { count: toast.count, saved: toast.bytes != null ? fmt.bytes(toast.bytes) : undefined })}
+      {t(toast.key, { count: toast.count, saved: toast.bytes != null ? fmt.bytes(toast.bytes) : undefined, detail: toast.detail ?? '' })}
       <button className="icon-btn small" onClick={() => set({ toast: null })} aria-label={t('common.close')}>
         <X size={16} />
       </button>
