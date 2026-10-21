@@ -24,6 +24,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
   const set = useApp((s) => s.set)
 
   const facesEnabled = useApp((s) => s.settings.facesEnabled)
+  const readOnly = useApp((s) => s.readOnly)
   // The chosen category or album, clicked again, closes (or opens again) its sub-albums.
   const [closedId, setClosed] = useState<string | null>(null)
   // Only while it is still the chosen one (a new album opened elsewhere shows its category open).
@@ -51,14 +52,14 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
           <span className="label">{t('nav.allMedia')}</span>
           <span className="count">{total}</span>
         </button>
-        {lib.toClassify.length > 0 && (
+        {lib.toClassify.length > 0 && !readOnly && (
           <button className="nav-item" aria-current={filters.categoryId === TO_CLASSIFY} onClick={() => select(TO_CLASSIFY, null)}>
             <Wand2 size={18} />
             <span className="label">{t('classify.toClassify')}</span>
             <span className="count">{lib.toClassify.length}</span>
           </button>
         )}
-        {lib.autoItems.length > 0 && (
+        {lib.autoItems.length > 0 && !readOnly && (
           <button className="nav-item" aria-current={filters.categoryId === AUTO} onClick={() => select(AUTO, null)}>
             <Sparkles size={18} />
             <span className="label">{t('classify.autoView')}</span>
@@ -93,20 +94,23 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
             )}
           </div>
         ))}
-        <button className="nav-item" onClick={onNewCategory}>
-          <Plus size={18} />
-          <span className="label">{t('nav.newCategory')}</span>
-        </button>
-        {facesEnabled && (
+        {!readOnly && (
+          <button className="nav-item" onClick={onNewCategory}>
+            <Plus size={18} />
+            <span className="label">{t('nav.newCategory')}</span>
+          </button>
+        )}
+        {facesEnabled && (!readOnly || people.named.length > 0) && (
           <>
             <h2>{t('faces.people')}</h2>
-            <button className="nav-item" aria-current={filters.categoryId === PEOPLE} onClick={() => select(PEOPLE, null)}>
+            {/* Read-only: the people the owner named, nothing to sort out. */}
+            {!readOnly && <button className="nav-item" aria-current={filters.categoryId === PEOPLE} onClick={() => select(PEOPLE, null)}>
               <Users size={18} />
               <span className="label">{t('faces.allPeople')}</span>
               {people.toConfirm.length + people.unnamed.length > 0 && (
                 <span className="count">{t('faces.toReview', { count: people.toConfirm.length + people.unnamed.length })}</span>
               )}
-            </button>
+            </button>}
             {people.named.map((p) => (
               <button
                 key={p.id}
@@ -128,10 +132,12 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
         )}
         <ProvenanceList lib={lib} />
         <h2 />
-        <button className="nav-item" onClick={() => set({ shopOpen: true, sidebarOpen: false })}>
-          <Store size={18} />
-          <span className="label">{t('nav.shop')}</span>
-        </button>
+        {!readOnly && (
+          <button className="nav-item" onClick={() => set({ shopOpen: true, sidebarOpen: false })}>
+            <Store size={18} />
+            <span className="label">{t('nav.shop')}</span>
+          </button>
+        )}
         <button
           className="nav-item"
           onClick={() => set({ helpOpen: true, sidebarOpen: false })}
@@ -139,7 +145,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
           <CircleHelp size={18} />
           <span className="label">{t('nav.help')}</span>
         </button>
-        <DriveStorage lib={lib} />
+        {!readOnly && <DriveStorage lib={lib} />}
       </nav>
     </>
   )

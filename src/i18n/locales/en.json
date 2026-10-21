@@ -782,5 +782,20 @@
     "dups_other": "{{count}} files were already in MyMedia: they were not copied.",
     "failed_one": "{{count}} file could not be copied. Google's detail: {{reason}}",
     "failed_other": "{{count}} files could not be copied. Google's detail: {{reason}}"
+  },
+  "library": {
+    "title": "Library",
+    "mine": "My library",
+    "sharedOf": "{{owner}}'s MyMedia",
+    "readOnlyOf": "View only · {{owner}}'s MyMedia",
+    "readOnlyHint": "{{owner}}'s MyMedia, shared with you to view: you can look, search and download; nothing can be changed.",
+    "sharedHint": "{{owner}}'s MyMedia, shared with you with editing rights: your changes go into their library.",
+    "readOnlyTag": "view only",
+    "searching": "Looking for MyMedia shared with you…",
+    "none": "No MyMedia is shared with this account.",
+    "backToMine": "Back to my library",
+    "shareHint": "To show your MyMedia to someone without giving them your account: in Google Drive, share the “{{name}}” folder with their Gmail address, role “Viewer”. When they open MyMedia with their account, they find it here, view only.",
+    "setupShared": "A MyMedia is shared with you, you can open it:",
+    "lost": "The shared MyMedia can no longer be reached (sharing was removed): your own library is open."
   }
 }

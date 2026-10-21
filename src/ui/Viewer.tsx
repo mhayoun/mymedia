@@ -41,6 +41,7 @@ export function Viewer({ ids, items }: Props) {
   const index = ids.indexOf(viewerId)
   const [showInfo, setShowInfo] = useState(() => window.innerWidth > 800)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const readOnly = useApp((s) => s.readOnly)
   const rtl = i18n.dir() === 'rtl'
 
   useEffect(() => {
@@ -104,9 +105,11 @@ export function Viewer({ ids, items }: Props) {
               <ExternalLink />
             </a>
           )}
-          <button className="icon-btn" onClick={() => setConfirmDelete(true)} aria-label={t('viewer.delete')} title={t('viewer.delete')}>
-            <Trash2 />
-          </button>
+          {!readOnly && (
+            <button className="icon-btn" onClick={() => setConfirmDelete(true)} aria-label={t('viewer.delete')} title={t('viewer.delete')}>
+              <Trash2 />
+            </button>
+          )}
           <button className="icon-btn" onClick={() => setShowInfo((v) => !v)} aria-label={t('viewer.info')} aria-pressed={showInfo}>
             <Info />
           </button>
@@ -388,11 +391,10 @@ function InfoPanel({ item }: { item: LibraryItem }) {
   const provenance = useProvenanceLabel()
   const { t } = useTranslation()
   const fmt = useFormat()
-  const lib = useLibraryContext()
   const { rec, meta, place } = item
-  const [moving, setMoving] = useState(false)
-  const [compressOpen, setCompressOpen] = useState(false)
-  const [newAlbumOpen, setNewAlbumOpen] = useState(false)
+  const readOnly = useApp((s) => s.readOnly)
+  const set = useApp((s) => s.set)
+  const setFilters = useApp((s) => s.setFilters)
   const people = usePeopleContext()
   const openPerson = useOpenPerson()
   const faces = people?.facesOfMedia.get(rec.id) ?? []
@@ -400,7 +402,6 @@ function InfoPanel({ item }: { item: LibraryItem }) {
     () => [...(people?.named ?? [])].sort((a, b) => (a.name ?? '').localeCompare(b.name ?? '')),
     [people],
   )
-  const [description, setDescription] = useState(meta?.description ?? '')
   // The face being given a new name here, and the name typed.
   const [naming, setNaming] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
@@ -413,11 +414,6 @@ function InfoPanel({ item }: { item: LibraryItem }) {
     else await namePerson(await splitFaces([f.id]), name)
     setNaming(null)
     setNewName('')
-  }
-
-  const saveDescription = () => {
-    const value = description.trim()
-    if (value !== (meta?.description ?? '')) void updateMeta(rec.id, { description: value || undefined })
   }
 
   return (
@@ -505,11 +501,21 @@ function InfoPanel({ item }: { item: LibraryItem }) {
               const p = f.personId ? people?.byId.get(f.personId) : undefined
               return (
                 <div key={f.id} className={`info-face ${f.personId ? '' : 'unknown'}`}>
-                  <button onClick={() => p && openPerson(p.id)} disabled={!p} title={p?.name ?? t('faces.nameIt')}>
+                  <button
+                    onClick={() => {
+                      if (!p) return
+                      // Read-only: the person's photos (nothing to change about them).
+                      if (!readOnly) return openPerson(p.id)
+                      setFilters({ personId: p.id, categoryId: null, albumId: null, provenance: null })
+                      set({ viewerId: null })
+                    }}
+                    disabled={!p || (readOnly && !p.name)}
+                    title={p?.name ?? (readOnly ? undefined : t('faces.nameIt'))}
+                  >
                     <FaceImg face={f} size={48} />
                     <span>{p?.name ? <bdi>{p.name}</bdi> : f.personId ? '?' : t('faces.unknownFace')}</span>
                   </button>
-                  <select
+                  {!readOnly && <select
                     value=""
                     aria-label={t('faces.itIs')}
                     onChange={async (e) => {
@@ -532,7 +538,7 @@ function InfoPanel({ item }: { item: LibraryItem }) {
                     <option value={NEW_PERSON}>{t('faces.itIsNew')}</option>
                     {/* Not known and not wanted: out of its group, never grouped or asked again. */}
                     {f.personId && <option value={NO_PERSON}>{t('faces.itIsNobody')}</option>}
-                  </select>
+                  </select>}
                   {naming === f.id && (
                     <form
                       className="row"
@@ -563,6 +569,41 @@ function InfoPanel({ item }: { item: LibraryItem }) {
           </div>
         </>
       )}
+      {readOnly ? (
+        <dl>
+          <dt>{t('viewer.origin')}</dt>
+          <dd>{t(`origin.${meta?.origin ?? 'unknown'}`)}</dd>
+          {meta?.description && (
+            <>
+              <dt>{t('viewer.description')}</dt>
+              <dd dir="auto" style={{ whiteSpace: 'pre-wrap' }}>
+                {meta.description}
+              </dd>
+            </>
+          )}
+        </dl>
+      ) : (
+        <InfoEdit item={item} />
+      )}
+    </aside>
+  )
+}
+
+/** What can be changed about a media: compress, move, origin, description. */
+function InfoEdit({ item }: { item: LibraryItem }) {
+  const { t } = useTranslation()
+  const lib = useLibraryContext()
+  const { rec, meta } = item
+  const [moving, setMoving] = useState(false)
+  const [compressOpen, setCompressOpen] = useState(false)
+  const [newAlbumOpen, setNewAlbumOpen] = useState(false)
+  const [description, setDescription] = useState(meta?.description ?? '')
+  const saveDescription = () => {
+    const value = description.trim()
+    if (value !== (meta?.description ?? '')) void updateMeta(rec.id, { description: value || undefined })
+  }
+  return (
+    <>
       {!rec.appProperties?.mymedia_compressed && (
         <button className="btn" style={{ marginBlockEnd: 12 }} onClick={() => setCompressOpen(true)}>
           {t('compress.button')}
@@ -619,6 +660,6 @@ function InfoPanel({ item }: { item: LibraryItem }) {
           onBlur={saveDescription}
         />
       </label>
-    </aside>
+    </>
   )
 }

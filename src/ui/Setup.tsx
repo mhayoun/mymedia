@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { rootReady } from '../session'
 import { useApp } from '../store'
 import { createRoot } from '../sync/engine'
+import { openLibrary } from '../sync/library'
+import { SharedLibraries } from './SharedLibraries'
 import { LanguageSwitch } from './SignIn'
 
 export function Setup() {
@@ -38,6 +40,7 @@ export function Setup() {
     <div className="center-screen">
       <div className="card">
         <h1>{t('setup.title')}</h1>
+        <SharedLibraries hideEmpty intro={t('library.setupShared')} />
         <p>{t('setup.noRoot', { name: rootName })}</p>
         <label className="field">
           {t('setup.rootName')}
@@ -76,6 +79,8 @@ export function RootMissing() {
   const { t } = useTranslation()
   const rootName = useApp((s) => s.settings.rootName)
   const set = useApp((s) => s.set)
+  const shared = useApp((s) => s.shared)
+  const user = useApp((s) => s.user)
   const [busy, setBusy] = useState(false)
   return (
     <div className="center-screen">
@@ -98,9 +103,15 @@ export function RootMissing() {
           >
             {t('setup.restored')}
           </button>
-          <button className="btn" onClick={() => set({ phase: 'setup' })}>
-            {t('setup.createNew')}
-          </button>
+          {shared && user ? (
+            <button className="btn" onClick={() => openLibrary(user.email, null)}>
+              {t('library.backToMine')}
+            </button>
+          ) : (
+            <button className="btn" onClick={() => set({ phase: 'setup' })}>
+              {t('setup.createNew')}
+            </button>
+          )}
         </div>
       </div>
     </div>

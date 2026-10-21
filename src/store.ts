@@ -101,6 +101,10 @@ interface AppState {
   phase: Phase
   user: User | null
   rootId: string | null
+  /** A MyMedia another account shared with this one (null: the user's own). */
+  shared: { ownerName?: string; ownerEmail?: string } | null
+  /** Shared for viewing only: browse, search and watch; nothing can be changed. */
+  readOnly: boolean
   settings: Settings
   sync: SyncProgress | null
   /** Background step shown with a spinner (i18n key): preparing the analysis, sorting… */
@@ -140,6 +144,8 @@ export const useApp = create<AppState>((set, get) => ({
   phase: 'boot',
   user: null,
   rootId: null,
+  shared: null,
+  readOnly: false,
   settings: loadSettings(),
   sync: null,
   moving: 0,

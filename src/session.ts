@@ -4,6 +4,7 @@ import { auth } from './auth/google'
 import { isConfigured, loadConfig } from './config'
 import { loadUser, locateRoot, openCachedUser, syncNow } from './sync/engine'
 import { app } from './store'
+import { takeLibraryLost } from './sync/library'
 import { keepStreamTokenFresh } from './sync/stream'
 
 let sessionStarted = false
@@ -48,6 +49,8 @@ export async function startSession(): Promise<void> {
   try {
     const previous = app().user?.email
     await loadUser()
+    // The shared MyMedia that was open is no longer shared: the user's own is open, say why.
+    if (takeLibraryLost()) app().set({ toast: { key: 'library.lost' } })
     if (previous && previous !== app().user?.email) {
       app().set({ rootId: null, filters: { categoryId: null, albumId: null, type: 'all' } })
     }

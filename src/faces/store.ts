@@ -96,7 +96,7 @@ export function saveFaces(): Promise<void> {
   return serial(async () => {
     const rootId = app().rootId
     const d = db()
-    if (!rootId || !(await d.getKv<boolean>('facesDirty'))) return
+    if (!rootId || app().readOnly || !(await d.getKv<boolean>('facesDirty'))) return
     const { fileId, data } = await readRemote(rootId)
     if (data) await mergeIn(data)
     const file: FacesFile = {

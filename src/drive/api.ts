@@ -34,7 +34,8 @@ export interface DriveFile {
   videoMediaMetadata?: { width?: number; height?: number; durationMillis?: string }
   appProperties?: Record<string, string>
   ownedByMe?: boolean
-  owners?: { emailAddress?: string }[]
+  owners?: { emailAddress?: string; displayName?: string }[]
+  capabilities?: { canEdit?: boolean }
 }
 
 export interface DriveChangeRaw {
@@ -60,7 +61,14 @@ function waitOnline(): Promise<void> {
   return new Promise((resolve) => window.addEventListener('online', () => resolve(), { once: true }))
 }
 
+let readOnly = false
+/** A library shared for viewing only: nothing is ever sent that would change Drive. */
+export function setDriveReadOnly(on: boolean): void {
+  readOnly = on
+}
+
 async function request(url: string, init: RequestInit = {}, signal?: AbortSignal): Promise<Response> {
+  if (readOnly && init.method && init.method !== 'GET') throw new DriveError(403, 'Read-only library', 'readOnly')
   let delay = 1000
   for (let attempt = 0; ; attempt++) {
     signal?.throwIfAborted()

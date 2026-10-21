@@ -92,7 +92,7 @@ export function pullMeta(rootId: string): Promise<void> {
 export function saveMeta(): Promise<void> {
   return serial(async () => {
     const rootId = app().rootId
-    if (!rootId || !(await db().getKv<boolean>('metaDirty'))) return
+    if (!rootId || app().readOnly || !(await db().getKv<boolean>('metaDirty'))) return
     const { merged, fileId } = await pullAndMerge(rootId)
     const content = JSON.stringify({ ...merged, updatedAt: Date.now() })
     if (fileId) await updateTextFile(fileId, content)

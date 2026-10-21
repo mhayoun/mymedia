@@ -120,8 +120,9 @@ export class MyMediaDB extends Dexie {
 
 let current: MyMediaDB | null = null
 
-export function openDb(email: string): MyMediaDB {
-  const name = `mymedia:${email.toLowerCase()}`
+/** One database per account, and one more per library shared with it (they never mix). */
+export function openDb(email: string, sharedRootId?: string | null): MyMediaDB {
+  const name = `mymedia:${email.toLowerCase()}${sharedRootId ? `:shared:${sharedRootId}` : ''}`
   if (current?.name === name) return current
   current?.close()
   current = new MyMediaDB(name)

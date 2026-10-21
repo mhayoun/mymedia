@@ -1,4 +1,4 @@
-import { Brain, CircleHelp, FolderInput, FolderSync, FolderPlus, ImagePlus, LayoutGrid, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Store, Trash2, UserRound, WifiOff, X } from 'lucide-react'
+import { Brain, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, LayoutGrid, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Store, Trash2, UserRound, WifiOff, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -73,6 +73,7 @@ export function Shell() {
   const [dialog, setDialog] = useState<DialogState>(null)
   const [personOpen, setPersonOpen] = useState<string | null>(null)
   const selection = useApp((s) => s.selection)
+  const readOnly = useApp((s) => s.readOnly)
   const people = usePeople()
   useAutoSync()
 
@@ -85,7 +86,7 @@ export function Shell() {
 
   // Files shared to MyMedia from another app (Android Share menu).
   useEffect(() => {
-    if (!rootId || !hasSharedFiles()) return
+    if (!rootId || app().readOnly || !hasSharedFiles()) return
     readSharedFiles().then((files) => {
       if (files.length) setDialog({ kind: 'import', destId: rootId, files })
       else void clearSharedFiles()
@@ -224,11 +225,11 @@ export function Shell() {
           onClose={() => setDialog(null)}
         />
       )}
-      {filters.categoryId !== PEOPLE && rootId && (
+      {filters.categoryId !== PEOPLE && rootId && !readOnly && (
         <SelectionBar lib={lib} people={people} items={items} parentId={filters.albumId ?? (filters.categoryId && lib.folders.has(filters.categoryId) ? filters.categoryId : rootId)} />
       )}
       {personOpen && <PersonDialog people={people} personId={personOpen} onClose={() => setPersonOpen(null)} />}
-      <FacesIntro people={people} />
+      {!readOnly && <FacesIntro people={people} />}
     </div>
     </PersonDialogContext.Provider>
     </PeopleContext.Provider>
@@ -283,6 +284,8 @@ function TopBar() {
   const moving = useApp((s) => s.moving)
   const working = useApp((s) => s.working)
   const set = useApp((s) => s.set)
+  const readOnly = useApp((s) => s.readOnly)
+  const shared = useApp((s) => s.shared)
   const online = useOnline()
 
   return (
@@ -304,6 +307,15 @@ function TopBar() {
         <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" />
         <span>{t('app.name')}</span>
       </div>
+      {shared && (
+        <button className="sync-info shared-badge" onClick={() => set({ accountOpen: true })} title={t(readOnly ? 'library.readOnlyHint' : 'library.sharedHint', { owner: shared.ownerName ?? shared.ownerEmail ?? '' })}>
+          <Eye size={14} />
+          <span className="only-desktop">
+            {' '}
+            {t(readOnly ? 'library.readOnlyOf' : 'library.sharedOf', { owner: shared.ownerName ?? shared.ownerEmail ?? '' })}
+          </span>
+        </button>
+      )}
       {!online && (
         <span className="sync-info" title={t('sync.offline')}>
           <WifiOff size={18} />
@@ -378,9 +390,11 @@ function TopBar() {
       <button className="icon-btn" onClick={() => set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
         <CircleHelp />
       </button>
-      <button className="icon-btn shop-btn" onClick={() => set({ shopOpen: true })} aria-label={t('nav.shop')} title={t('nav.shop')}>
-        <Store />
-      </button>
+      {!readOnly && (
+        <button className="icon-btn shop-btn" onClick={() => set({ shopOpen: true })} aria-label={t('nav.shop')} title={t('nav.shop')}>
+          <Store />
+        </button>
+      )}
       <button className="icon-btn" onClick={() => set({ settingsOpen: true })} aria-label={t('nav.settings')} title={t('nav.settings')}>
         <SettingsIcon />
       </button>
@@ -442,6 +456,7 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
   const setFilters = useApp((s) => s.setFilters)
   const settings = useApp((s) => s.settings)
   const updateSettings = useApp((s) => s.updateSettings)
+  const readOnly = useApp((s) => s.readOnly)
 
   const special =
     filters.categoryId === UNFILED || filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO || filters.categoryId === PEOPLE || filters.categoryId === MISFILED || !!filters.personId || !!filters.provenance
@@ -497,7 +512,7 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
         <h1>
           <bdi>{title}</bdi>
         </h1>
-      {folder && (
+      {folder && !readOnly && (
         <span className="row">
           <button
             className="icon-btn small"
@@ -570,14 +585,18 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
         {t('gallery.count', { count })}
       </span>
       <span className="grow" />
-      <button className="btn primary" onClick={onAdd} title={t('import.button')}>
-        <ImagePlus size={16} />
-        <span className="only-desktop">{t('import.button')}</span>
-      </button>
-      <button className="btn" onClick={onCompress} title={t('compress.button')}>
-        <Minimize2 size={16} />
-        <span className="only-desktop">{t('compress.button')}</span>
-      </button>
+      {!readOnly && (
+        <>
+          <button className="btn primary" onClick={onAdd} title={t('import.button')}>
+            <ImagePlus size={16} />
+            <span className="only-desktop">{t('import.button')}</span>
+          </button>
+          <button className="btn" onClick={onCompress} title={t('compress.button')}>
+            <Minimize2 size={16} />
+            <span className="only-desktop">{t('compress.button')}</span>
+          </button>
+        </>
+      )}
       </div>
     </div>
   )

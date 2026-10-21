@@ -848,5 +848,20 @@
     "failed_one": "קובץ אחד לא הועתק. פרטים מ-Google: {{reason}}",
     "failed_two": "{{count}} קבצים לא הועתקו. פרטים מ-Google: {{reason}}",
     "failed_other": "{{count}} קבצים לא הועתקו. פרטים מ-Google: {{reason}}"
+  },
+  "library": {
+    "title": "ספרייה",
+    "mine": "הספרייה שלי",
+    "sharedOf": "MyMedia של {{owner}}",
+    "readOnlyOf": "צפייה בלבד · MyMedia של {{owner}}",
+    "readOnlyHint": "MyMedia של {{owner}}, משותף איתך לצפייה: אפשר לצפות, לחפש ולהוריד; אי אפשר לשנות דבר.",
+    "sharedHint": "MyMedia של {{owner}}, משותף איתך עם הרשאת עריכה: השינויים שלך נשמרים בספרייה שלו.",
+    "readOnlyTag": "צפייה בלבד",
+    "searching": "מחפש MyMedia ששותפו איתך…",
+    "none": "אין MyMedia ששותף עם החשבון הזה.",
+    "backToMine": "חזרה לספרייה שלי",
+    "shareHint": "כדי להראות את ה-MyMedia שלך למישהו בלי לתת לו את החשבון: ב-Google Drive שתפו את התיקייה „{{name}}” עם כתובת ה-Gmail שלו, בתפקיד „צופה”. כשיפתח את MyMedia עם החשבון שלו, הוא ימצא אותה כאן, לצפייה בלבד.",
+    "setupShared": "שותף איתך MyMedia, אפשר לפתוח אותו:",
+    "lost": "ה-MyMedia המשותף כבר לא זמין (השיתוף הוסר): הספרייה שלך פתוחה."
   }
 }

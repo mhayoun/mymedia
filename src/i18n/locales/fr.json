@@ -780,5 +780,20 @@
     "dups_other": "{{count}} fichiers étaient déjà dans MyMedia : ils n'ont pas été copiés.",
     "failed_one": "{{count}} fichier n'a pas pu être copié. Détail de Google : {{reason}}",
     "failed_other": "{{count}} fichiers n'ont pas pu être copiés. Détail de Google : {{reason}}"
+  },
+  "library": {
+    "title": "Bibliothèque",
+    "mine": "Ma bibliothèque",
+    "sharedOf": "MyMedia de {{owner}}",
+    "readOnlyOf": "Lecture seule · MyMedia de {{owner}}",
+    "readOnlyHint": "MyMedia de {{owner}}, partagé avec vous en lecture seule : vous pouvez regarder, chercher et télécharger, rien ne peut y être changé.",
+    "sharedHint": "MyMedia de {{owner}}, partagé avec vous avec le droit de modifier : vos changements vont dans sa bibliothèque.",
+    "readOnlyTag": "lecture seule",
+    "searching": "Recherche des MyMedia partagés avec vous…",
+    "none": "Aucun MyMedia n'est partagé avec ce compte.",
+    "backToMine": "Revenir à ma bibliothèque",
+    "shareHint": "Pour montrer votre MyMedia à quelqu'un sans lui donner votre compte : dans Google Drive, partagez le dossier « {{name}} » avec son adresse Gmail, rôle « Lecteur ». En ouvrant MyMedia avec son compte, il le trouvera ici, en lecture seule.",
+    "setupShared": "Un MyMedia est partagé avec vous, vous pouvez l’ouvrir :",
+    "lost": "Le MyMedia partagé n'est plus accessible (le partage a été retiré) : votre propre bibliothèque est ouverte."
   }
 }

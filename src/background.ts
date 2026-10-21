@@ -5,13 +5,23 @@
 import { afterLoadCompression } from './compress/engine'
 import { repairKatiaProvenance } from './import/katia'
 import { startIndexer } from './ml/indexer'
-import { withStep } from './store'
+import { pullFaces } from './faces/store'
+import { app, withStep } from './store'
 import { kick as sendMoves } from './sync/moveQueue'
 import { fixVideoDates } from './sync/videoDates'
 
 let running: Promise<void> | null = null
 
 export function afterSync(): Promise<void> {
+  // Read-only: nothing is analysed, sorted or compressed; the people found by the owner are shown.
+  if (app().readOnly) {
+    running ??= (app().settings.facesEnabled ? pullFaces().then(() => undefined) : Promise.resolve())
+      .catch((e) => console.warn('[MyMedia] faces download failed', e))
+      .finally(() => {
+        running = null
+      })
+    return running
+  }
   // Moves left from an earlier visit (offline, closed too soon).
   sendMoves()
   running ??= (async () => {

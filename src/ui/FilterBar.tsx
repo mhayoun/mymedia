@@ -23,6 +23,7 @@ function folderOptions(list: FolderInfo[], depth = 0): { id: string; label: stri
 export function FilterBar({ people, lib }: { people: People; lib: Library }) {
   const { t } = useTranslation()
   const selection = useApp((s) => s.selection)
+  const readOnly = useApp((s) => s.readOnly)
   const set = useApp((s) => s.set)
   const filters = useApp((s) => s.filters)
   const setFilters = useApp((s) => s.setFilters)
@@ -65,10 +66,12 @@ export function FilterBar({ people, lib }: { people: People; lib: Library }) {
           <span className="only-desktop">{t('filters.button')}</span>
           {active > 0 && <span className="badge-count">{active}</span>}
         </button>
-        <button className={`btn ${selection ? 'primary' : ''}`} onClick={() => set({ selection: selection ? null : [] })} title={t('select.button')}>
-          <CheckSquare size={16} />
-          <span className="only-desktop">{t('select.button')}</span>
-        </button>
+        {!readOnly && (
+          <button className={`btn ${selection ? 'primary' : ''}`} onClick={() => set({ selection: selection ? null : [] })} title={t('select.button')}>
+            <CheckSquare size={16} />
+            <span className="only-desktop">{t('select.button')}</span>
+          </button>
+        )}
       </div>
       {chips.length > 0 && (
         <div className="row">

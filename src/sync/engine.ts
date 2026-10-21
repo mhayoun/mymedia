@@ -12,8 +12,10 @@ import {
   getStartPageToken,
   listChanges,
   listFiles,
+  setDriveReadOnly,
   type DriveFile,
 } from '../drive/api'
+import { chosenLibrary, libraryLost } from './library'
 import { auth } from '../auth/google'
 import { planChanges } from '../lib/changes'
 import { keepPendingPlaces } from './moveQueue'
@@ -74,23 +76,61 @@ function toFolder(f: DriveFile): FolderNode {
 export async function loadUser(): Promise<void> {
   const user = await about()
   auth.loginHint = user.email
-  const d = openDb(user.email)
+  const d = openDb(user.email, chosenLibrary(user.email))
   await d.setKv('user', user)
   app().set({ user })
 }
 
 /** Opens the cached database of the last account, for offline / instant start. */
 export async function openCachedUser(email: string): Promise<boolean> {
-  const d = openDb(email)
+  const shared = chosenLibrary(email)
+  const d = openDb(email, shared)
   const user = await d.getKv<{ email: string; name: string; photo?: string }>('user')
   const rootId = await d.getKv<string>('rootId')
   if (!user || !rootId) return false
+  if (shared) {
+    const info = await d.getKv<SharedInfo>('shared')
+    applyShared(info ?? { readOnly: true })
+  }
   app().set({ user, rootId })
   return true
 }
 
+interface SharedInfo {
+  ownerName?: string
+  ownerEmail?: string
+  readOnly: boolean
+}
+
+function applyShared({ readOnly, ...owner }: SharedInfo) {
+  setDriveReadOnly(readOnly)
+  app().set({ shared: owner, readOnly })
+}
+
+/** A MyMedia shared with this account: still shared? Read-only unless shared for editing. */
+async function locateShared(id: string): Promise<'found' | 'removed'> {
+  let f: DriveFile | null = null
+  try {
+    f = await getFile(id, 'id,name,trashed,owners(displayName,emailAddress),capabilities(canEdit)')
+  } catch (e) {
+    if (!(e instanceof DriveError && (e.status === 404 || e.status === 403))) throw e
+  }
+  if (!f || f.trashed) {
+    // No longer shared: the app opens the user's own library again.
+    libraryLost(app().user!.email)
+    return 'removed'
+  }
+  const info: SharedInfo = { ownerName: f.owners?.[0]?.displayName, ownerEmail: f.owners?.[0]?.emailAddress, readOnly: !f.capabilities?.canEdit }
+  await db().setKv('shared', info)
+  applyShared(info)
+  await setRoot(id)
+  return 'found'
+}
+
 /** Finds the root folder. Returns false when it does not exist yet. */
 export async function locateRoot(): Promise<'found' | 'missing' | 'removed'> {
+  const shared = chosenLibrary(app().user!.email)
+  if (shared) return locateShared(shared)
   const d = db()
   const known = await d.getKv<string>('rootId')
   if (known) {
@@ -312,8 +352,11 @@ export function syncNow(options: { full?: boolean } = {}): Promise<void> {
       if (app().phase === 'rootMissing') return
       app().set({ sync: { step: 'sync.metadata', done: 0, total: 0 } })
       await pullMeta(rootId)
-      await reconcileMeta(rootId)
-      await saveMeta()
+      // Read-only: what the owner's devices wrote is shown as it is.
+      if (!app().readOnly) {
+        await reconcileMeta(rootId)
+        await saveMeta()
+      }
       app().set({ lastSyncAt: Date.now() })
       // In the background: compress new big files, then learn and classify.
       void import('../background').then((m) => m.afterSync())

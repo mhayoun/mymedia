@@ -20,6 +20,7 @@ export function SettingsPanel() {
   const settings = useApp((s) => s.settings)
   const updateSettings = useApp((s) => s.updateSettings)
   const rootId = useApp((s) => s.rootId)
+  const readOnly = useApp((s) => s.readOnly)
   const set = useApp((s) => s.set)
   const [renaming, setRenaming] = useState(false)
   const [cleared, setCleared] = useState(false)
@@ -91,6 +92,8 @@ export function SettingsPanel() {
           <p className="hint">{t('settings.rescanHint')}</p>
         </section>
 
+        {!readOnly && (
+        <>
         <section>
           <h3>{t('classify.settingsTitle')}</h3>
           <label className="radio-row">
@@ -284,6 +287,8 @@ export function SettingsPanel() {
           </div>
           <p className="hint">{t('settings.rootFolderHint')}</p>
         </section>
+        </>
+        )}
 
         <section>
           <h3>{t('settings.storage')}</h3>

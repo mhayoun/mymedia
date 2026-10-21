@@ -115,6 +115,8 @@ export function Gallery({ items, folderId, folders }: { items: LibraryItem[]; fo
   )
   const startSelection = useCallback(
     (id: string) => {
+      // Read-only: nothing to do with a selection.
+      if (useApp.getState().readOnly) return
       lastPicked.current = id
       set({ selection: [id] })
     },
