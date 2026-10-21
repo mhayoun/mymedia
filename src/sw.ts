@@ -5,6 +5,7 @@
 // (a limited amount) so they start at once the next time.
 
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
+import { boundaryOf, parseMultipart, preview } from './lib/multipart'
 import { VIDEO_CHANNEL, type VideoProgress } from './lib/videoBuffer'
 import { NavigationRoute, registerRoute } from 'workbox-routing'
 import { clientsClaim } from 'workbox-core'
@@ -25,15 +26,24 @@ registerRoute(
     let count = 0
     let why = ''
     try {
-      const form = await request.formData()
-      const files = form.getAll('media').filter((f): f is File => f instanceof File)
-      // Nothing usable: what came, for the app to say.
+      const contentType = request.headers.get('content-type') ?? ''
+      const body = new Uint8Array(await request.arrayBuffer())
+      let files: File[] = []
+      try {
+        const form = await new Response(body, { headers: { 'content-type': contentType } }).formData()
+        files = form.getAll('media').filter((f): f is File => f instanceof File)
+      } catch {
+        // read by hand below
+      }
+      // The browser's reader found nothing (seen with Chrome on Android): the body read by hand.
       if (!files.length) {
-        const got = [...form.entries()].map(([k, v]) => `${k}:${typeof v === 'string' ? 'text' : v.type || 'file'}`).join(',') || 'nothing'
-        const type = request.headers.get('content-type')?.split(';')[0] ?? 'no type'
+        files = parseMultipart(body, contentType)
+          .filter((p) => p.filename !== undefined && p.data.length > 0)
+          .map((p) => new File([p.data as BlobPart], p.filename || 'shared', { type: p.type, lastModified: Date.now() }))
+      }
+      if (!files.length) {
         const browser = /SamsungBrowser\/[\d.]+|EdgA\/[\d.]+|Firefox\/[\d.]+|Chrome\/\d+/.exec(self.navigator.userAgent)?.[0] ?? '?'
-        const android = /Android [\d.]+/.exec(self.navigator.userAgent)?.[0] ?? ''
-        why = `received ${got} · ${type} · ${request.headers.get('content-length') ?? '?'} B · ${browser} ${android}`
+        why = `received nothing · ${contentType.split(';')[0] || 'no type'} · boundary ${boundaryOf(contentType) ? 'yes' : 'no'} · ${body.length} B · ${browser} · ${preview(body)}`
       }
       const cache = await caches.open(SHARED_CACHE)
       for (const key of await cache.keys()) await cache.delete(key)
