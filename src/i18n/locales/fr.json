@@ -166,7 +166,10 @@
     "rescanHint": "Utile seulement si quelque chose semble incorrect.",
     "storage": "Enregistré sur cet appareil",
     "clearThumbs": "Effacer les miniatures, aperçus et vidéos gardés sur l’appareil",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "thumbPacks": "Paquets de miniatures",
+    "thumbPacksHint": "Les miniatures d'un album arrivent en un seul fichier au lieu d'une par une. Décochez si les albums restent vides sur cet appareil.",
+    "thumbDiagnosis": "Diagnostic miniatures"
   },
   "errors": {
     "syncFailed": "Le chargement depuis Google Drive a échoué. Il sera réessayé.",

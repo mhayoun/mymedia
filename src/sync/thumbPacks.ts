@@ -37,7 +37,13 @@ export interface PackThumb {
 }
 
 export function packOf(mediaId: string): { key: string; count: number } | undefined {
-  return index.get(mediaId)
+  return app().settings.thumbPacks === false ? undefined : index.get(mediaId)
+}
+
+const counts = { loading: 0, loaded: 0, failed: 0, thumbs: 0 }
+/** For the diagnosis in the settings. */
+export function packStats() {
+  return { known: packs.size, media: index.size, ...counts }
 }
 
 /** True once the pack was downloaded in this visit (what it lacks is loaded one by one). */
@@ -125,16 +131,22 @@ export async function preparePacks(): Promise<void> {
 export function loadPack(key: string): Promise<Map<string, PackThumb>> {
   let run = loads.get(key)
   if (!run) {
+    counts.loading++
     run = (async () => {
       const file = packs.get(key)
       if (!file) return new Map<string, PackThumb>()
       const thumbs = readPack(new Uint8Array(await (await downloadBlob(file.id)).arrayBuffer()))
       if (thumbs.length) void db().thumbs.bulkPut(thumbs).catch(() => undefined)
+      counts.loaded++
+      counts.thumbs += thumbs.length
       return new Map(thumbs.map((t) => [t.id, t]))
-    })().catch((e) => {
-      console.warn('[MyMedia] thumbnail pack', key, e)
-      return new Map<string, PackThumb>()
-    })
+    })()
+      .catch((e) => {
+        console.warn('[MyMedia] thumbnail pack', key, e)
+        counts.failed++
+        return new Map<string, PackThumb>()
+      })
+      .finally(() => counts.loading--)
     loads.set(key, run)
   }
   return run

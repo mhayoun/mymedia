@@ -1,5 +1,5 @@
 import { X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { db } from '../db/db'
 import { renameFile } from '../drive/api'
@@ -14,6 +14,9 @@ import { ConfirmDialog, PromptDialog } from './Dialog'
 import { deleteAllFaceData } from '../faces/store'
 import { usePeopleContext } from './peopleContext'
 import { clearMediaCaches } from '../sync/previews'
+import { packStats } from '../sync/thumbPacks'
+import { thumbState } from '../sync/thumbs'
+import { auth } from '../auth/google'
 
 export function SettingsPanel() {
   const { t } = useTranslation()
@@ -292,6 +295,12 @@ export function SettingsPanel() {
 
         <section>
           <h3>{t('settings.storage')}</h3>
+          <label className="radio-row">
+            <input type="checkbox" checked={settings.thumbPacks !== false} onChange={(e) => updateSettings({ thumbPacks: e.target.checked })} />
+            {t('settings.thumbPacks')}
+          </label>
+          <p className="hint">{t('settings.thumbPacksHint')}</p>
+          <ThumbDiagnosis />
           <button
             className="btn"
             disabled={cleared}
@@ -329,5 +338,23 @@ export function SettingsPanel() {
         />
       )}
     </>
+  )
+}
+
+/** Live state of the thumbnails, for a screenshot when they do not come. */
+function ThumbDiagnosis() {
+  const { t } = useTranslation()
+  const [, tick] = useState(0)
+  useEffect(() => {
+    const timer = setInterval(() => tick((n) => n + 1), 1000)
+    return () => clearInterval(timer)
+  }, [])
+  const s = thumbState()
+  const p = packStats()
+  return (
+    <p className="hint" dir="ltr" style={{ textAlign: 'start', fontFamily: 'monospace', fontSize: '0.8rem' }}>
+      {t('settings.thumbDiagnosis')}: {s.size}px · net {s.type}
+      {s.fast ? ' fast' : ''} · auth {auth.status} · active {s.active} · queued {s.queued} · making {s.making} (oldest {s.oldestSeconds}s) · ok {s.ok} · failed {s.failed} · packs known {p.known} ({p.media} photos) · loading {p.loading} · loaded {p.loaded} ({p.thumbs}) · failed {p.failed} · waiting {s.waitingPacks} · slow {s.slowPacks}
+    </p>
   )
 }

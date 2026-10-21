@@ -168,7 +168,10 @@
     "rescanHint": "Only needed if something looks wrong.",
     "storage": "Saved on this device",
     "clearThumbs": "Clear thumbnails, previews and videos kept on this device",
-    "version": "Version {{version}}"
+    "version": "Version {{version}}",
+    "thumbPacks": "Thumbnail packs",
+    "thumbPacksHint": "The thumbnails of an album come in one file instead of one by one. Untick if albums stay empty on this device.",
+    "thumbDiagnosis": "Thumbnail diagnosis"
   },
   "errors": {
     "syncFailed": "Loading from Google Drive failed. It will be retried.",

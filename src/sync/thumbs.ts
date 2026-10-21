@@ -242,11 +242,26 @@ export async function localPhotoPreview(rec: MediaRecord, size = THUMB_SIZE): Pr
   }
 }
 
+const stats = { ok: 0, failed: 0, slowPacks: 0 }
+/** When each thumbnail being made started (to see one that never ends). */
+const running = new Set<number>()
+
 async function produce(rec: MediaRecord): Promise<Blob | null> {
-  const b = await driveThumbnail(rec)
-  if (b) return b
-  if (rec.type === 'video') return videoFrameThumbnail(rec, THUMB_SIZE)
-  return localPhotoPreview(rec)
+  const started = performance.now()
+  running.add(started)
+  try {
+    const b = (await driveThumbnail(rec)) ?? (rec.type === 'video' ? await videoFrameThumbnail(rec, THUMB_SIZE) : await localPhotoPreview(rec))
+    stats[b ? 'ok' : 'failed']++
+    return b
+  } finally {
+    running.delete(started)
+  }
+}
+
+/** What the thumbnails are doing now (diagnosis in the settings). */
+export function thumbState() {
+  const oldest = running.size ? Math.round((performance.now() - Math.min(...running)) / 1000) : 0
+  return { size: THUMB_SIZE, active, queued: queue.length, waitingPacks: waitingPack.size, making: running.size, oldestSeconds: oldest, fast: isFastConnection(), type: connection()?.type ?? '?', ...stats }
 }
 
 type ConnectionInfo = { saveData?: boolean; type?: string; effectiveType?: string }
@@ -300,7 +315,10 @@ function waitForPack(task: Task, key: string) {
   }
   void loadPack(key).then(release)
   setTimeout(() => {
-    if (!settled) console.warn('[MyMedia] thumbnail pack slow, loading one by one', key)
+    if (!settled) {
+      stats.slowPacks++
+      console.warn('[MyMedia] thumbnail pack slow, loading one by one', key)
+    }
     release(new Map())
   }, PACK_WAIT_MS)
 }

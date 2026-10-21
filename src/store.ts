@@ -29,6 +29,8 @@ export interface Settings {
   sidebarHidden?: boolean
   /** Computer: width of the side menu in pixels, set by dragging its edge. */
   sidebarWidth?: number
+  /** Thumbnail packs used on this device (off: one by one, as before them). */
+  thumbPacks?: boolean
   /** 2: the Albums view became the default (earlier saved settings are moved to it once). */
   viewDefault?: number
 }
