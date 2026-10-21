@@ -137,6 +137,13 @@ function saveRenewed(ids: string[], at: number) {
 const stored = renewedAt()
 for (const [id, at] of Object.entries(stored)) if (Date.now() - at < LINKS_TTL_MS) freshLinks.set(id, { at, run: Promise.resolve() })
 
+/** These folders were just listed from Drive: their media's preview links are new, nothing to renew. */
+export function markLinksFresh(folderIds: string[]): void {
+  const now = Date.now()
+  for (const id of folderIds) freshLinks.set(id, { at: now, run: Promise.resolve() })
+  saveRenewed(folderIds, now)
+}
+
 function renewFolderLinks(folderId: string, force = false): Promise<void> {
   return renewLinks([folderId], force)
 }
@@ -247,8 +254,9 @@ function pump() {
     produce(task.rec)
       .then(async (blob) => {
         if (!blob) return task.resolve(null)
-        await db().thumbs.put({ id: task.rec.id, version: thumbVersion(task.rec), blob })
+        // Shown at once; kept on the device after (writing is slow on phones).
         task.resolve(remember(task.rec.id, blob))
+        await db().thumbs.put({ id: task.rec.id, version: thumbVersion(task.rec), blob })
       })
       .catch(() => task.resolve(null))
       .finally(() => {
@@ -295,6 +303,24 @@ export function loadThumb(rec: MediaRecord, isWanted: () => boolean, order: () =
 // ---- Preparing in advance -----------------------------------------------------
 
 const WARM_WORKERS = 4
+/** Prepared in advance on Wi-Fi besides what is browsed: the first photos of every album, then the newest. */
+const COVERS_PER_ALBUM = 9
+const LIBRARY_WARM_MAX = 3000
+let libraryWarm: MediaRecord[] = []
+
+/** The whole library, for the thumbnails prepared in advance on Wi-Fi. */
+export function setLibraryForWarm(all: MediaRecord[]): void {
+  const newest = [...all].sort((a, b) => (a.takenAt < b.takenAt ? 1 : -1))
+  const byFolder = new Map<string, number>()
+  const covers: MediaRecord[] = []
+  const rest: MediaRecord[] = []
+  for (const r of newest) {
+    const n = byFolder.get(r.folderId) ?? 0
+    byFolder.set(r.folderId, n + 1)
+    ;(n < COVERS_PER_ALBUM ? covers : rest).push(r)
+  }
+  libraryWarm = [...covers, ...rest].slice(0, LIBRARY_WARM_MAX)
+}
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 let warmGen = 0
 
@@ -324,7 +350,10 @@ export function warmThumbs(all: MediaRecord[]): void {
   // Data saver or slow network: nothing in advance; mobile data: the first 200 only.
   const c = (navigator as Navigator & { connection?: { saveData?: boolean; type?: string; effectiveType?: string } }).connection
   if (c?.saveData || /2g|3g/.test(c?.effectiveType ?? '')) return
-  const recs = c?.type === 'cellular' ? all.slice(0, 200) : all
+  const fast = c?.type === 'wifi' || c?.type === 'ethernet' || (!c?.type && !/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent))
+  // On Wi-Fi, then the rest of the library: every album opens at once the first time too.
+  const inList = new Set(all.map((r) => r.id))
+  const recs = c?.type === 'cellular' ? all.slice(0, 200) : fast ? [...all, ...libraryWarm.filter((r) => !inList.has(r.id))] : all
   void (async () => {
     await sleep(1500) // the list may still change (live updates)
     if (gen !== warmGen || !navigator.onLine) return

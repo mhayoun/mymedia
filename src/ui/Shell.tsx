@@ -9,6 +9,7 @@ import { createAlbum, createCategory, deleteFolder, renameFolder } from '../sync
 import { cancelCompression } from '../compress/engine'
 import { subtreeIds } from '../lib/tree'
 import { stopIndexer } from '../ml/indexer'
+import { setLibraryForWarm } from '../sync/thumbs'
 import { cancelSync, syncNow } from '../sync/engine'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog, PromptDialog } from './Dialog'
@@ -76,6 +77,7 @@ export function Shell() {
   const readOnly = useApp((s) => s.readOnly)
   const people = usePeople()
   useAutoSync()
+  useEffect(() => setLibraryForWarm(lib.items.map((i) => i.rec)), [lib.items])
 
   // Back from paying a model on PayPal: the shop finishes the purchase.
   useEffect(() => {

@@ -19,6 +19,7 @@ import { chosenLibrary, libraryLost } from './library'
 import { auth } from '../auth/google'
 import { planChanges } from '../lib/changes'
 import { keepPendingPlaces } from './moveQueue'
+import { markLinksFresh } from './thumbs'
 import { dateFromFileName, detectOrigin, FOLDER_MIME, mediaTypeOf, parseExifDate } from '../lib/media'
 import type { MediaMeta } from '../lib/metadata'
 import { placementOf, subtreeIds, type FolderNode } from '../lib/tree'
@@ -234,6 +235,7 @@ async function fullScan(rootId: string, signal: AbortSignal) {
     await d.media.bulkPut(media)
     await d.setKv('pageToken', pageToken)
   })
+  markLinksFresh([rootId, ...listed])
 }
 
 async function applyChanges(rootId: string, signal: AbortSignal) {
@@ -268,6 +270,7 @@ async function applyChanges(rootId: string, signal: AbortSignal) {
         app().set({ sync: { step: 'sync.applying', done: Math.min(files, total), total } }),
       )
     : { folders: [], media: [] }
+  if (plan.scanFolders.length) markLinksFresh([...plan.scanFolders, ...scanned.folders.map((f) => f.id)])
   signal.throwIfAborted()
 
   const folderMap = new Map(allFolders.map((f) => [f.id, f]))
