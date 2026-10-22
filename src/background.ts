@@ -1,6 +1,6 @@
 // Work done in the background after each load from Drive: look for new big
 // files to compress (a list is proposed to the user), then learn new
-// fingerprints and classify. A file compressed later keeps its fingerprint.
+// fingerprints and classify, then make the thumbnail packs. A file compressed later keeps its fingerprint.
 
 import { afterLoadCompression } from './compress/engine'
 import { repairKatiaProvenance } from './import/katia'
@@ -38,8 +38,10 @@ export function afterSync(): Promise<void> {
       await fixVideoDates().catch((e) => console.warn('[MyMedia] video dates', e))
       await repairKatiaProvenance().catch((e) => console.warn('[MyMedia] Katia provenance', e))
     })
-    await buildPacks()
+    // The analysis first: making packs now downloads each original (Google's previews cannot
+    // be read any more), which can take a long time.
     await startIndexer()
+    await buildPacks()
   })().finally(() => {
     running = null
   })
