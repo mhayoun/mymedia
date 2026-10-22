@@ -7,7 +7,7 @@ import { pullFaces, saveFaces } from '../faces/store'
 import { inReservedFolder, loadData } from '../classify/data'
 import { db, type MediaRecord } from '../db/db'
 import { app, withStep } from '../store'
-import { afterScreenThumbs, driveThumbnail, localPhotoPreview } from '../sync/thumbs'
+import { afterScreenThumbs, driveThumbnail, localPhotoPreview, previewsUnreadable } from '../sync/thumbs'
 import { videoKeyFrames } from '../sync/videoFrame'
 import { mediaVersion, pullIndex, saveIndex } from './indexStore'
 import { embed, findFacesIn } from './ml'
@@ -58,9 +58,17 @@ async function run(signal: AbortSignal) {
   }
   let done = 0
   app().set({ indexing: { done, total: todo.length } })
+  let stopped = false
   for (const rec of todo) {
     if (signal.aborted) break
     await afterScreenThumbs() // what the user is looking at comes first
+    // This device cannot read Google's previews (a phone): each original would be downloaded.
+    // The fingerprints and faces found by the computers are used instead.
+    if (previewsUnreadable()) {
+      console.warn('[MyMedia] analysis left to the computers: this browser cannot read the previews')
+      stopped = true
+      break
+    }
     let vec: Int8Array | null = null
     const version = mediaVersion(rec)
     try {
@@ -81,7 +89,7 @@ async function run(signal: AbortSignal) {
     if (done % SAVE_EVERY === 0 && !rebuilding) await saveIndex().catch((e) => console.warn('[MyMedia] index save failed', e))
   }
   if (rebuilding) {
-    if (!signal.aborted) await finishRebuild()
+    if (!signal.aborted && !stopped) await finishRebuild()
   } else await saveIndex().catch((e) => console.warn('[MyMedia] index save failed', e))
   if (faces) await saveFaces().catch((e) => console.warn('[MyMedia] faces save failed', e))
   await classifyPending()

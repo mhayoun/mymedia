@@ -99,6 +99,11 @@ const links = { pending: 0, ok: 0, timeout: 0, error: 0, notImage: 0, status: {}
  */
 let showDirect = false
 
+/** True when this browser cannot read Google's previews (the analysis is then left to the computers). */
+export function previewsUnreadable(): boolean {
+  return showDirect
+}
+
 async function fetchThumbLink(link: string, size = THUMB_SIZE): Promise<Blob | null> {
   links.pending++
   try {
@@ -116,7 +121,7 @@ async function fetchThumbLink(link: string, size = THUMB_SIZE): Promise<Blob | n
     else {
       links.error++
       links.lastError = `${(e as Error).name}: ${(e as Error).message}`.slice(0, 80)
-      if (links.ok === 0 && links.error >= 3) showDirect = true
+      if (links.ok === 0 && links.error >= 3 && navigator.onLine) showDirect = true
     }
     return null
   } finally {
