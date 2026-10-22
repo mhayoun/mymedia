@@ -153,6 +153,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .nav-children { padding-inline-start: 14px; }
 .nav-row { display: flex; align-items: center; }
 .nav-row > .nav-item { min-inline-size: 0; }
+.nav-row > h2 { flex: 1; }
 .nav-fold { flex: none; display: grid; place-items: center; inline-size: 32px; block-size: 32px; border: none; border-radius: 8px; background: none; color: var(--text-2); cursor: pointer; }
 .nav-fold:hover { background: var(--surface-2); color: var(--text); }
 .scrim { display: none; }

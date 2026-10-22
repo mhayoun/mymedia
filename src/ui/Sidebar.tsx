@@ -113,8 +113,15 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
         </>}
         {facesEnabled && (!readOnly || people.named.length > 0) && (
           <>
-            <h2>{t('faces.people')}</h2>
-            {/* Read-only: the people the owner named, nothing to sort out. */}
+            {/* Read-only: the people the owner named, nothing to sort out (the arrow is on the title). */}
+            {readOnly ? (
+              <div className="nav-row">
+                <h2>{t('faces.people')}</h2>
+                <FoldButton open={peopleOpen} label={t('faces.people')} onClick={togglePeople} />
+              </div>
+            ) : (
+              <h2>{t('faces.people')}</h2>
+            )}
             {!readOnly && <div className="nav-row">
               <button className="nav-item" aria-current={filters.categoryId === PEOPLE} onClick={() => select(PEOPLE, null)}>
                 <Users size={18} />
@@ -125,7 +132,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
               </button>
               {people.named.length > 0 && <FoldButton open={peopleOpen} label={t('faces.people')} onClick={togglePeople} />}
             </div>}
-            {(readOnly || peopleOpen) && people.named.map((p) => (
+            {peopleOpen && people.named.map((p) => (
               <button
                 key={p.id}
                 className="nav-item"
