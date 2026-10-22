@@ -233,6 +233,8 @@ export function prepareLinks(recs: MediaRecord[]): void {
 
 /** Drive's own preview image of a file (works for HEIC and videos too), or null. */
 export async function driveThumbnail(rec: MediaRecord, size = THUMB_SIZE): Promise<Blob | null> {
+  // This browser cannot read them: no request to Google or Drive for nothing.
+  if (showDirect) return null
   // The saved link first: it often still works, and needs no request to Drive (which may be
   // slowing down this account, e.g. while a computer makes the packs). Renewed when it failed.
   if (rec.thumbnailLink) {
