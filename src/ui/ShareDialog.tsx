@@ -1,4 +1,4 @@
-import { Eye, Loader2 } from 'lucide-react'
+import { Eye, Loader2, MessageCircle } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { listPermissions, removePermission, shareAsReader, type Permission } from '../drive/api'
@@ -14,12 +14,13 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
   const rootId = useApp((s) => s.rootId)
   const shared = useApp((s) => s.shared)
   const readOnly = useApp((s) => s.readOnly)
+  const user = useApp((s) => s.user)
   const [people, setPeople] = useState<Permission[] | null>(null)
   const [email, setEmail] = useState('')
   const [notify, setNotify] = useState(true)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [done, setDone] = useState<string | null>(null)
+  const [done, setDone] = useState<{ text: string; email: string } | null>(null)
   const [removing, setRemoving] = useState<Permission | null>(null)
 
   const load = useCallback(async () => {
@@ -43,7 +44,7 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
     setDone(null)
     try {
       await shareAsReader(rootId!, to, notify)
-      setDone(t('share.done', { email: to, site: location.host }))
+      setDone({ text: t('share.done', { email: to, site: location.host }), email: to })
       setEmail('')
       await load()
     } catch (e) {
@@ -91,7 +92,14 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
             </button>
           </div>
           {error && <p className="error-text">{error}</p>}
-          {done && <p className="hint">{done}</p>}
+          {done && (
+            <div className="row">
+              <p className="hint" style={{ flex: 1 }}>
+                {done.text}
+              </p>
+              <WhatsAppButton email={done.email} owner={user?.name || user?.email || ''} label />
+            </div>
+          )}
 
           <h3>{t('share.people')}</h3>
           {!people && !error && <Loader2 size={16} className="spin" />}
@@ -108,6 +116,7 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
                 )}{' '}
                 <span className="tag">{t(p.role === 'reader' || p.role === 'commenter' ? 'share.readOnly' : 'share.canEdit')}</span>
               </span>
+              {p.emailAddress && <WhatsAppButton email={p.emailAddress} owner={user?.name || user?.email || ''} />}
               <button className="btn" onClick={() => setRemoving(p)}>
                 {t('share.remove')}
               </button>
@@ -144,5 +153,26 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
         />
       )}
     </Modal>
+  )
+}
+
+/**
+ * Opens WhatsApp with the explanation, in the sender's language, of how to open
+ * their MyMedia (the sender chooses the contact in WhatsApp; nothing is sent by MyMedia).
+ */
+function WhatsAppButton({ email, owner, label = false }: { email: string; owner: string; label?: boolean }) {
+  const { t } = useTranslation()
+  const text = t('share.whatsappText', { owner, email, link: location.origin })
+  return (
+    <a
+      className="btn"
+      href={`https://wa.me/?text=${encodeURIComponent(text)}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={t('share.whatsappHint')}
+      aria-label={t('share.whatsapp')}
+    >
+      <MessageCircle size={16} /> {label && t('share.whatsapp')}
+    </a>
   )
 }

@@ -828,6 +828,9 @@
     "currentTitle": "Bibliothèque ouverte",
     "viewMenu": "Voir",
     "viewTitle": "Voir un MyMedia",
-    "viewIntro": "Les MyMedia que d'autres comptes Google partagent avec vous. Ouvrez-en un pour le regarder ; vous revenez au vôtre ici."
+    "viewIntro": "Les MyMedia que d'autres comptes Google partagent avec vous. Ouvrez-en un pour le regarder ; vous revenez au vôtre ici.",
+    "whatsapp": "Expliquer par WhatsApp",
+    "whatsappHint": "Ouvre WhatsApp avec un message qui explique comment voir votre MyMedia ; vous choisissez à qui l'envoyer.",
+    "whatsappText": "Bonjour ! {{owner}} a partagé ses photos et vidéos avec toi sur MyMedia (en lecture seule).\n\n1. Ouvre {{link}}\n2. Connecte-toi avec ton compte Google {{email}}\n3. Ouvre le menu ☰ puis 👁 Voir, et choisis « MyMedia de {{owner}} ».\n\nSur téléphone, tu peux l'installer comme une application : menu de Chrome ⋮ → « Ajouter à l'écran d'accueil »."
   }
 }
