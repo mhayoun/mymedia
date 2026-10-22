@@ -8,8 +8,8 @@ import { SharedLibraries } from './SharedLibraries'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-/** Who sees the user's MyMedia (read-only, by Google account), and the MyMedia shared with them. */
-export function ShareDialog({ onClose }: { onClose: () => void }) {
+/** Share: who sees the user's MyMedia (read-only, by Google account). View: the MyMedia shared with them. */
+export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose: () => void }) {
   const { t } = useTranslation()
   const rootId = useApp((s) => s.rootId)
   const shared = useApp((s) => s.shared)
@@ -23,13 +23,13 @@ export function ShareDialog({ onClose }: { onClose: () => void }) {
   const [removing, setRemoving] = useState<Permission | null>(null)
 
   const load = useCallback(async () => {
-    if (!rootId || shared) return
+    if (!rootId || shared || mode !== 'share') return
     try {
       setPeople((await listPermissions(rootId)).filter((p) => p.role !== 'owner'))
     } catch (e) {
       setError(t('errors.generic', { message: (e as Error).message }))
     }
-  }, [rootId, shared, t])
+  }, [rootId, shared, mode, t])
 
   useEffect(() => {
     void load()
@@ -56,15 +56,16 @@ export function ShareDialog({ onClose }: { onClose: () => void }) {
   const who = (p: Permission) => p.displayName ?? p.emailAddress ?? (p.type === 'anyone' ? t('share.anyone') : p.type)
 
   return (
-    <Modal title={t('share.title')} onClose={onClose}>
-      {shared ? (
+    <Modal title={t(mode === 'share' ? 'share.title' : 'share.viewTitle')} onClose={onClose}>
+      {mode === 'view' && shared && (
         <section>
           <h3>{t('share.currentTitle')}</h3>
           <p className="hint">
             <bdi>{t(readOnly ? 'library.readOnlyHint' : 'library.sharedHint', { owner: shared.ownerName ?? shared.ownerEmail ?? '' })}</bdi>
           </p>
         </section>
-      ) : (
+      )}
+      {mode === 'share' && !shared && (
         <section>
           <h3>{t('share.mineTitle')}</h3>
           <p className="hint">{t('share.intro')}</p>
@@ -115,10 +116,13 @@ export function ShareDialog({ onClose }: { onClose: () => void }) {
         </section>
       )}
 
-      <section>
-        <h3>{t('share.othersTitle')}</h3>
-        <SharedLibraries />
-      </section>
+      {mode === 'view' && (
+        <section>
+          <h3>{t('share.othersTitle')}</h3>
+          <p className="hint">{t('share.viewIntro')}</p>
+          <SharedLibraries />
+        </section>
+      )}
 
       <div className="actions">
         <button className="btn" onClick={onClose}>

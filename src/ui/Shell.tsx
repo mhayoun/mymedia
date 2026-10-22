@@ -170,7 +170,7 @@ export function Shell() {
       {settingsOpen && <SettingsPanel />}
       {helpOpen && <HelpPanel />}
       {accountOpen && <AccountPanel />}
-      {shareOpen && <ShareDialog onClose={() => app().set({ shareOpen: false })} />}
+      {shareOpen && <ShareDialog mode={shareOpen} onClose={() => app().set({ shareOpen: false })} />}
       {shopOpen && <ModelsDialog onClose={() => app().set({ shopOpen: false, shopResume: null })} />}
       {statsOpen && <StatsDialog lib={lib} />}
       {compressOffer && (

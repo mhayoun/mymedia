@@ -134,7 +134,8 @@ interface AppState {
   settingsOpen: boolean
   accountOpen: boolean
   shopOpen: boolean
-  shareOpen: boolean
+  /** The Share window (my MyMedia to others) or the View one (the MyMedia of others). */
+  shareOpen: false | 'share' | 'view'
   /** Back from PayPal: the shop finishes the purchase. */
   shopResume: PaypalReturn | null
   helpOpen: boolean

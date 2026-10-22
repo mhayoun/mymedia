@@ -809,8 +809,8 @@
     "chromeEmpty": "Chrome did not pass on the shared file (a fault of Chrome on Android since version 153). Pick it here with “Choose photos / videos”."
   },
   "share": {
-    "menu": "Sharing",
-    "title": "Sharing",
+    "menu": "Share",
+    "title": "Share",
     "mineTitle": "Show my MyMedia",
     "intro": "They can look at, search and download your photos and videos, without your account and without changing anything. They need a Google (Gmail) account.",
     "email": "Their Gmail address",
@@ -827,6 +827,9 @@
     "removeTitle": "Stop sharing",
     "removeText": "{{who}} will no longer see your MyMedia. The photos stay in your Drive, nothing is deleted.",
     "othersTitle": "MyMedia shared with me",
-    "currentTitle": "Open library"
+    "currentTitle": "Open library",
+    "viewMenu": "View",
+    "viewTitle": "View a MyMedia",
+    "viewIntro": "The MyMedia other Google accounts share with you. Open one to look at it; come back to yours here."
   }
 }

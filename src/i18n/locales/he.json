@@ -893,6 +893,9 @@
     "removeTitle": "הפסקת השיתוף",
     "removeText": "{{who}} לא יראה יותר את ה-MyMedia שלכם. התמונות נשארות ב-Drive שלכם, שום דבר לא נמחק.",
     "othersTitle": "MyMedia ששותפו איתי",
-    "currentTitle": "הספרייה הפתוחה"
+    "currentTitle": "הספרייה הפתוחה",
+    "viewMenu": "צפייה",
+    "viewTitle": "צפייה ב-MyMedia",
+    "viewIntro": "ה-MyMedia שחשבונות Google אחרים משתפים איתכם. פתחו אחד כדי לצפות בו; כאן חוזרים לשלכם."
   }
 }

@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Eye, Folder, FolderOpen, Images, Inbox, MessagesSquare, Plus, Sparkles, Users, Wand2, Store } from 'lucide-react'
+import { ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Eye, Folder, FolderOpen, Images, Inbox, MessagesSquare, Plus, Share2, Sparkles, Users, Wand2, Store } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { storageQuota, type DriveQuota } from '../drive/api'
@@ -25,6 +25,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
 
   const facesEnabled = useApp((s) => s.settings.facesEnabled)
   const readOnly = useApp((s) => s.readOnly)
+  const shared = useApp((s) => s.shared)
   // The chosen category or album, clicked again, closes (or opens again) its sub-albums.
   const [closedId, setClosed] = useState<string | null>(null)
   // Only while it is still the chosen one (a new album opened elsewhere shows its category open).
@@ -132,9 +133,15 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
         )}
         <ProvenanceList lib={lib} />
         <h2 />
-        <button className="nav-item" onClick={() => set({ shareOpen: true, sidebarOpen: false })}>
+        {!shared && (
+          <button className="nav-item" onClick={() => set({ shareOpen: 'share', sidebarOpen: false })}>
+            <Share2 size={18} />
+            <span className="label">{t('share.menu')}</span>
+          </button>
+        )}
+        <button className="nav-item" onClick={() => set({ shareOpen: 'view', sidebarOpen: false })}>
           <Eye size={18} />
-          <span className="label">{t('share.menu')}</span>
+          <span className="label">{t('share.viewMenu')}</span>
         </button>
         {!readOnly && (
           <button className="nav-item" onClick={() => set({ shopOpen: true, sidebarOpen: false })}>

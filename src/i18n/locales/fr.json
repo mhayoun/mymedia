@@ -807,8 +807,8 @@
     "chromeEmpty": "Chrome n'a pas transmis le fichier partagé (un défaut de Chrome sur Android depuis sa version 153). Choisissez-le ici avec « Choisir des photos / vidéos »."
   },
   "share": {
-    "menu": "Partage",
-    "title": "Partage",
+    "menu": "Partager",
+    "title": "Partager",
     "mineTitle": "Montrer mon MyMedia",
     "intro": "La personne pourra regarder, chercher et télécharger vos photos et vidéos, sans votre compte et sans rien pouvoir changer. Il lui faut un compte Google (Gmail).",
     "email": "Son adresse Gmail",
@@ -825,6 +825,9 @@
     "removeTitle": "Retirer le partage",
     "removeText": "{{who}} ne verra plus votre MyMedia. Ses photos restent dans votre Drive, rien n'est supprimé.",
     "othersTitle": "MyMedia partagés avec moi",
-    "currentTitle": "Bibliothèque ouverte"
+    "currentTitle": "Bibliothèque ouverte",
+    "viewMenu": "Voir",
+    "viewTitle": "Voir un MyMedia",
+    "viewIntro": "Les MyMedia que d'autres comptes Google partagent avec vous. Ouvrez-en un pour le regarder ; vous revenez au vôtre ici."
   }
 }
