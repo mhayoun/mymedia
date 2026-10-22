@@ -1,5 +1,6 @@
 import { ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Eye, Folder, FolderOpen, Images, Inbox, MessagesSquare, MonitorDown, Plus, Share2, Sparkles, Users, Wand2, Store } from 'lucide-react'
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { storageQuota, type DriveQuota } from '../drive/api'
 import { useFormat } from '../i18n/format'
@@ -333,7 +334,8 @@ function InstallItem() {
         <MonitorDown size={18} />
         <span className="label">{t('install.menu')}</span>
       </button>
-      {help && (
+      {/* Outside the menu: on phones it is moved (transform), which would confine the window to its width. */}
+      {help && createPortal(
         <Modal title={t('install.title')} onClose={() => setHelp(false)}>
           <p>{t(`install.${installHow()}`)}</p>
           <div className="actions">
@@ -341,7 +343,8 @@ function InstallItem() {
               {t('common.ok')}
             </button>
           </div>
-        </Modal>
+        </Modal>,
+        document.body,
       )}
     </>
   )
