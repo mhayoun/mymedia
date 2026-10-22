@@ -155,7 +155,7 @@ export async function replaceContent(
       group: meta.group ?? item.extra?.group,
       description: meta.description || item.extra?.description,
       imported,
-      compression: undefined,
+      compression: null,
       updatedAt: Date.now(),
     })
   return item.file.size

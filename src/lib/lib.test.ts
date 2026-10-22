@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { planChanges } from './changes'
 import { dateFromFileName, detectOrigin, mediaTypeOf, parseExifDate, sizedThumbnailLink } from './media'
-import { emptyMetaFile, mergeMetaFiles, parseMetaFile, type MediaMeta } from './metadata'
+import { emptyMetaFile, isMassRemoval, mergeMetaFiles, parseMetaFile, type MediaMeta } from './metadata'
 import { placementOf, subtreeIds, type FolderNode } from './tree'
 
 const FOLDER = 'application/vnd.google-apps.folder'
@@ -51,6 +51,30 @@ describe('metadata', () => {
     const m = mergeMetaFiles(a, b)
     expect(m.items.x.description).toBe('new')
     expect(Object.keys(m.items).sort()).toEqual(['x', 'y', 'z'])
+  })
+
+  it('a newer blank copy does not erase what was known', () => {
+    const known = item('x', 10, { imported: { from: 'Birds', on: '2026-10-01' }, species: { he: 'שחף' }, group: 'צפרות', people: ['Katia'], description: 'gull' })
+    const blank = item('x', 20, { album: 'שחף', suggestions: [] })
+    for (const [a, b] of [[known, blank], [blank, known]]) {
+      const m = mergeMetaFiles({ ...emptyMetaFile(), items: { x: a } }, { ...emptyMetaFile(), items: { x: b } })
+      expect(m.items.x).toMatchObject({ updatedAt: 20, album: 'שחף', imported: { from: 'Birds' }, species: { he: 'שחף' }, group: 'צפרות', people: ['Katia'], description: 'gull' })
+    }
+  })
+
+  it('a value removed on purpose (null) stays removed', () => {
+    const a = { ...emptyMetaFile(), items: { x: item('x', 10, { description: 'old', people: ['Katia'] }) } }
+    const b = { ...emptyMetaFile(), items: { x: item('x', 20, { description: null, people: null }) } }
+    const m = mergeMetaFiles(a, b)
+    expect(m.items.x.description).toBeNull()
+    expect(m.items.x.people).toBeNull()
+  })
+
+  it('many media gone at once is suspicious, a few is not', () => {
+    expect(isMassRemoval(5177, 5177)).toBe(true)
+    expect(isMassRemoval(600, 5000)).toBe(true)
+    expect(isMassRemoval(30, 5000)).toBe(false)
+    expect(isMassRemoval(10, 12)).toBe(false)
   })
 
   it('drops old tombstones only', () => {

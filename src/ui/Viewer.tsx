@@ -600,7 +600,7 @@ function InfoEdit({ item }: { item: LibraryItem }) {
   const [description, setDescription] = useState(meta?.description ?? '')
   const saveDescription = () => {
     const value = description.trim()
-    if (value !== (meta?.description ?? '')) void updateMeta(rec.id, { description: value || undefined })
+    if (value !== (meta?.description ?? '')) void updateMeta(rec.id, { description: value || null })
   }
   return (
     <>

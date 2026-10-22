@@ -55,7 +55,7 @@ export async function findKatiaData(): Promise<KatiaSource[]> {
           takenAt: m.takenAt,
           createdTime: m.createdTime,
           hasOwnDate: m.takenAt !== m.createdTime,
-          description: metas.get(m.id)?.description,
+          description: metas.get(m.id)?.description ?? undefined,
           manual: metas.get(m.id)?.source === 'manual',
         })),
       )
@@ -153,7 +153,7 @@ export async function repairKatiaProvenance(): Promise<void> {
       const meta = await d.meta.get(m.id)
       const folder = meta?.group ? wrong.get(`${m.name}\u0000${meta.group}`) : undefined
       if (!meta || !folder) continue
-      await d.meta.put({ ...meta, group: undefined, imported: meta.imported ?? { from: folder, on: '', via: 'katia' }, updatedAt: Date.now() })
+      await d.meta.put({ ...meta, group: null, imported: meta.imported ?? { from: folder, on: '', via: 'katia' }, updatedAt: Date.now() })
       changed++
     }
   }

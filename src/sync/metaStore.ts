@@ -71,7 +71,9 @@ async function pullAndMerge(rootId: string): Promise<{ merged: MetaFile; fileId:
   let remoteChanged = Object.keys(merged.items).length !== Object.keys(remote.items).length
   if (!remoteChanged) {
     for (const item of Object.values(merged.items)) {
-      if (remote.items[item.id]?.updatedAt !== item.updatedAt) {
+      // Same date but completed from the local copy (what it alone still knew): saved too.
+      const there = remote.items[item.id]
+      if (there?.updatedAt !== item.updatedAt || !isSameMeta(there, item)) {
         remoteChanged = true
         break
       }

@@ -21,7 +21,7 @@ import { planChanges } from '../lib/changes'
 import { keepPendingPlaces } from './moveQueue'
 import { markLinksFresh } from './thumbs'
 import { dateFromFileName, detectOrigin, FOLDER_MIME, mediaTypeOf, parseExifDate } from '../lib/media'
-import type { MediaMeta } from '../lib/metadata'
+import { isMassRemoval, type MediaMeta } from '../lib/metadata'
 import { placementOf, subtreeIds, type FolderNode } from '../lib/tree'
 import { app } from '../store'
 import { markMetaDirty, pullMeta, saveMeta } from './metaStore'
@@ -337,13 +337,35 @@ async function reconcileMeta(rootId: string) {
     }
   }
   // Whatever is left is no longer in Drive.
-  for (const m of metaMap.values()) {
-    if (!m.deleted) changed.push({ ...m, deleted: true, updatedAt: now })
+  let gone = [...metaMap.values()].filter((m) => !m.deleted)
+  if (isMassRemoval(gone.length, metas.filter((m) => !m.deleted).length)) {
+    console.warn('[MyMedia] many media missing at once, checked in Drive first', gone.length)
+    gone = await reallyRemoved(gone)
   }
+  for (const m of gone) changed.push({ ...m, deleted: true, updatedAt: now })
   if (changed.length) {
     await d.meta.bulkPut(changed)
     await markMetaDirty()
   }
+}
+
+/** Those Drive says are deleted or in the trash; any doubt (no answer) keeps the media. */
+async function reallyRemoved(metas: MediaMeta[]): Promise<MediaMeta[]> {
+  const out: MediaMeta[] = []
+  let next = 0
+  const worker = async () => {
+    while (next < metas.length) {
+      const m = metas[next++]
+      try {
+        if ((await getFile(m.id, 'id,trashed')).trashed) out.push(m)
+      } catch (e) {
+        if (e instanceof DriveError && e.status === 404) out.push(m)
+        else console.warn('[MyMedia] could not check', m.id, e)
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: 8 }, worker))
+  return out
 }
 
 /** Loads new and modified files. Safe to call often: concurrent calls share one run. */

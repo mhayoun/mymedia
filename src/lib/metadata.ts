@@ -34,11 +34,11 @@ export interface MediaMeta {
   originManual?: boolean
   category?: string | null
   album?: string | null
-  description?: string
+  description?: string | null
   /** Facebook group the photo was posted in (Facebook export, Katia). */
-  group?: string
+  group?: string | null
   /** The import that brought the media: folder or ZIP name ('' = loose files) and day. */
-  imported?: import('./provenance').ImportInfo
+  imported?: import('./provenance').ImportInfo | null
   source?: ClassificationSource
   species?: SpeciesNames | null
   confidence?: number | null
@@ -52,7 +52,7 @@ export interface MediaMeta {
   /** The user said this media stays where it is (no more suggestions). */
   keepHere?: boolean
   /** Names of the people recognised in the media (faces) and added by hand. */
-  people?: string[]
+  people?: string[] | null
   /** People added by hand (photos where the face is not visible or not found). */
   peopleManual?: string[]
   compression?: CompressionInfo | null
@@ -70,6 +70,12 @@ export interface MetaFile {
 }
 
 export const META_FILE_NAME = 'mymedia.json'
+/**
+ * What was learnt about a media and cannot be found again from the file. A newer version
+ * without one of them (a device that only had a blank copy) does not erase it: removing
+ * one on purpose writes null.
+ */
+const KEPT = ['description', 'group', 'imported', 'species', 'people', 'peopleManual', 'compression'] as const
 const TOMBSTONE_TTL_MS = 90 * 24 * 3600 * 1000
 
 export function emptyMetaFile(): MetaFile {
@@ -105,13 +111,35 @@ export function mergeMetaFiles(a: MetaFile, b: MetaFile, now = Date.now()): Meta
   for (const src of [a.items, b.items]) {
     for (const [id, item] of Object.entries(src)) {
       const cur = items[id]
-      if (!cur || item.updatedAt > cur.updatedAt) items[id] = item
+      if (!cur) items[id] = item
+      else if (item.updatedAt > cur.updatedAt) items[id] = keepKnown(item, cur)
+      else items[id] = keepKnown(cur, item)
     }
   }
   for (const [id, item] of Object.entries(items)) {
     if (item.deleted && now - item.updatedAt > TOMBSTONE_TTL_MS) delete items[id]
   }
   return { format: 'mymedia', version: 1, updatedAt: Math.max(a.updatedAt, b.updatedAt), items }
+}
+
+/**
+ * Many media gone at once, more likely a list of Drive read only in part than a real
+ * removal: each one is then checked in Drive before it becomes a tombstone.
+ */
+export function isMassRemoval(removed: number, known: number): boolean {
+  return removed >= 20 && removed > known * 0.1
+}
+
+/** The newer version, with what only the older one knew (see KEPT). */
+function keepKnown(newer: MediaMeta, older: MediaMeta): MediaMeta {
+  let out = newer
+  for (const k of KEPT) {
+    if (newer[k] === undefined && older[k] !== undefined && older[k] !== null) {
+      if (out === newer) out = { ...newer }
+      ;(out as unknown as Record<string, unknown>)[k] = older[k]
+    }
+  }
+  return out
 }
 
 /** True when both versions hold the same data (updatedAt ignored). */

@@ -37,7 +37,7 @@ export async function setDescription(ids: string[], description: string): Promis
   const d = db()
   for (const id of ids) {
     const meta = await d.meta.get(id)
-    if (meta) await d.meta.put({ ...meta, description: description.trim() || undefined, updatedAt: Date.now() })
+    if (meta) await d.meta.put({ ...meta, description: description.trim() || null, updatedAt: Date.now() })
   }
   await markMetaDirty()
 }
