@@ -31,7 +31,7 @@ export interface Settings {
   sidebarWidth?: number
   /** Thumbnail packs used on this device (off: one by one, as before them). */
   thumbPacks?: boolean
-  /** 2: the Albums view became the default (earlier saved settings are moved to it once). */
+  /** 3: the grid became the default again (earlier saved settings are moved to it once). */
   viewDefault?: number
 }
 
@@ -40,14 +40,14 @@ export const DEFAULT_SETTINGS: Settings = {
   rootName: 'MyMedia',
   syncMode: 'auto',
   syncIntervalMin: 15,
-  view: 'albums',
+  view: 'grid',
   sort: 'newest',
   classifyAuto: true,
   thresholdHigh: 0.85,
   thresholdMedium: 0.6,
   compress: DEFAULT_COMPRESS,
   facesEnabled: true,
-  viewDefault: 2,
+  viewDefault: 3,
 }
 
 const SETTINGS_KEY = 'mymedia.settings'
@@ -58,9 +58,9 @@ function loadSettings(): Settings {
     if (raw) {
       const saved = JSON.parse(raw) as Partial<Settings>
       const compress = { ...DEFAULT_COMPRESS, ...saved.compress, origins: { ...DEFAULT_COMPRESS.origins, ...saved.compress?.origins } }
-      // The Albums view is now the default: shown once to everyone, then their choice is kept.
-      const view = saved.viewDefault === 2 ? (saved.view ?? DEFAULT_SETTINGS.view) : DEFAULT_SETTINGS.view
-      return { ...DEFAULT_SETTINGS, ...saved, compress, view, viewDefault: 2 }
+      // The grid is the default again: shown once to everyone, then their choice is kept.
+      const view = saved.viewDefault === 3 ? (saved.view ?? DEFAULT_SETTINGS.view) : DEFAULT_SETTINGS.view
+      return { ...DEFAULT_SETTINGS, ...saved, compress, view, viewDefault: 3 }
     }
   } catch {
     // ignore: defaults
