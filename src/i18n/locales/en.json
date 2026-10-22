@@ -833,7 +833,7 @@
     "viewIntro": "The MyMedia other Google accounts share with you. Open one to look at it; come back to yours here.",
     "whatsapp": "Explain on WhatsApp",
     "whatsappHint": "Opens WhatsApp with a message explaining how to see your MyMedia; you choose who gets it.",
-    "whatsappText": "Hi! {{owner}} shared their photos and videos with you on MyMedia (view only).\n\n1. Open {{link}}\n2. Sign in with your Google account {{email}}\n3. Open the ☰ menu, then 👁 View, and choose \"MyMedia of {{owner}}\".\n\nOn a phone you can install it like an app: Chrome menu ⋮ → \"Add to Home screen\"."
+    "whatsappText": "Hi! {{owner}} shared their photos and videos with you on MyMedia (view only).\n\n1. Open {{link}}\n2. Sign in with your Google account {{email}}\n3. Open the ☰ menu, then 👁 View, and choose \"MyMedia of {{owner}}\".\n\nTo have it as an app: ☰ menu → \"Install the app\"."
   },
   "install": {
     "menu": "Install the app",
