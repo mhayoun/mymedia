@@ -145,6 +145,14 @@ export function SettingsPanel() {
         </section>
 
         <section>
+          <h3>{t('models.title')}</h3>
+          <button className="btn" onClick={() => set({ shopOpen: true, settingsOpen: false })}>
+            {t('models.open')}
+          </button>
+          <p className="hint">{t('models.settingsHint')}</p>
+        </section>
+
+        <section>
           <h3>{t('faces.settingsTitle')}</h3>
           <label className="radio-row">
             <input type="checkbox" checked={settings.facesEnabled} onChange={(e) => updateSettings({ facesEnabled: e.target.checked })} />
