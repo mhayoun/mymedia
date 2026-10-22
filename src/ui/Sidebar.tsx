@@ -46,16 +46,21 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
     if (!hasChildren) set({ sidebarOpen: false })
   }
   const total = lib.items.length
+  const [categoriesOpen, toggleCategories] = useFolded('categories')
+  const [peopleOpen, togglePeople] = useFolded('people')
 
   return (
     <>
       <div className={`scrim ${open ? 'open' : ''}`} onClick={() => set({ sidebarOpen: false })} />
       <nav className={`sidebar ${open ? 'open' : ''}`} aria-label={t('nav.categories')}>
-        <button className="nav-item" aria-current={!filters.categoryId && !filters.personId && !filters.provenance} onClick={() => select(null, null)}>
-          <Images size={18} />
-          <span className="label">{t('nav.allMedia')}</span>
-          <span className="count">{total}</span>
-        </button>
+        <div className="nav-row">
+          <button className="nav-item" aria-current={!filters.categoryId && !filters.personId && !filters.provenance} onClick={() => select(null, null)}>
+            <Images size={18} />
+            <span className="label">{t('nav.allMedia')}</span>
+            <span className="count">{total}</span>
+          </button>
+          <FoldButton open={categoriesOpen} label={t('nav.categories')} onClick={toggleCategories} />
+        </div>
         {lib.toClassify.length > 0 && !readOnly && (
           <button className="nav-item" aria-current={filters.categoryId === TO_CLASSIFY} onClick={() => select(TO_CLASSIFY, null)}>
             <Wand2 size={18} />
@@ -77,6 +82,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
             <span className="count">{lib.unfiledCount}</span>
           </button>
         )}
+        {categoriesOpen && <>
         <h2>{t('nav.categories')}</h2>
         {lib.categories.map((c) => (
           <div key={c.id}>
@@ -104,18 +110,22 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
             <span className="label">{t('nav.newCategory')}</span>
           </button>
         )}
+        </>}
         {facesEnabled && (!readOnly || people.named.length > 0) && (
           <>
             <h2>{t('faces.people')}</h2>
             {/* Read-only: the people the owner named, nothing to sort out. */}
-            {!readOnly && <button className="nav-item" aria-current={filters.categoryId === PEOPLE} onClick={() => select(PEOPLE, null)}>
-              <Users size={18} />
-              <span className="label">{t('faces.allPeople')}</span>
-              {people.toConfirm.length + people.unnamed.length > 0 && (
-                <span className="count">{t('faces.toReview', { count: people.toConfirm.length + people.unnamed.length })}</span>
-              )}
-            </button>}
-            {people.named.map((p) => (
+            {!readOnly && <div className="nav-row">
+              <button className="nav-item" aria-current={filters.categoryId === PEOPLE} onClick={() => select(PEOPLE, null)}>
+                <Users size={18} />
+                <span className="label">{t('faces.allPeople')}</span>
+                {people.toConfirm.length + people.unnamed.length > 0 && (
+                  <span className="count">{t('faces.toReview', { count: people.toConfirm.length + people.unnamed.length })}</span>
+                )}
+              </button>
+              {people.named.length > 0 && <FoldButton open={peopleOpen} label={t('faces.people')} onClick={togglePeople} />}
+            </div>}
+            {(readOnly || peopleOpen) && people.named.map((p) => (
               <button
                 key={p.id}
                 className="nav-item"
@@ -163,6 +173,35 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
         {!readOnly && <DriveStorage lib={lib} />}
       </nav>
     </>
+  )
+}
+
+/** A list of the menu shown or folded (like Provenance's sections), remembered on this device. */
+function useFolded(name: string): [boolean, () => void] {
+  const key = `mymedia.menuFolded.${name}`
+  const [open, setOpen] = useState(() => {
+    try {
+      return localStorage.getItem(key) !== '1'
+    } catch {
+      return true
+    }
+  })
+  const toggle = () => {
+    setOpen(!open)
+    try {
+      localStorage.setItem(key, open ? '1' : '0')
+    } catch {
+      // Not remembered: still folded for this session.
+    }
+  }
+  return [open, toggle]
+}
+
+function FoldButton({ open, label, onClick }: { open: boolean; label: string; onClick: () => void }) {
+  return (
+    <button className="nav-fold" aria-expanded={open} aria-label={label} title={label} onClick={onClick}>
+      {open ? <ChevronDown size={16} /> : <ChevronRight size={16} className="flip-rtl" />}
+    </button>
   )
 }
 
