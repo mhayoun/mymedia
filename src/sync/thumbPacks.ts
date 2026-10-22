@@ -9,7 +9,8 @@ import { db, type MediaRecord } from '../db/db'
 import { createFolder, deleteFilePermanently, downloadBlob, driveStats, findChildByName, listFiles, writeDataFile } from '../drive/api'
 import { folderChain, isReservedFolderName, parsePendingAlbum, type FolderNode } from '../lib/tree'
 import { app, withStep } from '../store'
-import { afterScreenThumbs, driveThumbnail, isFastConnection, thumbVersion } from './thumbs'
+import { afterScreenThumbs, driveThumbnail, isFastConnection, isPhone, localPhotoPreview, thumbVersion } from './thumbs'
+import { videoFrameThumbnail } from './videoFrame'
 
 export const PACKS_FOLDER = '_thumbs'
 const CHUNK = 60
@@ -223,7 +224,10 @@ async function thumbsFor(list: MediaRecord[]): Promise<{ id: string; version: st
       let blob = s && (s.version === version || s.version === r.modifiedTime) ? s.blob : null
       if (!blob) {
         await afterScreenThumbs() // what the user is looking at comes first
-        blob = await driveThumbnail(r, PACK_SIZE).catch(() => null)
+        // Google's preview, else made from the original (Google's previews cannot be read any more).
+        blob =
+          (await driveThumbnail(r, PACK_SIZE).catch(() => null)) ??
+          (r.type === 'video' ? await videoFrameThumbnail(r, PACK_SIZE).catch(() => null) : await localPhotoPreview(r, PACK_SIZE))
         if (blob) await d.thumbs.put({ id: r.id, version, blob })
       }
       if (blob) out[i] = { id: r.id, version, blob: await shrink(blob) }
@@ -234,8 +238,6 @@ async function thumbsFor(list: MediaRecord[]): Promise<{ id: string; version: st
 }
 
 let building: Promise<void> | null = null
-
-const isPhone = () => /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)
 
 /** Makes the missing or outdated packs (computers that can write the library). */
 export function buildPacks(): Promise<void> {

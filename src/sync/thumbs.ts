@@ -99,10 +99,13 @@ const links = { pending: 0, ok: 0, timeout: 0, error: 0, notImage: 0, status: {}
  */
 let showDirect = false
 
-/** True when this browser cannot read Google's previews (the analysis is then left to the computers). */
+/** True when this browser cannot read Google's previews (since October 2026, no browser can). */
 export function previewsUnreadable(): boolean {
   return showDirect
 }
+
+/** A phone: its data costs; it does not download the originals to analyse them or make packs. */
+export const isPhone = () => /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)
 
 async function fetchThumbLink(link: string, size = THUMB_SIZE): Promise<Blob | null> {
   links.pending++

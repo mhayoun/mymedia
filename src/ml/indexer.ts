@@ -7,7 +7,7 @@ import { pullFaces, saveFaces } from '../faces/store'
 import { inReservedFolder, loadData } from '../classify/data'
 import { db, type MediaRecord } from '../db/db'
 import { app, withStep } from '../store'
-import { afterScreenThumbs, driveThumbnail, localPhotoPreview, previewsUnreadable } from '../sync/thumbs'
+import { afterScreenThumbs, driveThumbnail, isPhone, localPhotoPreview, previewsUnreadable } from '../sync/thumbs'
 import { videoKeyFrames } from '../sync/videoFrame'
 import { mediaVersion, pullIndex, saveIndex } from './indexStore'
 import { embed, findFacesIn } from './ml'
@@ -62,9 +62,9 @@ async function run(signal: AbortSignal) {
   for (const rec of todo) {
     if (signal.aborted) break
     await afterScreenThumbs() // what the user is looking at comes first
-    // This device cannot read Google's previews (a phone): each original would be downloaded.
-    // The fingerprints and faces found by the computers are used instead.
-    if (previewsUnreadable()) {
+    // Google's previews cannot be read: each original is downloaded. Not on a phone (its data
+    // costs): the fingerprints and faces found by the computers are used instead.
+    if (previewsUnreadable() && isPhone()) {
       console.warn('[MyMedia] analysis left to the computers: this browser cannot read the previews')
       stopped = true
       break
