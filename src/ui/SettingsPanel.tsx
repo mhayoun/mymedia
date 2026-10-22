@@ -17,6 +17,7 @@ import { clearMediaCaches } from '../sync/previews'
 import { packStats } from '../sync/thumbPacks'
 import { thumbState } from '../sync/thumbs'
 import { auth } from '../auth/google'
+import { RecoverDialog } from './RecoverDialog'
 
 export function SettingsPanel() {
   const { t } = useTranslation()
@@ -28,6 +29,7 @@ export function SettingsPanel() {
   const [renaming, setRenaming] = useState(false)
   const [cleared, setCleared] = useState(false)
   const [rebuilt, setRebuilt] = useState(false)
+  const [recovering, setRecovering] = useState(false)
   const [deleteFaces, setDeleteFaces] = useState(false)
   const people = usePeopleContext()
   const fmt = useFormat()
@@ -286,6 +288,15 @@ export function SettingsPanel() {
           <button className="btn ghost" onClick={() => updateSettings({ compress: DEFAULT_COMPRESS })}>
             {t('compress.defaults')}
           </button>
+        </section>
+
+        <section>
+          <h3>{t('recover.title')}</h3>
+          <button className="btn" onClick={() => setRecovering(true)} disabled={!rootId}>
+            {t('recover.open')}
+          </button>
+          <p className="hint">{t('recover.hint')}</p>
+          {recovering && <RecoverDialog onClose={() => setRecovering(false)} />}
         </section>
 
         <section>

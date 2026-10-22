@@ -324,6 +324,30 @@ export async function listChanges(
   }
 }
 
+export interface Revision {
+  id: string
+  modifiedTime: string
+  size?: string
+}
+
+/** The versions Drive keeps of a file (oldest first). */
+export async function listRevisions(id: string): Promise<Revision[]> {
+  const out: Revision[] = []
+  let token: string | undefined
+  do {
+    const params = new URLSearchParams({ pageSize: '200', fields: 'nextPageToken,revisions(id,modifiedTime,size)' })
+    if (token) params.set('pageToken', token)
+    const r = await getJson<{ revisions?: Revision[]; nextPageToken?: string }>(`${API}/files/${id}/revisions?${params}`)
+    out.push(...(r.revisions ?? []))
+    token = r.nextPageToken
+  } while (token)
+  return out
+}
+
+export async function downloadRevisionText(id: string, revisionId: string): Promise<string> {
+  return (await request(`${API}/files/${id}/revisions/${revisionId}?alt=media`)).text()
+}
+
 export async function downloadText(id: string): Promise<string> {
   return (await request(`${API}/files/${id}?alt=media&supportsAllDrives=true`)).text()
 }

@@ -907,5 +907,38 @@
     "ios": "ב-Safari, הקישו על כפתור השיתוף (הריבוע עם החץ), ואז \"הוספה למסך הבית\". MyMedia ייפתח אחר כך כמו אפליקציה.",
     "android": "ב-Chrome, פתחו את התפריט ⋮ ואז \"התקנת האפליקציה\" (או \"הוספה למסך הבית\"). אם לא מופיע דבר, ייתכן ש-MyMedia כבר מותקן: חפשו את הסמל שלו.",
     "desktop": "ב-Chrome או ב-Edge, לחצו על סמל ההתקנה בסוף שורת הכתובת, או תפריט ⋮ ← \"התקנת MyMedia\". אם לא מופיע דבר, ייתכן ש-MyMedia כבר מותקן."
+  },
+  "recover": {
+    "title": "שחזור מידע",
+    "open": "חיפוש בגרסאות קודמות",
+    "hint": "אם תמונות איבדו את הייבוא, המין, הטקסט או האנשים שלהן, MyMedia מחפש אותם בגרסאות ש-Google Drive שומר של mymedia.json (כ-30 יום). רק מה שחסר נלקח בחזרה: שום דבר שנעשה מאז לא משתנה.",
+    "intro": "MyMedia בודק כל גרסה קודמת של mymedia.json וסופר את התמונות הנוכחיות שמוצאות בה מידע. הטובה ביותר נבחרת; אפשר לבחור אחרת.",
+    "listing": "קריאת הגרסאות ש-Google Drive שמר…",
+    "noVersions": "Google Drive לא שמר אף גרסה קודמת של mymedia.json.",
+    "photos_one": "תמונה {{count}} להשלמה",
+    "photos_other": "{{count}} תמונות להשלמה",
+    "nothing": "אין יותר",
+    "allThere": "לאף גרסה קודמת אין מידע שחסר היום.",
+    "selected_one": "תמונה {{count}} תקבל בחזרה:",
+    "selected_other": "{{count}} תמונות יקבלו בחזרה:",
+    "apply": "שחזור",
+    "done_one": "תמונה {{count}} הושלמה ונשמרה ב-Drive.",
+    "done_other": "{{count}} תמונות הושלמו ונשמרו ב-Drive.",
+    "kind": {
+      "imported_one": "ייבוא {{count}}",
+      "imported_other": "{{count}} ייבואים",
+      "species_one": "מין {{count}}",
+      "species_other": "{{count}} מינים",
+      "description_one": "טקסט {{count}}",
+      "description_other": "{{count}} טקסטים",
+      "group_one": "קבוצת פייסבוק {{count}}",
+      "group_other": "{{count}} קבוצות פייסבוק",
+      "people_one": "{{count}} עם אנשים",
+      "people_other": "{{count}} עם אנשים",
+      "origin_one": "מקור {{count}}",
+      "origin_other": "{{count}} מקורות",
+      "compression_one": "דחיסה {{count}}",
+      "compression_other": "{{count}} דחיסות"
+    }
   }
 }

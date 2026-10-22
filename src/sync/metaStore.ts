@@ -32,7 +32,7 @@ async function localFile(): Promise<MetaFile> {
   return { ...emptyMetaFile(), items }
 }
 
-async function findMetaFileId(rootId: string): Promise<string | null> {
+export async function findMetaFileId(rootId: string): Promise<string | null> {
   const known = await db().getKv<string>('metaFileId')
   if (known) {
     try {

@@ -841,5 +841,38 @@
     "ios": "In Safari, tap the Share button (the square with an arrow), then \"Add to Home Screen\". MyMedia then opens like an app.",
     "android": "In Chrome, open the ⋮ menu, then \"Install app\" (or \"Add to Home screen\"). If nothing shows, MyMedia may already be installed: look for its icon.",
     "desktop": "In Chrome or Edge, click the install icon at the end of the address bar, or menu ⋮ → \"Install MyMedia\". If nothing shows, MyMedia may already be installed."
+  },
+  "recover": {
+    "title": "Recover information",
+    "open": "Look in earlier versions",
+    "hint": "If photos lost their import, species, text or people, MyMedia looks for them in the versions Google Drive keeps of mymedia.json (about 30 days). Only what is missing is taken back: nothing done since is changed.",
+    "intro": "MyMedia looks at each earlier version of mymedia.json and counts the current photos that find information in it. The best one is chosen; you can choose another.",
+    "listing": "Reading the versions kept by Google Drive…",
+    "noVersions": "Google Drive kept no earlier version of mymedia.json.",
+    "photos_one": "{{count}} photo to complete",
+    "photos_other": "{{count}} photos to complete",
+    "nothing": "nothing more",
+    "allThere": "No earlier version has information missing today.",
+    "selected_one": "{{count}} photo will get back:",
+    "selected_other": "{{count}} photos will get back:",
+    "apply": "Recover",
+    "done_one": "{{count}} photo completed and saved to Drive.",
+    "done_other": "{{count}} photos completed and saved to Drive.",
+    "kind": {
+      "imported_one": "{{count}} import",
+      "imported_other": "{{count}} imports",
+      "species_one": "{{count}} species",
+      "species_other": "{{count}} species",
+      "description_one": "{{count}} text",
+      "description_other": "{{count}} texts",
+      "group_one": "{{count}} Facebook group",
+      "group_other": "{{count}} Facebook groups",
+      "people_one": "{{count}} with people",
+      "people_other": "{{count}} with people",
+      "origin_one": "{{count}} origin",
+      "origin_other": "{{count}} origins",
+      "compression_one": "{{count}} compression",
+      "compression_other": "{{count}} compressions"
+    }
   }
 }

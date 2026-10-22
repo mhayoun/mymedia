@@ -839,5 +839,38 @@
     "ios": "Dans Safari, touchez le bouton Partager (le carré avec une flèche), puis « Sur l'écran d'accueil ». MyMedia s'ouvrira ensuite comme une application.",
     "android": "Dans Chrome, ouvrez le menu ⋮ puis « Installer l'application » (ou « Ajouter à l'écran d'accueil »). Si rien n'apparaît, MyMedia est peut-être déjà installé : cherchez son icône.",
     "desktop": "Dans Chrome ou Edge, cliquez l'icône d'installation au bout de la barre d'adresse, ou menu ⋮ → « Installer MyMedia ». Si rien n'apparaît, MyMedia est peut-être déjà installé."
+  },
+  "recover": {
+    "title": "Récupérer des informations",
+    "open": "Chercher dans les anciennes versions",
+    "hint": "Si des photos ont perdu leur import, leur espèce, leur texte ou leurs personnes, MyMedia les cherche dans les versions que Google Drive garde de mymedia.json (environ 30 jours). Seul ce qui manque est repris : rien de ce qui a été fait depuis n'est changé.",
+    "intro": "MyMedia regarde chaque ancienne version de mymedia.json et compte les photos actuelles qui y retrouvent des informations. La meilleure est choisie ; vous pouvez en choisir une autre.",
+    "listing": "Lecture des versions gardées par Google Drive…",
+    "noVersions": "Google Drive n'a gardé aucune ancienne version de mymedia.json.",
+    "photos_one": "{{count}} photo à compléter",
+    "photos_other": "{{count}} photos à compléter",
+    "nothing": "rien de plus",
+    "allThere": "Aucune ancienne version n'a d'information qui manque aujourd'hui.",
+    "selected_one": "{{count}} photo retrouvera :",
+    "selected_other": "{{count}} photos retrouveront :",
+    "apply": "Récupérer",
+    "done_one": "{{count}} photo complétée et enregistrée dans Drive.",
+    "done_other": "{{count}} photos complétées et enregistrées dans Drive.",
+    "kind": {
+      "imported_one": "{{count}} import",
+      "imported_other": "{{count}} imports",
+      "species_one": "{{count}} espèce",
+      "species_other": "{{count}} espèces",
+      "description_one": "{{count}} texte",
+      "description_other": "{{count}} textes",
+      "group_one": "{{count}} groupe Facebook",
+      "group_other": "{{count}} groupes Facebook",
+      "people_one": "{{count}} avec des personnes",
+      "people_other": "{{count}} avec des personnes",
+      "origin_one": "{{count}} origine",
+      "origin_other": "{{count}} origines",
+      "compression_one": "{{count}} compression",
+      "compression_other": "{{count}} compressions"
+    }
   }
 }
