@@ -547,6 +547,36 @@ export async function deleteFilePermanently(id: string): Promise<void> {
   await request(`${API}/files/${id}?supportsAllDrives=true`, { method: 'DELETE' })
 }
 
+// ---- Read-only sharing of the library ----------------------------------------
+
+export interface Permission {
+  id: string
+  type: string
+  role: string
+  emailAddress?: string
+  displayName?: string
+}
+
+/** Who has access to a file or folder (set on it, not inherited). */
+export async function listPermissions(id: string): Promise<Permission[]> {
+  const params = new URLSearchParams({ supportsAllDrives: 'true', pageSize: '100', fields: 'permissions(id,type,role,emailAddress,displayName)' })
+  return (await getJson<{ permissions?: Permission[] }>(`${API}/files/${id}/permissions?${params}`)).permissions ?? []
+}
+
+/** Lets `email` see a folder and everything in it, without changing anything (Google e-mails them when `notify`). */
+export async function shareAsReader(id: string, email: string, notify: boolean): Promise<void> {
+  const params = new URLSearchParams({ sendNotificationEmail: String(notify), supportsAllDrives: 'true', fields: 'id' })
+  await request(`${API}/files/${id}/permissions?${params}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role: 'reader', type: 'user', emailAddress: email }),
+  })
+}
+
+export async function removePermission(id: string, permissionId: string): Promise<void> {
+  await request(`${API}/files/${id}/permissions/${permissionId}?supportsAllDrives=true`, { method: 'DELETE' })
+}
+
 // ---- Ownership transfer between two personal accounts ------------------------
 // The owner offers the file (writer + pendingOwner); the new owner accepts by
 // making their own permission "owner". Drive keeps the same file id.

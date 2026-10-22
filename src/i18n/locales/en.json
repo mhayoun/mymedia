@@ -807,5 +807,26 @@
     "readOnlyText": "The MyMedia open is shared with you to view only: nothing can be added to it. Open your own library to send these files there.",
     "notReceived": "The shared files did not reach MyMedia ({{detail}}). Try again; if it happens again, send this message.",
     "chromeEmpty": "Chrome did not pass on the shared file (a fault of Chrome on Android since version 153). Pick it here with “Choose photos / videos”."
+  },
+  "share": {
+    "menu": "Sharing",
+    "title": "Sharing",
+    "mineTitle": "Show my MyMedia",
+    "intro": "They can look at, search and download your photos and videos, without your account and without changing anything. They need a Google (Gmail) account.",
+    "email": "Their Gmail address",
+    "notify": "Tell them by e-mail (sent by Google)",
+    "submit": "Share read-only",
+    "done": "{{email}} can now see your MyMedia: they open {{site}} with that account, then Sharing.",
+    "invalid": "This address does not look valid.",
+    "people": "Who sees your MyMedia",
+    "nobody": "Nobody yet.",
+    "readOnly": "read-only",
+    "canEdit": "can edit",
+    "anyone": "Anyone with the link",
+    "remove": "Remove",
+    "removeTitle": "Stop sharing",
+    "removeText": "{{who}} will no longer see your MyMedia. The photos stay in your Drive, nothing is deleted.",
+    "othersTitle": "MyMedia shared with me",
+    "currentTitle": "Open library"
   }
 }

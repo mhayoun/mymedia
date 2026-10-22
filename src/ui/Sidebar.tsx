@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Folder, FolderOpen, Images, Inbox, MessagesSquare, Plus, Sparkles, Users, Wand2, Store } from 'lucide-react'
+import { ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Eye, Folder, FolderOpen, Images, Inbox, MessagesSquare, Plus, Sparkles, Users, Wand2, Store } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { storageQuota, type DriveQuota } from '../drive/api'
@@ -132,6 +132,10 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
         )}
         <ProvenanceList lib={lib} />
         <h2 />
+        <button className="nav-item" onClick={() => set({ shareOpen: true, sidebarOpen: false })}>
+          <Eye size={18} />
+          <span className="label">{t('share.menu')}</span>
+        </button>
         {!readOnly && (
           <button className="nav-item" onClick={() => set({ shopOpen: true, sidebarOpen: false })}>
             <Store size={18} />

@@ -29,6 +29,7 @@ import { FacesIntro } from './FacesIntro'
 import { HelpPanel } from './HelpPanel'
 import { AccountPanel } from './AccountPanel'
 import { ModelsDialog } from './ModelsDialog'
+import { ShareDialog } from './ShareDialog'
 import { FilterBar } from './FilterBar'
 import { SelectionBar } from './SelectionBar'
 import { PeopleContext, PersonDialogContext } from './peopleContext'
@@ -70,6 +71,7 @@ export function Shell() {
   const helpOpen = useApp((s) => s.helpOpen)
   const accountOpen = useApp((s) => s.accountOpen)
   const shopOpen = useApp((s) => s.shopOpen)
+  const shareOpen = useApp((s) => s.shareOpen)
   const statsOpen = useApp((s) => s.statsOpen)
   const compressOffer = useApp((s) => s.compressOffer)
   const [dialog, setDialog] = useState<DialogState>(null)
@@ -168,6 +170,7 @@ export function Shell() {
       {settingsOpen && <SettingsPanel />}
       {helpOpen && <HelpPanel />}
       {accountOpen && <AccountPanel />}
+      {shareOpen && <ShareDialog onClose={() => app().set({ shareOpen: false })} />}
       {shopOpen && <ModelsDialog onClose={() => app().set({ shopOpen: false, shopResume: null })} />}
       {statsOpen && <StatsDialog lib={lib} />}
       {compressOffer && (

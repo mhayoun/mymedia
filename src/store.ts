@@ -134,6 +134,7 @@ interface AppState {
   settingsOpen: boolean
   accountOpen: boolean
   shopOpen: boolean
+  shareOpen: boolean
   /** Back from PayPal: the shop finishes the purchase. */
   shopResume: PaypalReturn | null
   helpOpen: boolean
@@ -167,6 +168,7 @@ export const useApp = create<AppState>((set, get) => ({
   settingsOpen: false,
   accountOpen: false,
   shopOpen: false,
+  shareOpen: false,
   shopResume: null,
   helpOpen: false,
   set: (patch) => set(patch),

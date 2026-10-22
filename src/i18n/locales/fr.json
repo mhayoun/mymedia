@@ -805,5 +805,26 @@
     "readOnlyText": "Le MyMedia ouvert est partagé avec vous en lecture seule : on ne peut rien y ajouter. Ouvrez votre propre bibliothèque pour y envoyer ces fichiers.",
     "notReceived": "Les fichiers partagés ne sont pas arrivés jusqu'à MyMedia ({{detail}}). Réessayez ; si cela recommence, envoyez-moi ce message.",
     "chromeEmpty": "Chrome n'a pas transmis le fichier partagé (un défaut de Chrome sur Android depuis sa version 153). Choisissez-le ici avec « Choisir des photos / vidéos »."
+  },
+  "share": {
+    "menu": "Partage",
+    "title": "Partage",
+    "mineTitle": "Montrer mon MyMedia",
+    "intro": "La personne pourra regarder, chercher et télécharger vos photos et vidéos, sans votre compte et sans rien pouvoir changer. Il lui faut un compte Google (Gmail).",
+    "email": "Son adresse Gmail",
+    "notify": "Prévenir par e-mail (envoyé par Google)",
+    "submit": "Partager en lecture seule",
+    "done": "{{email}} peut maintenant voir votre MyMedia : il ouvre {{site}} avec ce compte, puis Partage.",
+    "invalid": "Cette adresse ne semble pas valide.",
+    "people": "Qui voit votre MyMedia",
+    "nobody": "Personne pour le moment.",
+    "readOnly": "lecture seule",
+    "canEdit": "peut modifier",
+    "anyone": "Toute personne ayant le lien",
+    "remove": "Retirer",
+    "removeTitle": "Retirer le partage",
+    "removeText": "{{who}} ne verra plus votre MyMedia. Ses photos restent dans votre Drive, rien n'est supprimé.",
+    "othersTitle": "MyMedia partagés avec moi",
+    "currentTitle": "Bibliothèque ouverte"
   }
 }
