@@ -311,7 +311,13 @@ async function reconcileMeta(rootId: string) {
     const p = placementOf(r.folderId, folderMap, rootId)
     const cur = metaMap.get(r.id)
     metaMap.delete(r.id)
-    if (!cur || cur.deleted) {
+    // Seen again after being taken for removed (back from the trash, or a device that did not
+    // know it yet): it keeps what was known about it (import, species, text, people…).
+    if (cur?.deleted) {
+      changed.push({ ...cur, deleted: undefined, name: r.name, category: p.category, album: p.album, updatedAt: now })
+      continue
+    }
+    if (!cur) {
       const folderPath = [p.category, p.album].filter(Boolean).join('/')
       changed.push({
         id: r.id,
