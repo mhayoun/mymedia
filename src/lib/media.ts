@@ -5,10 +5,13 @@ export type Origin = 'web' | 'whatsapp' | 'camera' | 'import' | 'unknown'
 
 export const ORIGINS: Origin[] = ['camera', 'whatsapp', 'web', 'import', 'unknown']
 
+/** AVI: shown and filed like any video, but no browser plays it (Google Drive does). */
+const AVI_MIME = ['video/x-msvideo', 'video/avi', 'video/msvideo']
+
 const PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp'])
-const VIDEO_MIME = new Set(['video/mp4', 'video/quicktime'])
+const VIDEO_MIME = new Set(['video/mp4', 'video/quicktime', ...AVI_MIME])
 const PHOTO_EXT = new Set(['jpg', 'jpeg', 'png', 'heic', 'heif', 'webp'])
-const VIDEO_EXT = new Set(['mp4', 'mov'])
+const VIDEO_EXT = new Set(['mp4', 'mov', 'avi'])
 
 export const FOLDER_MIME = 'application/vnd.google-apps.folder'
 
@@ -20,6 +23,11 @@ export function extension(name: string): string {
 export function baseName(name: string): string {
   const i = name.lastIndexOf('.')
   return i <= 0 ? name : name.slice(0, i)
+}
+
+/** False for the videos browsers cannot read (AVI): not played, compressed or analysed here. */
+export function canPlayVideo(mimeType: string, name: string): boolean {
+  return !AVI_MIME.includes(mimeType) && extension(name) !== 'avi'
 }
 
 /** Returns the media type of a supported file, or null for anything else. */

@@ -3,6 +3,7 @@
 
 import type { MediaRecord } from '../db/db'
 import { downloadRange } from '../drive/api'
+import { canPlayVideo } from '../lib/media'
 
 /** Seconds into the video for its thumbnail: just after the start, to avoid a black fade-in frame. */
 const THUMB_AT = 1
@@ -11,7 +12,7 @@ type Times = (first: number, duration: number) => number[]
 
 /** Frames at the times returned by `times` (in seconds), as JPEG blobs. */
 export async function videoFrames(rec: MediaRecord, times: Times, size: number): Promise<Blob[]> {
-  if (typeof VideoDecoder === 'undefined' || rec.size <= 0) return []
+  if (typeof VideoDecoder === 'undefined' || rec.size <= 0 || !canPlayVideo(rec.mimeType, rec.name)) return []
   // Loaded only when needed: keeps the app small at start-up.
   const { ALL_FORMATS, CanvasSink, CustomSource, Input } = await import('mediabunny')
   const input = new Input({

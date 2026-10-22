@@ -4,7 +4,7 @@
 
 import { db } from '../db/db'
 import { downloadRange, setAppProperties } from '../drive/api'
-import { localIso } from '../lib/media'
+import { canPlayVideo, localIso } from '../lib/media'
 import { mp4CreationTime } from '../lib/mp4'
 import { markMetaDirty } from './metaStore'
 
@@ -12,7 +12,7 @@ export async function fixVideoDates(): Promise<void> {
   const d = db()
   const checked = new Set((await d.getKv<string[]>('videoDatesChecked')) ?? [])
   const videos = (await d.media.where('type').equals('video').toArray()).filter(
-    (v) => !v.appProperties?.mymedia_taken && !checked.has(v.id),
+    (v) => !v.appProperties?.mymedia_taken && !checked.has(v.id) && canPlayVideo(v.mimeType, v.name),
   )
   let changed = false
   for (const v of videos) {

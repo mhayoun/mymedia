@@ -290,6 +290,8 @@
       "noGain_other": "{{count}} ne deviendraient pas assez plus légers",
       "videoNotHere_one": "{{count}} vidéo : à compresser sur un ordinateur (Chrome ou Edge)",
       "videoNotHere_other": "{{count}} vidéos : à compresser sur un ordinateur (Chrome ou Edge)",
+      "videoFormat_one": "{{count}} vidéo AVI (ne se compresse pas dans le navigateur)",
+      "videoFormat_other": "{{count}} vidéos AVI (ne se compressent pas dans le navigateur)",
       "format_one": "{{count}} photo HEIC/PNG (conversion en JPEG désactivée)",
       "format_other": "{{count}} photos HEIC/PNG (conversion en JPEG désactivée)"
     },

@@ -110,6 +110,7 @@ describe('compression plan', () => {
   it('plans videos only where they can be encoded', () => {
     const video: PlanInput = { ...photo, name: 'VID_1.mp4', type: 'video', mimeType: 'video/mp4', size: 200_000_000, width: 3840, height: 2160, durationMs: 60_000 }
     expect(planCompression(video, DEFAULT_COMPRESS, { ...manual, videoSupported: false })).toEqual({ ok: false, reason: 'videoNotHere' })
+    expect(planCompression({ ...video, name: 'clip.avi', mimeType: 'video/x-msvideo' }, DEFAULT_COMPRESS, manual)).toEqual({ ok: false, reason: 'videoFormat' })
     const p = planCompression(video, DEFAULT_COMPRESS, manual)
     expect(p.ok && p.estimate).toBeCloseTo(((5_000_000 + 128_000) * 60) / 8, -3)
     // Already a light 1080p video: 5.3 Mbit/s

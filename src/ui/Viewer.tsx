@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { downloadBlob } from '../drive/api'
 import { useFormat } from '../i18n/format'
-import { ORIGINS, type Origin } from '../lib/media'
+import { canPlayVideo, ORIGINS, type Origin } from '../lib/media'
 import { ALBUM_SEPARATOR } from '../lib/tree'
 import { bytesBeforePlay, VIDEO_CHANNEL, type VideoProgress } from '../lib/videoBuffer'
 import { useApp } from '../store'
@@ -302,7 +302,8 @@ function VideoStage({ item }: { item: LibraryItem }) {
   const [src, setSrc] = useObjectUrl()
   const [stream, setStream] = useState<string | null>(null)
   const [progress, setProgress] = useState<number | null>(null)
-  const [failed, setFailed] = useState(false)
+  // AVI: no browser plays it; its preview and Google Drive's player instead.
+  const [failed, setFailed] = useState(() => !canPlayVideo(item.rec.mimeType, item.rec.name))
   const abort = useRef<AbortController | null>(null)
   useEffect(() => () => abort.current?.abort(), [])
   const videoRef = useRef<HTMLVideoElement | null>(null)

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { planChanges } from './changes'
-import { dateFromFileName, detectOrigin, mediaTypeOf, parseExifDate, sizedThumbnailLink } from './media'
+import { canPlayVideo, dateFromFileName, detectOrigin, mediaTypeOf, parseExifDate, sizedThumbnailLink } from './media'
 import { emptyMetaFile, isMassRemoval, mergeMetaFiles, parseMetaFile, type MediaMeta } from './metadata'
 import { placementOf, subtreeIds, type FolderNode } from './tree'
 
@@ -12,6 +12,14 @@ describe('media', () => {
     expect(mediaTypeOf('application/octet-stream', 'a.HEIC')).toBe('photo')
     expect(mediaTypeOf('video/quicktime', 'a.mov')).toBe('video')
     expect(mediaTypeOf('application/pdf', 'a.pdf')).toBeNull()
+  })
+
+  it('AVI is a video the browser does not play', () => {
+    expect(mediaTypeOf('video/x-msvideo', 'a.avi')).toBe('video')
+    expect(mediaTypeOf('application/octet-stream', 'a.AVI')).toBe('video')
+    expect(canPlayVideo('video/x-msvideo', 'a.avi')).toBe(false)
+    expect(canPlayVideo('application/octet-stream', 'clip.AVI')).toBe(false)
+    expect(canPlayVideo('video/mp4', 'a.mp4')).toBe(true)
   })
 
   it('parses EXIF and file-name dates', () => {

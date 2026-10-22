@@ -52,7 +52,7 @@ export type ImportOutcome =
 
 const MIME_BY_EXT: Record<string, string> = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', heic: 'image/heic', heif: 'image/heif',
-  mp4: 'video/mp4', mov: 'video/quicktime',
+  mp4: 'video/mp4', mov: 'video/quicktime', avi: 'video/x-msvideo',
 }
 
 function mimeOf(file: File): string {

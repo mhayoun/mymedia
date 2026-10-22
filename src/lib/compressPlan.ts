@@ -1,7 +1,7 @@
 // Decides whether a media should be compressed, and estimates the result.
 // Pure: unit-tested.
 
-import type { MediaType, Origin } from './media'
+import { canPlayVideo, type MediaType, type Origin } from './media'
 
 export type KeepOriginal = 'version' | 'folder' | 'both'
 export type VideoQuality = 'low' | 'medium' | 'high'
@@ -62,6 +62,8 @@ export type SkipReason =
   | 'alreadyCompressed'
   | 'format'
   | 'videoNotHere'
+  /** A video the browser cannot read (AVI). */
+  | 'videoFormat'
   | 'noGain'
   | 'origin'
   | 'notBig'
@@ -154,6 +156,7 @@ export function planCompression(input: PlanInput, s: CompressSettings, ctx: Plan
     }
     estimate = photoEstimate(input, s)
   } else {
+    if (!canPlayVideo(input.mimeType, input.name)) return { ok: false, reason: 'videoFormat' }
     if (!ctx.videoSupported) return { ok: false, reason: 'videoNotHere' }
     const short = Math.min(input.width ?? Infinity, input.height ?? Infinity)
     const target = VIDEO_BITRATES[s.videoHeight][s.videoQuality]

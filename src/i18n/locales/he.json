@@ -306,6 +306,9 @@
       "videoNotHere_one": "סרטון אחד: יש לדחוס במחשב (Chrome או Edge)",
       "videoNotHere_two": "{{count}} סרטונים: יש לדחוס במחשב (Chrome או Edge)",
       "videoNotHere_other": "{{count}} סרטונים: יש לדחוס במחשב (Chrome או Edge)",
+      "videoFormat_one": "סרטון AVI אחד (לא ניתן לדחוס בדפדפן)",
+      "videoFormat_two": "{{count}} סרטוני AVI (לא ניתן לדחוס בדפדפן)",
+      "videoFormat_other": "{{count}} סרטוני AVI (לא ניתן לדחוס בדפדפן)",
       "format_one": "תמונת HEIC/PNG אחת (ההמרה ל-JPEG כבויה)",
       "format_two": "{{count}} תמונות HEIC/PNG (ההמרה ל-JPEG כבויה)",
       "format_other": "{{count}} תמונות HEIC/PNG (ההמרה ל-JPEG כבויה)"

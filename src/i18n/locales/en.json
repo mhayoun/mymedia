@@ -292,6 +292,8 @@
       "noGain_other": "{{count}} would not get smaller enough",
       "videoNotHere_one": "{{count}} video: compress it on a computer (Chrome or Edge)",
       "videoNotHere_other": "{{count}} videos: compress them on a computer (Chrome or Edge)",
+      "videoFormat_one": "{{count}} AVI video (cannot be compressed in the browser)",
+      "videoFormat_other": "{{count}} AVI videos (cannot be compressed in the browser)",
       "format_one": "{{count}} HEIC/PNG photo (conversion to JPEG is off)",
       "format_other": "{{count}} HEIC/PNG photos (conversion to JPEG is off)"
     },
