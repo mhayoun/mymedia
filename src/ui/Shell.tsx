@@ -14,7 +14,7 @@ import { openLibrary } from '../sync/library'
 import { cancelSync, syncNow } from '../sync/engine'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog, PromptDialog } from './Dialog'
-import { ImportDialog } from './ImportDialog'
+import { ImportDialog, lastShareDestination } from './ImportDialog'
 import { Gallery } from './Gallery'
 import { useAuthError, useAuthStatus, useAutoSync, useOnline } from './hooks'
 import { SettingsPanel } from './SettingsPanel'
@@ -47,7 +47,7 @@ type DialogState =
   | { kind: 'move'; id: string; name: string; count: number }
   | { kind: 'delete'; id: string; name: string; count: number }
   | { kind: 'compress'; title: string; folderId: string | null }
-  | { kind: 'import'; destId: string; files?: File[] }
+  | { kind: 'import'; destId: string; files?: File[]; fromShare?: boolean }
   | null
 
 export function Shell() {
@@ -96,7 +96,9 @@ export function Shell() {
     // A library shared for viewing cannot take them: offer to open the user's own (the files wait).
     if (app().readOnly) return setSharedReadOnly(true)
     readSharedFiles().then((files) => {
-      if (files.length) setDialog({ kind: 'import', destId: rootId, files })
+      // The album chosen the last time (checked by the dialog: it may have been removed).
+      const destId = lastShareDestination() ?? rootId
+      if (files.length) setDialog({ kind: 'import', destId, files, fromShare: true })
       else {
         // Why, for the user to tell: what the service worker received, or how many it kept.
         const why = new URLSearchParams(location.search).get('why') ?? `kept ${new URLSearchParams(location.search).get('shared')}`
@@ -104,7 +106,7 @@ export function Shell() {
         if (why.startsWith('received nothing')) {
           // Chrome on Android (since version 153) sends the share without its files: the user picks them here instead.
           console.warn('[MyMedia] share without files', why)
-          setDialog({ kind: 'import', destId: rootId })
+          setDialog({ kind: 'import', destId, fromShare: true })
           app().set({ toast: { key: 'shareIn.chromeEmpty' } })
         } else app().set({ toast: { key: 'shareIn.notReceived', detail: why } })
       }
@@ -228,6 +230,7 @@ export function Shell() {
           lib={lib}
           destId={dialog.destId}
           initialFiles={dialog.files}
+          fromShare={dialog.fromShare}
           onClose={() => {
             if (dialog.files) void clearSharedFiles()
             setDialog(null)

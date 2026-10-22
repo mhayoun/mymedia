@@ -25,6 +25,8 @@ interface Props {
   destId: string
   /** Files already chosen (received from the Share menu). */
   initialFiles?: File[]
+  /** Opened from the Share menu of another app: its destination is kept for the next share. */
+  fromShare?: boolean
   onClose: () => void
 }
 
@@ -41,6 +43,25 @@ function recentDestinations(): string[] {
 function rememberDestination(id: string) {
   try {
     localStorage.setItem(RECENT_KEY, JSON.stringify([id, ...recentDestinations().filter((x) => x !== id)].slice(0, 6)))
+  } catch {
+    // a convenience only
+  }
+}
+
+const SHARE_DEST_KEY = 'mymedia.shareDestination'
+
+/** Where the last files shared from another app went (offered again the next time). */
+export function lastShareDestination(): string | null {
+  try {
+    return localStorage.getItem(SHARE_DEST_KEY)
+  } catch {
+    return null
+  }
+}
+
+function rememberShareDestination(id: string) {
+  try {
+    localStorage.setItem(SHARE_DEST_KEY, id)
   } catch {
     // a convenience only
   }
@@ -98,11 +119,12 @@ function ReplacedThumb({ lib, id }: { lib: Library; id: string }) {
 }
 
 /** "Add photos/videos": choose files or a folder, check dates and sizes, upload. */
-export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }: Props) {
+export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare, onClose }: Props) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
-  const [destId, setDestId] = useState(initialDest)
+  // A destination since removed: the root instead.
+  const [destId, setDestId] = useState(() => (initialDest === rootId || lib.folders.has(initialDest) ? initialDest : rootId))
   const [phase, setPhase] = useState<'pick' | 'zip' | 'groups' | 'analyze' | 'match' | 'choose' | 'upload' | 'done'>('pick')
   const [fb, setFb] = useState<FacebookExport | null>(null)
   const [fbGroups, setFbGroups] = useState<Set<string>>(new Set())
@@ -246,12 +268,20 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
 
   async function start() {
     rememberDestination(destId)
+    if (fromShare) rememberShareDestination(destId)
     const from = importSourceName({ zipName: fb ? zipName : undefined, relDirs: picked.map((i) => i.relDir) })
     const path = !fb && from && originPath.trim() !== from ? originPath.trim() : undefined
     if (path) rememberPath(path)
     auth.renewBefore(Math.max(10, selected.length / 10) * 60_000)
     sendOpts.current = { from, path }
     await send(selected)
+  }
+
+  /** After the upload: the album (or category) the files went to is shown. */
+  function showDestination() {
+    const { categoryId, albumId } = destId === rootId ? { categoryId: null, albumId: null } : placementOf(destId, lib.folders, rootId)
+    useApp.getState().setFilters({ categoryId, albumId, personId: null, provenance: null })
+    onClose()
   }
 
   const sendOpts = useRef<{ from: string; path?: string }>({ from: '' })
@@ -648,7 +678,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, onClose }
           </button>
         )}
         {(phase === 'done' || phase === 'pick') && (
-          <button className={`btn ${phase === 'done' ? 'primary' : ''}`} onClick={onClose}>
+          <button className={`btn ${phase === 'done' ? 'primary' : ''}`} onClick={phase === 'done' && result?.count ? showDestination : onClose}>
             {phase === 'done' ? t('common.ok') : t('common.cancel')}
           </button>
         )}
