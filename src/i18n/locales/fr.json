@@ -832,5 +832,12 @@
     "whatsapp": "Expliquer par WhatsApp",
     "whatsappHint": "Ouvre WhatsApp avec un message qui explique comment voir votre MyMedia ; vous choisissez à qui l'envoyer.",
     "whatsappText": "Bonjour ! {{owner}} a partagé ses photos et vidéos avec toi sur MyMedia (en lecture seule).\n\n1. Ouvre {{link}}\n2. Connecte-toi avec ton compte Google {{email}}\n3. Ouvre le menu ☰ puis 👁 Voir, et choisis « MyMedia de {{owner}} ».\n\nSur téléphone, tu peux l'installer comme une application : menu de Chrome ⋮ → « Ajouter à l'écran d'accueil »."
+  },
+  "install": {
+    "menu": "Installer l'application",
+    "title": "Installer MyMedia",
+    "ios": "Dans Safari, touchez le bouton Partager (le carré avec une flèche), puis « Sur l'écran d'accueil ». MyMedia s'ouvrira ensuite comme une application.",
+    "android": "Dans Chrome, ouvrez le menu ⋮ puis « Installer l'application » (ou « Ajouter à l'écran d'accueil »). Si rien n'apparaît, MyMedia est peut-être déjà installé : cherchez son icône.",
+    "desktop": "Dans Chrome ou Edge, cliquez l'icône d'installation au bout de la barre d'adresse, ou menu ⋮ → « Installer MyMedia ». Si rien n'apparaît, MyMedia est peut-être déjà installé."
   }
 }

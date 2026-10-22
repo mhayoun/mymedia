@@ -1,10 +1,12 @@
-import { ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Eye, Folder, FolderOpen, Images, Inbox, MessagesSquare, Plus, Share2, Sparkles, Users, Wand2, Store } from 'lucide-react'
-import { useEffect, useState, type ReactNode } from 'react'
+import { ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Eye, Folder, FolderOpen, Images, Inbox, MessagesSquare, MonitorDown, Plus, Share2, Sparkles, Users, Wand2, Store } from 'lucide-react'
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { storageQuota, type DriveQuota } from '../drive/api'
 import { useFormat } from '../i18n/format'
 import { useApp } from '../store'
 import { FaceImg } from './FaceImg'
+import { Modal } from './Dialog'
+import { canPromptInstall, installHow, isInstalled, promptInstall, subscribeInstall } from '../lib/install'
 import type { ProvenanceEntry } from '../lib/provenance'
 import { AUTO, PEOPLE, TO_CLASSIFY, UNFILED, type FolderInfo, type Library } from './useLibrary'
 import type { People } from './usePeople'
@@ -149,6 +151,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
             <span className="label">{t('nav.shop')}</span>
           </button>
         )}
+        <InstallItem />
         <button
           className="nav-item"
           onClick={() => set({ helpOpen: true, sidebarOpen: false })}
@@ -307,6 +310,39 @@ function AlbumList({
           )}
         </div>
       ))}
+    </>
+  )
+}
+
+/** "Install the app" (not shown once it runs as an app): the browser's window, or how to do it. */
+function InstallItem() {
+  const { t } = useTranslation()
+  const set = useApp((s) => s.set)
+  useSyncExternalStore(subscribeInstall, canPromptInstall)
+  const [help, setHelp] = useState(false)
+  if (isInstalled()) return null
+  return (
+    <>
+      <button
+        className="nav-item"
+        onClick={async () => {
+          if (await promptInstall()) set({ sidebarOpen: false })
+          else setHelp(true)
+        }}
+      >
+        <MonitorDown size={18} />
+        <span className="label">{t('install.menu')}</span>
+      </button>
+      {help && (
+        <Modal title={t('install.title')} onClose={() => setHelp(false)}>
+          <p>{t(`install.${installHow()}`)}</p>
+          <div className="actions">
+            <button className="btn primary" onClick={() => setHelp(false)}>
+              {t('common.ok')}
+            </button>
+          </div>
+        </Modal>
+      )}
     </>
   )
 }
