@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight, ExternalLink, FolderPlus, Info, Maximize2, Play, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { downloadBlob } from '../drive/api'
 import { useFormat } from '../i18n/format'
@@ -16,7 +17,7 @@ import { chooseFolder } from '../classify/engine'
 import { assignFaces, namePerson, removeFaces, splitFaces } from '../faces/engine'
 import { AlbumTreeChoice } from './AlbumTreeChoice'
 import { CompressDialog } from './CompressDialog'
-import { ConfirmDialog } from './Dialog'
+import { ConfirmDialog, Modal } from './Dialog'
 import { FaceImg } from './FaceImg'
 import { NewAlbumDialog } from './NewAlbumDialog'
 import { useLibraryContext } from './libraryContext'
@@ -405,6 +406,8 @@ function InfoPanel({ item }: { item: LibraryItem }) {
   )
   // The face being given a new name here, and the name typed.
   const [naming, setNaming] = useState<string | null>(null)
+  // The face whose person is being chosen.
+  const [picking, setPicking] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
   const giveName = async (f: (typeof faces)[number]) => {
     const name = newName.trim()
@@ -516,30 +519,27 @@ function InfoPanel({ item }: { item: LibraryItem }) {
                     <FaceImg face={f} size={48} />
                     <span>{p?.name ? <bdi>{p.name}</bdi> : f.personId ? '?' : t('faces.unknownFace')}</span>
                   </button>
-                  {!readOnly && <select
-                    value=""
-                    aria-label={t('faces.itIs')}
-                    onChange={async (e) => {
-                      const v = e.target.value
-                      if (!v) return
-                      if (v === NEW_PERSON) {
-                        setNewName('')
-                        setNaming(f.id)
-                      }
-                      else if (v === NO_PERSON) await removeFaces([f.id])
-                      else await assignFaces([f.id], v)
-                    }}
-                  >
-                    <option value="">{t('faces.itIs')}</option>
-                    {namedPeople.filter((x) => x.id !== p?.id).map((x) => (
-                      <option key={x.id} value={x.id}>
-                        {x.name}
-                      </option>
-                    ))}
-                    <option value={NEW_PERSON}>{t('faces.itIsNew')}</option>
-                    {/* Not known and not wanted: out of its group, never grouped or asked again. */}
-                    {f.personId && <option value={NO_PERSON}>{t('faces.itIsNobody')}</option>}
-                  </select>}
+                  {!readOnly && (
+                    <button className="btn face-pick" onClick={() => setPicking(f.id)}>
+                      {t('faces.itIs')}
+                    </button>
+                  )}
+                  {picking === f.id && (
+                    <PersonPicker
+                      people={namedPeople.filter((x) => x.id !== p?.id)}
+                      canRemove={!!f.personId}
+                      onClose={() => setPicking(null)}
+                      onPick={async (v) => {
+                        setPicking(null)
+                        if (v === NEW_PERSON) {
+                          setNewName('')
+                          setNaming(f.id)
+                        }
+                        else if (v === NO_PERSON) await removeFaces([f.id])
+                        else await assignFaces([f.id], v)
+                      }}
+                    />
+                  )}
                   {naming === f.id && (
                     <form
                       className="row"
@@ -662,5 +662,46 @@ function InfoEdit({ item }: { item: LibraryItem }) {
         />
       </label>
     </>
+  )
+}
+
+/**
+ * Chooses who a face is. Not a <select>: with many people, phones and browsers
+ * could not always show the end of its list.
+ */
+function PersonPicker({ people, canRemove, onPick, onClose }: {
+  people: { id: string; name?: string | null }[]
+  canRemove: boolean
+  onPick: (value: string) => void
+  onClose: () => void
+}) {
+  const { t } = useTranslation()
+  const [query, setQuery] = useState('')
+  const q = query.trim().toLocaleLowerCase()
+  const shown = q ? people.filter((x) => (x.name ?? '').toLocaleLowerCase().includes(q)) : people
+  // In the body: the face row's button styles must not apply to the list.
+  return createPortal(
+    <Modal title={t('faces.itIs')} onClose={onClose}>
+      {people.length > 8 && (
+        <input type="search" dir="auto" autoFocus className="person-search" placeholder={t('faces.searchPerson')} value={query} onChange={(e) => setQuery(e.target.value)} />
+      )}
+      <div className="person-list">
+        {shown.map((x) => (
+          <button key={x.id} className="btn ghost" onClick={() => onPick(x.id)}>
+            <bdi>{x.name}</bdi>
+          </button>
+        ))}
+        <button className="btn ghost" onClick={() => onPick(NEW_PERSON)}>
+          {t('faces.itIsNew')}
+        </button>
+        {/* Not known and not wanted: out of its group, never grouped or asked again. */}
+        {canRemove && (
+          <button className="btn ghost" onClick={() => onPick(NO_PERSON)}>
+            {t('faces.itIsNobody')}
+          </button>
+        )}
+      </div>
+    </Modal>,
+    document.body,
   )
 }
