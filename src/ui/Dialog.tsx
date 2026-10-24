@@ -1,3 +1,4 @@
+import { X } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FolderExistsError } from '../drive/api'
@@ -7,9 +8,12 @@ interface ModalProps {
   onClose: () => void
   children: ReactNode
   wide?: boolean
+  /** An X at the end of the title (long windows, whose own buttons may be far down). */
+  closeButton?: boolean
 }
 
-export function Modal({ title, onClose, children, wide }: ModalProps) {
+export function Modal({ title, onClose, children, wide, closeButton }: ModalProps) {
+  const { t } = useTranslation()
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
@@ -18,8 +22,13 @@ export function Modal({ title, onClose, children, wide }: ModalProps) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className={`modal${wide ? ' wide' : ''}`} role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
-        <h2>
+        <h2 className={closeButton ? 'with-close' : undefined}>
           <bdi>{title}</bdi>
+          {closeButton && (
+            <button className="icon-btn small" onClick={onClose} aria-label={t('common.close')} title={t('common.close')}>
+              <X size={18} />
+            </button>
+          )}
         </h2>
         {children}
       </div>

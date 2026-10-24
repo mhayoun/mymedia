@@ -1,4 +1,4 @@
-import { Check, Play, ZoomIn } from 'lucide-react'
+import { Check, Loader2, Play, ZoomIn } from 'lucide-react'
 import { memo, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MediaRecord } from '../db/db'
@@ -24,6 +24,8 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, o
   const fmt = useFormat()
   const bySize = useApp((s) => s.settings.sort === 'largest' || s.settings.sort === 'smallest')
   const [url, setUrl] = useState<string | null | undefined>(() => cachedThumbUrl(rec.id))
+  // The picture is drawn (until then a spinner turns over the cell).
+  const [drawn, setDrawn] = useState(false)
   const mounted = useRef(true)
   const retried = useRef(false)
   const el = useRef<HTMLButtonElement>(null)
@@ -81,6 +83,7 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, o
           decoding="async"
           draggable={false}
           referrerPolicy="no-referrer"
+          onLoad={() => setDrawn(true)}
           onError={() => {
             // Not a picture the browser can draw: loaded again on its own, once.
             if (retried.current) return setUrl(null)
@@ -93,6 +96,11 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, o
           <bdi>{rec.name}</bdi>
         </span>
       ) : null}
+      {url !== null && !drawn && (
+        <span className="cell-loading" aria-hidden="true">
+          <Loader2 size={20} className="spin" />
+        </span>
+      )}
       {rec.type === 'video' && (
         <span className="badge" aria-label={t('gallery.video')}>
           <Play size={12} className="flip-rtl" />

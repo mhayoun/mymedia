@@ -46,7 +46,7 @@ export function PersonDialog({ people, personId, onClose }: { people: People; pe
     })
 
   return (
-    <Modal wide title={person.name ?? t('faces.unnamed')} onClose={onClose}>
+    <Modal wide closeButton title={person.name ?? t('faces.unnamed')} onClose={onClose}>
       <form
         className="row"
         onSubmit={(e) => {
