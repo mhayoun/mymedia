@@ -133,7 +133,7 @@ interface AppState {
   sidebarOpen: boolean
   settingsOpen: boolean
   accountOpen: boolean
-  /** The models window; 'shop' or 'publish' opens it at that part. */
+  /** The models window: those in use and the shop ('shop' or true), or publishing one's own. */
   shopOpen: boolean | 'shop' | 'publish'
   /** The Share window (my MyMedia to others) or the View one (the MyMedia of others). */
   shareOpen: false | 'share' | 'view'

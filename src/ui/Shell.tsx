@@ -177,7 +177,7 @@ export function Shell() {
       {helpOpen && <HelpPanel />}
       {accountOpen && <AccountPanel />}
       {shareOpen && <ShareDialog mode={shareOpen} onClose={() => app().set({ shareOpen: false })} />}
-      {shopOpen && <ModelsDialog at={shopOpen === true ? undefined : shopOpen} onClose={() => app().set({ shopOpen: false, shopResume: null })} />}
+      {shopOpen && <ModelsDialog view={shopOpen === 'publish' ? 'publish' : 'use'} onClose={() => app().set({ shopOpen: false, shopResume: null })} />}
       {statsOpen && <StatsDialog lib={lib} />}
       {speedOpen && <SpeedDialog onClose={() => app().set({ speedOpen: false })} />}
       {activityOpen && <ActivityDialog onClose={() => app().set({ activityOpen: false })} />}

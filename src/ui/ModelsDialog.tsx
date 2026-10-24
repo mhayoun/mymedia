@@ -32,8 +32,11 @@ function percentOf(p: { step: InstallStep; done: number; total: number }): numbe
   return p.step === 'save' ? 60 : 85
 }
 
-/** Settings → classification models: the shop, the installed models, publishing one's own. */
-export function ModelsDialog({ at, onClose }: { at?: 'shop' | 'publish'; onClose: () => void }) {
+/**
+ * Classification models: those in use and the shop (`use`), or publishing one's own,
+ * with its sales and, for MyMedia's admin, what is owed to the sellers (`publish`).
+ */
+export function ModelsDialog({ view, onClose }: { view: 'use' | 'publish'; onClose: () => void }) {
   const { t, i18n } = useTranslation()
   const fmt = useFormat()
   const lib = useLibraryContext()
@@ -56,12 +59,6 @@ export function ModelsDialog({ at, onClose }: { at?: 'shop' | 'publish'; onClose
   const [paypal, setPaypal] = useState(user?.email ?? '')
   const [price, setPrice] = useState('0')
   const [currency, setCurrency] = useState('ILS')
-  const shopTitle = useRef<HTMLHeadingElement>(null)
-  const publishTitle = useRef<HTMLHeadingElement>(null)
-  // Opened from Settings at one part: shown at the top of the window.
-  useEffect(() => {
-    if (at) (at === 'shop' ? shopTitle : publishTitle).current?.scrollIntoView({ block: 'start' })
-  }, [at])
 
   const money = (amount: number, cur: string) =>
     new Intl.NumberFormat(LOCALES[i18n.language as Language] ?? 'en-US', { style: 'currency', currency: cur }).format(amount)
@@ -156,235 +153,243 @@ export function ModelsDialog({ at, onClose }: { at?: 'shop' | 'publish'; onClose
       <div className="modal-scroll">
         <p className="hint">{t('models.intro')}</p>
 
-        <h3>
-          <Download size={16} /> {t('models.installedTitle')}
-        </h3>
-        {installed === null ? (
-          <p className="hint">
-            <Loader2 size={14} className="spin" />
-          </p>
-        ) : installed.length === 0 ? (
-          <p className="hint">{t('models.noneInstalled')}</p>
-        ) : (
-          installed.map((m) => (
-            <div key={m.id} className="model-row">
-              <div>
-                <strong>
-                  <bdi>{m.name}</bdi>
-                </strong>
-                <div className="hint">
-                  {t('models.bySeller', { seller: m.seller })} · <bdi>{m.category}</bdi> · {t('models.albums', { count: m.albums.length })} ·{' '}
-                  {t('models.examples', { count: m.labels.length })}
-                </div>
-              </div>
-              <button className="btn ghost" disabled={!!busy} onClick={() => act(m.id, async () => (await removeModel(m.id), t('models.removed')))}>
-                <Trash2 size={16} /> {t('models.remove')}
-              </button>
-            </div>
-          ))
-        )}
-
-        <h3 ref={shopTitle}>
-          <Store size={16} /> {t('models.shopTitle')}
-        </h3>
-        {shop === null ? (
-          <p className="hint">
-            <Loader2 size={14} className="spin" /> {t('models.loading')}
-          </p>
-        ) : shop.length === 0 ? (
-          <p className="hint">{t('models.shopEmpty')}</p>
-        ) : (
-          shop.map((m) => (
-            <div key={m.id} className="model-row">
-              <div>
-                <strong>
-                  <bdi>{m.name}</bdi>
-                </strong>{' '}
-                <span className="tag">{m.price > 0 ? money(m.price, m.currency) : t('models.free')}</span>
-                <div className="hint">
-                  {t('models.bySeller', { seller: m.seller })} · <bdi>{m.category}</bdi> · {t('models.albums', { count: m.albums })} ·{' '}
-                  {t('models.examples', { count: m.examples })} · {fmt.date(m.createdAt)}
-                </div>
-                {m.description && <div dir="auto">{m.description}</div>}
-                {busy === m.id && install && (
-                  <div className="model-progress">
-                    <progress max={100} value={percentOf(install)} />
-                    <span className="hint">
-                      {t(`models.step.${install.step}`, { done: fmt.number(install.done), total: fmt.number(install.total) })} — {fmt.percent(percentOf(install) / 100)}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <span className="row">
-                {m.mine ? (
-                  <span className="tag">{t('models.isMine')}</span>
-                ) : installedIds.has(m.id) ? (
-                  <span className="ok-text">{t('models.isInstalled')}</span>
-                ) : (
-                  <button
-                    className="btn primary"
-                    disabled={!!busy}
-                    onClick={() => get(m.id)}
-                  >
-                    {busy === m.id ? <Loader2 size={16} className="spin" /> : <Download size={16} />}{' '}
-                    {m.owned || m.price === 0 ? t('models.get') : m.paymentsLive ? t('models.buy', { price: money(m.price, m.currency) }) : t('models.getFreeTest')}
-                  </button>
-                )}
-                {m.mine && (
-                  <button
-                    className="btn ghost"
-                    disabled={!!busy}
-                    onClick={() => act(`w${m.id}`, async () => (await withdrawModel(m.id), t('models.withdrawn')))}
-                    title={t('models.withdraw')}
-                  >
-                    <Trash2 size={16} /> {t('models.withdraw')}
-                  </button>
-                )}
-              </span>
-            </div>
-          ))
-        )}
-
-        {sales && sales.count > 0 && (
+        {view === 'use' && (
           <>
             <h3>
-              <Wallet size={16} /> {t('models.salesTitle')}
+              <Download size={16} /> {t('models.installedTitle')}
             </h3>
-            <p>{t('models.salesLine', { count: sales.count, owed: amounts(sales.owed), paid: amounts(sales.paidOut) })}</p>
-            <p className="hint">{t('models.salesHint', { fee: sales.fee })}</p>
-            {!!sales.list?.length && (
-              <details className="sales-detail">
-                <summary>{t('models.salesDetail', { count: sales.list.length })}</summary>
-                {sales.list.map((s) => (
-                  <div key={s.order} className="model-row">
-                    <div>
-                      <strong>
-                        <bdi>{s.model}</bdi>
-                      </strong>{' '}
-                      {s.test && <span className="tag">{t('models.saleTest')}</span>}
-                      <div className="hint">
-                        {fmt.dateTime(s.at)} · {t('models.saleAmounts', { price: money(s.price, s.currency), fee: money(s.fee, s.currency), share: money(s.share, s.currency) })}
-                      </div>
-                      <div className="hint">
-                        {s.paidOut ? t('models.salePaidOut', { date: fmt.date(s.paidOut) }) : t('models.saleOwed')} · {t('models.saleOrder')}{' '}
-                        <bdi className="selectable">{s.order}</bdi>
-                      </div>
+            {installed === null ? (
+              <p className="hint">
+                <Loader2 size={14} className="spin" />
+              </p>
+            ) : installed.length === 0 ? (
+              <p className="hint">{t('models.noneInstalled')}</p>
+            ) : (
+              installed.map((m) => (
+                <div key={m.id} className="model-row">
+                  <div>
+                    <strong>
+                      <bdi>{m.name}</bdi>
+                    </strong>
+                    <div className="hint">
+                      {t('models.bySeller', { seller: m.seller })} · <bdi>{m.category}</bdi> · {t('models.albums', { count: m.albums.length })} ·{' '}
+                      {t('models.examples', { count: m.labels.length })}
                     </div>
                   </div>
-                ))}
-              </details>
+                  <button className="btn ghost" disabled={!!busy} onClick={() => act(m.id, async () => (await removeModel(m.id), t('models.removed')))}>
+                    <Trash2 size={16} /> {t('models.remove')}
+                  </button>
+                </div>
+              ))
+            )}
+
+            <h3>
+              <Store size={16} /> {t('models.shopTitle')}
+            </h3>
+            {shop === null ? (
+              <p className="hint">
+                <Loader2 size={14} className="spin" /> {t('models.loading')}
+              </p>
+            ) : shop.length === 0 ? (
+              <p className="hint">{t('models.shopEmpty')}</p>
+            ) : (
+              shop.map((m) => (
+                <div key={m.id} className="model-row">
+                  <div>
+                    <strong>
+                      <bdi>{m.name}</bdi>
+                    </strong>{' '}
+                    <span className="tag">{m.price > 0 ? money(m.price, m.currency) : t('models.free')}</span>
+                    <div className="hint">
+                      {t('models.bySeller', { seller: m.seller })} · <bdi>{m.category}</bdi> · {t('models.albums', { count: m.albums })} ·{' '}
+                      {t('models.examples', { count: m.examples })} · {fmt.date(m.createdAt)}
+                    </div>
+                    {m.description && <div dir="auto">{m.description}</div>}
+                    {busy === m.id && install && (
+                      <div className="model-progress">
+                        <progress max={100} value={percentOf(install)} />
+                        <span className="hint">
+                          {t(`models.step.${install.step}`, { done: fmt.number(install.done), total: fmt.number(install.total) })} — {fmt.percent(percentOf(install) / 100)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <span className="row">
+                    {m.mine ? (
+                      <span className="tag">{t('models.isMine')}</span>
+                    ) : installedIds.has(m.id) ? (
+                      <span className="ok-text">{t('models.isInstalled')}</span>
+                    ) : (
+                      <button
+                        className="btn primary"
+                        disabled={!!busy}
+                        onClick={() => get(m.id)}
+                      >
+                        {busy === m.id ? <Loader2 size={16} className="spin" /> : <Download size={16} />}{' '}
+                        {m.owned || m.price === 0 ? t('models.get') : m.paymentsLive ? t('models.buy', { price: money(m.price, m.currency) }) : t('models.getFreeTest')}
+                      </button>
+                    )}
+                    {m.mine && (
+                      <button
+                        className="btn ghost"
+                        disabled={!!busy}
+                        onClick={() => act(`w${m.id}`, async () => (await withdrawModel(m.id), t('models.withdrawn')))}
+                        title={t('models.withdraw')}
+                      >
+                        <Trash2 size={16} /> {t('models.withdraw')}
+                      </button>
+                    )}
+                  </span>
+                </div>
+              ))
             )}
           </>
         )}
 
-        <h3 ref={publishTitle}>
-          <Upload size={16} /> {t('models.publishTitle')}
-        </h3>
-        <p className="hint">{t('models.publishHint')}</p>
-        <label className="field">
-          {t('models.category')}
-          <select
-            value={categoryId}
-            disabled={!!busy}
-            onChange={(e) => {
-              setCategoryId(e.target.value)
-              if (!name) setName(categories.find((c) => c.id === e.target.value)?.name ?? '')
-            }}
-          >
-            <option value="">{t('models.chooseCategory')}</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({t('models.albums', { count: c.children.length })})
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="field">
-          {t('models.name')}
-          <input type="text" dir="auto" value={name} maxLength={80} disabled={!!busy} onChange={(e) => setName(e.target.value)} />
-        </label>
-        <label className="field">
-          {t('models.description')}
-          <input type="text" dir="auto" value={description} maxLength={500} disabled={!!busy} onChange={(e) => setDescription(e.target.value)} />
-        </label>
-        <label className="field">
-          {t('models.seller')}
-          <input type="text" dir="auto" value={seller} maxLength={80} disabled={!!busy} onChange={(e) => setSeller(e.target.value)} />
-        </label>
-        <div className="row">
-          <label className="field" style={{ flex: 1 }}>
-            {t('models.price')}
-            <input type="number" min={0} step="any" inputMode="decimal" dir="ltr" value={price} disabled={!!busy} onChange={(e) => setPrice(e.target.value)} />
-          </label>
-          <label className="field">
-            {t('models.currency')}
-            <select value={currency} disabled={!!busy} onChange={(e) => setCurrency(e.target.value)}>
-              {CURRENCIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-        {priceValue > 0 && (
-          <label className="field">
-            {t('models.paypal')}
-            <input type="email" dir="ltr" value={paypal} maxLength={120} disabled={!!busy} onChange={(e) => setPaypal(e.target.value)} />
-          </label>
-        )}
-        {paymentsLive && priceValue > 0 && (
-          <p className="ok-text">{t('models.youGet', { share: money(share, currency), price: money(priceValue, currency), fee })}</p>
-        )}
-        <p className="hint">{t(paymentsLive ? 'models.priceHintLive' : 'models.priceHint', { fee })}</p>
-        <button
-          className="btn primary"
-          disabled={!!busy || !canPublish}
-          onClick={() =>
-            act('publish', async () => {
-              const built = await buildModel(categoryId)
-              const { photos: _, left, ...data } = built
-              const m = await publishModel({ ...data, name: name.trim(), description: description.trim(), seller: seller.trim(), paypal: priceValue > 0 ? paypal.trim() : '', price: priceValue, currency })
-              const msg = t('models.published', { name: m.name, albums: m.albums, count: m.examples })
-              return left.length ? `${msg} ${t('models.leftOut', { count: left.length, names: left.join(', ') })}` : msg
-            })
-          }
-        >
-          {busy === 'publish' ? <Loader2 size={16} className="spin" /> : <Upload size={16} />} {t('models.publish')}
-        </button>
-
-        {owed && (
+        {view === 'publish' && (
           <>
+            {sales && sales.count > 0 && (
+              <>
+                <h3>
+                  <Wallet size={16} /> {t('models.salesTitle')}
+                </h3>
+                <p>{t('models.salesLine', { count: sales.count, owed: amounts(sales.owed), paid: amounts(sales.paidOut) })}</p>
+                <p className="hint">{t('models.salesHint', { fee: sales.fee })}</p>
+                {!!sales.list?.length && (
+                  <details className="sales-detail">
+                    <summary>{t('models.salesDetail', { count: sales.list.length })}</summary>
+                    {sales.list.map((s) => (
+                      <div key={s.order} className="model-row">
+                        <div>
+                          <strong>
+                            <bdi>{s.model}</bdi>
+                          </strong>{' '}
+                          {s.test && <span className="tag">{t('models.saleTest')}</span>}
+                          <div className="hint">
+                            {fmt.dateTime(s.at)} · {t('models.saleAmounts', { price: money(s.price, s.currency), fee: money(s.fee, s.currency), share: money(s.share, s.currency) })}
+                          </div>
+                          <div className="hint">
+                            {s.paidOut ? t('models.salePaidOut', { date: fmt.date(s.paidOut) }) : t('models.saleOwed')} · {t('models.saleOrder')}{' '}
+                            <bdi className="selectable">{s.order}</bdi>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </details>
+                )}
+              </>
+            )}
+
             <h3>
-              <HandCoins size={16} /> {t('models.payoutsTitle')}
+              <Upload size={16} /> {t('models.publishTitle')}
             </h3>
-            <p className="hint">{t('models.payoutsHint')}</p>
-            {owed.length === 0 ? (
-              <p className="hint">{t('models.payoutsNone')}</p>
-            ) : (
-              owed.map((p) => (
-                <div key={`${p.sellerEmail}-${p.currency}`} className="model-row">
-                  <div>
-                    <strong>{money(p.amount, p.currency)}</strong> → <bdi>{p.seller}</bdi>
-                    <div className="hint">
-                      PayPal <bdi className="selectable">{p.paypal}</bdi> · {t('models.payoutSales', { count: p.orders.length, fees: money(p.fees, p.currency) })} ·{' '}
-                      {t('models.payoutSince', { date: fmt.date(p.oldest) })}
+            <p className="hint">{t('models.publishHint')}</p>
+            <label className="field">
+              {t('models.category')}
+              <select
+                value={categoryId}
+                disabled={!!busy}
+                onChange={(e) => {
+                  setCategoryId(e.target.value)
+                  if (!name) setName(categories.find((c) => c.id === e.target.value)?.name ?? '')
+                }}
+              >
+                <option value="">{t('models.chooseCategory')}</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} ({t('models.albums', { count: c.children.length })})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              {t('models.name')}
+              <input type="text" dir="auto" value={name} maxLength={80} disabled={!!busy} onChange={(e) => setName(e.target.value)} />
+            </label>
+            <label className="field">
+              {t('models.description')}
+              <input type="text" dir="auto" value={description} maxLength={500} disabled={!!busy} onChange={(e) => setDescription(e.target.value)} />
+            </label>
+            <label className="field">
+              {t('models.seller')}
+              <input type="text" dir="auto" value={seller} maxLength={80} disabled={!!busy} onChange={(e) => setSeller(e.target.value)} />
+            </label>
+            <div className="row">
+              <label className="field" style={{ flex: 1 }}>
+                {t('models.price')}
+                <input type="number" min={0} step="any" inputMode="decimal" dir="ltr" value={price} disabled={!!busy} onChange={(e) => setPrice(e.target.value)} />
+              </label>
+              <label className="field">
+                {t('models.currency')}
+                <select value={currency} disabled={!!busy} onChange={(e) => setCurrency(e.target.value)}>
+                  {CURRENCIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            {priceValue > 0 && (
+              <label className="field">
+                {t('models.paypal')}
+                <input type="email" dir="ltr" value={paypal} maxLength={120} disabled={!!busy} onChange={(e) => setPaypal(e.target.value)} />
+              </label>
+            )}
+            {paymentsLive && priceValue > 0 && (
+              <p className="ok-text">{t('models.youGet', { share: money(share, currency), price: money(priceValue, currency), fee })}</p>
+            )}
+            <p className="hint">{t(paymentsLive ? 'models.priceHintLive' : 'models.priceHint', { fee })}</p>
+            <button
+              className="btn primary"
+              disabled={!!busy || !canPublish}
+              onClick={() =>
+                act('publish', async () => {
+                  const built = await buildModel(categoryId)
+                  const { photos: _, left, ...data } = built
+                  const m = await publishModel({ ...data, name: name.trim(), description: description.trim(), seller: seller.trim(), paypal: priceValue > 0 ? paypal.trim() : '', price: priceValue, currency })
+                  const msg = t('models.published', { name: m.name, albums: m.albums, count: m.examples })
+                  return left.length ? `${msg} ${t('models.leftOut', { count: left.length, names: left.join(', ') })}` : msg
+                })
+              }
+            >
+              {busy === 'publish' ? <Loader2 size={16} className="spin" /> : <Upload size={16} />} {t('models.publish')}
+            </button>
+
+            {owed && (
+              <>
+                <h3>
+                  <HandCoins size={16} /> {t('models.payoutsTitle')}
+                </h3>
+                <p className="hint">{t('models.payoutsHint')}</p>
+                {owed.length === 0 ? (
+                  <p className="hint">{t('models.payoutsNone')}</p>
+                ) : (
+                  owed.map((p) => (
+                    <div key={`${p.sellerEmail}-${p.currency}`} className="model-row">
+                      <div>
+                        <strong>{money(p.amount, p.currency)}</strong> → <bdi>{p.seller}</bdi>
+                        <div className="hint">
+                          PayPal <bdi className="selectable">{p.paypal}</bdi> · {t('models.payoutSales', { count: p.orders.length, fees: money(p.fees, p.currency) })} ·{' '}
+                          {t('models.payoutSince', { date: fmt.date(p.oldest) })}
+                        </div>
+                      </div>
+                      <button
+                        className="btn ghost"
+                        disabled={!!busy}
+                        onClick={() =>
+                          act(`p${p.sellerEmail}${p.currency}`, async () => {
+                            await markPaidOut(p.orders)
+                            return t('models.paidOutDone', { amount: money(p.amount, p.currency), seller: p.seller })
+                          })
+                        }
+                      >
+                        {t('models.markPaidOut')}
+                      </button>
                     </div>
-                  </div>
-                  <button
-                    className="btn ghost"
-                    disabled={!!busy}
-                    onClick={() =>
-                      act(`p${p.sellerEmail}${p.currency}`, async () => {
-                        await markPaidOut(p.orders)
-                        return t('models.paidOutDone', { amount: money(p.amount, p.currency), seller: p.seller })
-                      })
-                    }
-                  >
-                    {t('models.markPaidOut')}
-                  </button>
-                </div>
-              ))
+                  ))
+                )}
+              </>
             )}
           </>
         )}
