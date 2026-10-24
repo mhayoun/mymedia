@@ -683,6 +683,7 @@
   },
   "models": {
     "title": "Classification models",
+    "inUse": "Models in use",
     "openPublish": "Publish my models",
     "openShop": "Models shop",
     "settingsHint": "Use the sorting learned by another account (for example Katia's birds) to sort your own photos, or publish yours. Only the photos' fingerprints are shared, never the photos.",

@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Eye, Folder, FolderOpen, Gauge, Images, Inbox, MessagesSquare, MonitorDown, Plus, ScrollText, Share2, Sparkles, Users, Wand2, Store } from 'lucide-react'
+import { ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Eye, Folder, FolderOpen, Gauge, Images, Inbox, MessagesSquare, MonitorDown, Plus, ScrollText, Share2, Sparkles, Upload, Users, Wand2, Store } from 'lucide-react'
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -164,10 +164,16 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
           <span className="label">{t('share.viewMenu')}</span>
         </button>
         {!readOnly && (
-          <button className="nav-item" onClick={() => set({ shopOpen: true, sidebarOpen: false })}>
-            <Store size={18} />
-            <span className="label">{t('nav.shop')}</span>
-          </button>
+          <>
+            <button className="nav-item" onClick={() => set({ shopOpen: true, sidebarOpen: false })}>
+              <Store size={18} />
+              <span className="label">{t('models.inUse')}</span>
+            </button>
+            <button className="nav-item" onClick={() => set({ shopOpen: 'publish', sidebarOpen: false })}>
+              <Upload size={18} />
+              <span className="label">{t('models.openPublish')}</span>
+            </button>
+          </>
         )}
         <InstallItem />
         <button

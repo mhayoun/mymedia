@@ -681,6 +681,7 @@
   },
   "models": {
     "title": "Modèles de classement",
+    "inUse": "Modèles utilisés",
     "openPublish": "Publier mes modèles",
     "openShop": "Boutique de modèles",
     "settingsHint": "Utilisez le classement appris par un autre compte (par exemple les oiseaux de Katia) pour ranger vos propres photos, ou publiez le vôtre. Seules les empreintes des photos sont partagées, jamais les photos.",
