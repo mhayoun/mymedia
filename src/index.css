@@ -150,6 +150,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   background: var(--surface); border-inline-end: 1px solid var(--border);
   overflow-y: auto; padding: 10px 8px 24px;
 }
+.app-version { margin: 12px 10px 8px; font-size: 0.78rem; color: var(--text-2); }
 .storage { margin: 16px 10px 0; font-size: 0.82rem; color: var(--text-2); display: grid; gap: 4px; }
 .storage .title { display: flex; align-items: center; gap: 6px; color: var(--text); font-weight: 600; }
 .storage .bar { block-size: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }

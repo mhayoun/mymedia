@@ -192,6 +192,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
           <span className="label">{t('activity.title')}</span>
         </button>
         {!readOnly && <DriveStorage lib={lib} />}
+        <div className="app-version">MyMedia · {t('settings.version', { version: __APP_VERSION__ })}</div>
       </nav>
     </>
   )

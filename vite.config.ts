@@ -1,14 +1,17 @@
 /// <reference types="vitest/config" />
 import react from '@vitejs/plugin-react'
+import { readFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // Served from the domain root (Vercel). BASE_PATH allows hosting under a sub-path.
 const base = process.env.BASE_PATH ?? '/'
+// Raised at each release (commit, push, deploy) by `npm version patch`; shown in the menu and Settings.
+const version = (JSON.parse(readFileSync(new URL('package.json', import.meta.url), 'utf8')) as { version: string }).version
 
 export default defineConfig({
   base,
-  define: { __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? '0.0.0') },
+  define: { __APP_VERSION__: JSON.stringify(version) },
   worker: { format: 'es' },
   plugins: [
     react(),
