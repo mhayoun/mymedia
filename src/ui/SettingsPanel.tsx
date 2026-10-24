@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import { Store, Upload, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { db } from '../db/db'
@@ -148,9 +148,14 @@ export function SettingsPanel() {
 
         <section>
           <h3>{t('models.title')}</h3>
-          <button className="btn" onClick={() => set({ shopOpen: true, settingsOpen: false })}>
-            {t('models.open')}
-          </button>
+          <div className="row">
+            <button className="btn" onClick={() => set({ shopOpen: 'publish', settingsOpen: false })}>
+              <Upload size={16} /> {t('models.openPublish')}
+            </button>
+            <button className="btn" onClick={() => set({ shopOpen: 'shop', settingsOpen: false })}>
+              <Store size={16} /> {t('models.openShop')}
+            </button>
+          </div>
           <p className="hint">{t('models.settingsHint')}</p>
         </section>
 

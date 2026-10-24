@@ -63,7 +63,7 @@
     "settings": "Paramètres",
     "noAlbums": "Pas encore d'album",
     "help": "Aide",
-    "shop": "Boutique",
+    "shop": "Modèles",
     "account": "Compte"
   },
   "folders": {
@@ -680,7 +680,8 @@
   },
   "models": {
     "title": "Modèles de classement",
-    "open": "Boutique et publication",
+    "openPublish": "Publier mes modèles",
+    "openShop": "Boutique de modèles",
     "settingsHint": "Utilisez le classement appris par un autre compte (par exemple les oiseaux de Katia) pour ranger vos propres photos, ou publiez le vôtre. Seules les empreintes des photos sont partagées, jamais les photos.",
     "intro": "Un modèle contient les noms des albums et les empreintes des photos rangées d'un compte, sans les photos. Une fois obtenu, MyMedia compare vos nouvelles photos à ces exemples pour les ranger, et crée chaque album quand une première photo y entre. Il ne marche qu'avec votre compte Google.",
     "installedTitle": "Mes modèles",

@@ -107,8 +107,10 @@ async function call<T>(method: string, query: string, body?: unknown, signedIn =
   if (signedIn) headers.Authorization = `Bearer ${await auth.getToken()}`
   if (body !== undefined) headers['Content-Type'] = 'application/json'
   const res = await fetch(`/api/models${query}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) })
-  const out = (await res.json().catch(() => ({}))) as T & { error?: string }
-  if (!res.ok) throw new ShopError(res.status, out.error ?? res.statusText)
+  const out = (await res.json().catch(() => null)) as (T & { error?: string }) | null
+  if (!res.ok) throw new ShopError(res.status, out?.error ?? res.statusText)
+  // No server behind /api (e.g. `npm run dev` serves api/models.ts as a script): not a shop answer.
+  if (!out) throw new ShopError(0, 'not a shop answer')
   return out
 }
 

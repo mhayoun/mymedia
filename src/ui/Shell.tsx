@@ -173,7 +173,7 @@ export function Shell() {
       {helpOpen && <HelpPanel />}
       {accountOpen && <AccountPanel />}
       {shareOpen && <ShareDialog mode={shareOpen} onClose={() => app().set({ shareOpen: false })} />}
-      {shopOpen && <ModelsDialog onClose={() => app().set({ shopOpen: false, shopResume: null })} />}
+      {shopOpen && <ModelsDialog at={shopOpen === true ? undefined : shopOpen} onClose={() => app().set({ shopOpen: false, shopResume: null })} />}
       {statsOpen && <StatsDialog lib={lib} />}
       {compressOffer && (
         <CompressDialog mode="offer" title={t('compress.offerTitle')} planned={compressOffer} onClose={() => useApp.getState().set({ compressOffer: null })} />

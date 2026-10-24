@@ -63,7 +63,7 @@
     "settings": "Settings",
     "noAlbums": "No albums yet",
     "help": "Help",
-    "shop": "Shop",
+    "shop": "Models",
     "account": "Account"
   },
   "folders": {
@@ -682,7 +682,8 @@
   },
   "models": {
     "title": "Classification models",
-    "open": "Shop and publishing",
+    "openPublish": "Publish my models",
+    "openShop": "Models shop",
     "settingsHint": "Use the sorting learned by another account (for example Katia's birds) to sort your own photos, or publish yours. Only the photos' fingerprints are shared, never the photos.",
     "intro": "A model holds the album names and the fingerprints of an account's sorted photos, without the photos. Once you get it, MyMedia compares your new photos with its examples to sort them, and creates each album when a first photo goes into it. It only works with your Google account.",
     "installedTitle": "My models",

@@ -33,7 +33,7 @@ function percentOf(p: { step: InstallStep; done: number; total: number }): numbe
 }
 
 /** Settings → classification models: the shop, the installed models, publishing one's own. */
-export function ModelsDialog({ onClose }: { onClose: () => void }) {
+export function ModelsDialog({ at, onClose }: { at?: 'shop' | 'publish'; onClose: () => void }) {
   const { t, i18n } = useTranslation()
   const fmt = useFormat()
   const lib = useLibraryContext()
@@ -56,6 +56,12 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
   const [paypal, setPaypal] = useState(user?.email ?? '')
   const [price, setPrice] = useState('0')
   const [currency, setCurrency] = useState('ILS')
+  const shopTitle = useRef<HTMLHeadingElement>(null)
+  const publishTitle = useRef<HTMLHeadingElement>(null)
+  // Opened from Settings at one part: shown at the top of the window.
+  useEffect(() => {
+    if (at) (at === 'shop' ? shopTitle : publishTitle).current?.scrollIntoView({ block: 'start' })
+  }, [at])
 
   const money = (amount: number, cur: string) =>
     new Intl.NumberFormat(LOCALES[i18n.language as Language] ?? 'en-US', { style: 'currency', currency: cur }).format(amount)
@@ -178,7 +184,7 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
           ))
         )}
 
-        <h3>
+        <h3 ref={shopTitle}>
           <Store size={16} /> {t('models.shopTitle')}
         </h3>
         {shop === null ? (
@@ -271,7 +277,7 @@ export function ModelsDialog({ onClose }: { onClose: () => void }) {
           </>
         )}
 
-        <h3>
+        <h3 ref={publishTitle}>
           <Upload size={16} /> {t('models.publishTitle')}
         </h3>
         <p className="hint">{t('models.publishHint')}</p>

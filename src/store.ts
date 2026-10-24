@@ -133,7 +133,8 @@ interface AppState {
   sidebarOpen: boolean
   settingsOpen: boolean
   accountOpen: boolean
-  shopOpen: boolean
+  /** The models window; 'shop' or 'publish' opens it at that part. */
+  shopOpen: boolean | 'shop' | 'publish'
   /** The Share window (my MyMedia to others) or the View one (the MyMedia of others). */
   shareOpen: false | 'share' | 'view'
   /** Back from PayPal: the shop finishes the purchase. */
