@@ -1,4 +1,4 @@
-import { CircleAlert, Copy, Loader2, RefreshCw, TriangleAlert } from 'lucide-react'
+import { Check, CircleAlert, Copy, Loader2, RefreshCw, TriangleAlert } from 'lucide-react'
 import { useState, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 import { activity, subscribeActivity, type ActivityEntry } from '../activity'
@@ -54,8 +54,14 @@ export function ActivityDialog({ onClose }: { onClose: () => void }) {
         ))}
       </ol>
       <div className="actions">
-        <button className="btn ghost" onClick={() => void copy()} disabled={!entries.length}>
-          <Copy size={16} /> {t(copied ? 'activity.copied' : 'activity.copy')}
+        <button
+          className="btn ghost"
+          onClick={() => void copy()}
+          disabled={!entries.length}
+          aria-label={t(copied ? 'activity.copied' : 'activity.copy')}
+          title={t(copied ? 'activity.copied' : 'activity.copy')}
+        >
+          {copied ? <Check size={16} /> : <Copy size={16} />}
         </button>
         <button className="btn" onClick={() => void syncNow()} disabled={syncing || !online}>
           <RefreshCw size={16} className={syncing ? 'spin' : undefined} /> {t('gallery.loadNew')}
