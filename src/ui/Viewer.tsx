@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, ExternalLink, FolderPlus, Info, Maximize2, Play, Trash2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ExternalLink, FolderPlus, Info, Loader2, Maximize2, Play, Share2, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -7,7 +7,7 @@ import { useFormat } from '../i18n/format'
 import { canPlayVideo, ORIGINS, type Origin } from '../lib/media'
 import { ALBUM_SEPARATOR } from '../lib/tree'
 import { bytesBeforePlay, VIDEO_CHANNEL, type VideoProgress } from '../lib/videoBuffer'
-import { useApp } from '../store'
+import { app, useApp } from '../store'
 import { trashMedia } from '../sync/media'
 import { updateMeta } from '../sync/metaStore'
 import { streamUrl } from '../sync/stream'
@@ -106,6 +106,7 @@ export function Viewer({ ids, items }: Props) {
               <ExternalLink />
             </a>
           )}
+          <ShareButton key={item.rec.id} item={item} />
           {!readOnly && (
             <button className="icon-btn" onClick={() => setConfirmDelete(true)} aria-label={t('viewer.delete')} title={t('viewer.delete')}>
               <Trash2 />
@@ -153,6 +154,82 @@ function useObjectUrl() {
     if (url) URL.revokeObjectURL(url)
   }, [url])
   return [url, (blob: Blob) => setUrl(URL.createObjectURL(blob))] as const
+}
+
+/**
+ * Shares the original file with another app (WhatsApp, mail…) through the phone's or
+ * computer's Share menu; where there is none, the file is downloaded instead.
+ */
+function ShareButton({ item }: { item: LibraryItem }) {
+  const { t } = useTranslation()
+  const fmt = useFormat()
+  const { rec } = item
+  const [progress, setProgress] = useState<number | null>(null)
+  // Downloaded, but the browser no longer counts the first tap (iPhone after a long
+  // download): a second tap shares it.
+  const [ready, setReady] = useState<File | null>(null)
+  const abort = useRef<AbortController | null>(null)
+  useEffect(() => () => abort.current?.abort(), [])
+
+  const share = async (file: File) => {
+    setReady(null)
+    if (!navigator.canShare?.({ files: [file] })) {
+      const url = URL.createObjectURL(file)
+      const a = Object.assign(document.createElement('a'), { href: url, download: file.name })
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 60_000)
+      return
+    }
+    try {
+      await navigator.share({ files: [file], title: file.name })
+    } catch (e) {
+      const name = (e as Error).name
+      if (name === 'NotAllowedError') setReady(file)
+      else if (name !== 'AbortError') {
+        console.warn('[MyMedia] share failed', e)
+        app().set({ toast: { key: 'viewer.shareFailed' } })
+      }
+    }
+  }
+
+  const start = async () => {
+    if (progress !== null) return abort.current?.abort()
+    abort.current = new AbortController()
+    setProgress(0)
+    try {
+      const blob = await loadOriginal(rec, setProgress, abort.current.signal)
+      setProgress(null)
+      await share(new File([blob], rec.name, { type: blob.type || rec.mimeType }))
+    } catch (e) {
+      setProgress(null)
+      if ((e as Error).name !== 'AbortError') {
+        console.warn('[MyMedia] share download failed', e)
+        app().set({ toast: { key: 'viewer.shareFailed' } })
+      }
+    }
+  }
+
+  const label = progress !== null ? t('viewer.sharePreparing', { percent: fmt.percent(progress) }) : t('viewer.share')
+  return (
+    <>
+      <button className="icon-btn" onClick={() => void start()} aria-label={label} title={label}>
+        {progress !== null ? <Loader2 className="spin" /> : <Share2 />}
+      </button>
+      {ready && (
+        <Modal title={t('viewer.share')} onClose={() => setReady(null)}>
+          <p>{t('viewer.shareReady')}</p>
+          <div className="actions">
+            <button className="btn ghost" onClick={() => setReady(null)}>
+              {t('common.cancel')}
+            </button>
+            <button className="btn primary" onClick={() => void share(ready)}>
+              <Share2 size={16} /> {t('viewer.share')}
+            </button>
+          </div>
+        </Modal>
+      )}
+    </>
+  )
 }
 
 function PhotoStage({ item }: { item: LibraryItem }) {
