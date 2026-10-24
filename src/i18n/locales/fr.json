@@ -238,7 +238,8 @@
     "zoom": "Agrandir",
     "groupWaiting": "En attente d'analyse",
     "waitingAnalysis": "En attente d'analyse : la suggestion viendra quand cette photo sera analysée.",
-    "preparing": "Préparation de l'analyse…",
+    "checkingDates": "Vérification des dates des vidéos…",
+    "gettingAnalyses": "Récupération des analyses déjà faites…",
     "sorting": "Tri des photos…",
     "workingHint": "MyMedia prépare ou range les photos « En attente d'analyse ». Vous pouvez continuer à utiliser l'appli.",
     "findAlbum": "Chercher un album…",
@@ -878,6 +879,7 @@
     }
   },
   "speed": {
+    "menu": "Test de vitesse internet",
     "title": "Connexion internet",
     "test": "Tester la vitesse",
     "testing": "Test en cours…",

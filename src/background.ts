@@ -34,7 +34,7 @@ export function afterSync(): Promise<void> {
     } catch (e) {
       console.error('[MyMedia] automatic compression failed', e)
     }
-    await withStep('classify.preparing', async () => {
+    await withStep('classify.checkingDates', async () => {
       await fixVideoDates().catch((e) => console.warn('[MyMedia] video dates', e))
       await repairKatiaProvenance().catch((e) => console.warn('[MyMedia] Katia provenance', e))
     })

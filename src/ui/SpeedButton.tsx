@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useFormat } from '../i18n/format'
 import { speedLevel, type SpeedLevel } from '../lib/speed'
 import { currentMbps, lastSpeed, subscribeSpeed, testSpeed } from '../sync/speed'
+import { useApp } from '../store'
 import { Modal } from './Dialog'
 import { useOnline } from './hooks'
 
@@ -15,21 +16,19 @@ export function SpeedButton() {
   const fmt = useFormat()
   const online = useOnline()
   const mbps = useSyncExternalStore(subscribeSpeed, currentMbps)
-  const [open, setOpen] = useState(false)
+  const set = useApp((s) => s.set)
   const level = speedLevel(mbps, online)
   const Icon = ICONS[level]
   const title = `${t(`speed.level.${level}`)}${online && mbps !== null ? ` · ${t('speed.mbps', { value: fmt.number(Math.round(mbps * 10) / 10) })}` : ''}`
   return (
-    <>
-      <button className={`icon-btn speed-btn ${level}`} onClick={() => setOpen(true)} aria-label={title} title={title}>
-        <Icon />
-      </button>
-      {open && <SpeedDialog online={online} onClose={() => setOpen(false)} />}
-    </>
+    <button className={`icon-btn speed-btn ${level}`} onClick={() => set({ speedOpen: true })} aria-label={title} title={title}>
+      <Icon />
+    </button>
   )
 }
 
-function SpeedDialog({ online, onClose }: { online: boolean; onClose: () => void }) {
+export function SpeedDialog({ onClose }: { onClose: () => void }) {
+  const online = useOnline()
   const { t } = useTranslation()
   const fmt = useFormat()
   const result = useSyncExternalStore(subscribeSpeed, lastSpeed)

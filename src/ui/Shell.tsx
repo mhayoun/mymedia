@@ -19,7 +19,7 @@ import { ImportDialog, lastShareDestination } from './ImportDialog'
 import { Gallery } from './Gallery'
 import { useAuthError, useAuthStatus, useAutoSync, useOnline } from './hooks'
 import { SettingsPanel } from './SettingsPanel'
-import { SpeedButton } from './SpeedButton'
+import { SpeedButton, SpeedDialog } from './SpeedButton'
 import { Sidebar } from './Sidebar'
 import { LibraryContext } from './libraryContext'
 import { ReviewView } from './ReviewView'
@@ -72,6 +72,8 @@ export function Shell() {
   const settingsOpen = useApp((s) => s.settingsOpen)
   const helpOpen = useApp((s) => s.helpOpen)
   const accountOpen = useApp((s) => s.accountOpen)
+  const speedOpen = useApp((s) => s.speedOpen)
+  const activityOpen = useApp((s) => s.activityOpen)
   const shopOpen = useApp((s) => s.shopOpen)
   const shareOpen = useApp((s) => s.shareOpen)
   const statsOpen = useApp((s) => s.statsOpen)
@@ -177,6 +179,8 @@ export function Shell() {
       {shareOpen && <ShareDialog mode={shareOpen} onClose={() => app().set({ shareOpen: false })} />}
       {shopOpen && <ModelsDialog at={shopOpen === true ? undefined : shopOpen} onClose={() => app().set({ shopOpen: false, shopResume: null })} />}
       {statsOpen && <StatsDialog lib={lib} />}
+      {speedOpen && <SpeedDialog onClose={() => app().set({ speedOpen: false })} />}
+      {activityOpen && <ActivityDialog onClose={() => app().set({ activityOpen: false })} />}
       {compressOffer && (
         <CompressDialog mode="offer" title={t('compress.offerTitle')} planned={compressOffer} onClose={() => useApp.getState().set({ compressOffer: null })} />
       )}
@@ -327,7 +331,6 @@ function TopBar() {
   const readOnly = useApp((s) => s.readOnly)
   const shared = useApp((s) => s.shared)
   const online = useOnline()
-  const [activityOpen, setActivityOpen] = useState(false)
 
   return (
     <header className="topbar">
@@ -403,7 +406,7 @@ function TopBar() {
       )}
       {sync ? (
         <>
-          <button className="sync-info as-link" aria-live="polite" onClick={() => setActivityOpen(true)} title={t('activity.title')}>
+          <button className="sync-info as-link" aria-live="polite" onClick={() => set({ activityOpen: true })} title={t('activity.title')}>
             <RefreshCw size={14} className="spin" />
             <span className="only-desktop"> {t(sync.step, { done: fmt.number(sync.done), total: fmt.number(sync.total) })}</span>
             <span className="only-mobile-inline">{sync.total ? `${fmt.number(sync.done)}/${fmt.number(sync.total)}` : sync.done ? fmt.number(sync.done) : ''}</span>
@@ -414,14 +417,14 @@ function TopBar() {
         </>
       ) : (
         <>
-          <button className="sync-info as-link only-desktop" onClick={() => setActivityOpen(true)} title={t('activity.title')}>
+          <button className="sync-info as-link only-desktop" onClick={() => set({ activityOpen: true })} title={t('activity.title')}>
             {lastSyncAt ? t('sync.lastSync', { time: fmt.time(lastSyncAt) }) : ''}
           </button>
           <button
             className="btn"
             onClick={() => {
               void syncNow()
-              setActivityOpen(true)
+              set({ activityOpen: true })
             }}
             disabled={!online}
             title={t('gallery.loadNew')}
@@ -431,7 +434,6 @@ function TopBar() {
           </button>
         </>
       )}
-      {activityOpen && <ActivityDialog onClose={() => setActivityOpen(false)} />}
 
       <button className="icon-btn" onClick={() => set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
         <CircleHelp />

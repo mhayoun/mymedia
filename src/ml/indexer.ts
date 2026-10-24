@@ -38,7 +38,7 @@ async function run(signal: AbortSignal) {
   const d = db()
   const rebuilding = !!(await d.getKv<boolean>('rebuilding'))
   const faces = app().settings.facesEnabled
-  const data = await withStep('classify.preparing', async () => {
+  const data = await withStep('classify.gettingAnalyses', async () => {
     if (!rebuilding) await pullIndex().catch((e) => console.warn('[MyMedia] index download failed', e))
     if (faces) await pullFaces().catch((e) => console.warn('[MyMedia] faces download failed', e))
     return loadData(rootId)

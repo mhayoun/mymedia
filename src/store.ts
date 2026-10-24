@@ -140,6 +140,8 @@ interface AppState {
   /** Back from PayPal: the shop finishes the purchase. */
   shopResume: PaypalReturn | null
   helpOpen: boolean
+  speedOpen: boolean
+  activityOpen: boolean
   set: (patch: Partial<Omit<AppState, 'set' | 'updateSettings' | 'setFilters'>>) => void
   updateSettings: (patch: Partial<Settings>) => void
   setFilters: (patch: Partial<Filters>) => void
@@ -173,6 +175,8 @@ export const useApp = create<AppState>((set, get) => ({
   shareOpen: false,
   shopResume: null,
   helpOpen: false,
+  speedOpen: false,
+  activityOpen: false,
   set: (patch) => set(patch),
   updateSettings: (patch) => {
     const settings = { ...get().settings, ...patch }

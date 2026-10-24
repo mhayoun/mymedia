@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Eye, Folder, FolderOpen, Images, Inbox, MessagesSquare, MonitorDown, Plus, Share2, Sparkles, Users, Wand2, Store } from 'lucide-react'
+import { ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Eye, Folder, FolderOpen, Gauge, Images, Inbox, MessagesSquare, MonitorDown, Plus, ScrollText, Share2, Sparkles, Users, Wand2, Store } from 'lucide-react'
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -176,6 +176,14 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
         >
           <CircleHelp size={18} />
           <span className="label">{t('nav.help')}</span>
+        </button>
+        <button className="nav-item" onClick={() => set({ speedOpen: true, sidebarOpen: false })}>
+          <Gauge size={18} />
+          <span className="label">{t('speed.menu')}</span>
+        </button>
+        <button className="nav-item" onClick={() => set({ activityOpen: true, sidebarOpen: false })}>
+          <ScrollText size={18} />
+          <span className="label">{t('activity.title')}</span>
         </button>
         {!readOnly && <DriveStorage lib={lib} />}
       </nav>
