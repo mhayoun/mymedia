@@ -12,6 +12,7 @@ import { stopIndexer } from '../ml/indexer'
 import { setLibraryForWarm } from '../sync/thumbs'
 import { openLibrary } from '../sync/library'
 import { cancelSync, syncNow } from '../sync/engine'
+import { ActivityDialog } from './ActivityDialog'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog, PromptDialog } from './Dialog'
 import { ImportDialog, lastShareDestination } from './ImportDialog'
@@ -326,6 +327,7 @@ function TopBar() {
   const readOnly = useApp((s) => s.readOnly)
   const shared = useApp((s) => s.shared)
   const online = useOnline()
+  const [activityOpen, setActivityOpen] = useState(false)
 
   return (
     <header className="topbar">
@@ -401,26 +403,35 @@ function TopBar() {
       )}
       {sync ? (
         <>
-          <span className="sync-info" aria-live="polite">
+          <button className="sync-info as-link" aria-live="polite" onClick={() => setActivityOpen(true)} title={t('activity.title')}>
             <RefreshCw size={14} className="spin" />
             <span className="only-desktop"> {t(sync.step, { done: fmt.number(sync.done), total: fmt.number(sync.total) })}</span>
             <span className="only-mobile-inline">{sync.total ? `${fmt.number(sync.done)}/${fmt.number(sync.total)}` : sync.done ? fmt.number(sync.done) : ''}</span>
-          </span>
+          </button>
           <button className="icon-btn small" onClick={cancelSync} aria-label={t('sync.cancel')} title={t('sync.cancel')}>
             <X size={18} />
           </button>
         </>
       ) : (
         <>
-          <span className="sync-info only-desktop">
+          <button className="sync-info as-link only-desktop" onClick={() => setActivityOpen(true)} title={t('activity.title')}>
             {lastSyncAt ? t('sync.lastSync', { time: fmt.time(lastSyncAt) }) : ''}
-          </span>
-          <button className="btn" onClick={() => void syncNow()} disabled={!online} title={t('gallery.loadNew')}>
+          </button>
+          <button
+            className="btn"
+            onClick={() => {
+              void syncNow()
+              setActivityOpen(true)
+            }}
+            disabled={!online}
+            title={t('gallery.loadNew')}
+          >
             <RefreshCw size={16} />
             <span className="only-desktop">{t('gallery.loadNew')}</span>
           </button>
         </>
       )}
+      {activityOpen && <ActivityDialog onClose={() => setActivityOpen(false)} />}
 
       <button className="icon-btn" onClick={() => set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
         <CircleHelp />

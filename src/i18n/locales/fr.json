@@ -898,5 +898,13 @@
       "good": "Bonne connexion : les photos et les vidéos s'affichent vite."
     },
     "local": "Version locale : le fichier vient de cet ordinateur, la vitesse affichée n'est pas celle d'internet."
+  },
+  "activity": {
+    "title": "Activité",
+    "empty": "Rien pour l'instant.",
+    "loaded": "Chargement terminé",
+    "online": "Connexion revenue",
+    "copy": "Copier",
+    "copied": "Copié"
   }
 }

@@ -900,5 +900,13 @@
       "good": "Good connection: photos and videos show fast."
     },
     "local": "Local version: the file comes from this computer, the speed shown is not the internet's."
+  },
+  "activity": {
+    "title": "Activity",
+    "empty": "Nothing yet.",
+    "loaded": "Load finished",
+    "online": "Back online",
+    "copy": "Copy",
+    "copied": "Copied"
   }
 }

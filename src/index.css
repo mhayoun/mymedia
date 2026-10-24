@@ -64,6 +64,15 @@ bdi { unicode-bidi: isolate; }
 }
 .icon-btn:hover { background: var(--surface-2); }
 .icon-btn.small { width: 30px; height: 30px; }
+button.sync-info.as-link { border: none; background: none; color: inherit; font: inherit; cursor: pointer; padding: 0; }
+button.sync-info.as-link:hover { text-decoration: underline; }
+.activity-list { list-style: none; margin: 0; padding: 0; max-block-size: 60vh; overflow-y: auto; font-size: 0.9rem; }
+.activity-list li { display: grid; grid-template-columns: auto 18px 1fr; gap: 8px; align-items: start; padding: 5px 2px; border-block-end: 1px solid var(--border); }
+.activity-list .time { color: var(--text-2); font-variant-numeric: tabular-nums; }
+.activity-list .icon { display: grid; place-items: center; padding-block-start: 2px; }
+.activity-list .what { overflow-wrap: anywhere; }
+.activity-list li.error { color: var(--danger); }
+.activity-list li.warn .icon { color: #b26a00; }
 .speed-btn.unknown { opacity: 0.6; }
 .speed-btn.slow, .speed-level.slow { color: var(--danger); }
 .speed-btn.offline { color: var(--text-2); }
