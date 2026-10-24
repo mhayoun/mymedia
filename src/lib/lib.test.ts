@@ -3,6 +3,7 @@ import { planChanges } from './changes'
 import { canPlayVideo, dateFromFileName, detectOrigin, mediaTypeOf, parseExifDate, sizedThumbnailLink } from './media'
 import { emptyMetaFile, isMassRemoval, mergeMetaFiles, parseMetaFile, type MediaMeta } from './metadata'
 import { placementOf, subtreeIds, type FolderNode } from './tree'
+import { speedLevel, toMbps } from './speed'
 
 const FOLDER = 'application/vnd.google-apps.folder'
 
@@ -180,5 +181,19 @@ describe('export', async () => {
     expect(csv.startsWith('﻿NAME;DATE;')).toBe(true)
     expect(csv).toContain('ציפורים;נחליאלי לבן;"Il a dit ""bonjour""; puis…";Noa, Eli;')
     expect(toCsv(headers, [row], ',')).toContain(',"Noa, Eli",')
+  })
+})
+
+describe('speed', () => {
+  it('turns bytes and time into Mbit/s', () => {
+    expect(toMbps(2_000_000, 1000)).toBe(16)
+    expect(toMbps(1, 0)).toBe(0)
+  })
+  it('gives the level shown by the Wi-Fi icon', () => {
+    expect(speedLevel(50, false)).toBe('offline')
+    expect(speedLevel(null)).toBe('unknown')
+    expect(speedLevel(1.5)).toBe('slow')
+    expect(speedLevel(2)).toBe('medium')
+    expect(speedLevel(10)).toBe('good')
   })
 })

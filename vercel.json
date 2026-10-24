@@ -5,7 +5,7 @@
   "outputDirectory": "dist",
   "headers": [
     {
-      "source": "/(sw.js|config.json|index.html|manifest.webmanifest)",
+      "source": "/(sw.js|config.json|index.html|manifest.webmanifest|speedtest.bin)",
       "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
     },
     {

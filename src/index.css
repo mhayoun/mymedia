@@ -64,6 +64,11 @@ bdi { unicode-bidi: isolate; }
 }
 .icon-btn:hover { background: var(--surface-2); }
 .icon-btn.small { width: 30px; height: 30px; }
+.speed-btn.unknown { opacity: 0.6; }
+.speed-btn.slow, .speed-level.slow { color: var(--danger); }
+.speed-btn.offline { color: var(--text-2); }
+.speed-value { font-size: 1.8rem; font-weight: 600; margin: 0 0 4px; }
+.speed-value .hint { font-size: 0.9rem; font-weight: normal; }
 
 input[type='text'], input[type='number'], select, textarea {
   border: 1px solid var(--border); border-radius: 8px; background: var(--surface);

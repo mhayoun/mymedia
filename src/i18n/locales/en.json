@@ -878,5 +878,27 @@
       "compression_one": "{{count}} compression",
       "compression_other": "{{count}} compressions"
     }
+  },
+  "speed": {
+    "title": "Internet connection",
+    "test": "Test the speed",
+    "testing": "Testing…",
+    "mbps": "{{value}} Mbit/s",
+    "failed": "The test could not be done. Check the connection and try again.",
+    "level": {
+      "offline": "Offline",
+      "unknown": "Speed unknown",
+      "slow": "Slow connection",
+      "medium": "Average connection",
+      "good": "Good connection"
+    },
+    "meaning": {
+      "offline": "No connection: only the saved thumbnails are shown.",
+      "unknown": "The speed is not known yet: run a test.",
+      "slow": "Slow connection: photos show slowly, videos may stop and imports will take time.",
+      "medium": "Average connection: photos show well, videos may take a moment to start.",
+      "good": "Good connection: photos and videos show fast."
+    },
+    "local": "Local version: the file comes from this computer, the speed shown is not the internet's."
   }
 }

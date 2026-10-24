@@ -1,4 +1,4 @@
-import { Brain, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, LayoutGrid, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Store, Trash2, UserRound, WifiOff, X } from 'lucide-react'
+import { Brain, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, LayoutGrid, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Store, Trash2, UserRound, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -18,6 +18,7 @@ import { ImportDialog, lastShareDestination } from './ImportDialog'
 import { Gallery } from './Gallery'
 import { useAuthError, useAuthStatus, useAutoSync, useOnline } from './hooks'
 import { SettingsPanel } from './SettingsPanel'
+import { SpeedButton } from './SpeedButton'
 import { Sidebar } from './Sidebar'
 import { LibraryContext } from './libraryContext'
 import { ReviewView } from './ReviewView'
@@ -354,11 +355,7 @@ function TopBar() {
           </span>
         </button>
       )}
-      {!online && (
-        <span className="sync-info" title={t('sync.offline')}>
-          <WifiOff size={18} />
-        </span>
-      )}
+      <SpeedButton />
       {working && !indexing && (
         <span className="sync-info" aria-live="polite" title={t('classify.workingHint')}>
           <Loader2 size={14} className="spin" />

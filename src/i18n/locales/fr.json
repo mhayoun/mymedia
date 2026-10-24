@@ -876,5 +876,27 @@
       "compression_one": "{{count}} compression",
       "compression_other": "{{count}} compressions"
     }
+  },
+  "speed": {
+    "title": "Connexion internet",
+    "test": "Tester la vitesse",
+    "testing": "Test en cours…",
+    "mbps": "{{value}} Mbit/s",
+    "failed": "Le test n'a pas pu se faire. Vérifiez la connexion et réessayez.",
+    "level": {
+      "offline": "Hors ligne",
+      "unknown": "Vitesse inconnue",
+      "slow": "Connexion lente",
+      "medium": "Connexion moyenne",
+      "good": "Bonne connexion"
+    },
+    "meaning": {
+      "offline": "Pas de connexion : seules les miniatures enregistrées sont affichées.",
+      "unknown": "La vitesse n'est pas encore connue : lancez un test.",
+      "slow": "Connexion lente : les photos s'affichent lentement, les vidéos risquent de s'arrêter et les importations prendront du temps.",
+      "medium": "Connexion moyenne : les photos s'affichent bien, les vidéos peuvent mettre un moment à démarrer.",
+      "good": "Bonne connexion : les photos et les vidéos s'affichent vite."
+    },
+    "local": "Version locale : le fichier vient de cet ordinateur, la vitesse affichée n'est pas celle d'internet."
   }
 }
