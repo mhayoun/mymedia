@@ -39,6 +39,20 @@ export function madeFolder(f: FolderNode): void {
   madeHere.set(f.id, f)
 }
 
+/**
+ * Takes a folder trashed on this device, its albums and their files out of the
+ * menu at once (Drive may report the change only on a later load).
+ */
+export async function forgetFolder(id: string): Promise<void> {
+  const d = db()
+  await d.transaction('rw', [d.media, d.folders], async () => {
+    const ids = [...subtreeIds(id, await d.folders.toArray())]
+    for (const sub of ids) madeHere.delete(sub)
+    await d.folders.bulkDelete(ids)
+    await d.media.where('folderId').anyOf(ids).delete()
+  })
+}
+
 export function toRecord(f: DriveFile): MediaRecord | null {
   const type = mediaTypeOf(f.mimeType, f.name)
   const folderId = f.parents?.[0]

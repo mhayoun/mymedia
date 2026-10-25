@@ -207,11 +207,15 @@ export interface IncomingTransfer {
   manifest: TransferManifest
 }
 
-/** Transfers sent to the signed-in account and not accepted yet. */
+/**
+ * Transfers sent to the signed-in account and not finished yet. A transfer
+ * stopped half-way stays listed (its manifest, already ours, is only trashed
+ * once all is done), so accepting it again goes on from where it stopped.
+ */
 export async function findIncoming(): Promise<IncomingTransfer[]> {
   const me = (await about()).email.toLowerCase()
   const out: IncomingTransfer[] = []
-  const q = `(name = '${TRANSFER_FILE_NAME}' or name = '${PEOPLE_FILE_NAME}') and trashed = false and not 'me' in owners`
+  const q = `trashed = false and (name = '${TRANSFER_FILE_NAME}' or (name = '${PEOPLE_FILE_NAME}' and not 'me' in owners))`
   await listFiles(q, async (files) => {
     for (const f of files) {
       try {
@@ -250,10 +254,13 @@ export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress):
   const { manifest } = t
   const permissionId = await step('accept', myPermissionId)
   if (manifest.kind === 'people') return acceptPeople(t, permissionId)
+  const first = await step('accept', () => getFile(manifest.folderId, 'id,ownedByMe'))
   const inside = await step('accept', () => walk(manifest.folderId))
-  const all = [{ id: manifest.folderId }, ...inside]
-  // Folders first (top down), so the files land in folders already ours.
-  const { failed, reason } = await each(all, (f) => acceptOwnership(f.id, permissionId), onProgress)
+  const all = [first, ...inside]
+  // Folders first (top down), so the files land in folders already ours. What
+  // an earlier try accepted is skipped.
+  const left = all.filter((f) => !f.ownedByMe)
+  const { failed, reason } = await each(left, (f) => acceptOwnership(f.id, permissionId), (done) => onProgress(all.length - left.length + done, all.length))
   const top = await step('accept', () => getFile(manifest.folderId, 'id,ownedByMe'))
   if (!top.ownedByMe) throw new TransferError('accept', reason ?? 'folder not accepted')
 
@@ -261,7 +268,6 @@ export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress):
     // Same place as in the sender's MyMedia: create the parents, merge with a folder of the same name.
     if (!manifest.path.length) {
       // Everything: its categories join this MyMedia's (same names merged), its unsorted photos its root.
-      await trashFile(t.manifestId).catch(() => undefined)
       await mergeInto(manifest.folderId, rootId)
       return
     }
@@ -271,7 +277,6 @@ export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress):
     }
     const last = manifest.path[manifest.path.length - 1]
     const same = await findFolderNamed(parent, last, manifest.folderId)
-    await trashFile(t.manifestId).catch(() => undefined)
     if (same && same.id !== manifest.folderId) {
       await moveInto(manifest.folderId, parent)
       await mergeInto(manifest.folderId, same.id)
@@ -291,6 +296,8 @@ export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress):
   }
   await markMetaDirty()
   if (manifest.faces) await importFaces(manifest.faces)
+  // Done: the transfer leaves the list. With items still to accept it stays, to try again.
+  if (!failed) await trashFile(t.manifestId).catch(() => undefined)
   return { total: all.length, failed, reason, skipped: 0, otherOwners: [] }
 }
 

@@ -4,7 +4,7 @@ import { createNewFolder, FolderExistsError, findFolderNamed, getFile, moveInto,
 import { db } from '../db/db'
 import { folderChain } from '../lib/tree'
 import { app } from '../store'
-import { madeFolder, syncNow } from './engine'
+import { forgetFolder, isSyncing, madeFolder, syncNow } from './engine'
 
 function cleanName(name: string): string {
   return name.trim().replace(/\s+/g, ' ')
@@ -73,5 +73,9 @@ export async function deleteFolder(id: string): Promise<void> {
   await trashFile(id)
   const f = app().filters
   if (f.categoryId === id || f.albumId === id) app().setFilters({ categoryId: null, albumId: null })
+  await forgetFolder(id)
+  // A load already running may have read Drive before the deletion: let it end, then load again.
+  if (isSyncing()) await syncNow()
+  await forgetFolder(id)
   await syncNow()
 }

@@ -25,13 +25,17 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null)
   const [incoming, setIncoming] = useState<IncomingTransfer[] | null>(null)
 
-  useEffect(() => {
+  // Read again after accepting: a transfer stopped half-way stays, to try again.
+  const reloadIncoming = () =>
     findIncoming()
       .then(setIncoming)
       .catch((e) => {
         console.error('[MyMedia] transfers not read', e)
         setIncoming([])
       })
+
+  useEffect(() => {
+    void reloadIncoming()
   }, [])
 
   // What is sent: the ticked folders not inside another ticked one (it takes them along).
@@ -117,7 +121,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
                   void run(
                     () => runAll(list, (tr) => (tr.manifest.path.length ? tr.manifest.path.join(' / ') : t('transfer.everything')), (tr) => acceptTransfer(tr, (done, total) => setBusy({ done, total }))),
                     'transfer.accepted',
-                  ).then(() => setIncoming((l) => l?.filter((x) => !list.includes(x)) ?? null))
+                  ).then(reloadIncoming)
                 }}
               >
                 {t('transfer.acceptAll', { count: incoming.length })}
@@ -141,7 +145,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
                     run(
                       () => acceptTransfer(tr, (done, total) => setBusy({ done, total })),
                       tr.manifest.kind === 'people' ? 'transfer.peopleAccepted' : 'transfer.accepted',
-                    ).then(() => setIncoming((list) => list?.filter((x) => x !== tr) ?? null))
+                    ).then(reloadIncoming)
                   }
                 >
                   {t('transfer.accept')}
