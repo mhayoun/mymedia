@@ -558,6 +558,8 @@ export function warmThumbs(all: MediaRecord[]): void {
           await sleep(200)
           if (gen !== warmGen) return
         }
+        // The other workers may have taken the last ones meanwhile.
+        if (next >= todo.length) return
         const rec = todo[next++]
         if (urls.has(rec.id) || inflight.has(rec.id)) continue
         active++

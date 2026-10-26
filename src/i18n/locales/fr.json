@@ -178,7 +178,10 @@
   "errors": {
     "syncFailed": "Le chargement depuis Google Drive a échoué. Il sera réessayé.",
     "metaUnreadable": "Le fichier mymedia.json de votre Drive est illisible. Il n'a pas été modifié. Restaurez une version précédente depuis Google Drive (clic droit → Gérer les versions).",
-    "generic": "Une erreur s'est produite : {{message}}"
+    "generic": "Une erreur s'est produite : {{message}}",
+    "crashTitle": "MyMedia s'est arrêté",
+    "crashText": "Une erreur a arrêté la page. Vos photos et informations ne sont pas touchées. Rechargez pour continuer ; si ça recommence, copiez le message ci-dessous.",
+    "reload": "Recharger"
   },
   "languages": {
     "he": "עברית",

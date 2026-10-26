@@ -7,12 +7,15 @@ import './lib/install'
 import { startActivityLog } from './activity'
 import { app } from './store'
 import { App } from './ui/App'
+import { ErrorBoundary } from './ui/ErrorBoundary'
 
 startActivityLog()
 await initI18n(app().settings.language)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 )

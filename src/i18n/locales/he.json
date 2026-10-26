@@ -181,7 +181,10 @@
   "errors": {
     "syncFailed": "הטעינה מ-Google Drive נכשלה. יתבצע ניסיון חוזר.",
     "metaUnreadable": "אי אפשר לקרוא את הקובץ mymedia.json ב-Drive שלך. הוא לא שונה. אפשר לשחזר גרסה קודמת מ-Google Drive (קליק ימני ← ניהול גרסאות).",
-    "generic": "משהו השתבש: {{message}}"
+    "generic": "משהו השתבש: {{message}}",
+    "crashTitle": "MyMedia נעצר",
+    "crashText": "שגיאה עצרה את הדף. התמונות והמידע שלך לא נפגעו. טענו מחדש כדי להמשיך; אם זה חוזר, העתיקו את ההודעה למטה.",
+    "reload": "טעינה מחדש"
   },
   "languages": {
     "he": "עברית",

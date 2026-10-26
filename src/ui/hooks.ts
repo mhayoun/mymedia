@@ -1,6 +1,6 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import { auth, type AuthStatus } from '../auth/google'
-import { syncNow } from '../sync/engine'
+import { isAutoSyncHeld, syncNow } from '../sync/engine'
 import { useApp } from '../store'
 
 export function useAuthStatus(): AuthStatus {
@@ -44,7 +44,7 @@ export function useAutoSync() {
       return Date.now() - last >= intervalMs
     }
     const tick = () => {
-      if (document.visibilityState === 'visible' && navigator.onLine && due()) void syncNow()
+      if (document.visibilityState === 'visible' && navigator.onLine && due() && !isAutoSyncHeld()) void syncNow()
     }
     const timer = setInterval(tick, 30 * 1000)
     document.addEventListener('visibilitychange', tick)

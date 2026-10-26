@@ -180,7 +180,10 @@
   "errors": {
     "syncFailed": "Loading from Google Drive failed. It will be retried.",
     "metaUnreadable": "mymedia.json in your Drive cannot be read. It was not changed. Restore a previous version from Google Drive (right-click → Manage versions).",
-    "generic": "Something went wrong: {{message}}"
+    "generic": "Something went wrong: {{message}}",
+    "crashTitle": "MyMedia stopped",
+    "crashText": "An error stopped the page. Your photos and information are not affected. Reload to go on; if it happens again, copy the message below.",
+    "reload": "Reload"
   },
   "languages": {
     "he": "עברית",

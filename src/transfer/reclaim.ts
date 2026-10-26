@@ -10,7 +10,7 @@ import { FOLDER_MIME } from '../lib/media'
 import type { MediaMeta } from '../lib/metadata'
 import { ALBUM_SEPARATOR } from '../lib/tree'
 import { app } from '../store'
-import { syncNow } from '../sync/engine'
+import { holdAutoSync, syncNow } from '../sync/engine'
 
 export interface Stranded {
   id: string
@@ -71,7 +71,13 @@ export function groupStranded(list: Stranded[]): { path: string[]; count: number
 }
 
 /** Puts each photo back in its folder (created if needed) and withdraws the offers. Returns how many failed. */
-export async function reclaim(list: Stranded[], onProgress: Progress): Promise<{ failed: number; reason?: string }> {
+export function reclaim(list: Stranded[], onProgress: Progress): Promise<{ failed: number; reason?: string }> {
+  // No load from Drive in the middle: thousands of photos arriving at once would
+  // start thumbnails and recognition while the moves run.
+  return holdAutoSync(() => reclaimAll(list, onProgress))
+}
+
+async function reclaimAll(list: Stranded[], onProgress: Progress): Promise<{ failed: number; reason?: string }> {
   const rootId = app().rootId!
   const folderIds = new Map<string, Promise<string>>()
   const folderOf = (path: string[]) => {

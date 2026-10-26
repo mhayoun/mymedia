@@ -422,6 +422,20 @@ export function cancelSync() {
   abort?.abort(new SyncCancelled())
 }
 
+let held = 0
+/** While a long operation runs (taking photos back), automatic loads wait. */
+export async function holdAutoSync<T>(fn: () => Promise<T>): Promise<T> {
+  held++
+  try {
+    return await fn()
+  } finally {
+    held--
+  }
+}
+export function isAutoSyncHeld(): boolean {
+  return held > 0
+}
+
 export function isSyncing(): boolean {
   return running !== null
 }
