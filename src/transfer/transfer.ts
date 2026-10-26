@@ -7,6 +7,10 @@
 // MyMedia (merging with a folder of the same name) and takes the metadata.
 // Drive keeps the same file ids, so nothing is copied or uploaded again.
 // The people found on the photos go with them (faces/transfer.ts).
+//
+// Copy mode: the sender only shares the folder (read only) and keeps
+// everything; the receiver has Google copy each photo into their own MyMedia.
+// If the receiver stops half-way, nothing changed for the sender.
 
 import { db } from '../db/db'
 import {
@@ -19,11 +23,16 @@ import {
   findFolderNamed,
   folderNamed,
   getFile,
+  copyFile,
+  ensureFolderPath,
   listFiles,
+  listPermissions,
   moveFile,
   moveInto,
   myPermissionId,
   offerOwnership,
+  removePermission,
+  shareAsReader,
   trashFile,
   type DriveFile,
 } from '../drive/api'
@@ -32,7 +41,7 @@ import { FOLDER_MIME } from '../lib/media'
 import type { MediaMeta } from '../lib/metadata'
 import { folderChain, subtreeIds } from '../lib/tree'
 import { app } from '../store'
-import { syncNow } from '../sync/engine'
+import { holdAutoSync, syncNow } from '../sync/engine'
 import { markMetaDirty } from '../sync/metaStore'
 import { flushMoves } from '../sync/moveQueue'
 
@@ -96,12 +105,14 @@ export interface TransferManifest {
   faces?: TransferFaces
   /** 'people': only `faces`, for photos given before. */
   kind?: 'people'
+  /** 'copy': shared read only, the receiver copies; absent: the ownership is given. */
+  mode?: 'copy'
 }
 
 type Progress = (done: number, total: number) => void
 
 /** Everything inside a folder (folders and files), the folder itself first. */
-async function walk(folderId: string): Promise<DriveFile[]> {
+async function walk(folderId: string, fields = 'id,name,mimeType,parents,ownedByMe,owners(emailAddress)'): Promise<DriveFile[]> {
   const out: DriveFile[] = []
   let level = [folderId]
   while (level.length) {
@@ -113,7 +124,7 @@ async function walk(folderId: string): Promise<DriveFile[]> {
           out.push(f)
           if (f.mimeType === FOLDER_MIME) next.push(f.id)
         }
-      }, undefined, 'id,name,mimeType,parents,ownedByMe,owners(emailAddress)')
+      }, undefined, fields)
     }
     level = next
   }
@@ -121,7 +132,7 @@ async function walk(folderId: string): Promise<DriveFile[]> {
 }
 
 /** Runs `fn` on each item, a few at a time; returns how many failed and the first reason. */
-async function each<T>(items: T[], fn: (item: T) => Promise<void>, onProgress: Progress): Promise<{ failed: number; reason?: string }> {
+async function each<T>(items: T[], fn: (item: T) => Promise<void>, onProgress: Progress, workers = 4): Promise<{ failed: number; reason?: string }> {
   let done = 0
   let failed = 0
   let reason: string | undefined
@@ -139,14 +150,17 @@ async function each<T>(items: T[], fn: (item: T) => Promise<void>, onProgress: P
       onProgress(++done, items.length)
     }
   }
-  await Promise.all(Array.from({ length: 4 }, worker))
+  await Promise.all(Array.from({ length: workers }, worker))
   return { failed, reason }
 }
 
 // ---- Sender -------------------------------------------------------------------
 
-/** Offers the folder and all it holds to `email`. Returns the number of items that failed. */
-export async function sendFolder(folderId: string, email: string, message: string, onProgress: Progress): Promise<TransferResult> {
+/**
+ * Offers the folder and all it holds to `email` (with `copy`, only shares it
+ * read only, for the receiver to copy). Returns the number of items that failed.
+ */
+export async function sendFolder(folderId: string, email: string, message: string, onProgress: Progress, copy = false): Promise<TransferResult> {
   const rootId = app().rootId!
   const d = db()
   // Photos just moved must be in their folder on Drive before it is given.
@@ -178,15 +192,19 @@ export async function sendFolder(folderId: string, email: string, message: strin
     createdAt: Date.now(),
     items,
     faces,
+    ...(copy ? { mode: 'copy' as const } : {}),
   }
   await step('send', async () => {
     // Replace an earlier manifest of the same folder (a transfer sent again).
     const old = await findChildByName(folderId, TRANSFER_FILE_NAME)
     if (old) await trashFile(old.id).catch(() => undefined)
     await createTextFile(TRANSFER_FILE_NAME, folderId, JSON.stringify(manifest))
+    // Shared read only: what is inside comes along, nothing else changes here.
+    if (copy) await shareAsReader(folderId, manifest.to, true, message || undefined)
     // The folder first, with the only e-mail; then everything inside.
-    await offerOwnership(folderId, manifest.to, true, message || undefined)
+    else await offerOwnership(folderId, manifest.to, true, message || undefined)
   })
+  if (copy) return { total: Object.keys(items).length, failed: 0, skipped: 0, otherOwners: [] }
   const inside = await step('send', () => walk(folderId))
   const mine = inside.filter((f) => f.ownedByMe !== false)
   const others = inside.filter((f) => f.ownedByMe === false)
@@ -226,8 +244,10 @@ export async function findIncoming(): Promise<IncomingTransfer[]> {
       }
     }
   }, undefined, 'id,name')
+  // Copies finished on this device (the sender's file can't be trashed from here).
+  const done = new Set((await db().getKv<string[]>(COPIES_DONE)) ?? [])
   // People last: their photos must be here first.
-  return out.sort((a, b) => Number(a.manifest.kind === 'people') - Number(b.manifest.kind === 'people'))
+  return out.filter((t) => !done.has(copyKey(t))).sort((a, b) => Number(a.manifest.kind === 'people') - Number(b.manifest.kind === 'people'))
 }
 
 /** Moves the content of `from` into `to`, merging folders that have the same name. */
@@ -254,6 +274,7 @@ export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress):
   const { manifest } = t
   const permissionId = await step('accept', myPermissionId)
   if (manifest.kind === 'people') return acceptPeople(t, permissionId)
+  if (manifest.mode === 'copy') return copyTransfer(t, onProgress)
   const first = await step('accept', () => getFile(manifest.folderId, 'id,ownedByMe'))
   const inside = await step('accept', () => walk(manifest.folderId))
   const all = [first, ...inside]
@@ -299,6 +320,110 @@ export async function acceptTransfer(t: IncomingTransfer, onProgress: Progress):
   // Done: the transfer leaves the list. With items still to accept it stays, to try again.
   if (!failed) await trashFile(t.manifestId).catch(() => undefined)
   return { total: all.length, failed, reason, skipped: 0, otherOwners: [] }
+}
+
+// ---- Copy ---------------------------------------------------------------------
+
+/** On each copy: the original's id, and the folder shared (to find the copies again). */
+const FROM_KEY = 'mymedia_copied_from'
+const OF_KEY = 'mymedia_copy_of'
+const COPIES_DONE = 'copiesDone'
+const copyKey = (t: IncomingTransfer) => `${t.manifestId}@${t.manifest.createdAt}`
+
+/**
+ * Copies every photo of a shared folder into this MyMedia, at the same place,
+ * with what the sender's MyMedia knew about it. Photos copied by an earlier
+ * try are found again by their mark and skipped.
+ */
+async function copyTransfer(t: IncomingTransfer, onProgress: Progress): Promise<TransferResult> {
+  const rootId = app().rootId!
+  const { manifest } = t
+  const inside = await step('accept', () => walk(manifest.folderId, 'id,name,mimeType,parents,appProperties'))
+  const folders = inside.filter((f) => f.mimeType === FOLDER_MIME)
+  const files = inside.filter((f) => f.mimeType !== FOLDER_MIME && f.name !== TRANSFER_FILE_NAME)
+  const copied = new Map<string, string>()
+  await step('accept', () =>
+    listFiles(
+      `appProperties has { key='${OF_KEY}' and value='${manifest.folderId}' } and 'me' in owners and trashed = false`,
+      (list) => {
+        for (const f of list) if (f.appProperties?.[FROM_KEY]) copied.set(f.appProperties[FROM_KEY], f.id)
+      },
+      undefined,
+      'id,appProperties',
+    ),
+  )
+
+  return holdAutoSync(async () => {
+    // Same folders as the sender's, created one by one (no folder made twice).
+    const target = new Map<string, string>()
+    target.set(manifest.folderId, await step('move', () => ensureFolderPath(rootId, manifest.path)))
+    const known = (f: DriveFile) => f.parents?.find((p) => target.has(p))
+    for (const f of folders) {
+      const parent = known(f)
+      if (parent) target.set(f.id, await step('move', () => ensureFolderPath(target.get(parent)!, [f.name])))
+    }
+
+    const left = files.filter((f) => !copied.has(f.id))
+    const { failed, reason } = await each(
+      left,
+      async (f) => {
+        const taken = manifest.items[f.id]?.takenAt ?? f.appProperties?.mymedia_taken
+        const to = target.get(known(f) ?? manifest.folderId)!
+        const appProperties = { ...f.appProperties, ...(taken ? { mymedia_taken: taken } : {}), [FROM_KEY]: f.id, [OF_KEY]: manifest.folderId }
+        copied.set(f.id, (await copyFile(f.id, f.name, to, { appProperties }, 'id')).id)
+      },
+      (done) => onProgress(files.length - left.length + done, files.length),
+      8,
+    )
+
+    // What the sender's MyMedia knew about each photo, under the copy's id.
+    await syncNow()
+    const d = db()
+    const now = Date.now()
+    for (const [from, id] of copied) {
+      const sent = manifest.items[from]
+      const cur = sent && (await d.meta.get(id))
+      if (!cur) continue
+      // Suggestions point to the sender's folders.
+      await d.meta.put({ ...sent, id, name: cur.name, category: cur.category, album: cur.album, suggestions: undefined, deleted: undefined, updatedAt: now })
+    }
+    await markMetaDirty()
+    if (manifest.faces) {
+      const faces = manifest.faces.faces.flatMap((f) => {
+        const id = copied.get(f.mediaId)
+        return id ? [{ ...f, id: f.id.replace(f.mediaId, id), mediaId: id }] : []
+      })
+      await importFaces({ persons: manifest.faces.persons, faces })
+    }
+    // Done: leaves the list. With photos not copied it stays, to try again.
+    if (!failed) await d.setKv(COPIES_DONE, [...((await d.getKv<string[]>(COPIES_DONE)) ?? []), copyKey(t)])
+    return { total: files.length, failed, reason, skipped: 0, otherOwners: [] }
+  })
+}
+
+/** Folders this account shared for copying, still shared. */
+export async function findOutgoingCopies(): Promise<IncomingTransfer[]> {
+  const me = (await about()).email.toLowerCase()
+  const out: IncomingTransfer[] = []
+  await listFiles(`name = '${TRANSFER_FILE_NAME}' and 'me' in owners and trashed = false`, async (files) => {
+    for (const f of files) {
+      try {
+        const manifest = JSON.parse(await downloadText(f.id)) as TransferManifest
+        if (manifest.format === 'mymedia-transfer' && manifest.mode === 'copy' && manifest.from.toLowerCase() === me) out.push({ manifestId: f.id, manifest })
+      } catch {
+        // not readable: ignore
+      }
+    }
+  }, undefined, 'id,name')
+  return out
+}
+
+/** Stops sharing a folder shared for copying (copies already made stay with the other account). */
+export async function withdrawCopy(t: IncomingTransfer): Promise<void> {
+  for (const p of await listPermissions(t.manifest.folderId)) {
+    if (p.role !== 'owner' && p.emailAddress?.toLowerCase() === t.manifest.to) await removePermission(t.manifest.folderId, p.id)
+  }
+  await trashFile(t.manifestId)
 }
 
 async function acceptPeople(t: IncomingTransfer, permissionId: string): Promise<TransferResult> {

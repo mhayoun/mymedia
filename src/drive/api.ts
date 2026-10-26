@@ -591,8 +591,9 @@ export async function listPermissions(id: string): Promise<Permission[]> {
 }
 
 /** Lets `email` see a folder and everything in it, without changing anything (Google e-mails them when `notify`). */
-export async function shareAsReader(id: string, email: string, notify: boolean): Promise<void> {
+export async function shareAsReader(id: string, email: string, notify: boolean, message?: string): Promise<void> {
   const params = new URLSearchParams({ sendNotificationEmail: String(notify), supportsAllDrives: 'true', fields: 'id' })
+  if (notify && message) params.set('emailMessage', message)
   await request(`${API}/files/${id}/permissions?${params}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
