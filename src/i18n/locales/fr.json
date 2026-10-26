@@ -920,7 +920,7 @@
   "reclaim": {
     "title": "Reprendre mes photos non acceptées",
     "short": "Un transfert s'est arrêté et l'autre compte ne peut plus accepter ? Les photos qui sont encore à vous reviennent dans votre MyMedia, à leur place (catégorie, album), avec leurs espèces et textes.",
-    "open": "Chercher les photos à reprendre",
+    "open": "Voir la liste d'abord",
     "hint": "MyMedia cherche les photos qui sont encore à ce compte mais ne sont plus dans son MyMedia (données à un autre compte qui ne les a pas acceptées). Rien n'est déplacé avant votre accord.",
     "searching": "Recherche dans Google Drive…",
     "none": "Aucune photo à reprendre : tout ce qui est à vous est dans votre MyMedia.",
@@ -932,6 +932,8 @@
     "confirm_other": "Reprendre les {{count}} photos",
     "done_one": "Terminé : {{count}} photo est de retour dans votre MyMedia.",
     "done_other": "Terminé : {{count}} photos sont de retour dans votre MyMedia.",
-    "partly": "Terminé, mais {{failed}} photo(s) sur {{total}} n'ont pas pu être reprises. Relancez : ce qui est fait reste fait. Détail de Google : {{reason}}"
+    "partly": "Terminé, mais {{failed}} photo(s) sur {{total}} n'ont pas pu être reprises. Relancez : ce qui est fait reste fait. Détail de Google : {{reason}}",
+    "direct": "Tout reprendre maintenant",
+    "reconnect": "Google demande de renouveler la connexion. Cliquez ci-dessous : la reprise continue là où elle s'est arrêtée."
   }
 }

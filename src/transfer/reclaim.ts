@@ -5,7 +5,7 @@
 // and the offer made to the other account is withdrawn.
 
 import { db } from '../db/db'
-import { DriveError, ensureFolderPath, getFile, listPermissions, moveInto, removePermission } from '../drive/api'
+import { DriveError, ensureFolderPath, getFile, listPermissions, moveFile, moveInto, removePermission } from '../drive/api'
 import { FOLDER_MIME } from '../lib/media'
 import type { MediaMeta } from '../lib/metadata'
 import { ALBUM_SEPARATOR } from '../lib/tree'
@@ -17,6 +17,10 @@ export interface Stranded {
   name: string
   /** Folder names from the MyMedia root, e.g. ["ציפורים", "דוכיפת"]; [] for the root. */
   path: string[]
+  /** Where it is now (the other account's folder). */
+  parent?: string
+  /** Ownership offers to withdraw; undefined when Drive did not list them. */
+  offers?: string[]
 }
 
 type Progress = (done: number, total: number) => void
@@ -44,9 +48,18 @@ export async function findStranded(onProgress: Progress): Promise<Stranded[]> {
     while (next < metas.length) {
       const m = metas[next++]
       try {
-        const f = await getFile(m.id, 'id,name,mimeType,trashed,ownedByMe,parents')
+        // Read once here, so taking back costs only the move and the withdrawal.
+        const f = await getFile(m.id, 'id,name,mimeType,trashed,ownedByMe,parents,permissions(id,pendingOwner)')
         const inMyMedia = (f.parents ?? []).some((p) => folders.has(p))
-        if (f.ownedByMe && !f.trashed && f.mimeType !== FOLDER_MIME && !inMyMedia) out.push({ id: f.id, name: f.name, path: pathOf(m) })
+        if (f.ownedByMe && !f.trashed && f.mimeType !== FOLDER_MIME && !inMyMedia) {
+          out.push({
+            id: f.id,
+            name: f.name,
+            path: pathOf(m),
+            parent: f.parents?.[0],
+            offers: f.permissions?.filter((p) => p.pendingOwner).map((p) => p.id),
+          })
+        }
       } catch (e) {
         // Deleted for good (404) or not readable: nothing to take back.
         if (!(e instanceof DriveError)) throw e
@@ -97,8 +110,19 @@ async function reclaimAll(list: Stranded[], onProgress: Progress): Promise<{ fai
     while (next < list.length) {
       const s = list[next++]
       try {
-        await moveInto(s.id, await folderOf(s.path))
-        for (const p of await listPermissions(s.id)) if (p.pendingOwner) await removePermission(s.id, p.id)
+        const to = await folderOf(s.path)
+        if (s.parent) {
+          await moveFile(s.id, to, s.parent).catch((e) => {
+            // Not allowed to take it out of that folder: moveInto knows the other ways.
+            if (e instanceof DriveError && e.status === 403) return moveInto(s.id, to)
+            throw e
+          })
+        } else await moveInto(s.id, to)
+        const offers = s.offers ?? (await listPermissions(s.id)).filter((p) => p.pendingOwner).map((p) => p.id)
+        for (const id of offers) await removePermission(s.id, id).catch((e) => {
+          // Already withdrawn (an earlier try): nothing left to do.
+          if (!(e instanceof DriveError && e.status === 404)) throw e
+        })
       } catch (e) {
         console.error('[MyMedia] reclaim', s.id, e)
         failed++
@@ -107,7 +131,7 @@ async function reclaimAll(list: Stranded[], onProgress: Progress): Promise<{ fai
       onProgress(++done, list.length)
     }
   }
-  await Promise.all(Array.from({ length: 4 }, worker))
+  await Promise.all(Array.from({ length: 8 }, worker))
   await syncNow()
   return { failed, reason }
 }

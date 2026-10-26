@@ -35,6 +35,7 @@ export interface DriveFile {
   appProperties?: Record<string, string>
   ownedByMe?: boolean
   owners?: { emailAddress?: string; displayName?: string }[]
+  permissions?: { id: string; pendingOwner?: boolean }[]
   capabilities?: { canEdit?: boolean }
 }
 

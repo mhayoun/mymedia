@@ -1,17 +1,31 @@
 import { Loader2, Undo2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { auth } from '../auth/google'
 import { useFormat } from '../i18n/format'
 import { ALBUM_SEPARATOR } from '../lib/tree'
 import { findStranded, groupStranded, reclaim, type Stranded } from '../transfer/reclaim'
 import { Modal } from './Dialog'
+import { useAuthStatus } from './hooks'
 
 type Busy = { done: number; total: number } | null
 
-/** Lists the photos given but never accepted, then puts them back in this MyMedia. */
-export function ReclaimDialog({ onClose }: { onClose: () => void }) {
+/** Google's access lasts one hour; at most this long is asked for before a long run. */
+const HOUR_MS = 60 * 60_000
+
+/** Renews Google's access now if it would end during a run of `count` photos (call it from a click). */
+export function renewForReclaim(count: number) {
+  auth.renewBefore(Math.min(HOUR_MS - 5 * 60_000, Math.max(5 * 60_000, count * 400)))
+}
+
+/**
+ * Lists the photos given but never accepted, then puts them back in this
+ * MyMedia; with `direct`, takes them back as soon as they are found.
+ */
+export function ReclaimDialog({ onClose, direct }: { onClose: () => void; direct?: boolean }) {
   const { t } = useTranslation()
   const fmt = useFormat()
+  const authStatus = useAuthStatus()
   const [list, setList] = useState<Stranded[] | null>(null)
   const [busy, setBusy] = useState<Busy>({ done: 0, total: 0 })
   const [result, setResult] = useState<string | null>(null)
@@ -20,16 +34,21 @@ export function ReclaimDialog({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     findStranded((done, total) => setBusy({ done, total }))
-      .then(setList)
+      .then((found) => {
+        setList(found)
+        if (direct && found.length) void run(found)
+        else setBusy(null)
+      })
       .catch((e) => {
         console.error('[MyMedia] reclaim scan failed', e)
         setError(t('errors.generic', { message: (e as Error).message }))
+        setBusy(null)
       })
-      .finally(() => setBusy(null))
-  }, [t])
+    // Once, when the window opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  const run = async () => {
-    if (!list) return
+  const run = async (list: Stranded[]) => {
     setError(null)
     setBusy({ done: 0, total: list.length })
     try {
@@ -48,6 +67,14 @@ export function ReclaimDialog({ onClose }: { onClose: () => void }) {
     <Modal wide closeButton title={t('reclaim.title')} onClose={() => !busy && onClose()}>
       <div className="modal-scroll">
         <p className="hint">{t('reclaim.hint')}</p>
+        {busy && authStatus === 'needsReconnect' && (
+          <div className="error-text">
+            <p>{t('reclaim.reconnect')}</p>
+            <button type="button" className="btn primary" onClick={() => auth.signIn()}>
+              {t('auth.reconnect')}
+            </button>
+          </div>
+        )}
         {busy && (
           <p>
             <Loader2 size={14} className="spin" />{' '}
@@ -80,7 +107,15 @@ export function ReclaimDialog({ onClose }: { onClose: () => void }) {
           {t('common.close')}
         </button>
         {!!list?.length && (
-          <button type="button" className="btn primary" disabled={!!busy} onClick={run}>
+          <button
+            type="button"
+            className="btn primary"
+            disabled={!!busy}
+            onClick={() => {
+              renewForReclaim(list.length)
+              void run(list)
+            }}
+          >
             <Undo2 size={16} /> {t('reclaim.confirm', { count: list.length })}
           </button>
         )}

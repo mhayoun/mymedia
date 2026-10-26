@@ -7,7 +7,7 @@ import { acceptTransfer, findIncoming, sendFolder, sendPeople, TransferError, ty
 import { Modal } from './Dialog'
 import { FolderChecklist } from './FolderChecklist'
 import { useLibraryContext } from './libraryContext'
-import { ReclaimDialog } from './ReclaimDialog'
+import { ReclaimDialog, renewForReclaim } from './ReclaimDialog'
 import type { FolderInfo } from './useLibrary'
 
 type Busy = { done: number; total: number } | null
@@ -25,7 +25,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [incoming, setIncoming] = useState<IncomingTransfer[] | null>(null)
-  const [reclaimOpen, setReclaimOpen] = useState(false)
+  const [reclaimOpen, setReclaimOpen] = useState<null | 'list' | 'direct'>(null)
 
   // Read again after accepting: a transfer stopped half-way stays, to try again.
   const reloadIncoming = () =>
@@ -222,9 +222,28 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
           <Undo2 size={16} /> {t('reclaim.title')}
         </h3>
         <p className="hint">{t('reclaim.short')}</p>
-        <button className="btn" disabled={!!busy} onClick={() => setReclaimOpen(true)}>
-          <Undo2 size={16} /> {t('reclaim.open')}
-        </button>
+        <div className="row">
+          <button
+            className="btn primary"
+            disabled={!!busy}
+            onClick={() => {
+              renewForReclaim(Infinity)
+              setReclaimOpen('direct')
+            }}
+          >
+            <Undo2 size={16} /> {t('reclaim.direct')}
+          </button>
+          <button
+            className="btn"
+            disabled={!!busy}
+            onClick={() => {
+              renewForReclaim(Infinity)
+              setReclaimOpen('list')
+            }}
+          >
+            {t('reclaim.open')}
+          </button>
+        </div>
 
         {busy && (
           <p>
@@ -240,7 +259,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
         {result && <p className="ok-text">{result}</p>}
         {error && <p className="error-text">{error}</p>}
       </div>
-      {reclaimOpen && <ReclaimDialog onClose={() => setReclaimOpen(false)} />}
+      {reclaimOpen && <ReclaimDialog direct={reclaimOpen === 'direct'} onClose={() => setReclaimOpen(null)} />}
     </Modal>
   )
 }
