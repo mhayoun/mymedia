@@ -915,5 +915,22 @@
     "online": "Back online",
     "copy": "Copy",
     "copied": "Copied"
+  },
+  "reclaim": {
+    "title": "Take back my photos not accepted",
+    "short": "A transfer stopped and the other account can no longer accept? The photos that are still yours come back to your MyMedia, in their place (category, album), with their species and texts.",
+    "open": "Look for photos to take back",
+    "hint": "MyMedia looks for the photos that still belong to this account but are no longer in its MyMedia (given to another account that did not accept them). Nothing is moved before you agree.",
+    "searching": "Searching Google Drive…",
+    "none": "No photo to take back: all that is yours is in your MyMedia.",
+    "found_one": "{{count}} photo of yours is no longer in your MyMedia:",
+    "found_other": "{{count}} photos of yours are no longer in your MyMedia:",
+    "rootFolder": "(not sorted)",
+    "warning": "They go back into these folders (created if needed) and the offer made to the other account is withdrawn: it can no longer accept them. To give them later, use \"Send\" again.",
+    "confirm_one": "Take back {{count}} photo",
+    "confirm_other": "Take back the {{count}} photos",
+    "done_one": "Done: {{count}} photo is back in your MyMedia.",
+    "done_other": "Done: {{count}} photos are back in your MyMedia.",
+    "partly": "Done, but {{failed}} of {{total}} photos could not be taken back. Run it again: what is done stays done. Google says: {{reason}}"
   }
 }

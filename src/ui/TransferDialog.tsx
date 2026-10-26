@@ -1,4 +1,4 @@
-import { Download, Loader2, Send, Users } from 'lucide-react'
+import { Download, Loader2, Send, Undo2, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useFormat } from '../i18n/format'
@@ -7,6 +7,7 @@ import { acceptTransfer, findIncoming, sendFolder, sendPeople, TransferError, ty
 import { Modal } from './Dialog'
 import { FolderChecklist } from './FolderChecklist'
 import { useLibraryContext } from './libraryContext'
+import { ReclaimDialog } from './ReclaimDialog'
 import type { FolderInfo } from './useLibrary'
 
 type Busy = { done: number; total: number } | null
@@ -24,6 +25,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
   const [result, setResult] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [incoming, setIncoming] = useState<IncomingTransfer[] | null>(null)
+  const [reclaimOpen, setReclaimOpen] = useState(false)
 
   // Read again after accepting: a transfer stopped half-way stays, to try again.
   const reloadIncoming = () =>
@@ -216,6 +218,14 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
           <Users size={16} /> {t('transfer.sendPeople')}
         </button>
 
+        <h3>
+          <Undo2 size={16} /> {t('reclaim.title')}
+        </h3>
+        <p className="hint">{t('reclaim.short')}</p>
+        <button className="btn" disabled={!!busy} onClick={() => setReclaimOpen(true)}>
+          <Undo2 size={16} /> {t('reclaim.open')}
+        </button>
+
         {busy && (
           <p>
             <Loader2 size={14} className="spin" />{' '}
@@ -230,6 +240,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
         {result && <p className="ok-text">{result}</p>}
         {error && <p className="error-text">{error}</p>}
       </div>
+      {reclaimOpen && <ReclaimDialog onClose={() => setReclaimOpen(false)} />}
     </Modal>
   )
 }

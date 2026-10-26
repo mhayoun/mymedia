@@ -579,11 +579,13 @@ export interface Permission {
   role: string
   emailAddress?: string
   displayName?: string
+  /** Offered the ownership, not accepted yet. */
+  pendingOwner?: boolean
 }
 
 /** Who has access to a file or folder (set on it, not inherited). */
 export async function listPermissions(id: string): Promise<Permission[]> {
-  const params = new URLSearchParams({ supportsAllDrives: 'true', pageSize: '100', fields: 'permissions(id,type,role,emailAddress,displayName)' })
+  const params = new URLSearchParams({ supportsAllDrives: 'true', pageSize: '100', fields: 'permissions(id,type,role,emailAddress,displayName,pendingOwner)' })
   return (await getJson<{ permissions?: Permission[] }>(`${API}/files/${id}/permissions?${params}`)).permissions ?? []
 }
 
