@@ -2,6 +2,7 @@
 
 import { auth } from './auth/google'
 import { isConfigured, loadConfig } from './config'
+import { about } from './drive/api'
 import { loadUser, locateRoot, openCachedUser, syncNow } from './sync/engine'
 import { app } from './store'
 import { takeLibraryLost } from './sync/library'
@@ -28,7 +29,9 @@ export async function boot(): Promise<BootResult> {
   }
 
   auth.subscribe(() => {
-    if (auth.status === 'signedIn' && !sessionStarted) void startSession()
+    if (auth.status !== 'signedIn') return
+    if (!sessionStarted) void startSession()
+    else void checkAccount()
   })
   keepStreamTokenFresh()
 
@@ -69,6 +72,24 @@ export async function startSession(): Promise<void> {
     console.error('[MyMedia] session start failed', e)
     app().set({ error: 'errors.syncFailed' })
     sessionStarted = false
+  }
+}
+
+let checkedSerial = -1
+
+/**
+ * A new token may belong to another account (another one picked in Google's
+ * window on Reconnect): the open account's library must not go on with it.
+ */
+async function checkAccount() {
+  if (auth.serial === checkedSerial) return
+  checkedSerial = auth.serial
+  const open = app().user?.email
+  if (!open) return
+  const now = await about().catch(() => null)
+  if (now && now.email.toLowerCase() !== open.toLowerCase()) {
+    auth.loginHint = null
+    location.reload()
   }
 }
 

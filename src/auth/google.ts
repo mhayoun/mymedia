@@ -59,6 +59,10 @@ class GoogleAuth {
   private waiters: Waiter[] = []
   private listeners = new Set<() => void>()
   private requesting = false
+  /** "Switch account": the token that comes back may be another account's. */
+  private switching = false
+  /** Goes up with each new token (to check which account it is). */
+  serial = 0
   private lastError: string | null = null
   status: AuthStatus = 'signedOut'
 
@@ -117,6 +121,7 @@ class GoogleAuth {
       callback: (r) => this.onToken(r),
       error_callback: (e) => {
         this.requesting = false
+        this.switching = false
         // popup_closed / popup_failed_to_open: keep waiting, the banner stays.
         this.lastError = e.type
         if (this.waiters.length || !this.isValid()) this.setStatus(this.token || this.loginHint ? 'needsReconnect' : 'signedOut')
@@ -148,11 +153,18 @@ class GoogleAuth {
       return
     }
     this.lastError = null
+    this.serial++
     this.token = { accessToken: r.access_token, expiresAt: Date.now() + Number(r.expires_in ?? 3600) * 1000 }
     try {
       localStorage.setItem(TOKEN_KEY, JSON.stringify(this.token))
     } catch {
       // Not persisted: the user will reconnect after a restart.
+    }
+    if (this.switching) {
+      // Nothing of the open account may run with the new one: start again on it.
+      this.loginHint = null
+      location.reload()
+      return
     }
     const waiters = this.waiters
     this.waiters = []
@@ -165,6 +177,7 @@ class GoogleAuth {
   signIn(chooseAccount = false) {
     if (!this.client) return
     this.requesting = true
+    this.switching = chooseAccount && !!this.loginHint
     const hint = this.loginHint
     this.client.requestAccessToken(
       chooseAccount || !hint ? { prompt: 'select_account' } : { prompt: '', login_hint: hint },
