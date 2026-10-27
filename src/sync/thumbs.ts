@@ -439,8 +439,11 @@ function pump() {
  * `isWanted` lets a scrolled-away cell drop its queued request; `order` (see
  * `screenOrder`) puts it in line, on-screen first (default: right away).
  */
-/** The thumbnail shown could not be drawn: forgotten, and loaded again on its own (not from a pack). */
-export async function reloadThumb(rec: MediaRecord, isWanted: () => boolean, order: () => number = () => 0): Promise<string | null> {
+/**
+ * The thumbnail shown could not be drawn: forgotten, and loaded again on its
+ * own (not from a pack). `otherWay`: not from Google's address (made from the original).
+ */
+export async function reloadThumb(rec: MediaRecord, isWanted: () => boolean, order: () => number = () => 0, otherWay = false): Promise<string | null> {
   const url = urls.get(rec.id)
   if (url) {
     urls.delete(rec.id)
@@ -449,12 +452,12 @@ export async function reloadThumb(rec: MediaRecord, isWanted: () => boolean, ord
   await db().thumbs.delete(rec.id).catch(() => undefined)
   if (!navigator.onLine || !isWanted()) return null
   // Shown from Google's address: its link had expired, a new one.
-  if (url && !url.startsWith('blob:')) {
+  if (url && !url.startsWith('blob:') && !otherWay) {
     const fresh = await directUrl(rec, true).catch(() => null)
     if (fresh && fresh !== url) return rememberUrl(rec.id, fresh)
   }
   return new Promise<string | null>((resolve) => {
-    queue.push({ rec, resolve, cancelled: false, order, noPack: true })
+    queue.push({ rec, resolve, cancelled: false, order, noPack: true, noDirect: otherWay })
     schedulePump()
   })
 }

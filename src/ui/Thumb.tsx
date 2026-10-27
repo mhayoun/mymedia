@@ -18,6 +18,11 @@ interface Props {
 }
 
 const LONG_PRESS_MS = 500
+/**
+ * A picture that does not load (Google refuses many previews asked at once):
+ * tried again after these delays, the last time made from the original.
+ */
+const RETRY_MS = [1500, 5000, 15000]
 
 export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, onZoom }: Props) {
   const { t } = useTranslation()
@@ -27,7 +32,8 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, o
   // The picture is drawn (until then a spinner turns over the cell).
   const [drawn, setDrawn] = useState(false)
   const mounted = useRef(true)
-  const retried = useRef(false)
+  // Tries after a picture that did not load; also renews the <img> (same address again).
+  const [tries, setTries] = useState(0)
   const el = useRef<HTMLButtonElement>(null)
   const press = useRef<{ timer: ReturnType<typeof setTimeout>; fired: boolean } | null>(null)
 
@@ -77,6 +83,7 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, o
     >
       {url ? (
         <img
+          key={tries}
           src={url}
           alt=""
           loading="lazy"
@@ -85,10 +92,18 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, o
           referrerPolicy="no-referrer"
           onLoad={() => setDrawn(true)}
           onError={() => {
-            // Not a picture the browser can draw: loaded again on its own, once.
-            if (retried.current) return setUrl(null)
-            retried.current = true
-            void reloadThumb(rec, () => mounted.current, () => screenOrder(el.current)).then((u) => mounted.current && setUrl(u))
+            // Not drawn: loaded again a little later (the spinner turns meanwhile), then the name shows.
+            if (tries >= RETRY_MS.length) return setUrl(null)
+            setDrawn(false)
+            setTimeout(() => {
+              if (!mounted.current) return
+              const last = tries === RETRY_MS.length - 1
+              void reloadThumb(rec, () => mounted.current, () => screenOrder(el.current), last).then((u) => {
+                if (!mounted.current) return
+                setUrl(u)
+                setTries(tries + 1)
+              })
+            }, RETRY_MS[tries])
           }}
         />
       ) : url === null ? (
