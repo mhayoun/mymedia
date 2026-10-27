@@ -425,10 +425,10 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .filter-bar .search input { min-inline-size: 0; }
 @media (max-width: 800px) {
   /* Search, Filters, Select, Add and Compress on one line. */
-  .filter-bar { padding-inline: 6px; }
+  .filter-bar { padding-inline: 12px; grid-template-columns: minmax(0, 1fr); }
   .filter-bar > .row:first-child { gap: 4px; }
   .filter-bar .search { flex: 1 1 0; max-inline-size: none; align-self: stretch; min-block-size: 38px; padding-inline: 8px 2px; }
-  .filter-bar .search input { block-size: 100%; }
+  .filter-bar .search input { block-size: 100%; inline-size: 100%; }
   .filter-bar > .row:first-child > .btn { padding: 7px 8px; flex-shrink: 0; }
 }
 @media (max-width: 800px) {
