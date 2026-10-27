@@ -1,5 +1,5 @@
 import { CheckSquare, Search, SlidersHorizontal, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LOCALES } from '../i18n'
 import { ORIGINS, type Origin } from '../lib/media'
@@ -22,7 +22,7 @@ function folderOptions(list: FolderInfo[], depth = 0): { id: string; label: stri
   ])
 }
 
-export function FilterBar({ people, lib }: { people: People; lib: Library }) {
+export function FilterBar({ people, lib, actions }: { people: People; lib: Library; actions?: ReactNode }) {
   const { t, i18n } = useTranslation()
   const selection = useApp((s) => s.selection)
   const readOnly = useApp((s) => s.readOnly)
@@ -78,6 +78,7 @@ export function FilterBar({ people, lib }: { people: People; lib: Library }) {
             <span className="only-desktop">{t('select.button')}</span>
           </button>
         )}
+        {actions}
       </div>
       {chips.length > 0 && (
         <div className="row">

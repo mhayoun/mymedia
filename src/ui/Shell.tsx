@@ -131,6 +131,18 @@ export function Shell() {
       : filters.provenance
         ? provenance.title(lib, filters.provenance)
         : t('nav.allMedia')
+  const addCompress = !readOnly && (
+    <>
+      <button className="btn primary" onClick={() => setDialog({ kind: 'import', destId: currentFolderId ?? rootId! })} title={t('import.button')}>
+        <ImagePlus size={16} />
+        <span className="only-desktop">{t('import.button')}</span>
+      </button>
+      <button className="btn" onClick={() => setDialog({ kind: 'compress', title: t('compress.titleFor', { name: currentTitle }), folderId: currentFolderId })} title={t('compress.button')}>
+        <Minimize2 size={16} />
+        <span className="only-desktop">{t('compress.button')}</span>
+      </button>
+    </>
+  )
   const items = useMemo(
     () => (rootId ? sortItems(filterItems(lib, filters, rootId, personMedia ?? new Set()), sort) : []),
     [lib, filters, rootId, sort, personMedia],
@@ -158,10 +170,9 @@ export function Shell() {
             people={people}
             count={items.length}
             onDialog={setDialog}
-            onAdd={() => setDialog({ kind: 'import', destId: currentFolderId ?? rootId! })}
-            onCompress={() => setDialog({ kind: 'compress', title: t('compress.titleFor', { name: currentTitle }), folderId: currentFolderId })}
+            actions={filters.categoryId === MISFILED ? addCompress : undefined}
           />
-          {filters.categoryId !== PEOPLE && filters.categoryId !== MISFILED && <FilterBar people={people} lib={lib} />}
+          {filters.categoryId !== PEOPLE && filters.categoryId !== MISFILED && <FilterBar people={people} lib={lib} actions={addCompress} />}
           </div>
           {filters.categoryId === PEOPLE ? (
             <PeopleView people={people} />
@@ -576,15 +587,15 @@ interface ToolbarProps {
   people: People
   count: number
   onDialog: (d: DialogState) => void
-  onAdd: () => void
-  onCompress: () => void
+  /** Add and Compress, when the search line is not shown. */
+  actions?: React.ReactNode
 }
 
 /**
  * One row: [title + folder actions] [view, sort, type] … count … [Add, Compress].
  * Logical order: in Hebrew the whole row is mirrored automatically.
  */
-function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarProps) {
+function Toolbar({ lib, people, count, onDialog, actions }: ToolbarProps) {
   const { t } = useTranslation()
   const provenance = useProvenanceLabel()
   const filters = useApp((s) => s.filters)
@@ -721,18 +732,7 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
         {t('gallery.count', { count })}
       </span>
       <span className="grow" />
-      {!readOnly && (
-        <>
-          <button className="btn primary" onClick={onAdd} title={t('import.button')}>
-            <ImagePlus size={16} />
-            <span className="only-desktop">{t('import.button')}</span>
-          </button>
-          <button className="btn" onClick={onCompress} title={t('compress.button')}>
-            <Minimize2 size={16} />
-            <span className="only-desktop">{t('compress.button')}</span>
-          </button>
-        </>
-      )}
+      {actions}
       </div>
     </div>
   )
