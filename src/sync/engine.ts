@@ -1,6 +1,7 @@
 // Drive ⇄ local cache synchronisation.
 // First run: one full scan of the root tree. Afterwards: Drive Changes API only.
 
+import { rememberAccount } from '../auth/accounts'
 import { db, openDb, type MediaRecord } from '../db/db'
 import {
   about,
@@ -93,6 +94,7 @@ export async function loadUser(): Promise<void> {
   auth.loginHint = user.email
   const d = openDb(user.email, chosenLibrary(user.email))
   await d.setKv('user', user)
+  rememberAccount(user)
   app().set({ user })
 }
 

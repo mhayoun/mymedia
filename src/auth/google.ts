@@ -184,6 +184,14 @@ class GoogleAuth {
     )
   }
 
+  /** Opens MyMedia on another account already used here (Google asks only if needed). */
+  switchTo(email: string) {
+    if (!this.client) return
+    this.requesting = true
+    this.switching = true
+    this.client.requestAccessToken({ prompt: '', login_hint: email })
+  }
+
   private renewIfNeeded() {
     if (!this.client || this.requesting || !this.loginHint) return
     if (this.token && this.token.expiresAt - RENEW_MARGIN_MS > Date.now()) return

@@ -498,4 +498,26 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 /* MyMedia shared with this account. */
 .shared-libraries { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-block: 8px; }
 .shared-libraries .tag { background: var(--warn-bg); color: var(--warn-text); }
-.shared-badge { border: 0; background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent); border-radius: 999px; padding: 2px 10px; font: inherit; cursor: pointer; }
+.shared-badge { border: 0; background: none; color: var(--text-2); border-radius: 999px; padding: 2px 6px; font: inherit; cursor: pointer; }
+/* Another account's MyMedia is open: green. */
+.topbar .shared-badge.on { --ok: #1a7f37; background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); padding: 2px 10px; }
+@media (prefers-color-scheme: dark) { .topbar .shared-badge.on { --ok: #3fb950; } }
+
+/* Accounts used on this device, under the account photo. */
+.account-menu-anchor { position: relative; display: inline-flex; }
+.account-menu-backdrop { position: fixed; inset: 0; z-index: 70; }
+.account-menu {
+  position: absolute; inset-block-start: calc(100% + 6px); inset-inline-end: 0; z-index: 71;
+  min-inline-size: 260px; max-inline-size: calc(100vw - 16px); padding: 6px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);
+  display: flex; flex-direction: column;
+}
+.account-menu > button {
+  display: flex; align-items: center; gap: 10px; padding: 8px; border: none; border-radius: 8px;
+  background: none; color: inherit; font: inherit; text-align: start; cursor: pointer;
+}
+.account-menu > button:hover { background: var(--surface-2); }
+.account-menu > button > span { display: flex; flex-direction: column; flex: 1; min-inline-size: 0; }
+.account-menu > button > span > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-menu .avatar.mid { inline-size: 36px; block-size: 36px; }
+.account-menu > button:last-child { border-block-start: 1px solid var(--border); border-radius: 0 0 8px 8px; }

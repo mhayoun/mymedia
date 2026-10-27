@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
 import { signOut } from '../session'
 import { useApp } from '../store'
-import { SharedLibraries } from './SharedLibraries'
+import { LibraryInfo } from './LibraryDialog'
 import { TransferDialog } from './TransferDialog'
 
 /** The Google account: who is signed in, reconnect, switch, sign out, and transfers to another account. */
@@ -13,8 +13,6 @@ export function AccountPanel() {
   const user = useApp((s) => s.user)
   const rootId = useApp((s) => s.rootId)
   const shared = useApp((s) => s.shared)
-  const readOnly = useApp((s) => s.readOnly)
-  const rootName = useApp((s) => s.settings.rootName)
   const set = useApp((s) => s.set)
   const [transfer, setTransfer] = useState(false)
   const close = () => set({ accountOpen: false })
@@ -58,14 +56,7 @@ export function AccountPanel() {
 
         <section>
           <h3>{t('library.title')}</h3>
-          <p>
-            <strong>
-              <bdi>{shared ? t(readOnly ? 'library.readOnlyOf' : 'library.sharedOf', { owner: shared.ownerName ?? shared.ownerEmail ?? '' }) : t('library.mine')}</bdi>
-            </strong>
-          </p>
-          {shared && <p className="hint">{t(readOnly ? 'library.readOnlyHint' : 'library.sharedHint', { owner: shared.ownerName ?? shared.ownerEmail ?? '' })}</p>}
-          <SharedLibraries />
-          {!shared && <p className="hint">{t('library.shareHint', { name: rootName })}</p>}
+          <LibraryInfo />
         </section>
 
         {!shared && (

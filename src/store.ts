@@ -136,6 +136,8 @@ interface AppState {
   sidebarOpen: boolean
   settingsOpen: boolean
   accountOpen: boolean
+  /** The libraries window (mine and those shared with me), from the eye button. */
+  libraryOpen: boolean
   /** The models window: those in use and the shop ('shop' or true), or publishing one's own. */
   shopOpen: boolean | 'shop' | 'publish'
   /** The Share window (my MyMedia to others) or the View one (the MyMedia of others). */
@@ -174,6 +176,7 @@ export const useApp = create<AppState>((set, get) => ({
   sidebarOpen: false,
   settingsOpen: false,
   accountOpen: false,
+  libraryOpen: false,
   shopOpen: false,
   shareOpen: false,
   shopResume: null,

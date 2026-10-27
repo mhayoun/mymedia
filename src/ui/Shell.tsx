@@ -1,16 +1,17 @@
-import { ArrowRightLeft, Brain, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Settings as SettingsIcon, Store, Trash2, UserRound, X } from 'lucide-react'
+import { Brain, Check, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Settings as SettingsIcon, Store, Trash2, UserPlus, UserRound, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
+import { knownAccounts } from '../auth/accounts'
 import { sameFolderName } from '../drive/api'
 import { useFormat } from '../i18n/format'
-import { app, useApp } from '../store'
+import { app, useApp, type User } from '../store'
 import { createAlbum, createCategory, deleteFolder, renameFolder } from '../sync/folders'
 import { cancelCompression } from '../compress/engine'
 import { subtreeIds } from '../lib/tree'
 import { stopIndexer } from '../ml/indexer'
 import { setLibraryForWarm } from '../sync/thumbs'
-import { openLibrary } from '../sync/library'
+import { findSharedLibraries, openLibrary } from '../sync/library'
 import { cancelSync, syncNow } from '../sync/engine'
 import { ActivityDialog } from './ActivityDialog'
 import { CompressDialog } from './CompressDialog'
@@ -30,6 +31,7 @@ import { paypalReturn } from '../models/shop'
 import { FacesIntro } from './FacesIntro'
 import { HelpPanel } from './HelpPanel'
 import { AccountPanel } from './AccountPanel'
+import { LibraryDialog } from './LibraryDialog'
 import { ModelsDialog } from './ModelsDialog'
 import { ShareDialog } from './ShareDialog'
 import { FilterBar } from './FilterBar'
@@ -72,6 +74,7 @@ export function Shell() {
   const settingsOpen = useApp((s) => s.settingsOpen)
   const helpOpen = useApp((s) => s.helpOpen)
   const accountOpen = useApp((s) => s.accountOpen)
+  const libraryOpen = useApp((s) => s.libraryOpen)
   const speedOpen = useApp((s) => s.speedOpen)
   const activityOpen = useApp((s) => s.activityOpen)
   const shopOpen = useApp((s) => s.shopOpen)
@@ -176,6 +179,7 @@ export function Shell() {
       {settingsOpen && <SettingsPanel />}
       {helpOpen && <HelpPanel />}
       {accountOpen && <AccountPanel />}
+      {libraryOpen && <LibraryDialog />}
       {shareOpen && <ShareDialog mode={shareOpen} onClose={() => app().set({ shareOpen: false })} />}
       {shopOpen && <ModelsDialog view={shopOpen === 'publish' ? 'publish' : 'use'} onClose={() => app().set({ shopOpen: false, shopResume: null })} />}
       {statsOpen && <StatsDialog lib={lib} />}
@@ -320,7 +324,6 @@ function SidebarResizer({ onWidth }: { onWidth: (w: number | null, done?: boolea
 function TopBar() {
   const { t } = useTranslation()
   const fmt = useFormat()
-  const user = useApp((s) => s.user)
   const sync = useApp((s) => s.sync)
   const lastSyncAt = useApp((s) => s.lastSyncAt)
   const indexing = useApp((s) => s.indexing)
@@ -331,6 +334,16 @@ function TopBar() {
   const readOnly = useApp((s) => s.readOnly)
   const shared = useApp((s) => s.shared)
   const online = useOnline()
+  const user = useApp((s) => s.user)
+  // Whether another account shares its MyMedia with this one (else no eye on one's own).
+  const [othersShared, setOthersShared] = useState(false)
+  useEffect(() => {
+    let alive = true
+    findSharedLibraries().then((l) => alive && setOthersShared(l.length > 0), () => undefined)
+    return () => {
+      alive = false
+    }
+  }, [user?.email])
 
   return (
     <header className="topbar">
@@ -351,15 +364,21 @@ function TopBar() {
         <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" />
         <span>{t('app.name')}</span>
       </div>
-      {shared && (
-        <button className="sync-info shared-badge" onClick={() => set({ accountOpen: true })} title={t(readOnly ? 'library.readOnlyHint' : 'library.sharedHint', { owner: shared.ownerName ?? shared.ownerEmail ?? '' })}>
-          <Eye size={14} />
+      {/* The libraries: a grey eye on one's own MyMedia (when others share theirs); green, with whose it is (computer), on another account's. */}
+      {(shared || othersShared) && <button
+        className={`sync-info shared-badge${shared ? ' on' : ''}`}
+        onClick={() => set({ libraryOpen: true })}
+        aria-label={t('library.title')}
+        title={shared ? t(readOnly ? 'library.readOnlyHint' : 'library.sharedHint', { owner: shared.ownerName ?? shared.ownerEmail ?? '' }) : t('library.title')}
+      >
+        <Eye size={shared ? 14 : 18} />
+        {shared && (
           <span className="only-desktop">
             {' '}
             {t(readOnly ? 'library.readOnlyOf' : 'library.sharedOf', { owner: shared.ownerName ?? shared.ownerEmail ?? '' })}
           </span>
-        </button>
-      )}
+        )}
+      </button>}
       <SpeedButton />
       {working && !indexing && (
         <span className="sync-info" aria-live="polite" title={t('classify.workingHint')}>
@@ -446,14 +465,72 @@ function TopBar() {
       <button className="icon-btn" onClick={() => set({ settingsOpen: true })} aria-label={t('nav.settings')} title={t('nav.settings')}>
         <SettingsIcon />
       </button>
-      {/* Google's list of accounts (with "Use another account"); the app reloads on the one chosen. */}
-      <button className="icon-btn" onClick={() => auth.signIn(true)} aria-label={t('auth.switchAccount')} title={t('auth.switchAccount')}>
-        <ArrowRightLeft />
-      </button>
-      <button className="icon-btn" onClick={() => set({ accountOpen: true })} aria-label={t('nav.account')} title={user?.email ?? t('nav.account')}>
-        {user?.photo ? <img className="avatar" src={user.photo} alt="" referrerPolicy="no-referrer" /> : <UserRound />}
-      </button>
+      <AccountButton />
     </header>
+  )
+}
+
+/**
+ * The account photo: with several accounts used on this device, their list
+ * (one tap opens MyMedia on it); with one, the account panel straight away.
+ */
+function AccountButton() {
+  const { t } = useTranslation()
+  const user = useApp((s) => s.user)
+  const set = useApp((s) => s.set)
+  const [accounts, setAccounts] = useState<User[]>([])
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    let alive = true
+    knownAccounts().then((l) => alive && setAccounts(l), () => undefined)
+    return () => {
+      alive = false
+    }
+  }, [user?.email])
+  const me = user?.email.toLowerCase()
+  const others = accounts.filter((a) => a.email.toLowerCase() !== me)
+  const avatar = (u: User | null, big = false) =>
+    u?.photo ? <img className={`avatar${big ? ' mid' : ''}`} src={u.photo} alt="" referrerPolicy="no-referrer" /> : <UserRound />
+  return (
+    <span className="account-menu-anchor">
+      <button
+        className="icon-btn"
+        onClick={() => (others.length ? setOpen(!open) : set({ accountOpen: true }))}
+        aria-label={t('nav.account')}
+        aria-expanded={others.length ? open : undefined}
+        title={user?.email ?? t('nav.account')}
+      >
+        {avatar(user)}
+      </button>
+      {open && (
+        <>
+          <div className="account-menu-backdrop" onClick={() => setOpen(false)} />
+          <div className="account-menu" role="menu">
+            <button role="menuitem" onClick={() => (setOpen(false), set({ accountOpen: true }))}>
+              {avatar(user, true)}
+              <span>
+                {user?.name && <strong>{user.name}</strong>}
+                <span className="hint" dir="ltr">{user?.email}</span>
+              </span>
+              <Check size={16} />
+            </button>
+            {others.map((a) => (
+              <button key={a.email} role="menuitem" onClick={() => auth.switchTo(a.email)}>
+                {avatar(a, true)}
+                <span>
+                  {a.name && <strong>{a.name}</strong>}
+                  <span className="hint" dir="ltr">{a.email}</span>
+                </span>
+              </button>
+            ))}
+            <button role="menuitem" onClick={() => auth.signIn(true)}>
+              <UserPlus size={20} />
+              <span>{t('auth.switchAccount')}</span>
+            </button>
+          </div>
+        </>
+      )}
+    </span>
   )
 }
 
