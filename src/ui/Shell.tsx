@@ -379,7 +379,6 @@ function TopBar() {
           </span>
         </button>
       )}
-      <SpeedButton />
       {working && !indexing && (
         <span className="sync-info" aria-live="polite" title={t('classify.workingHint')}>
           <Loader2 size={14} className="spin" />
@@ -465,6 +464,7 @@ function TopBar() {
       <button className="icon-btn" onClick={() => set({ settingsOpen: true })} aria-label={t('nav.settings')} title={t('nav.settings')}>
         <SettingsIcon />
       </button>
+      <SpeedButton />
       {/* One's own MyMedia, others share theirs: a grey eye next to the account to open them. */}
       {!shared && othersShared && (
         <button className="icon-btn library-btn" onClick={() => set({ libraryOpen: true })} aria-label={t('library.title')} title={t('library.title')}>
