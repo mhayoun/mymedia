@@ -1,4 +1,4 @@
-import { Brain, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, LayoutGrid, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Store, Trash2, UserRound, X } from 'lucide-react'
+import { ArrowRightLeft, Brain, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, LayoutGrid, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Store, Trash2, UserRound, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -445,6 +445,10 @@ function TopBar() {
       )}
       <button className="icon-btn" onClick={() => set({ settingsOpen: true })} aria-label={t('nav.settings')} title={t('nav.settings')}>
         <SettingsIcon />
+      </button>
+      {/* Google's list of accounts (with "Use another account"); the app reloads on the one chosen. */}
+      <button className="icon-btn" onClick={() => auth.signIn(true)} aria-label={t('auth.switchAccount')} title={t('auth.switchAccount')}>
+        <ArrowRightLeft />
       </button>
       <button className="icon-btn" onClick={() => set({ accountOpen: true })} aria-label={t('nav.account')} title={user?.email ?? t('nav.account')}>
         {user?.photo ? <img className="avatar" src={user.photo} alt="" referrerPolicy="no-referrer" /> : <UserRound />}
