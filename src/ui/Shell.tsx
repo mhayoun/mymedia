@@ -364,21 +364,21 @@ function TopBar() {
         <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" />
         <span>{t('app.name')}</span>
       </div>
-      {/* The libraries: a grey eye on one's own MyMedia (when others share theirs); green, with whose it is (computer), on another account's. */}
-      {(shared || othersShared) && <button
-        className={`sync-info shared-badge${shared ? ' on' : ''}`}
-        onClick={() => set({ libraryOpen: true })}
-        aria-label={t('library.title')}
-        title={shared ? t(readOnly ? 'library.readOnlyHint' : 'library.sharedHint', { owner: shared.ownerName ?? shared.ownerEmail ?? '' }) : t('library.title')}
-      >
-        <Eye size={shared ? 14 : 18} />
-        {shared && (
+      {/* Another account's MyMedia is open: green, with whose it is (computer). */}
+      {shared && (
+        <button
+          className="sync-info shared-badge on"
+          onClick={() => set({ libraryOpen: true })}
+          aria-label={t('library.title')}
+          title={t(readOnly ? 'library.readOnlyHint' : 'library.sharedHint', { owner: shared.ownerName ?? shared.ownerEmail ?? '' })}
+        >
+          <Eye size={14} />
           <span className="only-desktop">
             {' '}
             {t(readOnly ? 'library.readOnlyOf' : 'library.sharedOf', { owner: shared.ownerName ?? shared.ownerEmail ?? '' })}
           </span>
-        )}
-      </button>}
+        </button>
+      )}
       <SpeedButton />
       {working && !indexing && (
         <span className="sync-info" aria-live="polite" title={t('classify.workingHint')}>
@@ -465,6 +465,12 @@ function TopBar() {
       <button className="icon-btn" onClick={() => set({ settingsOpen: true })} aria-label={t('nav.settings')} title={t('nav.settings')}>
         <SettingsIcon />
       </button>
+      {/* One's own MyMedia, others share theirs: a grey eye next to the account to open them. */}
+      {!shared && othersShared && (
+        <button className="icon-btn library-btn" onClick={() => set({ libraryOpen: true })} aria-label={t('library.title')} title={t('library.title')}>
+          <Eye />
+        </button>
+      )}
       <AccountButton />
     </header>
   )

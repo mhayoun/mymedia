@@ -498,9 +498,10 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 /* MyMedia shared with this account. */
 .shared-libraries { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-block: 8px; }
 .shared-libraries .tag { background: var(--warn-bg); color: var(--warn-text); }
-.shared-badge { border: 0; background: none; color: var(--text-2); border-radius: 999px; padding: 2px 6px; font: inherit; cursor: pointer; }
+.shared-badge { border: 0; border-radius: 999px; padding: 2px 10px; font: inherit; cursor: pointer; }
+.library-btn { color: var(--text-2); }
 /* Another account's MyMedia is open: green. */
-.topbar .shared-badge.on { --ok: #1a7f37; background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); padding: 2px 10px; }
+.topbar .shared-badge.on { --ok: #1a7f37; background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
 @media (prefers-color-scheme: dark) { .topbar .shared-badge.on { --ok: #3fb950; } }
 
 /* Accounts used on this device, under the account photo. */
