@@ -49,6 +49,15 @@ const fr: HelpContent = {
       ],
     },
     {
+      title: 'Installer sur le téléphone',
+      items: [
+        'iPhone : ouvrez MyMedia dans Safari, touchez le bouton Partager (le carré avec une flèche vers le haut), puis « Sur l’écran d’accueil » et Ajouter. Si vous ne le voyez pas, faites défiler la liste vers le bas.',
+        'Ensuite, ouvrez MyMedia depuis sa nouvelle icône : il s’affiche en plein écran, comme une application. Connectez-vous une fois à Google dans cette icône (elle ne partage pas la connexion de Safari).',
+        'Sur iPhone, Apple ne permet pas de partager une photo vers MyMedia depuis Photos ou WhatsApp : utilisez le bouton Ajouter dans MyMedia.',
+        'Android : ouvrez MyMedia dans Chrome, menu ⋮ → « Installer l’application » (ou « Ajouter à l’écran d’accueil »). MyMedia apparaît alors aussi dans Partager.',
+      ],
+    },
+    {
       title: 'Classer automatiquement',
       items: [
         '« À classer » : photos posées en vrac. MyMedia propose l’album le plus probable avec un pourcentage ; un toucher suffit pour accepter.',
@@ -176,6 +185,15 @@ const en: HelpContent = {
       ],
     },
     {
+      title: 'Install on your phone',
+      items: [
+        'iPhone: open MyMedia in Safari, tap the Share button (the square with an arrow pointing up), then « Add to Home Screen » and Add. If you do not see it, scroll the list down.',
+        'Then open MyMedia from its new icon: it fills the screen, like an app. Sign in to Google once in this icon (it does not share Safari’s sign-in).',
+        'On iPhone, Apple does not let you share a photo to MyMedia from Photos or WhatsApp: use the Add button in MyMedia.',
+        'Android: open MyMedia in Chrome, menu ⋮ → « Install app » (or « Add to Home screen »). MyMedia then also shows up in Share.',
+      ],
+    },
+    {
       title: 'Automatic classification',
       items: [
         '"To classify": loose photos. MyMedia suggests the most likely album with a percentage; one tap accepts it.',
@@ -300,6 +318,15 @@ const he: HelpContent = {
         'התמונות הממוזערות שעל המסך מופיעות ראשונות, מלמעלה למטה; הבאות מוכנות ברקע החל מהמקום שבו אתם נמצאים.',
         'בתחתית התפריט: המקום ב-Google Drive (בשימוש, פנוי, והחלק של MyMedia).',
         'בטלפון, כשאלבום פתוח, השם שלו והכפתורים עריכה, אלבום חדש ומחיקה נמצאים בשורה הראשונה.',
+      ],
+    },
+    {
+      title: 'התקנה בטלפון',
+      items: [
+        'אייפון: פתחו את MyMedia ב־Safari, הקישו על כפתור השיתוף (הריבוע עם החץ למעלה), ואז « הוספה למסך הבית » ו«הוספה». אם אינכם רואים אותו, גללו את הרשימה למטה.',
+        'אחר כך פתחו את MyMedia מהסמל החדש: הוא נפתח במסך מלא, כמו אפליקציה. התחברו ל־Google פעם אחת דרך הסמל הזה (הוא לא משתמש בחיבור של Safari).',
+        'באייפון, Apple לא מאפשרת לשתף תמונה ל־MyMedia מתוך תמונות או WhatsApp: השתמשו בכפתור הוספה בתוך MyMedia.',
+        'אנדרואיד: פתחו את MyMedia ב־Chrome, תפריט ⋮ ← « התקנת האפליקציה » (או « הוספה למסך הבית »). כך MyMedia מופיע גם בתפריט השיתוף.',
       ],
     },
     {
