@@ -1,15 +1,17 @@
-import { ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Eye, Folder, FolderOpen, Gauge, Images, Inbox, MessagesSquare, MonitorDown, Plus, ScrollText, Share2, Sparkles, Upload, Users, Wand2, Store } from 'lucide-react'
-import { useEffect, useState, useSyncExternalStore, type ReactNode } from 'react'
+import { CalendarDays, ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Eye, Folder, FolderOpen, Gauge, Images, Inbox, MessagesSquare, MonitorDown, Plus, ScrollText, Share2, Sparkles, Upload, Users, Wand2, Store } from 'lucide-react'
+import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { storageQuota, type DriveQuota } from '../drive/api'
+import { LOCALES } from '../i18n'
 import { useFormat } from '../i18n/format'
+import { buildPeriods, periodLabel } from '../lib/periods'
 import { useApp } from '../store'
 import { FaceImg } from './FaceImg'
 import { Modal } from './Dialog'
 import { canPromptInstall, installHow, isInstalled, promptInstall, subscribeInstall } from '../lib/install'
 import type { ProvenanceEntry } from '../lib/provenance'
-import { AUTO, PEOPLE, TO_CLASSIFY, UNFILED, type FolderInfo, type Library } from './useLibrary'
+import { AUTO, filterItems, PEOPLE, TO_CLASSIFY, UNFILED, type FolderInfo, type Library } from './useLibrary'
 import type { People } from './usePeople'
 import { useProvenanceLabel } from './useProvenanceLabel'
 
@@ -151,6 +153,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
             ))}
           </>
         )}
+        <DatesList lib={lib} />
         <ProvenanceList lib={lib} />
         <h2 />
         {!shared && (
@@ -224,6 +227,67 @@ function FoldButton({ open, label, onClick }: { open: boolean; label: string; on
     <button className="nav-fold" aria-expanded={open} aria-label={label} title={label} onClick={onClick}>
       {open ? <ChevronDown size={16} /> : <ChevronRight size={16} className="flip-rtl" />}
     </button>
+  )
+}
+
+/**
+ * Years (and their months) of the media shown, by date taken. The period
+ * chosen narrows the category, album or person open (shown as a filter chip).
+ */
+function DatesList({ lib }: { lib: Library }) {
+  const { t, i18n } = useTranslation()
+  const filters = useApp((s) => s.filters)
+  const setFilters = useApp((s) => s.setFilters)
+  const rootId = useApp((s) => s.rootId)
+  const set = useApp((s) => s.set)
+  const [listOpen, toggle] = useFolded('dates')
+  const [openYear, setOpenYear] = useState<string | null>(null)
+  const { period, ...place } = filters
+  const years = useMemo(
+    () => (rootId ? buildPeriods(filterItems(lib, { ...place, period: null }, rootId).map((i) => i.rec.takenAt)) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lib, rootId, JSON.stringify(place)],
+  )
+  if (!years.length) return null
+  const locale = LOCALES[i18n.language as keyof typeof LOCALES] ?? 'en-US'
+  // Clicked again: the period is no longer chosen.
+  const choose = (p: string) => {
+    setFilters({ period: period === p ? null : p })
+    set({ sidebarOpen: false })
+  }
+  return (
+    <>
+      <div className="nav-row">
+        <h2>{t('dates.title')}</h2>
+        <FoldButton open={listOpen} label={t('dates.title')} onClick={toggle} />
+      </div>
+      {listOpen &&
+        years.map((y) => {
+          const shown = openYear === y.year || !!period?.startsWith(`${y.year}-`)
+          return (
+            <div key={y.year}>
+              <div className="nav-row">
+                <button className="nav-item" aria-current={period === y.year} onClick={() => choose(y.year)}>
+                  <CalendarDays size={18} />
+                  <span className="label">{y.year}</span>
+                  <span className="count">{y.count}</span>
+                </button>
+                <FoldButton open={shown} label={y.year} onClick={() => setOpenYear(shown ? null : y.year)} />
+              </div>
+              {shown && (
+                <div className="nav-children">
+                  {y.months.map((m) => (
+                    <button key={m.key} className="nav-item" aria-current={period === m.key} onClick={() => choose(m.key)}>
+                      <span className="label">{periodLabel(m.key, locale)}</span>
+                      <span className="count">{m.count}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+    </>
   )
 }
 

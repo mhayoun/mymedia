@@ -85,8 +85,8 @@
   },
   "gallery": {
     "loadNew": "Charger les nouveaux fichiers",
-    "viewGrid": "Grille",
-    "viewAlbums": "Albums",
+    "viewGrid": "Sans regroupement",
+    "viewAlbums": "Par album",
     "sort": "Trier",
     "sortNewest": "Récents",
     "sortOldest": "Anciens",
@@ -102,7 +102,10 @@
     "count_one": "{{count}} média",
     "count_other": "{{count}} médias",
     "noAlbum": "Sans album",
-    "video": "Vidéo"
+    "video": "Vidéo",
+    "groupBy": "Regrouper",
+    "viewYears": "Par année",
+    "viewMonths": "Par mois"
   },
   "sync": {
     "scanning": "Lecture de vos dossiers Drive… {{done}} fichiers trouvés",
@@ -956,5 +959,9 @@
     "partly": "Terminé, mais {{failed}} photo(s) sur {{total}} n'ont pas pu être reprises. Relancez : ce qui est fait reste fait. Détail de Google : {{reason}}",
     "direct": "Tout reprendre maintenant",
     "reconnect": "Google demande de renouveler la connexion. Cliquez ci-dessous : la reprise continue là où elle s'est arrêtée."
+  },
+  "dates": {
+    "title": "Dates",
+    "none": "Sans date"
   }
 }

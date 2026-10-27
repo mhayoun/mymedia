@@ -87,8 +87,8 @@
   },
   "gallery": {
     "loadNew": "טעינת קבצים חדשים",
-    "viewGrid": "רשת",
-    "viewAlbums": "אלבומים",
+    "viewGrid": "ללא קיבוץ",
+    "viewAlbums": "לפי אלבום",
     "sort": "מיון",
     "sortNewest": "חדשים",
     "sortOldest": "ישנים",
@@ -105,7 +105,10 @@
     "count_two": "{{count}} פריטים",
     "count_other": "{{count}} פריטים",
     "noAlbum": "ללא אלבום",
-    "video": "סרטון"
+    "video": "סרטון",
+    "groupBy": "קיבוץ",
+    "viewYears": "לפי שנה",
+    "viewMonths": "לפי חודש"
   },
   "sync": {
     "scanning": "קורא את תיקיות ה-Drive… נמצאו {{done}} קבצים",
@@ -1032,5 +1035,9 @@
     "partly": "הסתיים, אבל {{failed}} מתוך {{total}} תמונות לא הוחזרו. אפשר להריץ שוב: מה שנעשה נשאר. פירוט מ-Google: {{reason}}",
     "direct": "להחזיר הכול עכשיו",
     "reconnect": "Google מבקש לחדש את החיבור. לחצו למטה: ההחזרה תמשיך מהמקום שבו נעצרה."
+  },
+  "dates": {
+    "title": "תאריכים",
+    "none": "ללא תאריך"
   }
 }

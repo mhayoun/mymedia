@@ -1,6 +1,8 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { LOCALES } from '../i18n'
+import { periodLabel, periodOf } from '../lib/periods'
 import { ALBUM_SEPARATOR, type FolderNode } from '../lib/tree'
 import { useApp } from '../store'
 import { prepareLinks, warmThumbs } from '../sync/thumbs'
@@ -28,7 +30,7 @@ function useWidth(ref: React.RefObject<HTMLElement | null>) {
 }
 
 export function Gallery({ items, folderId, folders }: { items: LibraryItem[]; folderId?: string | null; folders?: ReadonlyMap<string, FolderNode> }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const view = useApp((s) => s.settings.view)
   const viewerId = useApp((s) => s.viewerId)
   const set = useApp((s) => s.set)
@@ -55,9 +57,25 @@ export function Gallery({ items, folderId, folders }: { items: LibraryItem[]; fo
         out.push({ kind: 'header', key: `h:${g.key}`, parts: parts.length ? parts : [t('nav.unfiled')], count: g.items.length })
         chunk(g.items, g.key)
       }
+    } else if (view === 'years' || view === 'months') {
+      const locale = LOCALES[i18n.language as keyof typeof LOCALES] ?? 'en-US'
+      const groups = new Map<string, LibraryItem[]>()
+      for (const it of items) {
+        const key = periodOf(it.rec.takenAt, view === 'years' ? 'year' : 'month') ?? ''
+        const g = groups.get(key)
+        if (g) g.push(it)
+        else groups.set(key, [it])
+      }
+      // Newest period first (oldest first when sorted so); no date at the end.
+      const keys = [...groups.keys()].sort((a, b) => (!a ? 1 : !b ? -1 : sort === 'oldest' ? a.localeCompare(b) : b.localeCompare(a)))
+      for (const key of keys) {
+        const list = groups.get(key)!
+        out.push({ kind: 'header', key: `h:${key}`, parts: [key ? periodLabel(key, locale) : t('dates.none')], count: list.length })
+        chunk(list, key || 'none')
+      }
     } else chunk(items, 'all')
     return out
-  }, [items, cols, view, t, folderId, folders, rootId, sort])
+  }, [items, cols, view, t, i18n.language, folderId, folders, rootId, sort])
 
   const orderedIds = useMemo(
     () => rows.flatMap((r) => (r.kind === 'cells' ? r.items.map((i) => i.rec.id) : [])),

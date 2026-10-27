@@ -6,6 +6,7 @@ import { db, hasDb, type MediaRecord } from '../db/db'
 import type { MediaMeta } from '../lib/metadata'
 import { ALBUM_SEPARATOR, folderChain, isReservedFolderName, placementOf, subtreeIds, type FolderNode, type Placement } from '../lib/tree'
 import { buildProvenance, provenanceKeys, type Provenance } from '../lib/provenance'
+import { inPeriod } from '../lib/periods'
 import { compressionState, matchesQuery, searchText } from '../lib/search'
 import { useApp, type Filters, type SortMode } from '../store'
 
@@ -121,6 +122,7 @@ export function filterItems(lib: Library, filters: Filters, rootId: string, pers
 /** Search words, origin, classification and compression filters. */
 function applyExtraFilters(items: LibraryItem[], f: Filters, lib: Library): LibraryItem[] {
   if (f.type !== 'all') items = items.filter((i) => i.rec.type === f.type)
+  if (f.period) items = items.filter((i) => inPeriod(i.rec.takenAt, f.period!))
   if (f.origin) items = items.filter((i) => (i.meta?.origin ?? 'unknown') === f.origin)
   if (f.compression) items = items.filter((i) => compressionState(i.rec.appProperties, i.meta) === f.compression)
   if (f.status) {

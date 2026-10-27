@@ -1,4 +1,4 @@
-import { ArrowRightLeft, Brain, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, LayoutGrid, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Rows3, Settings as SettingsIcon, Store, Trash2, UserRound, X } from 'lucide-react'
+import { ArrowRightLeft, Brain, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Settings as SettingsIcon, Store, Trash2, UserRound, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -603,16 +603,17 @@ function Toolbar({ lib, people, count, onDialog, onAdd, onCompress }: ToolbarPro
       </div>
       )}
       <div className="toolbar-controls">
-      <button
-        className="btn view-toggle"
-        onClick={() => updateSettings({ view: settings.view === 'grid' ? 'albums' : 'grid' })}
-        title={settings.view === 'grid' ? t('gallery.viewAlbums') : t('gallery.viewGrid')}
-        aria-label={settings.view === 'grid' ? t('gallery.viewAlbums') : t('gallery.viewGrid')}
+      <select
+        aria-label={t('gallery.groupBy')}
+        title={t('gallery.groupBy')}
+        value={settings.view}
+        onChange={(e) => updateSettings({ view: e.target.value as typeof settings.view })}
       >
-        {/* One button: shows the view it switches to. */}
-        {settings.view === 'grid' ? <Rows3 size={16} /> : <LayoutGrid size={16} />}
-        <span className="only-desktop">{settings.view === 'grid' ? t('gallery.viewAlbums') : t('gallery.viewGrid')}</span>
-      </button>
+        <option value="grid">{t('gallery.viewGrid')}</option>
+        <option value="albums">{t('gallery.viewAlbums')}</option>
+        <option value="years">{t('gallery.viewYears')}</option>
+        <option value="months">{t('gallery.viewMonths')}</option>
+      </select>
       <select
         aria-label={t('gallery.sort')}
         value={settings.sort}

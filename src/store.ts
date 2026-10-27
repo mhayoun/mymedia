@@ -6,7 +6,8 @@ import { DEFAULT_COMPRESS, type CompressSettings } from './lib/compressPlan'
 import type { PaypalReturn } from './models/shop'
 
 export type Language = 'he' | 'fr' | 'en'
-export type ViewMode = 'grid' | 'albums'
+/** Gallery: all together, or under headings by album, year or month. */
+export type ViewMode = 'grid' | 'albums' | 'years' | 'months'
 export type SortMode = 'newest' | 'oldest' | 'name' | 'largest' | 'smallest'
 
 export interface Settings {
@@ -97,6 +98,8 @@ export interface Filters {
   origin?: import('./lib/media').Origin | null
   status?: 'classified' | 'toClassify' | 'toCheck' | 'auto' | null
   compression?: import('./lib/search').CompressionState | null
+  /** Date taken: a year "2024" or a month "2024-03" (lib/periods). */
+  period?: string | null
 }
 
 interface AppState {

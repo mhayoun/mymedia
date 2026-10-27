@@ -1,7 +1,9 @@
 import { CheckSquare, Search, SlidersHorizontal, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { LOCALES } from '../i18n'
 import { ORIGINS, type Origin } from '../lib/media'
+import { periodLabel } from '../lib/periods'
 import type { CompressionState } from '../lib/search'
 import { useApp, type Filters } from '../store'
 import type { FolderInfo, Library } from './useLibrary'
@@ -21,7 +23,7 @@ function folderOptions(list: FolderInfo[], depth = 0): { id: string; label: stri
 }
 
 export function FilterBar({ people, lib }: { people: People; lib: Library }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const selection = useApp((s) => s.selection)
   const readOnly = useApp((s) => s.readOnly)
   const set = useApp((s) => s.set)
@@ -37,6 +39,10 @@ export function FilterBar({ people, lib }: { people: People; lib: Library }) {
   }, [query, setFilters])
 
   const chips: { key: string; label: string; clear: () => void }[] = []
+  if (filters.period) {
+    const label = periodLabel(filters.period, LOCALES[i18n.language as keyof typeof LOCALES] ?? 'en-US')
+    chips.push({ key: 'p', label: `${t('dates.title')}: ${label}`, clear: () => setFilters({ period: null }) })
+  }
   if (filters.origin) chips.push({ key: 'o', label: `${t('viewer.origin')}: ${t(`origin.${filters.origin}`)}`, clear: () => setFilters({ origin: null }) })
   if (filters.status) chips.push({ key: 's', label: t(`filters.status.${filters.status}`), clear: () => setFilters({ status: null }) })
   if (filters.compression) chips.push({ key: 'c', label: t(`filters.compression.${filters.compression}`), clear: () => setFilters({ compression: null }) })
@@ -153,7 +159,7 @@ export function FilterBar({ people, lib }: { people: People; lib: Library }) {
             </label>
           )}
           {active > 0 && (
-            <button className="btn ghost" onClick={() => setFilters({ origin: null, status: null, compression: null })}>
+            <button className="btn ghost" onClick={() => setFilters({ origin: null, status: null, compression: null, period: null })}>
               {t('filters.clear')}
             </button>
           )}
