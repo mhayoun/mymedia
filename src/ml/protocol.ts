@@ -23,6 +23,8 @@ export type Request =
   | { type: 'calibrate'; set: PackedSet }
   | { type: 'evaluate'; set: PackedSet; tau: number }
   | { type: 'misfiled'; set: PackedSet; groups: Record<string, string> }
+  | { type: 'similar'; set: PackedSet; min: number }
+  | { type: 'sharpness'; images: Blob[] }
 
 export const MODEL_ID = 'dinov2-small-q8/cls+mean/v1'
 export const EMBED_DIM = 768

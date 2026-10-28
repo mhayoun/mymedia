@@ -346,6 +346,27 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   .review-card .cell { inline-size: 90px; block-size: 90px; }
 }
 
+/* ---------- Duplicates and blurred photos ---------- */
+.cleanup-slider { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.cleanup-slider input { inline-size: 180px; padding: 0; }
+.dup-group { margin: 0 12px 12px; padding: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+.dup-group[aria-busy='true'], .blur-grid[aria-busy='true'] { opacity: 0.55; pointer-events: none; }
+.dup-group > header { margin-block-end: 8px; flex-wrap: wrap; }
+.dup-row { display: flex; gap: 10px; overflow-x: auto; }
+.blur-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; padding: 0 12px 24px; }
+.dup-item { margin: 0; inline-size: 150px; flex-shrink: 0; display: grid; gap: 4px; font-size: 0.88rem; }
+.blur-grid .dup-item { inline-size: auto; }
+.dup-item .cell { inline-size: 100%; aspect-ratio: 1; block-size: auto; border-radius: 8px; overflow: hidden; }
+.dup-item.marked .cell { outline: 3px solid var(--danger, #d1242f); outline-offset: -3px; opacity: 0.75; }
+.dup-item figcaption { display: grid; gap: 2px; min-width: 0; }
+.dup-item figcaption .hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin: 0; }
+.dup-item label.row { gap: 6px; font-weight: 600; }
+@media (max-width: 800px) {
+  .dup-group { margin-inline: 6px; }
+  .dup-item { inline-size: 120px; }
+  .blur-grid { grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); padding-inline: 6px; }
+}
+
 /* ---------- Compression list ---------- */
 .compress-list { list-style: none; margin: 0 0 10px; padding: 0; max-block-size: 50vh; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
 .compress-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 10px; border-block-end: 1px solid var(--border); }

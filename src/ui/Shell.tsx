@@ -25,7 +25,7 @@ import { Sidebar } from './Sidebar'
 import { LibraryContext } from './libraryContext'
 import { ReviewView } from './ReviewView'
 import { StatsDialog } from './StatsDialog'
-import { AUTO, filterItems, MISFILED, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
+import { AUTO, BLURRY, DUPLICATES, filterItems, MISFILED, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
 import { clearSharedFiles, hasSharedFiles, readSharedFiles } from '../import/shared'
 import { paypalReturn } from '../models/shop'
 import { FacesIntro } from './FacesIntro'
@@ -40,6 +40,8 @@ import { PeopleContext, PersonDialogContext } from './peopleContext'
 import { PeopleView } from './PeopleView'
 import { PersonDialog } from './PersonDialog'
 import { MisfiledView } from './MisfiledView'
+import { DuplicatesView } from './DuplicatesView'
+import { BlurryView } from './BlurryView'
 import { MoveFolderDialog } from './MoveFolderDialog'
 import { usePeople, type People } from './usePeople'
 import { useProvenanceLabel } from './useProvenanceLabel'
@@ -122,7 +124,7 @@ export function Shell() {
 
   const personMedia = filters.personId ? people.byId.get(filters.personId)?.mediaIds : undefined
   // Folder shown (album or category), used by Add and Compress in the top bar.
-  const specialView = [UNFILED, TO_CLASSIFY, AUTO, PEOPLE, MISFILED].includes(filters.categoryId ?? '') || !!filters.personId || !!filters.provenance
+  const specialView = [UNFILED, TO_CLASSIFY, AUTO, PEOPLE, MISFILED, DUPLICATES, BLURRY].includes(filters.categoryId ?? '') || !!filters.personId || !!filters.provenance
   const currentFolderId = filters.albumId ?? (!specialView && filters.categoryId && lib.folders.has(filters.categoryId) ? filters.categoryId : null)
   const currentTitle = currentFolderId
     ? (lib.folders.get(currentFolderId)?.name ?? '')
@@ -131,6 +133,8 @@ export function Shell() {
       : filters.provenance
         ? provenance.title(lib, filters.provenance)
         : t('nav.allMedia')
+  // Screens without the search line (Add and Compress then go in the toolbar, if it has them).
+  const noSearch = [PEOPLE, MISFILED, DUPLICATES, BLURRY].includes(filters.categoryId ?? '')
   const addCompress = !readOnly && (
     <>
       <button className="btn primary" onClick={() => setDialog({ kind: 'import', destId: currentFolderId ?? rootId! })} title={t('import.button')}>
@@ -172,12 +176,16 @@ export function Shell() {
             onDialog={setDialog}
             actions={filters.categoryId === MISFILED ? addCompress : undefined}
           />
-          {filters.categoryId !== PEOPLE && filters.categoryId !== MISFILED && <FilterBar people={people} lib={lib} actions={addCompress} />}
+          {!noSearch && <FilterBar people={people} lib={lib} actions={addCompress} />}
           </div>
           {filters.categoryId === PEOPLE ? (
             <PeopleView people={people} />
           ) : filters.categoryId === MISFILED ? (
             <MisfiledView lib={lib} />
+          ) : filters.categoryId === DUPLICATES ? (
+            <DuplicatesView lib={lib} />
+          ) : filters.categoryId === BLURRY ? (
+            <BlurryView lib={lib} />
           ) : lib.ready && items.length === 0 ? (
             <EmptyState />
           ) : filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO ? (
@@ -605,7 +613,7 @@ function Toolbar({ lib, people, count, onDialog, actions }: ToolbarProps) {
   const readOnly = useApp((s) => s.readOnly)
 
   const special =
-    filters.categoryId === UNFILED || filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO || filters.categoryId === PEOPLE || filters.categoryId === MISFILED || !!filters.personId || !!filters.provenance
+    filters.categoryId === UNFILED || filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO || filters.categoryId === PEOPLE || filters.categoryId === MISFILED || filters.categoryId === DUPLICATES || filters.categoryId === BLURRY || !!filters.personId || !!filters.provenance
   const folderId = filters.albumId ?? (!special ? filters.categoryId : null)
   const folder = folderId ? lib.folders.get(folderId) : undefined
   const folderCount = useMemo(() => {
@@ -629,6 +637,10 @@ function Toolbar({ lib, people, count, onDialog, actions }: ToolbarProps) {
       ? t('faces.people')
       : filters.categoryId === MISFILED
       ? t('misfiled.title')
+      : filters.categoryId === DUPLICATES
+      ? t('cleanup.duplicates')
+      : filters.categoryId === BLURRY
+      ? t('cleanup.blurry')
       : filters.categoryId === UNFILED
       ? t('nav.unfiled')
       : filters.categoryId === TO_CLASSIFY
@@ -640,7 +652,7 @@ function Toolbar({ lib, people, count, onDialog, actions }: ToolbarProps) {
             : t('nav.allMedia')
 
 
-  if (filters.categoryId === PEOPLE) {
+  if (filters.categoryId === PEOPLE || filters.categoryId === DUPLICATES || filters.categoryId === BLURRY) {
     return (
       <div className="toolbar">
         <h1>

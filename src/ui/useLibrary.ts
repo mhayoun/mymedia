@@ -17,6 +17,10 @@ export const TO_CLASSIFY = '__toClassify'
 export const AUTO = '__auto'
 /** Album photos that look more like another album ("Possibly misfiled"). */
 export const MISFILED = '__misfiled'
+/** Photos that look alike ("Duplicates"). */
+export const DUPLICATES = '__duplicates'
+/** Blurred photos. */
+export const BLURRY = '__blurry'
 /** The "People" screen. */
 export const PEOPLE = '__people'
 

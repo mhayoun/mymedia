@@ -4,6 +4,8 @@
 
 import * as ort from 'onnxruntime-web/wasm'
 import { average, calibrate, evaluate, findMisfiled, predict, quantize, type LabeledVec, type Vec } from '../lib/classifier'
+import { sharpness, toGrey } from '../lib/sharpness'
+import { similarPairs } from '../lib/similar'
 import { findFaces, initFaceModels } from './faceModel'
 import type { PackedSet, Request } from './protocol'
 
@@ -88,6 +90,21 @@ async function embedOne(blob: Blob): Promise<Vec> {
   return quantize(both)
 }
 
+/** Pictures are measured at this size, whatever the thumbnail's (the score depends on it). */
+const SHARPNESS_SIZE = 256
+
+async function sharpnessOf(blob: Blob): Promise<number> {
+  const bitmap = await createImageBitmap(blob)
+  const scale = SHARPNESS_SIZE / Math.max(bitmap.width, bitmap.height)
+  const w = Math.max(1, Math.round(bitmap.width * scale))
+  const h = Math.max(1, Math.round(bitmap.height * scale))
+  const canvas = new OffscreenCanvas(w, h)
+  const ctx = canvas.getContext('2d')!
+  ctx.drawImage(bitmap, 0, 0, w, h)
+  bitmap.close()
+  return sharpness(toGrey(ctx.getImageData(0, 0, w, h).data), w, h)
+}
+
 function unpack(set: PackedSet): LabeledVec[] {
   return set.ids.map((id, i) => ({ id, label: set.labels[i], vec: set.data.subarray(i * set.dim, (i + 1) * set.dim) }))
 }
@@ -131,6 +148,15 @@ async function handle(req: Request): Promise<unknown> {
       return evaluate(unpack(req.set), req.tau)
     case 'misfiled':
       return findMisfiled(unpack(req.set), new Map(Object.entries(req.groups)))
+    case 'similar': {
+      const all = unpack(req.set)
+      return similarPairs(all.map((e) => e.id), all.map((e) => e.vec), req.min)
+    }
+    case 'sharpness': {
+      const out: (number | null)[] = []
+      for (const blob of req.images) out.push(await sharpnessOf(blob).catch(() => null))
+      return out
+    }
   }
 }
 

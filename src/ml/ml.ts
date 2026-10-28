@@ -1,6 +1,7 @@
 // App side of the ML worker.
 
 import type { Calibration, LabelStats, Misfiled, Prediction } from '../lib/classifier'
+import type { Pair } from '../lib/similar'
 import type { FoundFace } from './faceModel'
 import type { PackedSet, Query, Request } from './protocol'
 
@@ -55,6 +56,16 @@ export function evaluateSet(set: PackedSet, tau: number): Promise<LabelStats[]> 
 /** Album photos that resemble another album of their category more than their own. */
 export function misfiledIn(set: PackedSet, groups: Record<string, string>): Promise<Misfiled[]> {
   return call({ type: 'misfiled', set, groups })
+}
+
+/** Pairs of photos that look alike (resemblance `min` or more). */
+export function similarIn(set: PackedSet, min: number): Promise<Pair[]> {
+  return call({ type: 'similar', set, min })
+}
+
+/** Sharpness of each picture (null: unreadable). */
+export function sharpnessIn(images: Blob[]): Promise<(number | null)[]> {
+  return call({ type: 'sharpness', images })
 }
 
 /** Faces in each image (detection + fingerprint), computed on the device. */

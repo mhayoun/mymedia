@@ -965,5 +965,37 @@
   "dates": {
     "title": "Dates",
     "none": "No date"
+  },
+  "cleanup": {
+    "duplicates": "Duplicates",
+    "blurry": "Blurred photos",
+    "dupComputing": "Comparing the photos with each other…",
+    "similarity": "Minimum resemblance: {{n}} %",
+    "dupHint_one": "1 group of photos that look alike. The best one (the largest) is kept, the others are ticked for the bin.",
+    "dupHint_other": "{{count}} groups of photos that look alike. The best one (the largest) is kept, the others are ticked for the bin.",
+    "dupNone": "No duplicates at this resemblance.",
+    "dupWaiting_one": "1 photo not analysed yet is not compared.",
+    "dupWaiting_other": "{{count}} photos not analysed yet are not compared.",
+    "sameFile": "Same file",
+    "alike": "Resemblance {{n}} %",
+    "best": "Best: kept",
+    "keep": "Kept",
+    "toBin": "To the bin",
+    "trash_one": "Bin (1)",
+    "trash_other": "Bin ({{count}})",
+    "notDuplicates": "Not duplicates",
+    "trashed_one": "1 photo moved to Drive's bin (can be restored for 30 days).",
+    "trashed_other": "{{count}} photos moved to Drive's bin (can be restored for 30 days).",
+    "blurComputing": "Measuring sharpness… {{done}} / {{total}}",
+    "severity": "Severity",
+    "blurHint_one": "1 photo where nothing is sharp. Slide the severity to see more or fewer.",
+    "blurHint_other": "{{count}} photos where nothing is sharp, most blurred first. Slide the severity to see more or fewer.",
+    "blurNone": "No blurred photos at this severity.",
+    "blurMissing_one": "1 photo without a thumbnail on this device is not measured.",
+    "blurMissing_other": "{{count}} photos without a thumbnail on this device are not measured.",
+    "selectShown": "Tick all",
+    "notBlurry_one": "Not blurred (1)",
+    "notBlurry_other": "Not blurred ({{count}})",
+    "sharpness": "Sharpness {{n}}"
   }
 }

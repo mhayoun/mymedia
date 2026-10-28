@@ -107,6 +107,8 @@ const fr: HelpContent = {
         'Sélectionner (ou appui long sur une photo) : déplacer, créer un album, décrire, ajouter une personne, compresser, supprimer plusieurs fichiers d’un coup. Dans « À classer » et « Classés automatiquement », toucher une photo la coche directement et la loupe 🔍 l’ouvre en grand.',
         'Trier par « Plus gros » pour voir ce qui prend de la place ; la taille s’affiche sur chaque vignette.',
         'Menu → Provenance : les photos par groupe Facebook ou par import (dossier ou ZIP, avec le jour).',
+        'Doublons (menu de gauche) : les photos qui se ressemblent, par groupes. La plus grande est gardée, les autres sont cochées ; « Corbeille » les met dans la corbeille de Drive (récupérables 30 jours), « Pas des doublons » ne propose plus le groupe. Le curseur règle la ressemblance (95 % par défaut). Seules les photos déjà analysées sont comparées.',
+        'Photos floues (menu de gauche) : les photos où rien n’est net, la plus floue en premier. Un oiseau net sur un fond flou n’est pas compté comme flou. Le curseur Sévérité en montre plus ou moins ; « Pas floue » retire une photo de la liste.',
       ],
     },
     {
@@ -243,6 +245,8 @@ const en: HelpContent = {
         'Select (or long press a photo): move, create an album, describe, add a person, compress, delete several files at once. In “To classify” and “Auto”, tapping a photo ticks it directly and the magnifier 🔍 opens it large.',
         'Sort by "Largest" to see what takes space; the size shows on each thumbnail.',
         'Menu → Provenance: photos by Facebook group or by import (folder or ZIP, with the day).',
+        'Duplicates (left menu): photos that look alike, in groups. The largest is kept, the others are ticked; « Bin » moves them to Drive\'s bin (can be restored for 30 days), « Not duplicates » stops showing the group. The slider sets the resemblance (95 % by default). Only photos already analysed are compared.',
+        'Blurred photos (left menu): photos where nothing is sharp, most blurred first. A sharp bird on a blurred background does not count as blurred. The Severity slider shows more or fewer; « Not blurred » removes a photo from the list.',
       ],
     },
     {
@@ -379,6 +383,8 @@ const he: HelpContent = {
         'בחירה (או לחיצה ארוכה על תמונה): העברה, יצירת אלבום, תיאור, הוספת אדם, דחיסה ומחיקה של כמה קבצים בבת אחת. ב„למיון” וב„מוינו אוטומטית”, נגיעה בתמונה מסמנת אותה ישירות וזכוכית המגדלת 🔍 פותחת אותה בגדול.',
         'מיון לפי "הגדולים ביותר" כדי לראות מה תופס מקום; הגודל מופיע על כל תמונה ממוזערת.',
         'תפריט ← מקור: תמונות לפי קבוצת פייסבוק או לפי ייבוא (תיקייה או ZIP, עם היום).',
+        'כפילויות (בתפריט הצד): תמונות דומות, בקבוצות. הגדולה ביותר נשמרת והאחרות מסומנות; « לפח » מעביר אותן לפח של Drive (אפשר לשחזר במשך 30 יום), « לא כפילויות » מפסיק להציג את הקבוצה. הסרגל קובע את רמת הדמיון (95% כברירת מחדל). רק תמונות שכבר נותחו מושוות.',
+        'תמונות מטושטשות (בתפריט הצד): תמונות שאין בהן שום דבר חד, המטושטשת ביותר ראשונה. ציפור חדה על רקע מטושטש לא נחשבת מטושטשת. סרגל החומרה מציג יותר או פחות; « לא מטושטשת » מוציא תמונה מהרשימה.',
       ],
     },
     {

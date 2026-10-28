@@ -963,5 +963,37 @@
   "dates": {
     "title": "Dates",
     "none": "Sans date"
+  },
+  "cleanup": {
+    "duplicates": "Doublons",
+    "blurry": "Photos floues",
+    "dupComputing": "Comparaison des photos entre elles…",
+    "similarity": "Ressemblance minimale : {{n}} %",
+    "dupHint_one": "1 groupe de photos qui se ressemblent. La meilleure (la plus grande) est gardée, les autres sont cochées pour la corbeille.",
+    "dupHint_other": "{{count}} groupes de photos qui se ressemblent. La meilleure (la plus grande) est gardée, les autres sont cochées pour la corbeille.",
+    "dupNone": "Aucun doublon à ce niveau de ressemblance.",
+    "dupWaiting_one": "1 photo pas encore analysée n'est pas comparée.",
+    "dupWaiting_other": "{{count}} photos pas encore analysées ne sont pas comparées.",
+    "sameFile": "Même fichier",
+    "alike": "Ressemblance {{n}} %",
+    "best": "Meilleure : gardée",
+    "keep": "Gardée",
+    "toBin": "À la corbeille",
+    "trash_one": "Corbeille (1)",
+    "trash_other": "Corbeille ({{count}})",
+    "notDuplicates": "Pas des doublons",
+    "trashed_one": "1 photo mise à la corbeille de Drive (récupérable pendant 30 jours).",
+    "trashed_other": "{{count}} photos mises à la corbeille de Drive (récupérables pendant 30 jours).",
+    "blurComputing": "Mesure de la netteté… {{done}} / {{total}}",
+    "severity": "Sévérité",
+    "blurHint_one": "1 photo où rien n'est net. Glissez la sévérité pour en voir plus ou moins.",
+    "blurHint_other": "{{count}} photos où rien n'est net, la plus floue en premier. Glissez la sévérité pour en voir plus ou moins.",
+    "blurNone": "Aucune photo floue à ce niveau de sévérité.",
+    "blurMissing_one": "1 photo sans vignette sur cet appareil n'est pas mesurée.",
+    "blurMissing_other": "{{count}} photos sans vignette sur cet appareil ne sont pas mesurées.",
+    "selectShown": "Tout cocher",
+    "notBlurry_one": "Pas floue (1)",
+    "notBlurry_other": "Pas floues ({{count}})",
+    "sharpness": "Netteté {{n}}"
   }
 }

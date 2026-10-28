@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronDown, ChevronRight, CircleHelp, Cloud, Download, Eye, Folder, FolderOpen, Gauge, Images, Inbox, MessagesSquare, MonitorDown, Plus, ScrollText, Share2, Sparkles, Upload, Users, Wand2, Store } from 'lucide-react'
+import { CalendarDays, ChevronDown, ChevronRight, CircleHelp, Cloud, Copy, Download, Eye, Focus, Folder, FolderOpen, Gauge, Images, Inbox, MessagesSquare, MonitorDown, Plus, ScrollText, Share2, Sparkles, Upload, Users, Wand2, Store } from 'lucide-react'
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -11,7 +11,7 @@ import { FaceImg } from './FaceImg'
 import { Modal } from './Dialog'
 import { canPromptInstall, installHow, isInstalled, promptInstall, subscribeInstall } from '../lib/install'
 import type { ProvenanceEntry } from '../lib/provenance'
-import { AUTO, filterItems, PEOPLE, TO_CLASSIFY, UNFILED, type FolderInfo, type Library } from './useLibrary'
+import { AUTO, BLURRY, DUPLICATES, filterItems, PEOPLE, TO_CLASSIFY, UNFILED, type FolderInfo, type Library } from './useLibrary'
 import type { People } from './usePeople'
 import { useProvenanceLabel } from './useProvenanceLabel'
 
@@ -83,6 +83,18 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
             <span className="label">{t('nav.unfiled')}</span>
             <span className="count">{lib.unfiledCount}</span>
           </button>
+        )}
+        {!readOnly && (
+          <>
+            <button className="nav-item" aria-current={filters.categoryId === DUPLICATES} onClick={() => select(DUPLICATES, null)}>
+              <Copy size={18} />
+              <span className="label">{t('cleanup.duplicates')}</span>
+            </button>
+            <button className="nav-item" aria-current={filters.categoryId === BLURRY} onClick={() => select(BLURRY, null)}>
+              <Focus size={18} />
+              <span className="label">{t('cleanup.blurry')}</span>
+            </button>
+          </>
         )}
         {categoriesOpen && <>
         <h2>{t('nav.categories')}</h2>
