@@ -12,7 +12,7 @@ import { trashMedia } from '../sync/media'
 import { updateMeta } from '../sync/metaStore'
 import { streamUrl } from '../sync/stream'
 import { loadOriginal, loadPreview, prefetchPreviews, previewIsOriginal, showable } from '../sync/previews'
-import { canRotate, rotateMedia } from '../sync/rotate'
+import { cannotRotate, rotateMedia } from '../sync/rotate'
 import { cachedThumbUrl, setViewing, thumbVersion } from '../sync/thumbs'
 import { chooseFolder } from '../classify/engine'
 import { assignFaces, namePerson, removeFaces, splitFaces } from '../faces/engine'
@@ -36,6 +36,7 @@ interface Props {
 
 export function Viewer({ ids, items }: Props) {
   const { t, i18n } = useTranslation()
+  const fmt = useFormat()
   const viewerId = useApp((s) => s.viewerId)!
   const set = useApp((s) => s.set)
   const byId = useMemo(() => new Map(items.map((i) => [i.rec.id, i])), [items])
@@ -45,17 +46,22 @@ export function Viewer({ ids, items }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const readOnly = useApp((s) => s.readOnly)
   const rtl = i18n.dir() === 'rtl'
-  // Quarter turns asked and not saved yet: the photo is shown turned meanwhile.
-  const [turning, setTurning] = useState<{ id: string; turns: number }>({ id: '', turns: 0 })
+  // Quarter turns asked and not saved yet: the photo or video is shown turned meanwhile.
+  const [turning, setTurning] = useState<{ id: string; turns: number; progress: number | null }>({ id: '', turns: 0, progress: null })
   const pendingTurns = turning.id === viewerId ? turning.turns : 0
   const rotate = (turns: 1 | -1) => {
     const id = viewerId
-    const add = (n: number) => setTurning((p) => ({ id, turns: (p.id === id ? p.turns : 0) + n }))
+    const add = (n: number) => setTurning((p) => ({ id, turns: (p.id === id ? p.turns : 0) + n, progress: p.id === id ? p.progress : null }))
     add(turns)
-    rotateMedia(id, turns)
-      .catch((e) => app().set({ toast: { key: 'rotate.failed', detail: e instanceof Error ? e.message : String(e) } }))
-      .finally(() => add(-turns))
+    // A video is downloaded and uploaded whole: its progress is shown.
+    rotateMedia(id, turns, (progress) => setTurning((p) => (p.id === id ? { ...p, progress } : p)))
+      .catch((e) => app().set({ toast: { key: 'rotate.failed', detail: e instanceof Error ? t(e.message) : String(e) } }))
+      .finally(() => {
+        add(-turns)
+        setTurning((p) => (p.id === id && !p.turns ? { ...p, progress: null } : p))
+      })
   }
+  const rotateBlocked = item ? cannotRotate(item.rec) : null
 
   useEffect(() => {
     setViewing(true)
@@ -119,12 +125,12 @@ export function Viewer({ ids, items }: Props) {
             </a>
           )}
           <ShareButton key={item.rec.id} item={item} />
-          {!readOnly && item.rec.type === 'photo' && (
+          {!readOnly && (
             <>
-              <button className="icon-btn" disabled={!canRotate(item.rec)} onClick={() => rotate(-1)} aria-label={t('rotate.left')} title={canRotate(item.rec) ? t('rotate.left') : t('rotate.onlyJpeg')}>
+              <button className="icon-btn" disabled={!!rotateBlocked} onClick={() => rotate(-1)} aria-label={t('rotate.left')} title={rotateBlocked ? t(rotateBlocked) : t('rotate.left')}>
                 <RotateCcw />
               </button>
-              <button className="icon-btn" disabled={!canRotate(item.rec)} onClick={() => rotate(1)} aria-label={t('rotate.right')} title={canRotate(item.rec) ? t('rotate.right') : t('rotate.onlyJpeg')}>
+              <button className="icon-btn" disabled={!!rotateBlocked} onClick={() => rotate(1)} aria-label={t('rotate.right')} title={rotateBlocked ? t(rotateBlocked) : t('rotate.right')}>
                 <RotateCw />
               </button>
             </>
@@ -148,13 +154,20 @@ export function Viewer({ ids, items }: Props) {
             <ChevronRight className="flip-rtl" />
           </button>
         )}
-        {item.rec.type === 'photo' ? (
-          // A new version (turned) is shown again from its new content.
-          <div className={`turn ${pendingTurns % 2 ? 'sideways' : ''}`} style={{ '--turn': `${pendingTurns * 90}deg` } as React.CSSProperties}>
+        {/* A new version (turned) is shown again from its new content. */}
+        <div className={`turn ${pendingTurns % 2 ? 'sideways' : ''}`} style={{ '--turn': `${pendingTurns * 90}deg` } as React.CSSProperties}>
+          {item.rec.type === 'photo' ? (
             <PhotoStage key={`${item.rec.id}:${thumbVersion(item.rec)}`} item={item} />
+          ) : (
+            <VideoStage key={`${item.rec.id}:${thumbVersion(item.rec)}`} item={item} />
+          )}
+        </div>
+        {turning.id === item.rec.id && turning.progress !== null && item.rec.type === 'video' && (
+          <div className="status">
+            <span>
+              <Loader2 size={14} className="spin" /> {t('rotate.saving', { percent: fmt.percent(turning.progress) })}
+            </span>
           </div>
-        ) : (
-          <VideoStage key={item.rec.id} item={item} />
         )}
       </div>
       {showInfo && <InfoPanel key={item.rec.id} item={item} />}

@@ -1003,9 +1003,12 @@
   "rotate": {
     "left": "Tourner à gauche",
     "right": "Tourner à droite",
-    "onlyJpeg": "Seules les photos JPEG peuvent être tournées (sans perte de qualité).",
-    "skipped_one": "1 photo n'est pas un JPEG : elle n'a pas été tournée.",
-    "skipped_other": "{{count}} photos ne sont pas des JPEG : elles n'ont pas été tournées.",
-    "failed": "La rotation n'a pas pu être enregistrée : {{detail}}"
+    "onlyJpeg": "Seules les photos JPEG et les vidéos MP4 / MOV peuvent être tournées (sans perte de qualité).",
+    "skipped_one": "1 fichier n'est ni une photo JPEG ni une vidéo MP4 / MOV (ou dépasse 1 Go) : il n'a pas été tourné.",
+    "skipped_other": "{{count}} fichiers ne sont ni des photos JPEG ni des vidéos MP4 / MOV (ou dépassent 1 Go) : ils n'ont pas été tournés.",
+    "failed": "La rotation n'a pas pu être enregistrée : {{detail}}",
+    "onlyMp4": "Seules les vidéos MP4 / MOV peuvent être tournées (sans perte de qualité).",
+    "tooBig": "Vidéo trop grande pour être tournée ici (plus de 1 Go).",
+    "saving": "Rotation de la vidéo : {{percent}}"
   }
 }

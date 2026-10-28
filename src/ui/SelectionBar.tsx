@@ -52,7 +52,7 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
     }
   }
 
-  /** Turns the selected JPEG photos (the others are left as they are, and counted). */
+  /** Turns the selected JPEG photos and MP4 / MOV videos (the others are left as they are, and counted). */
   const rotate = async (turns: 1 | -1) => {
     const list = selectedItems.filter((i) => canRotate(i.rec)).map((i) => i.rec.id)
     await each((id) => rotateMedia(id, turns), list)

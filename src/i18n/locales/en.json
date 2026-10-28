@@ -1005,9 +1005,12 @@
   "rotate": {
     "left": "Rotate left",
     "right": "Rotate right",
-    "onlyJpeg": "Only JPEG photos can be rotated (without losing quality).",
-    "skipped_one": "1 photo is not a JPEG: it was not rotated.",
-    "skipped_other": "{{count}} photos are not JPEGs: they were not rotated.",
-    "failed": "The rotation could not be saved: {{detail}}"
+    "onlyJpeg": "Only JPEG photos and MP4 / MOV videos can be turned (without losing quality).",
+    "skipped_one": "1 file is neither a JPEG photo nor an MP4 / MOV video (or is over 1 GB): it was not turned.",
+    "skipped_other": "{{count}} files are neither JPEG photos nor MP4 / MOV videos (or are over 1 GB): they were not turned.",
+    "failed": "The rotation could not be saved: {{detail}}",
+    "onlyMp4": "Only MP4 / MOV videos can be turned (without losing quality).",
+    "tooBig": "This video is too big to be turned here (over 1 GB).",
+    "saving": "Turning the video: {{percent}}"
   }
 }
