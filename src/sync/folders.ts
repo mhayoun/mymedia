@@ -51,7 +51,14 @@ export async function renameFolder(id: string, name: string): Promise<void> {
   const parent = (await getFile(id, 'id,parents')).parents?.[0]
   const same = parent ? await findFolderNamed(parent, cleanName(name), id) : null
   if (same) throw new FolderExistsError(same)
-  await renameFile(id, cleanName(name))
+  const renamed = await renameFile(id, cleanName(name))
+  // The new name in the menu at once; a load already running may have read the old one.
+  const named = () => db().folders.update(id, { name: renamed.name })
+  await named()
+  if (isSyncing()) {
+    await syncNow()
+    await named()
+  }
   await syncNow()
 }
 
