@@ -639,7 +639,9 @@
     "katiaFolder": "dossier Katia"
   },
   "newAlbum": {
-    "in": "Dans"
+    "in": "Dans",
+    "albumMade_one": "Album « {{detail}} » créé avec la photo",
+    "albumMade_other": "Album « {{detail}} » créé avec {{count}} photos"
   },
   "transfer": {
     "title": "Transfert vers un autre compte",

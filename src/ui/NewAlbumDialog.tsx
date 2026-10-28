@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder } from '../classify/engine'
 import { FolderExistsError, sameFolderName } from '../drive/api'
-import { useApp } from '../store'
+import { app, useApp } from '../store'
 import { syncNow } from '../sync/engine'
 import { newFolder, showFolder } from '../sync/folders'
 import { Modal } from './Dialog'
@@ -17,11 +17,13 @@ interface Props {
   parentId?: string
   /** Called once the media are in the new album. */
   onDone?: () => void
+  /** Stay where we are (sorting a list) instead of showing the new album. */
+  stay?: boolean
   onClose: () => void
 }
 
 /** Creates an album (name + where) and moves the given media into it. */
-export function NewAlbumDialog({ lib, ids, parentId, onDone, onClose }: Props) {
+export function NewAlbumDialog({ lib, ids, parentId, onDone, stay, onClose }: Props) {
   const { t } = useTranslation()
   const rootId = useApp((s) => s.rootId)!
   const [name, setName] = useState('')
@@ -50,7 +52,8 @@ export function NewAlbumDialog({ lib, ids, parentId, onDone, onClose }: Props) {
       onDone?.()
       onClose()
       // The new album, with its photos, in the menu and on screen.
-      await showFolder(folder.id)
+      if (stay) app().set({ toast: { key: 'newAlbum.albumMade', count: ids.length, detail: v } })
+      else await showFolder(folder.id)
       void syncNow()
     } catch (ex) {
       setError(ex instanceof FolderExistsError ? t('folders.exists') : t('errors.generic', { message: (ex as Error).message }))

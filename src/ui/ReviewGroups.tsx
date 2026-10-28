@@ -1,5 +1,5 @@
 import { Check, FolderPlus, Loader2, Trash2 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder, confirmAuto } from '../classify/engine'
 import { useFormat } from '../i18n/format'
@@ -41,8 +41,11 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
   const [shown, setShown] = useState<Record<string, number>>({})
   const [toDelete, setToDelete] = useState<{ key: string; ids: string[] } | null>(null)
-  const [newAlbumFor, setNewAlbumFor] = useState<string[] | null>(null)
+  const [newAlbumFor, setNewAlbumFor] = useState<{ key: string; ids: string[] } | null>(null)
   const analysed = useAnalysed()
+  /** The group just sorted: shown again once the list has changed (or the next one, when it is empty). */
+  const back = useRef<{ key: string; index: number; until: number } | null>(null)
+  const root = useRef<HTMLDivElement>(null)
 
   const groups = useMemo<Group[]>(() => {
     const map = new Map<string, LibraryItem[]>()
@@ -58,6 +61,19 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
       .map(([folderId, list]) => ({ folderId, items: list.sort((a, b) => conf(b) - conf(a)) }))
       .sort((a, b) => last(a.folderId) - last(b.folderId) || b.items.length - a.items.length)
   }, [items, mode, analysed])
+
+  useEffect(() => {
+    const b = back.current
+    if (!b || Date.now() > b.until || !groups.length) return
+    const same = groups.find((g) => (g.folderId || 'none') === b.key)
+    const target = same ?? groups[Math.min(b.index, groups.length - 1)]
+    root.current?.querySelector(`[data-group="${CSS.escape(target.folderId || 'none')}"]`)?.scrollIntoView({ block: 'start' })
+  }, [groups])
+  const comeBack = (key: string) => {
+    const index = groups.findIndex((g) => (g.folderId || 'none') === key)
+    // The list changes when Drive answers: the place is kept for a few seconds.
+    back.current = { key, index: Math.max(index, 0), until: Date.now() + 5000 }
+  }
 
   // Previous / next follow the groups as shown.
   const orderedIds = useMemo(() => groups.flatMap((g) => g.items.map((i) => i.rec.id)), [groups])
@@ -97,6 +113,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
         setProgress({ done: k + 1, total: ids.length })
       }
       setPicked((s) => new Set([...s].filter((id) => !ids.includes(id))))
+      comeBack(key)
     } catch (e) {
       console.error(e)
       app().set({ error: 'errors.syncFailed' })
@@ -107,7 +124,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
   }
 
   return (
-    <div className="review-groups">
+    <div className="review-groups" ref={root}>
       {groups.map((g) => {
         const key = g.folderId || 'none'
         const isAlbum = g.folderId !== NONE && g.folderId !== WAITING
@@ -116,7 +133,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
         const isBusy = busy !== null
         const limit = shown[key] ?? PAGE
         return (
-          <section className="review-group" key={key} aria-busy={busy === key}>
+          <section className="review-group" key={key} data-group={key} aria-busy={busy === key}>
             <div className="review-group-head">
               <label className="check-row">
                 <input type="checkbox" checked={all} disabled={isBusy} onChange={(e) => toggleGroup(g, e.target.checked)} />
@@ -152,7 +169,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                 <button
                   className="btn ghost"
                   disabled={isBusy || !sel.length}
-                  onClick={() => setNewAlbumFor(sel)}
+                  onClick={() => setNewAlbumFor({ key, ids: sel })}
                   title={t('select.newAlbum')}
                   aria-label={t('select.newAlbum')}
                 >
@@ -197,8 +214,12 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
       {newAlbumFor && (
         <NewAlbumDialog
           lib={lib}
-          ids={newAlbumFor}
-          onDone={() => setPicked((p) => new Set([...p].filter((id) => !newAlbumFor.includes(id))))}
+          ids={newAlbumFor.ids}
+          onDone={() => {
+            setPicked((p) => new Set([...p].filter((id) => !newAlbumFor.ids.includes(id))))
+            comeBack(newAlbumFor.key)
+          }}
+          stay
           onClose={() => setNewAlbumFor(null)}
         />
       )}

@@ -697,7 +697,10 @@
     "katiaFolder": "תיקייה מקטיה"
   },
   "newAlbum": {
-    "in": "בתוך"
+    "in": "בתוך",
+    "albumMade_one": "האלבום “{{detail}}” נוצר עם התמונה",
+    "albumMade_two": "האלבום “{{detail}}” נוצר עם {{count}} תמונות",
+    "albumMade_other": "האלבום “{{detail}}” נוצר עם {{count}} תמונות"
   },
   "transfer": {
     "title": "העברה לחשבון אחר",

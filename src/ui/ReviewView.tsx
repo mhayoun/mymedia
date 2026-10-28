@@ -248,6 +248,7 @@ export function ReviewView({ lib, items, mode }: Props) {
           lib={lib}
           ids={newAlbumFor}
           onDone={() => set({ selection: null })}
+          stay
           onClose={() => setNewAlbumFor(null)}
         />
       )}

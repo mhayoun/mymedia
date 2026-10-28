@@ -641,7 +641,9 @@
     "katiaFolder": "Katia folder"
   },
   "newAlbum": {
-    "in": "In"
+    "in": "In",
+    "albumMade_one": "Album “{{detail}}” created with the photo",
+    "albumMade_other": "Album “{{detail}}” created with {{count}} photos"
   },
   "transfer": {
     "title": "Transfer to another account",
