@@ -218,6 +218,10 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .viewer .stage img, .viewer .stage video { position: relative; z-index: 1; max-inline-size: 100%; max-block-size: 100vh; object-fit: contain; }
 /* The small thumbnail, behind the photo while it loads (never in front of it). */
 /* The full-quality photo decodes out of sight, then replaces the preview. */
+/* Turned here and not saved yet: shown turned meanwhile. */
+.viewer .stage .turn { display: contents; }
+.viewer .stage .turn img { transform: rotate(var(--turn)); transition: transform 0.2s; }
+.viewer .stage .turn.sideways img:not(.placeholder) { max-inline-size: 100vh; max-block-size: 100vw; }
 .viewer .stage img.loading-original { position: absolute; opacity: 0; pointer-events: none; }
 .viewer .stage .placeholder { position: absolute; z-index: 0; inset: 0; max-inline-size: none; max-block-size: none; inline-size: 100%; block-size: 100%; object-fit: contain; filter: blur(2px); opacity: 0.6; }
 .viewer .top { position: absolute; inset-block-start: 0; inset-inline: 0; display: flex; gap: 6px; padding: 8px; z-index: 2;
@@ -349,6 +353,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 /* ---------- Duplicates and blurred photos ---------- */
 .cleanup-slider { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .cleanup-slider input { inline-size: 180px; padding: 0; }
+.cleanup-help { flex: 1 1 100%; margin: 0; padding: 10px 12px; white-space: pre-line; background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; font-size: 0.92rem; }
 .dup-group { margin: 0 12px 12px; padding: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
 .dup-group[aria-busy='true'], .blur-grid[aria-busy='true'] { opacity: 0.55; pointer-events: none; }
 .dup-group > header { margin-block-end: 8px; flex-wrap: wrap; }

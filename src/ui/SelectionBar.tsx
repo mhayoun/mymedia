@@ -1,8 +1,9 @@
-import { CheckSquare, FolderInput, FolderPlus, Minimize2, Pencil, Trash2, UserPlus, X } from 'lucide-react'
+import { CheckSquare, FolderInput, FolderPlus, Minimize2, Pencil, RotateCcw, RotateCw, Trash2, UserPlus, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { app, useApp } from '../store'
 import { addPersonByHand, setDescription, trashMedia } from '../sync/media'
+import { canRotate, rotateMedia } from '../sync/rotate'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog, PromptDialog } from './Dialog'
 import { MoveMediaDialog } from './MoveMediaDialog'
@@ -34,21 +35,28 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
   const done = () => set({ selection: null })
 
   /** Runs `fn` on each selected media, with progress. */
-  const each = async (fn: (id: string) => Promise<unknown>) => {
-    setBusy({ done: 0, total: ids.length })
+  const each = async (fn: (id: string) => Promise<unknown>, list = ids) => {
+    setBusy({ done: 0, total: list.length })
     try {
-      for (const [n, id] of ids.entries()) {
+      for (const [n, id] of list.entries()) {
         try {
           await fn(id)
         } catch (e) {
           console.error('[MyMedia]', e)
           app().set({ error: 'errors.syncFailed' })
         }
-        setBusy({ done: n + 1, total: ids.length })
+        setBusy({ done: n + 1, total: list.length })
       }
     } finally {
       setBusy(null)
     }
+  }
+
+  /** Turns the selected JPEG photos (the others are left as they are, and counted). */
+  const rotate = async (turns: 1 | -1) => {
+    const list = selectedItems.filter((i) => canRotate(i.rec)).map((i) => i.rec.id)
+    await each((id) => rotateMedia(id, turns), list)
+    if (list.length < ids.length) app().set({ toast: { key: 'rotate.skipped', count: ids.length - list.length } })
   }
 
   return (
@@ -75,6 +83,12 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
             </button>
             <button className="btn" onClick={() => setAction('person')}>
               <UserPlus size={16} /> <span className="only-desktop">{t('select.person')}</span>
+            </button>
+            <button className="btn" onClick={() => void rotate(-1)} title={t('rotate.left')}>
+              <RotateCcw size={16} /> <span className="only-desktop">{t('rotate.left')}</span>
+            </button>
+            <button className="btn" onClick={() => void rotate(1)} title={t('rotate.right')}>
+              <RotateCw size={16} /> <span className="only-desktop">{t('rotate.right')}</span>
             </button>
             <button className="btn" onClick={() => setAction('compress')}>
               <Minimize2 size={16} /> <span className="only-desktop">{t('compress.button')}</span>

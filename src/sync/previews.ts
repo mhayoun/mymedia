@@ -109,6 +109,16 @@ export async function loadOriginal(rec: MediaRecord, onProgress: (p: number) => 
   return blob
 }
 
+/** Keeps a full-quality photo just made here (e.g. turned): shown at once, without downloading it again. */
+export async function keepOriginal(rec: MediaRecord, blob: Blob): Promise<void> {
+  const cache = await open(ORIGINAL_CACHE)
+  if (!cache) return
+  for (const k of await cache.keys(new Request(`${location.origin}/__original/${encodeURIComponent(rec.id)}`), { ignoreSearch: true }))
+    await cache.delete(k)
+  const key = new Request(`${location.origin}/__original/${encodeURIComponent(rec.id)}?v=${encodeURIComponent(thumbVersion(rec))}`)
+  await cache.put(key, new Response(blob, { headers: { 'Content-Type': blob.type || rec.mimeType } })).catch(() => undefined)
+}
+
 /** Prepares the previews of the photos around the one on screen. */
 export function prefetchPreviews(recs: (MediaRecord | undefined)[]) {
   for (const rec of recs) if (rec?.type === 'photo') void loadPreview(rec)

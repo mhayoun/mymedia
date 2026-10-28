@@ -994,6 +994,16 @@
     "selectShown": "Tout cocher",
     "notBlurry_one": "Pas floue (1)",
     "notBlurry_other": "Pas floues ({{count}})",
-    "sharpness": "Netteté {{n}}"
+    "sharpness": "Netteté {{n}}",
+    "blurHelpButton": "Que signifient les notes ?",
+    "blurHelp": "La note de netteté : plus elle est basse, plus la photo est floue.\n• en dessous d'environ 30 : très floue ;\n• de 30 à 80 : floue ou un peu floue ;\n• au-dessus de 100 : en général nette.\nMyMedia découpe la vignette en 16 zones et garde la note de la zone la plus nette : un oiseau net sur un fond flou a une bonne note. Un ciel uni, du brouillard ou un oiseau très petit et lointain peuvent avoir une note basse sans être flous.\nLe curseur Sévérité fixe la limite : à gauche, seulement les plus floues ; à droite, davantage de photos."
+  },
+  "rotate": {
+    "left": "Tourner à gauche",
+    "right": "Tourner à droite",
+    "onlyJpeg": "Seules les photos JPEG peuvent être tournées (sans perte de qualité).",
+    "skipped_one": "1 photo n'est pas un JPEG : elle n'a pas été tournée.",
+    "skipped_other": "{{count}} photos ne sont pas des JPEG : elles n'ont pas été tournées.",
+    "failed": "La rotation n'a pas pu être enregistrée : {{detail}}"
   }
 }

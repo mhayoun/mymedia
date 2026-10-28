@@ -1,4 +1,4 @@
-import { Check, Loader2, Trash2 } from 'lucide-react'
+import { Check, CircleHelp, Loader2, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { db } from '../db/db'
@@ -34,6 +34,7 @@ export function BlurryView({ lib }: { lib: Library }) {
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)
   const [shown, setShown] = useState(PAGE)
+  const [help, setHelp] = useState(false)
 
   useEffect(() => {
     const signal = { cancelled: false }
@@ -104,6 +105,16 @@ export function BlurryView({ lib }: { lib: Library }) {
           {t('cleanup.severity')}
           <input type="range" min={MIN_LEVEL} max={MAX_LEVEL} step={5} value={level} onChange={(e) => setLevel(Number(e.target.value))} />
         </label>
+        <button
+          className={`icon-btn small ${help ? 'active' : ''}`}
+          onClick={() => setHelp((v) => !v)}
+          aria-expanded={help}
+          title={t('cleanup.blurHelpButton')}
+          aria-label={t('cleanup.blurHelpButton')}
+        >
+          <CircleHelp size={18} />
+        </button>
+        {help && <p className="cleanup-help">{t('cleanup.blurHelp')}</p>}
         <p className="hint">
           {items.length ? t('cleanup.blurHint', { count: items.length }) : t('cleanup.blurNone')}
           {found.missing > 0 && <> {t('cleanup.blurMissing', { count: found.missing })}</>}

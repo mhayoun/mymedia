@@ -37,9 +37,18 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, o
   const el = useRef<HTMLButtonElement>(null)
   const press = useRef<{ timer: ReturnType<typeof setTimeout>; fired: boolean } | null>(null)
 
+  // The photo changed (e.g. turned): its new thumbnail.
+  const version = useRef(rec.modifiedTime)
   useEffect(() => {
     mounted.current = true
-    if (url) return
+    let current = url
+    if (version.current !== rec.modifiedTime) {
+      version.current = rec.modifiedTime
+      current = cachedThumbUrl(rec.id)
+      setUrl(current)
+      setDrawn(false)
+    }
+    if (current) return
     loadThumb(rec, () => mounted.current, () => screenOrder(el.current)).then((u) => {
       if (mounted.current) setUrl(u)
     })

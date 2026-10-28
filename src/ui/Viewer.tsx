@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, ExternalLink, FolderPlus, Info, Loader2, Maximize2, Play, Share2, Trash2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ExternalLink, FolderPlus, Info, Loader2, Maximize2, Play, RotateCcw, RotateCw, Share2, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -12,7 +12,8 @@ import { trashMedia } from '../sync/media'
 import { updateMeta } from '../sync/metaStore'
 import { streamUrl } from '../sync/stream'
 import { loadOriginal, loadPreview, prefetchPreviews, previewIsOriginal, showable } from '../sync/previews'
-import { cachedThumbUrl, setViewing } from '../sync/thumbs'
+import { canRotate, rotateMedia } from '../sync/rotate'
+import { cachedThumbUrl, setViewing, thumbVersion } from '../sync/thumbs'
 import { chooseFolder } from '../classify/engine'
 import { assignFaces, namePerson, removeFaces, splitFaces } from '../faces/engine'
 import { AlbumTreeChoice } from './AlbumTreeChoice'
@@ -44,6 +45,17 @@ export function Viewer({ ids, items }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const readOnly = useApp((s) => s.readOnly)
   const rtl = i18n.dir() === 'rtl'
+  // Quarter turns asked and not saved yet: the photo is shown turned meanwhile.
+  const [turning, setTurning] = useState<{ id: string; turns: number }>({ id: '', turns: 0 })
+  const pendingTurns = turning.id === viewerId ? turning.turns : 0
+  const rotate = (turns: 1 | -1) => {
+    const id = viewerId
+    const add = (n: number) => setTurning((p) => ({ id, turns: (p.id === id ? p.turns : 0) + n }))
+    add(turns)
+    rotateMedia(id, turns)
+      .catch((e) => app().set({ toast: { key: 'rotate.failed', detail: e instanceof Error ? e.message : String(e) } }))
+      .finally(() => add(-turns))
+  }
 
   useEffect(() => {
     setViewing(true)
@@ -107,6 +119,16 @@ export function Viewer({ ids, items }: Props) {
             </a>
           )}
           <ShareButton key={item.rec.id} item={item} />
+          {!readOnly && item.rec.type === 'photo' && (
+            <>
+              <button className="icon-btn" disabled={!canRotate(item.rec)} onClick={() => rotate(-1)} aria-label={t('rotate.left')} title={canRotate(item.rec) ? t('rotate.left') : t('rotate.onlyJpeg')}>
+                <RotateCcw />
+              </button>
+              <button className="icon-btn" disabled={!canRotate(item.rec)} onClick={() => rotate(1)} aria-label={t('rotate.right')} title={canRotate(item.rec) ? t('rotate.right') : t('rotate.onlyJpeg')}>
+                <RotateCw />
+              </button>
+            </>
+          )}
           {!readOnly && (
             <button className="icon-btn" onClick={() => setConfirmDelete(true)} aria-label={t('viewer.delete')} title={t('viewer.delete')}>
               <Trash2 />
@@ -126,7 +148,14 @@ export function Viewer({ ids, items }: Props) {
             <ChevronRight className="flip-rtl" />
           </button>
         )}
-        {item.rec.type === 'photo' ? <PhotoStage key={item.rec.id} item={item} /> : <VideoStage key={item.rec.id} item={item} />}
+        {item.rec.type === 'photo' ? (
+          // A new version (turned) is shown again from its new content.
+          <div className={`turn ${pendingTurns % 2 ? 'sideways' : ''}`} style={{ '--turn': `${pendingTurns * 90}deg` } as React.CSSProperties}>
+            <PhotoStage key={`${item.rec.id}:${thumbVersion(item.rec)}`} item={item} />
+          </div>
+        ) : (
+          <VideoStage key={item.rec.id} item={item} />
+        )}
       </div>
       {showInfo && <InfoPanel key={item.rec.id} item={item} />}
       {confirmDelete && (

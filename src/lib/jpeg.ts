@@ -168,6 +168,121 @@ export function resetOrientation(tiff: Uint8Array): Uint8Array {
   return t
 }
 
+/** EXIF orientation after a quarter turn clockwise (1–4: upright or mirrored on one axis, 5–8: on their side). */
+const TURN_RIGHT = [0, 6, 7, 8, 5, 2, 3, 4, 1]
+
+/** Orientation after `turns` quarter turns (1 = clockwise, -1 = anticlockwise). */
+export function turnOrientation(orientation: number, turns: 1 | -1): number {
+  const o = orientation >= 1 && orientation <= 8 ? orientation : 1
+  if (turns === 1) return TURN_RIGHT[o]
+  return TURN_RIGHT.indexOf(o)
+}
+
+/** Offset (in the TIFF data) of the orientation entry of IFD0, or -1. */
+function orientationEntry(t: Uint8Array): number {
+  if (t.length < 8) return -1
+  const le = t[0] === 0x49
+  const r16 = (o: number) => (le ? t[o] | (t[o + 1] << 8) : (t[o] << 8) | t[o + 1])
+  const r32 = (o: number) => (le ? (t[o] | (t[o + 1] << 8) | (t[o + 2] << 16) | (t[o + 3] << 24)) >>> 0 : u32(t, o))
+  const ifd = r32(4)
+  if (ifd + 2 > t.length) return -1
+  for (let k = 0; k < r16(ifd); k++) {
+    const e = ifd + 2 + k * 12
+    if (e + 12 > t.length) break
+    if (r16(e) === 0x0112) return e
+  }
+  return -1
+}
+
+/** EXIF orientation of a JPEG (1 when it has none). */
+export function jpegOrientation(b: Uint8Array): number {
+  const t = jpegExif(b)
+  const e = t ? orientationEntry(t) : -1
+  if (!t || e < 0) return 1
+  return t[0] === 0x49 ? t[e + 8] | (t[e + 9] << 8) : (t[e + 8] << 8) | t[e + 9]
+}
+
+/** The TIFF data with IFD0 rebuilt at its end, one orientation entry added (the other data stays where it is). */
+function withOrientationEntry(t: Uint8Array, value: number): Uint8Array {
+  const le = t[0] === 0x49
+  const r16 = (o: number) => (le ? t[o] | (t[o + 1] << 8) : (t[o] << 8) | t[o + 1])
+  const r32 = (o: number) => (le ? (t[o] | (t[o + 1] << 8) | (t[o + 2] << 16) | (t[o + 3] << 24)) >>> 0 : u32(t, o))
+  const ifd = r32(4)
+  const n = ifd + 2 <= t.length ? r16(ifd) : 0
+  const entries: Uint8Array[] = []
+  for (let k = 0; k < n && ifd + 2 + k * 12 + 12 <= t.length; k++) entries.push(t.slice(ifd + 2 + k * 12, ifd + 14 + k * 12))
+  const next = ifd + 2 + n * 12 + 4 <= t.length ? t.slice(ifd + 2 + n * 12, ifd + 6 + n * 12) : new Uint8Array(4)
+  const entry = new Uint8Array(12)
+  const w16 = (b: Uint8Array, o: number, v: number) => (le ? b.set([v & 255, v >> 8], o) : b.set([v >> 8, v & 255], o))
+  w16(entry, 0, 0x0112)
+  w16(entry, 2, 3) // SHORT
+  w16(entry, 4, 1) // count (32 bits; values < 65536)
+  w16(entry, 8, value)
+  if (!le) entry.set([0, 0, 0, 1], 4)
+  const tag = (e: Uint8Array) => (le ? e[0] | (e[1] << 8) : (e[0] << 8) | e[1])
+  entries.push(entry)
+  entries.sort((a, b) => tag(a) - tag(b))
+  const start = t.length + (t.length % 2) // IFDs start on an even offset
+  const out = new Uint8Array(start + 2 + entries.length * 12 + 4)
+  out.set(t)
+  w16(out, start, entries.length)
+  entries.forEach((e, k) => out.set(e, start + 2 + k * 12))
+  out.set(next, start + 2 + entries.length * 12)
+  out.set(le ? [start & 255, (start >> 8) & 255, (start >> 16) & 255, start >>> 24] : [start >>> 24, (start >> 16) & 255, (start >> 8) & 255, start & 255], 4)
+  return out
+}
+
+/**
+ * Turns a JPEG by a quarter turn without touching its pixels: only its EXIF
+ * orientation changes (lossless; every other EXIF field, the date first,
+ * stays). Returns null when this is not a JPEG or its EXIF is too large.
+ */
+export function rotateJpeg(b: Uint8Array, turns: 1 | -1): Uint8Array | null {
+  if (!isJpeg(b)) return null
+  const segs = segments(b)
+  const app1 = segs.find((s) => s.marker === 0xe1 && EXIF_HEADER.every((v, k) => b[s.data + k] === v))
+  if (app1) {
+    const t = b.subarray(app1.data + 6, app1.end)
+    const e = orientationEntry(t)
+    const value = turnOrientation(jpegOrientation(b), turns)
+    if (e >= 0) {
+      const out = b.slice()
+      const at = app1.data + 6 + e + 8
+      out.set(t[0] === 0x49 ? [value & 255, value >> 8] : [value >> 8, value & 255], at)
+      return out
+    }
+    const tiff = withOrientationEntry(t, value)
+    if (tiff.length + 8 > 0xffff) return null
+    return replaceSegment(b, app1, exifSegment(tiff))
+  }
+  // No EXIF: a minimal one with the orientation only, after the JFIF header if there is one.
+  const value = turnOrientation(1, turns)
+  const tiff = new Uint8Array([0x4d, 0x4d, 0, 42, 0, 0, 0, 8, 0, 1, 0x01, 0x12, 0, 3, 0, 0, 0, 1, 0, value, 0, 0, 0, 0, 0, 0])
+  const at = segs[0]?.marker === 0xe0 && segs[0].start === 2 ? segs[0].end : 2
+  const seg = exifSegment(tiff)
+  const out = new Uint8Array(b.length + seg.length)
+  out.set(b.subarray(0, at))
+  out.set(seg, at)
+  out.set(b.subarray(at), at + seg.length)
+  return out
+}
+
+function exifSegment(tiff: Uint8Array): Uint8Array {
+  const length = tiff.length + 6 + 2
+  const seg = new Uint8Array(4 + 6 + tiff.length)
+  seg.set([0xff, 0xe1, length >> 8, length & 0xff, ...EXIF_HEADER])
+  seg.set(tiff, 10)
+  return seg
+}
+
+function replaceSegment(b: Uint8Array, s: Segment, seg: Uint8Array): Uint8Array {
+  const out = new Uint8Array(b.length - (s.end - s.start) + seg.length)
+  out.set(b.subarray(0, s.start))
+  out.set(seg, s.start)
+  out.set(b.subarray(s.end), s.start + seg.length)
+  return out
+}
+
 /** Puts EXIF (TIFF data) right after the start of a JPEG, replacing any APP0/APP1. */
 export function insertExif(jpeg: Uint8Array, tiff: Uint8Array): Uint8Array {
   if (!isJpeg(jpeg)) return jpeg

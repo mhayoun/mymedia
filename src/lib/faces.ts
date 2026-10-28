@@ -266,3 +266,8 @@ export function doubtfulFaces(faces: GroupedFace[], threshold = NAME_SURE): stri
   }
   return doubtful
 }
+
+/** A face box ([x, y, width, height], 0..1) after a quarter turn of its photo (1 = clockwise). */
+export function turnBox([x, y, w, h]: [number, number, number, number], turns: 1 | -1): [number, number, number, number] {
+  return turns === 1 ? [1 - y - h, x, h, w] : [y, 1 - x - w, h, w]
+}

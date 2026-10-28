@@ -80,6 +80,14 @@ function rememberUrl(id: string, url: string): string {
   return url
 }
 
+/** Shows this thumbnail from now on (the photo changed here, e.g. turned); null: made again when shown. */
+export function replaceThumbUrl(id: string, blob: Blob | null): void {
+  const old = urls.get(id)
+  urls.delete(id)
+  if (old?.startsWith('blob:')) URL.revokeObjectURL(old)
+  if (blob) remember(id, blob)
+}
+
 export function cachedThumbUrl(id: string): string | undefined {
   const url = urls.get(id)
   if (url) {

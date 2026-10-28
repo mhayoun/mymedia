@@ -996,6 +996,16 @@
     "selectShown": "Tick all",
     "notBlurry_one": "Not blurred (1)",
     "notBlurry_other": "Not blurred ({{count}})",
-    "sharpness": "Sharpness {{n}}"
+    "sharpness": "Sharpness {{n}}",
+    "blurHelpButton": "What do the scores mean?",
+    "blurHelp": "The sharpness score: the lower it is, the more blurred the photo.\n• below about 30: very blurred;\n• 30 to 80: blurred or a little blurred;\n• above 100: usually sharp.\nMyMedia cuts the thumbnail into 16 areas and keeps the score of the sharpest one: a sharp bird on a blurred background scores well. A plain sky, fog or a very small, distant bird can score low without being blurred.\nThe Severity slider sets the limit: to the left, only the most blurred; to the right, more photos."
+  },
+  "rotate": {
+    "left": "Rotate left",
+    "right": "Rotate right",
+    "onlyJpeg": "Only JPEG photos can be rotated (without losing quality).",
+    "skipped_one": "1 photo is not a JPEG: it was not rotated.",
+    "skipped_other": "{{count}} photos are not JPEGs: they were not rotated.",
+    "failed": "The rotation could not be saved: {{detail}}"
   }
 }
