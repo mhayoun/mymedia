@@ -18,7 +18,7 @@ npm run build    # production build in dist/
 ```
 
 `public/config.json` holds the Google OAuth client ID (read at runtime).
-Hosted on Vercel (static files only): https://mymedia-keep.vercel.app — `vercel deploy --prod`.
+Hosted on Vercel (static files only): https://www.media-keep.com (also https://media-keep.vercel.app) — `vercel deploy --prod`.
 
 ## Structure
 

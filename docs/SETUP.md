@@ -23,7 +23,11 @@ Done: account **mhayoun**, repository **https://github.com/mhayoun/mymedia**.
 
 ## Part B – Hosting on Vercel
 
-Done: the app is published at **https://mymedia-keep.vercel.app**
+Done: the app is published at **https://www.media-keep.com**
+(`media-keep.com` redirects there; the old address `https://media-keep.vercel.app`
+still works). The domain is registered at whois.com (renew it there every year);
+its Name Servers are `ns1.vercel-dns.com` and `ns2.vercel-dns.com`, so Vercel
+manages its DNS records (Domains → media-keep.com).
 (Vercel account `m0583212851-1839`, project `mymedia`). Vercel only serves
 the program files; no code runs on a server and no data goes through Vercel.
 
@@ -87,7 +91,12 @@ To add a family member later, come back here and add their address.
 4. Under **Authorized JavaScript origins** click **Add URI** and type exactly
    (exactly, no slash at the end):
    ```
-   https://mymedia-keep.vercel.app
+   https://www.media-keep.com
+   ```
+   Click **Add URI** again for each of these two:
+   ```
+   https://media-keep.com
+   https://media-keep.vercel.app
    ```
    Click **Add URI** again and add (only needed to test on this computer):
    ```
@@ -106,7 +115,7 @@ anyone who opens the app, and only works from the address in Part C6.
 
 ## Part E – First sign-in
 
-1. Open `https://mymedia-keep.vercel.app`.
+1. Open `https://www.media-keep.com`.
 2. Click **כניסה עם Google** (Sign in with Google) and choose your account.
 3. Google shows **"Google hasn't verified this app"**. This is expected (it
    is your own app). Click **Advanced** → **Go to MyMedia (unsafe)**.
@@ -144,7 +153,7 @@ If the Google window does not open: allow pop-ups for the site
 ## Part G – Family and friends
 
 1. Add their Gmail address to **Test users** (Part C5).
-2. Send them the link `https://mymedia-keep.vercel.app`.
+2. Send them the link `https://www.media-keep.com`.
 
 Each person signs in with **their own** Google account and sees **their own**
 Drive. They see the same "unverified app" warning once (Part E, step 3).
@@ -161,7 +170,7 @@ Will be completed in Phase 2 (classification).
 | Problem | Fix |
 |---|---|
 | "The Google client ID is missing" | Part D not done yet. |
-| Google error `redirect_uri_mismatch` or `origin_mismatch` | The origin in Part C6 must be exactly `https://mymedia-keep.vercel.app` (no final `/`). Changes take up to 5 minutes. |
+| Google error `redirect_uri_mismatch` or `origin_mismatch` | The origins in Part C6 must be exactly `https://www.media-keep.com`, `https://media-keep.com` and `https://media-keep.vercel.app` (no final `/`). Changes take up to 5 minutes. |
 | Google error "access blocked" / "app is being tested" | That Google account is not in the **Test users** list (Part C5). |
 | The Drive box was not ticked | The app asks again; sign in and tick the box. |
 | "Reconnect" banner | Click **Reconnect**. On iPhone this can happen about once a day; your work is kept. |
