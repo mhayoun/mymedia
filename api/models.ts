@@ -1,4 +1,4 @@
-// MyMedia's only server: the shop of classification models.
+// MyMedia's only server: the shop of classification models, and MyMedia Pro.
 //
 // Payment: the buyer pays MyMedia's PayPal account; MyMedia keeps its
 // commission (MYMEDIA_FEE %) and pays the rest to the seller's PayPal account
@@ -16,6 +16,7 @@
 //   licences/<id>/<hash>.json  one per buyer account
 //   orders/<paypal order>.json PayPal orders started, until paid
 //   sales/<seller hash>/<paypal order>.json  one per sale: price, commission, seller's share, paid out
+//   pro/<hash>.json            one per Pro account: until when, the purchases
 //
 //   GET    /api/models                      shop
 //   POST   /api/models                      publish (body: PublishBody)
@@ -27,6 +28,9 @@
 //   GET    /api/models?action=sales         the seller's sales: owed and paid out
 //   GET    /api/models?action=payouts       admins: what is owed to each seller
 //   POST   /api/models?action=payout        admins: these sales are paid out (body: { orders })
+//   GET    /api/models?action=pro           this account's Pro, and the plans
+//   POST   /api/models?action=buyPro&plan=  a PayPal order for Pro (year or life) to approve
+//   POST   /api/models?action=capturePro&order=  after PayPal: take the payment, give Pro
 
 import { del, get, list, put } from '@vercel/blob'
 import { createHash, randomUUID } from 'node:crypto'
@@ -43,6 +47,8 @@ const PAYPAL_SECRET = (process.env.PAYPAL_CLIENT_SECRET ?? '').trim()
 // Keys from developer.paypal.com's Sandbox tab, unless PAYPAL_ENV=live (Live tab).
 const PAYPAL_API = process.env.PAYPAL_ENV?.trim() === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com'
 const paymentsLive = () => !!(PAYPAL_ID && PAYPAL_SECRET)
+/** Paid with test money: no PayPal (everything free) or PayPal's sandbox. */
+const testMoney = () => !paymentsLive() || PAYPAL_API.includes('sandbox')
 /** MyMedia's commission, in % of the price. */
 const FEE = Math.min(Math.max(Number(process.env.MYMEDIA_FEE ?? 15) || 0, 0), 100)
 const ADMINS = (process.env.MYMEDIA_ADMINS ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean)
@@ -219,7 +225,7 @@ function shown(i: ModelInfo, email: string | null, owned: boolean) {
 }
 
 function giveLicence(i: ModelInfo, email: string, paid: number, order?: string) {
-  return writeJson(licencePath(i.id, email), { model: i.id, email, at: new Date().toISOString(), price: i.price, currency: i.currency, paid, order, test: !paymentsLive() })
+  return writeJson(licencePath(i.id, email), { model: i.id, email, at: new Date().toISOString(), price: i.price, currency: i.currency, paid, order, test: testMoney() })
 }
 
 // ---- PayPal ------------------------------------------------------------------
@@ -412,7 +418,7 @@ async function capture(req: Request, id: string, orderId: string | null) {
     fee,
     share: cents(price - fee),
     paidOut: null,
-    test: !paymentsLive(),
+    test: testMoney(),
   }
   await writeJson(`sales/${hashOf(i.sellerEmail)}/${orderId}.json`, sale)
   await giveLicence(i, email, price, orderId)
@@ -517,6 +523,108 @@ async function payout(req: Request) {
   return json({ ok: true, marked })
 }
 
+// ---- MyMedia Pro -------------------------------------------------------------
+// Bought on the web site only (an Android app must sell through Google Play).
+
+const PRO_CURRENCY = 'ILS'
+const PRO_PLANS = { year: { price: 36, days: 365 }, life: { price: 50, days: 0 } } as const
+type ProPlan = keyof typeof PRO_PLANS
+
+interface ProRecord {
+  email: string
+  life: boolean
+  /** End of the paid years (ISO), if any. */
+  until: string | null
+  purchases: { order: string; plan: ProPlan; price: number; currency: string; at: string; test: boolean }[]
+}
+
+const proPath = (email: string) => `pro/${hashOf(email)}.json`
+const proActive = (r: ProRecord | null) => !!r && (r.life || (!!r.until && r.until > new Date().toISOString()))
+const validPlan = (plan: string | null): ProPlan => {
+  if (plan !== 'year' && plan !== 'life') throw new HttpError(400, 'bad plan')
+  return plan
+}
+
+function proStatus(r: ProRecord | null) {
+  return {
+    pro: proActive(r),
+    life: !!r?.life,
+    until: r?.until ?? null,
+    plans: (Object.keys(PRO_PLANS) as ProPlan[]).map((id) => ({ id, price: PRO_PLANS[id].price, currency: PRO_CURRENCY })),
+    paymentsLive: paymentsLive(),
+    test: testMoney(),
+  }
+}
+
+async function pro(req: Request) {
+  const email = await account(req)
+  return json(proStatus(await readJson<ProRecord>(proPath(email))))
+}
+
+async function givePro(email: string, plan: ProPlan, order: string) {
+  const r = (await readJson<ProRecord>(proPath(email))) ?? { email, life: false, until: null, purchases: [] }
+  if (r.purchases.some((p) => p.order === order)) return r
+  if (plan === 'life') r.life = true
+  else {
+    // A year more, from the end of the current one if it is still running.
+    const now = new Date().toISOString()
+    const from = new Date(r.until && r.until > now ? r.until : now)
+    r.until = new Date(from.getTime() + PRO_PLANS.year.days * 86400_000).toISOString()
+  }
+  r.purchases.push({ order, plan, price: PRO_PLANS[plan].price, currency: PRO_CURRENCY, at: new Date().toISOString(), test: testMoney() })
+  await writeJson(proPath(email), r)
+  return r
+}
+
+async function buyPro(req: Request, plan: ProPlan) {
+  if (req.headers.get('origin') === APP_ORIGIN) throw new HttpError(403, 'not in the android app')
+  const email = await account(req)
+  const r = await readJson<ProRecord>(proPath(email))
+  if (r?.life) return json({ ok: true, ...proStatus(r) })
+  if (!paymentsLive()) return json({ ok: true, ...proStatus(await givePro(email, plan, `free-${randomUUID()}`)) })
+  const back = `${new URL(req.url).origin}/?paypal=1&pro=${plan}`
+  const amount = amountOf(PRO_PLANS[plan].price)
+  const o = await paypal<PaypalOrder>('POST', '/v2/checkout/orders', {
+    intent: 'CAPTURE',
+    purchase_units: [{ reference_id: `pro-${plan}`, description: plan === 'life' ? 'MyMedia Pro (for life)' : 'MyMedia Pro (1 year)', amount: { currency_code: PRO_CURRENCY, value: amount } }],
+    payment_source: {
+      paypal: {
+        experience_context: { brand_name: 'MyMedia', user_action: 'PAY_NOW', shipping_preference: 'NO_SHIPPING', return_url: back, cancel_url: `${back}&cancel=1` },
+      },
+    },
+  })
+  const approve = o.body.links?.find((l) => l.rel === 'payer-action' || l.rel === 'approve')?.href
+  if (o.status >= 300 || !o.body.id || !approve) {
+    console.error('[paypal] pro order', o.status, JSON.stringify(o.body))
+    throw new HttpError(502, 'paypal refused the order')
+  }
+  const order: Order = { model: `pro:${plan}`, email, amount, currency: PRO_CURRENCY }
+  await writeJson(`orders/${o.body.id}.json`, order)
+  return json({ ok: false, approve, order: o.body.id })
+}
+
+async function capturePro(req: Request, orderId: string | null) {
+  const email = await account(req)
+  if (!orderId || !/^[A-Z0-9]{5,40}$/.test(orderId)) throw new HttpError(400, 'bad order')
+  const done = await readJson<ProRecord>(proPath(email))
+  if (done?.purchases.some((p) => p.order === orderId)) return json({ ok: true, ...proStatus(done) })
+  const order = await readJson<Order>(`orders/${orderId}.json`)
+  if (!order || !order.model.startsWith('pro:') || order.email !== email) throw new HttpError(404, 'order not found')
+  const plan = validPlan(order.model.slice(4))
+  let r = await paypal<PaypalOrder & { details?: { issue?: string }[] }>('POST', `/v2/checkout/orders/${orderId}/capture`)
+  if (r.status === 422 && r.body.details?.some((d) => d.issue === 'ORDER_ALREADY_CAPTURED')) r = await paypal<PaypalOrder>('GET', `/v2/checkout/orders/${orderId}`)
+  const unit = r.body.purchase_units?.[0]
+  const paid = unit?.payments?.captures?.find((c) => c.status === 'COMPLETED')
+  if (r.status >= 300 || r.body.status !== 'COMPLETED' || unit?.reference_id !== `pro-${plan}` || !paid) {
+    console.error('[paypal] pro capture', r.status, JSON.stringify(r.body))
+    throw new HttpError(402, 'not paid')
+  }
+  if (paid.amount?.value !== order.amount || paid.amount?.currency_code !== order.currency) throw new HttpError(402, 'wrong amount')
+  const rec = await givePro(email, plan, orderId)
+  await del([`orders/${orderId}.json`])
+  return json({ ok: true, ...proStatus(rec) })
+}
+
 async function handle(req: Request): Promise<Response> {
   const res = await answer(req)
   // The Android app asks from its own address.
@@ -542,6 +650,9 @@ async function answer(req: Request): Promise<Response> {
     if (req.method === 'GET' && action === 'sales') return await sales(req)
     if (req.method === 'GET' && action === 'payouts') return await payouts(req)
     if (req.method === 'POST' && action === 'payout') return await payout(req)
+    if (req.method === 'GET' && action === 'pro') return await pro(req)
+    if (req.method === 'POST' && action === 'buyPro') return await buyPro(req, validPlan(url.searchParams.get('plan')))
+    if (req.method === 'POST' && action === 'capturePro') return await capturePro(req, url.searchParams.get('order'))
     return json({ error: 'not found' }, 404)
   } catch (e) {
     if (e instanceof HttpError) return json({ error: e.message }, e.status)

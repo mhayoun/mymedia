@@ -27,12 +27,14 @@ import { ReviewView } from './ReviewView'
 import { StatsDialog } from './StatsDialog'
 import { AUTO, BLURRY, DUPLICATES, filterItems, MISFILED, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
 import { clearSharedFiles, hasSharedFiles, onNativeShare, readSharedFiles } from '../import/shared'
+import { loadPro, useIsPro } from '../models/pro'
 import { paypalReturn } from '../models/shop'
 import { FacesIntro } from './FacesIntro'
 import { HelpPanel } from './HelpPanel'
 import { AccountPanel } from './AccountPanel'
 import { LibraryDialog } from './LibraryDialog'
 import { ModelsDialog } from './ModelsDialog'
+import { ProDialog, ProGate } from './ProDialog'
 import { ShareDialog } from './ShareDialog'
 import { FilterBar } from './FilterBar'
 import { SelectionBar } from './SelectionBar'
@@ -80,6 +82,9 @@ export function Shell() {
   const speedOpen = useApp((s) => s.speedOpen)
   const activityOpen = useApp((s) => s.activityOpen)
   const shopOpen = useApp((s) => s.shopOpen)
+  const proOpen = useApp((s) => s.proOpen)
+  const isPro = useIsPro()
+  const email = useApp((s) => s.user?.email)
   const shareOpen = useApp((s) => s.shareOpen)
   const statsOpen = useApp((s) => s.statsOpen)
   const compressOffer = useApp((s) => s.compressOffer)
@@ -91,11 +96,16 @@ export function Shell() {
   useAutoSync()
   useEffect(() => setLibraryForWarm(lib.items.map((i) => i.rec)), [lib.items])
 
-  // Back from paying a model on PayPal: the shop finishes the purchase.
+  useEffect(() => {
+    if (email) void loadPro(email)
+  }, [email])
+
+  // Back from paying on PayPal: the shop (a model) or the Pro window finishes the purchase.
   useEffect(() => {
     if (!rootId) return
     const back = paypalReturn()
-    if (back) app().set({ shopOpen: true, shopResume: back })
+    if (back?.pro) app().set({ proOpen: true, proResume: back })
+    else if (back) app().set({ shopOpen: true, shopResume: back })
   }, [rootId])
 
   // Files shared to MyMedia from another app (Android Share menu).
@@ -186,9 +196,9 @@ export function Shell() {
           ) : filters.categoryId === MISFILED ? (
             <MisfiledView lib={lib} />
           ) : filters.categoryId === DUPLICATES ? (
-            <DuplicatesView lib={lib} />
+            isPro ? <DuplicatesView lib={lib} /> : <ProGate feature={t('cleanup.duplicates')} />
           ) : filters.categoryId === BLURRY ? (
-            <BlurryView lib={lib} />
+            isPro ? <BlurryView lib={lib} /> : <ProGate feature={t('cleanup.blurry')} />
           ) : lib.ready && items.length === 0 ? (
             <EmptyState />
           ) : filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO ? (
@@ -204,6 +214,7 @@ export function Shell() {
       {libraryOpen && <LibraryDialog />}
       {shareOpen && <ShareDialog mode={shareOpen} onClose={() => app().set({ shareOpen: false })} />}
       {shopOpen && <ModelsDialog view={shopOpen === 'publish' ? 'publish' : 'use'} onClose={() => app().set({ shopOpen: false, shopResume: null })} />}
+      {proOpen && <ProDialog onClose={() => app().set({ proOpen: false, proResume: null })} />}
       {statsOpen && <StatsDialog lib={lib} />}
       {speedOpen && <SpeedDialog onClose={() => app().set({ speedOpen: false })} />}
       {activityOpen && <ActivityDialog onClose={() => app().set({ activityOpen: false })} />}

@@ -4,6 +4,7 @@ import { create } from 'zustand'
 import type { Outcome, Planned } from './compress/engine'
 import { DEFAULT_COMPRESS, type CompressSettings } from './lib/compressPlan'
 import type { PaypalReturn } from './models/shop'
+import type { ProStatus } from './models/pro'
 
 export type Language = 'he' | 'fr' | 'en'
 /** Gallery: all together, or under headings by album, year or month. */
@@ -144,6 +145,12 @@ interface AppState {
   shareOpen: false | 'share' | 'view'
   /** Back from PayPal: the shop finishes the purchase. */
   shopResume: PaypalReturn | null
+  /** This account's MyMedia Pro (null: not known yet, so free). */
+  pro: ProStatus | null
+  /** The MyMedia Pro window. */
+  proOpen: boolean
+  /** Back from paying Pro on PayPal: the Pro window finishes the purchase. */
+  proResume: PaypalReturn | null
   helpOpen: boolean
   speedOpen: boolean
   activityOpen: boolean
@@ -180,6 +187,9 @@ export const useApp = create<AppState>((set, get) => ({
   shopOpen: false,
   shareOpen: false,
   shopResume: null,
+  pro: null,
+  proOpen: false,
+  proResume: null,
   helpOpen: false,
   speedOpen: false,
   activityOpen: false,

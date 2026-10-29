@@ -1013,5 +1013,33 @@
     "onlyMp4": "Only MP4 / MOV videos can be turned (without losing quality).",
     "tooBig": "This video is too big to be turned here (over 1 GB).",
     "saving": "Turning the video: {{percent}}"
+  },
+  "pro": {
+    "menu": "MyMedia Pro",
+    "title": "MyMedia Pro",
+    "statusFree": "You have the free version.",
+    "statusUntil": "You have Pro until {{date}}.",
+    "statusLife": "You have Pro for life.",
+    "thanks": "Thank you! Pro is on for this Google account, on the website and in the Android app.",
+    "includes": "Pro adds",
+    "featureDuplicates": "Finding the duplicates already there",
+    "featureBlurry": "Blurry photos (sorting and clean-up)",
+    "featureShare": "Sharing with more than {{count}} people",
+    "featureTransfer": "Sending to another Google account (transfer)",
+    "freeRest": "Everything else is free: gallery, albums, adding, search, faces, classification, compression, models shop, and duplicates caught when adding.",
+    "buyTitle": "Get Pro",
+    "extendTitle": "Add time",
+    "planYear": "1 year: {{perMonth}} / month",
+    "planYearHint": "{{price}} paid today, no automatic renewal",
+    "planLife": "For life: {{price}}",
+    "planLifeHint": "One payment, Pro forever",
+    "paypalHint": "Payment on PayPal's page (PayPal account or bank card). Pro is bound to your Google account.",
+    "testMoney": "Test mode: PayPal sandbox, no real money is taken.",
+    "capturing": "Confirming the payment with PayPal…",
+    "notPaid": "PayPal did not confirm the payment. Nothing was taken.",
+    "androidSoon": "Buying Pro in the Android app is coming soon.",
+    "gate": "“{{feature}}” is part of MyMedia Pro.",
+    "discover": "Discover Pro",
+    "shareFull": "The free version shares with {{count}} people at most. Remove someone, or get Pro for unlimited sharing."
   }
 }

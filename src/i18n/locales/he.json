@@ -1096,5 +1096,33 @@
     "onlyMp4": "רק סרטוני MP4 / MOV ניתנים לסיבוב (ללא אובדן איכות).",
     "tooBig": "הסרטון גדול מדי לסיבוב כאן (מעל 1 GB).",
     "saving": "מסובב את הסרטון: {{percent}}"
+  },
+  "pro": {
+    "menu": "MyMedia Pro",
+    "title": "MyMedia Pro",
+    "statusFree": "יש לך את הגרסה החינמית.",
+    "statusUntil": "יש לך Pro עד {{date}}.",
+    "statusLife": "יש לך Pro לכל החיים.",
+    "thanks": "תודה! Pro פעיל בחשבון Google הזה, באתר ובאפליקציית Android.",
+    "includes": "Pro מוסיף",
+    "featureDuplicates": "חיפוש כפילויות שכבר קיימות",
+    "featureBlurry": "תמונות מטושטשות (מיון וניקוי)",
+    "featureShare": "שיתוף עם יותר מ-{{count}} אנשים",
+    "featureTransfer": "שליחה לחשבון Google אחר (העברה)",
+    "freeRest": "כל השאר בחינם: גלריה, אלבומים, הוספה, חיפוש, פנים, מיון, דחיסה, חנות המודלים, וכפילויות שמתגלות בזמן ההוספה.",
+    "buyTitle": "שדרוג ל-Pro",
+    "extendTitle": "הוספת זמן",
+    "planYear": "שנה: {{perMonth}} לחודש",
+    "planYearHint": "{{price}} משולמים היום, ללא חידוש אוטומטי",
+    "planLife": "לכל החיים: {{price}}",
+    "planLifeHint": "תשלום אחד, Pro לתמיד",
+    "paypalHint": "התשלום בדף של PayPal (חשבון PayPal או כרטיס אשראי). Pro מקושר לחשבון Google שלך.",
+    "testMoney": "מצב בדיקה: PayPal Sandbox, לא נגבה כסף אמיתי.",
+    "capturing": "מאשרים את התשלום מול PayPal…",
+    "notPaid": "PayPal לא אישר את התשלום. לא נגבה דבר.",
+    "androidSoon": "רכישת Pro באפליקציית Android תגיע בקרוב.",
+    "gate": "„{{feature}}” הוא חלק מ-MyMedia Pro.",
+    "discover": "גלו את Pro",
+    "shareFull": "הגרסה החינמית משתפת עם {{count}} אנשים לכל היותר. הסירו מישהו, או שדרגו ל-Pro לשיתוף ללא הגבלה."
   }
 }

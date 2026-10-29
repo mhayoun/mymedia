@@ -1011,5 +1011,33 @@
     "onlyMp4": "Seules les vidéos MP4 / MOV peuvent être tournées (sans perte de qualité).",
     "tooBig": "Vidéo trop grande pour être tournée ici (plus de 1 Go).",
     "saving": "Rotation de la vidéo : {{percent}}"
+  },
+  "pro": {
+    "menu": "MyMedia Pro",
+    "title": "MyMedia Pro",
+    "statusFree": "Vous avez la version gratuite.",
+    "statusUntil": "Vous avez Pro jusqu'au {{date}}.",
+    "statusLife": "Vous avez Pro à vie.",
+    "thanks": "Merci ! Pro est activé sur ce compte Google, sur le site et dans l'appli Android.",
+    "includes": "Pro ajoute",
+    "featureDuplicates": "La recherche des doublons déjà présents",
+    "featureBlurry": "Les photos floues (tri et nettoyage)",
+    "featureShare": "Le partage avec plus de {{count}} personnes",
+    "featureTransfer": "L'envoi vers un autre compte Google (transfert)",
+    "freeRest": "Tout le reste est gratuit : galerie, albums, ajout, recherche, visages, classement, compression, boutique de modèles, et les doublons repérés à l'ajout.",
+    "buyTitle": "Passer à Pro",
+    "extendTitle": "Ajouter du temps",
+    "planYear": "1 an : {{perMonth}} / mois",
+    "planYearHint": "{{price}} payés aujourd'hui, sans renouvellement automatique",
+    "planLife": "À vie : {{price}}",
+    "planLifeHint": "Un seul paiement, Pro pour toujours",
+    "paypalHint": "Paiement sur la page de PayPal (compte PayPal ou carte bancaire). Pro est lié à votre compte Google.",
+    "testMoney": "Mode test : PayPal bac à sable, aucun argent réel n'est pris.",
+    "capturing": "Confirmation du paiement auprès de PayPal…",
+    "notPaid": "PayPal n'a pas confirmé le paiement. Rien n'a été pris.",
+    "androidSoon": "L'achat de Pro dans l'appli Android arrive bientôt.",
+    "gate": "« {{feature}} » fait partie de MyMedia Pro.",
+    "discover": "Découvrir Pro",
+    "shareFull": "La version gratuite partage avec {{count}} personnes au plus. Retirez quelqu'un, ou passez à Pro pour un partage illimité."
   }
 }

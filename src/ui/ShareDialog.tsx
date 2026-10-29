@@ -1,8 +1,9 @@
-import { Eye, Loader2, MessageCircle } from 'lucide-react'
+import { Crown, Eye, Loader2, MessageCircle } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { listPermissions, removePermission, shareAsReader, type Permission } from '../drive/api'
-import { useApp } from '../store'
+import { FREE_SHARES, useIsPro } from '../models/pro'
+import { app, useApp } from '../store'
 import { ConfirmDialog, Modal } from './Dialog'
 import { SharedLibraries } from './SharedLibraries'
 
@@ -22,6 +23,9 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState<{ text: string; email: string } | null>(null)
   const [removing, setRemoving] = useState<Permission | null>(null)
+  const isPro = useIsPro()
+  // Free: up to FREE_SHARES people (those already there stay).
+  const full = !isPro && !!people && people.filter((p) => p.type === 'user').length >= FREE_SHARES
 
   const load = useCallback(async () => {
     if (!rootId || shared || mode !== 'share') return
@@ -39,6 +43,7 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
   async function share() {
     const to = email.trim()
     if (!EMAIL.test(to)) return setError(t('share.invalid'))
+    if (full) return
     setBusy(true)
     setError(null)
     setDone(null)
@@ -87,10 +92,20 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
             {t('share.notify')}
           </label>
           <div className="actions">
-            <button className="btn primary" onClick={() => void share()} disabled={busy || !rootId || !email.trim()}>
+            <button className="btn primary" onClick={() => void share()} disabled={busy || !rootId || !email.trim() || full}>
               {busy ? <Loader2 size={16} className="spin" /> : <Eye size={16} />} {t('share.submit')}
             </button>
           </div>
+          {full && (
+            <div className="row">
+              <p className="hint" style={{ flex: 1 }}>
+                {t('pro.shareFull', { count: FREE_SHARES })}
+              </p>
+              <button className="btn" onClick={() => app().set({ proOpen: true, shareOpen: false })}>
+                <Crown size={16} /> {t('pro.discover')}
+              </button>
+            </div>
+          )}
           {error && <p className="error-text">{error}</p>}
           {done && (
             <div className="row">

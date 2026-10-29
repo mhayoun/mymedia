@@ -154,4 +154,48 @@ describe('model shop with PayPal', () => {
     expect(await (await POST(req('POST', `?action=buy&id=${id}`, 'buyer'))).json()).toEqual({ ok: true })
     expect(orders.size).toBe(0)
   })
+
+  it('gives Pro for a year once paid, a year more when bought again, and for life', async () => {
+    expect(await (await GET(req('GET', '?action=pro', 'buyer'))).json()).toMatchObject({
+      pro: false,
+      plans: [{ id: 'year', price: 36, currency: 'ILS' }, { id: 'life', price: 50, currency: 'ILS' }],
+      test: true,
+    })
+    expect((await POST(req('POST', '?action=buyPro&plan=month', 'buyer'))).status).toBe(400)
+    const buy = await (await POST(req('POST', '?action=buyPro&plan=year', 'buyer'))).json()
+    expect(buy).toMatchObject({ ok: false, order: 'ORDER1' })
+    expect(orders.get('ORDER1')!.body.purchase_units[0]).toMatchObject({ reference_id: 'pro-year', amount: { value: '36.00', currency_code: 'ILS' } })
+
+    // Not approved yet, someone else's order, or a Pro order used for a model: nothing.
+    expect((await POST(req('POST', '?action=capturePro&order=ORDER1', 'buyer'))).status).toBe(402)
+    orders.get('ORDER1')!.approved = true
+    expect((await POST(req('POST', '?action=capturePro&order=ORDER1', 'friend'))).status).toBe(404)
+    const id = (await (await POST(req('POST', '', 'seller', publishBody))).json()).model.id as string
+    expect((await POST(req('POST', `?action=capture&id=${id}&order=ORDER1`, 'buyer'))).status).toBe(404)
+
+    const got = await (await POST(req('POST', '?action=capturePro&order=ORDER1', 'buyer'))).json()
+    expect(got).toMatchObject({ ok: true, pro: true, life: false })
+    const days = (iso: string) => (Date.parse(iso) - Date.now()) / 86400_000
+    expect(days(got.until)).toBeCloseTo(365, 0)
+    // The page reloaded after PayPal: no second year.
+    expect((await (await POST(req('POST', '?action=capturePro&order=ORDER1', 'buyer'))).json()).until).toBe(got.until)
+
+    const again = await (await POST(req('POST', '?action=buyPro&plan=year', 'buyer'))).json()
+    orders.get(again.order)!.approved = true
+    expect(days((await (await POST(req('POST', `?action=capturePro&order=${again.order}`, 'buyer'))).json()).until)).toBeCloseTo(730, 0)
+
+    const life = await (await POST(req('POST', '?action=buyPro&plan=life', 'buyer'))).json()
+    orders.get(life.order)!.approved = true
+    paidValue = '36.00'
+    expect((await POST(req('POST', `?action=capturePro&order=${life.order}`, 'buyer'))).status).toBe(402)
+    paidValue = null
+    expect(await (await POST(req('POST', `?action=capturePro&order=${life.order}`, 'buyer'))).json()).toMatchObject({ pro: true, life: true })
+    expect(await (await POST(req('POST', '?action=buyPro&plan=year', 'buyer'))).json()).toMatchObject({ ok: true, life: true })
+    expect(await (await GET(req('GET', '?action=pro', 'friend'))).json()).toMatchObject({ pro: false })
+  })
+
+  it('does not sell Pro inside the Android app', async () => {
+    const r = new Request('https://media.test/api/models?action=buyPro&plan=year', { method: 'POST', headers: { Authorization: 'Bearer buyer', origin: 'https://localhost' } })
+    expect((await POST(r)).status).toBe(403)
+  })
 })

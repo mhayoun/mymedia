@@ -22,7 +22,7 @@ const fr: HelpContent = {
       title: 'Ce qui rend MyMedia différent',
       items: [
         'Vos photos restent chez vous. Elles restent de simples fichiers dans des dossiers de votre Google Drive. Pas de format propriétaire : si vous arrêtez MyMedia demain, tout reste rangé et lisible.',
-        'Aucun serveur MyMedia. L’application parle directement à votre Drive. Pas de compte à créer, pas d’abonnement, pas de publicité.',
+        'Aucun serveur MyMedia. L’application parle directement à votre Drive. Pas de compte à créer, pas d’abonnement, pas de publicité. L’essentiel est gratuit ; MyMedia Pro (achat unique) ajoute quelques outils.',
         'L’intelligence sur votre appareil. La reconnaissance des visages et l’apprentissage de vos albums se font sur votre téléphone ou votre ordinateur. Les visages ne sont jamais envoyés à un service.',
         'Elle apprend VOTRE classement. MyMedia étudie vos propres albums (par exemple une espèce d’oiseau par album) et range les nouvelles photos de la même façon. Il vous montre son degré de certitude et ne décide seul que s’il est sûr.',
         'Elle libère de la place, sous votre contrôle. Elle vous propose une liste des gros fichiers avec la taille avant → après. Vous choisissez. Date, appareil photo et position GPS sont conservés.',
@@ -139,6 +139,14 @@ const fr: HelpContent = {
       ],
     },
     {
+      title: 'MyMedia Pro',
+      items: [
+        'La version gratuite fait l’essentiel. Pro ajoute : la recherche des doublons déjà présents, les photos floues, le partage avec plus de 2 personnes et l’envoi vers un autre compte (transfert). Recevoir un transfert reste gratuit.',
+        'Menu ☰ → MyMedia Pro : 1 an pour 36 ₪ (3 ₪ par mois, payés en une fois, sans renouvellement automatique) ou à vie pour 50 ₪. Le paiement se fait sur la page de PayPal, qui vous ramène dans MyMedia.',
+        'Pro est lié à votre compte Google : il marche sur le site et dans l’appli Android, sur tous vos appareils.',
+      ],
+    },
+    {
       title: 'Questions fréquentes',
       items: [
         'Mes photos sont-elles envoyées quelque part ? Non. Seulement entre votre appareil et votre propre Google Drive. Si vous publiez un modèle de classement, seules les empreintes et les noms des albums vont à la boutique MyMedia.',
@@ -161,7 +169,7 @@ const en: HelpContent = {
       title: 'What makes MyMedia different',
       items: [
         'Your photos stay yours. They remain plain files in folders of your Google Drive. No proprietary format: if you stop using MyMedia tomorrow, everything stays organised and readable.',
-        'No MyMedia server. The app talks directly to your Drive. No account to create, no subscription, no ads.',
+        'No MyMedia server. The app talks directly to your Drive. No account to create, no subscription, no ads. The essentials are free; MyMedia Pro (one-time purchase) adds a few tools.',
         'Intelligence on your device. Face recognition and learning your albums run on your phone or computer. Faces are never sent to any service.',
         'It learns YOUR way of organising. MyMedia studies your own albums (for example one bird species per album) and files new photos the same way. It shows how sure it is, and only decides alone when it is confident.',
         'It frees space, under your control. You get a list of big files with size before → after, and you choose. Date, camera and GPS position are kept.',
@@ -278,6 +286,14 @@ const en: HelpContent = {
       ],
     },
     {
+      title: 'MyMedia Pro',
+      items: [
+        'The free version does the essentials. Pro adds: finding the duplicates already there, blurry photos, sharing with more than 2 people and sending to another account (transfer). Receiving a transfer stays free.',
+        'Menu ☰ → MyMedia Pro: 1 year for ₪36 (₪3 a month, paid at once, no automatic renewal) or for life for ₪50. You pay on PayPal’s page, which brings you back to MyMedia.',
+        'Pro is bound to your Google account: it works on the website and in the Android app, on all your devices.',
+      ],
+    },
+    {
       title: 'Questions',
       items: [
         'Are my photos sent anywhere? No. Only between your device and your own Google Drive. If you publish a classification model, only the fingerprints and album names go to the MyMedia shop.',
@@ -300,7 +316,7 @@ const he: HelpContent = {
       title: 'מה מייחד את MyMedia',
       items: [
         'התמונות נשארות שלך. הן נשארות קבצים רגילים בתיקיות של ה-Google Drive שלך. אין פורמט סגור: אם תפסיקו להשתמש ב-MyMedia מחר, הכול נשאר מסודר וקריא.',
-        'אין שרת של MyMedia. האפליקציה מדברת ישירות עם ה-Drive שלך. אין חשבון לפתוח, אין מנוי ואין פרסומות.',
+        'אין שרת של MyMedia. האפליקציה מדברת ישירות עם ה-Drive שלך. אין חשבון לפתוח, אין מנוי ואין פרסומות. העיקר בחינם; MyMedia Pro (רכישה חד-פעמית) מוסיף כמה כלים.',
         'הבינה נמצאת במכשיר שלך. זיהוי הפנים והלמידה של האלבומים שלך מתבצעים בטלפון או במחשב. הפנים לעולם לא נשלחות לשום שירות.',
         'היא לומדת את הסידור שלך. MyMedia לומדת את האלבומים שלך (למשל אלבום לכל מין של ציפור) ומסדרת תמונות חדשות באותה דרך. היא מראה עד כמה היא בטוחה, ומחליטה לבד רק כשהיא בטוחה.',
         'היא מפנה מקום, בשליטה שלך. מוצגת לך רשימה של הקבצים הגדולים עם הגודל לפני ← אחרי, ואת/ה בוחר/ת. התאריך, המצלמה והמיקום (GPS) נשמרים.',
@@ -414,6 +430,14 @@ const he: HelpContent = {
         'כדי לקבל מודל: 🛒 חנות ← קבלה. התמונות למיון מושוות לדוגמאות שלו, וממוינות או מוצעות ב„למיון”. אלבום של המודל נוצר כשתמונה ראשונה מסודרת בו: בלי אלבומים ריקים.',
         'קנייה: «קנייה ב-PayPal» פותחת את דף התשלום של PayPal, ואז מחזירה ל-MyMedia, שמתקינה את המודל. התשלום עובר ל-MyMedia, ששומרת את העמלה שלה ומעבירה את השאר למוכר; ביטול לא מחייב דבר. כל עוד PayPal לא מחובר בשרת, הכול נשאר בחינם.',
         'מודל קשור לחשבון Google שקיבל אותו: אם מעתיקים אותו לחשבון אחר, הוא נדחה. הסרתו משאירה את האלבומים ואת התמונות שלכם.',
+      ],
+    },
+    {
+      title: 'MyMedia Pro',
+      items: [
+        'הגרסה החינמית עושה את העיקר. Pro מוסיף: חיפוש כפילויות שכבר קיימות, תמונות מטושטשות, שיתוף עם יותר משני אנשים ושליחה לחשבון אחר (העברה). קבלת העברה נשארת בחינם.',
+        'תפריט ☰ ← MyMedia Pro: שנה ב-36 ₪ (3 ₪ לחודש, בתשלום אחד, ללא חידוש אוטומטי) או לכל החיים ב-50 ₪. התשלום בדף של PayPal, שמחזיר אותך ל-MyMedia.',
+        'Pro מקושר לחשבון Google שלך: הוא עובד באתר ובאפליקציית Android, בכל המכשירים שלך.',
       ],
     },
     {

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
 import { useFormat } from '../i18n/format'
+import { useIsPro } from '../models/pro'
 import { useApp } from '../store'
 import {
   acceptTransfer,
@@ -16,6 +17,7 @@ import {
   type TransferResult,
 } from '../transfer/transfer'
 import { Modal } from './Dialog'
+import { ProGate } from './ProDialog'
 import { FolderChecklist } from './FolderChecklist'
 import { useAuthStatus } from './hooks'
 import { useLibraryContext } from './libraryContext'
@@ -40,6 +42,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
   const [reclaimOpen, setReclaimOpen] = useState<null | 'list' | 'direct'>(null)
   // Copy by default: the sender keeps everything if the other account stops half-way.
   const [copy, setCopy] = useState(true)
+  const isPro = useIsPro()
   const [outgoing, setOutgoing] = useState<IncomingTransfer[]>([])
   const authStatus = useAuthStatus()
 
@@ -191,6 +194,10 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
           <Send size={16} /> {t('transfer.sendTitle')}
         </h3>
         <p className="hint" style={{ whiteSpace: 'pre-line' }}>{t('transfer.sendHint')}</p>
+        {!isPro ? (
+          <ProGate feature={t('pro.featureTransfer')} />
+        ) : (
+        <>
         <div className="field">
           {t('transfer.what')}
           <span className="hint">{t('transfer.choose')}</span>
@@ -245,6 +252,8 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
         >
           <Send size={16} /> {t(copy ? 'transfer.sendCopy' : 'transfer.send')}
         </button>
+        </>
+        )}
 
         {outgoing.length > 0 && (
           <>
@@ -278,6 +287,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
           <Users size={16} /> {t('transfer.peopleTitle')}
         </h3>
         <p className="hint">{t('transfer.peopleHint')}</p>
+        {isPro && (
         <button
           className="btn"
           disabled={!!busy || !validEmail}
@@ -290,6 +300,7 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
         >
           <Users size={16} /> {t('transfer.sendPeople')}
         </button>
+        )}
 
         <h3>
           <Undo2 size={16} /> {t('reclaim.title')}

@@ -103,7 +103,7 @@ export class ShopError extends Error {
   }
 }
 
-async function call<T>(method: string, query: string, body?: unknown, signedIn = true): Promise<T> {
+export async function call<T>(method: string, query: string, body?: unknown, signedIn = true): Promise<T> {
   const headers: Record<string, string> = {}
   if (signedIn) headers.Authorization = `Bearer ${await auth.getToken()}`
   if (body !== undefined) headers['Content-Type'] = 'application/json'
@@ -209,16 +209,19 @@ export async function checkLicence(id: string): Promise<{ ok: boolean; email: st
 }
 
 export interface PaypalReturn {
+  /** The model paid, or '' for MyMedia Pro. */
   model: string
+  /** MyMedia Pro paid. */
+  pro: boolean
   order: string
   cancelled: boolean
 }
 
-/** The page PayPal sent the buyer back to (/?paypal=1&model=…&token=<order>), once; the address is then cleaned. */
+/** The page PayPal sent the buyer back to (/?paypal=1&model=…|pro=…&token=<order>), once; the address is then cleaned. */
 export function paypalReturn(): PaypalReturn | null {
   const q = new URLSearchParams(location.search)
   if (!q.has('paypal')) return null
-  const back = { model: q.get('model') ?? '', order: q.get('token') ?? '', cancelled: q.has('cancel') }
+  const back = { model: q.get('model') ?? '', pro: q.has('pro'), order: q.get('token') ?? '', cancelled: q.has('cancel') }
   history.replaceState(null, '', location.pathname)
-  return back.model && back.order ? back : null
+  return (back.model || back.pro) && back.order ? back : null
 }

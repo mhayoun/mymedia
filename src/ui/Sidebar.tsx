@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronDown, ChevronRight, CircleHelp, Cloud, Copy, Download, Eye, Focus, Folder, FolderOpen, Gauge, Images, Inbox, MessagesSquare, MonitorDown, Plus, ScrollText, Share2, Sparkles, Upload, Users, Wand2, Store } from 'lucide-react'
+import { CalendarDays, ChevronDown, ChevronRight, CircleHelp, Cloud, Copy, Crown, Download, Eye, Focus, Folder, FolderOpen, Gauge, Images, Inbox, MessagesSquare, MonitorDown, Plus, ScrollText, Share2, Sparkles, Upload, Users, Wand2, Store } from 'lucide-react'
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -6,6 +6,7 @@ import { storageQuota, type DriveQuota } from '../drive/api'
 import { LOCALES } from '../i18n'
 import { useFormat } from '../i18n/format'
 import { buildPeriods, periodLabel } from '../lib/periods'
+import { useIsPro } from '../models/pro'
 import { useApp } from '../store'
 import { FaceImg } from './FaceImg'
 import { Modal } from './Dialog'
@@ -27,6 +28,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
   const setFilters = useApp((s) => s.setFilters)
   const open = useApp((s) => s.sidebarOpen)
   const set = useApp((s) => s.set)
+  const isPro = useIsPro()
 
   const facesEnabled = useApp((s) => s.settings.facesEnabled)
   const readOnly = useApp((s) => s.readOnly)
@@ -89,10 +91,12 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
             <button className="nav-item" aria-current={filters.categoryId === DUPLICATES} onClick={() => select(DUPLICATES, null)}>
               <Copy size={18} />
               <span className="label">{t('cleanup.duplicates')}</span>
+              {!isPro && <span className="tag pro">Pro</span>}
             </button>
             <button className="nav-item" aria-current={filters.categoryId === BLURRY} onClick={() => select(BLURRY, null)}>
               <Focus size={18} />
               <span className="label">{t('cleanup.blurry')}</span>
+              {!isPro && <span className="tag pro">Pro</span>}
             </button>
           </>
         )}
@@ -190,6 +194,11 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
             </button>
           </>
         )}
+        <button className="nav-item" onClick={() => set({ proOpen: true, sidebarOpen: false })}>
+          <Crown size={18} />
+          <span className="label">{t('pro.menu')}</span>
+          {isPro && <span className="tag pro">✓</span>}
+        </button>
         <InstallItem />
         <button
           className="nav-item"
