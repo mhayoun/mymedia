@@ -117,6 +117,9 @@ export function sizedThumbnailLink(link: string, size: number): string {
 }
 
 /** A Date as local "YYYY-MM-DDTHH:mm:ss" (the format used for dates taken). */
+/** On a Drive file: the date the user gave it in MyMedia, before any other (local "YYYY-MM-DDTHH:mm:ss"). */
+export const DATE_SET_KEY = 'mymedia_date_set'
+
 export function localIso(d: Date): string {
   const p = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`

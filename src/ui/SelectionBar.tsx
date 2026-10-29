@@ -1,17 +1,19 @@
-import { CheckSquare, FolderInput, FolderPlus, Minimize2, Pencil, RotateCcw, RotateCw, Trash2, UserPlus, X } from 'lucide-react'
+import { CalendarClock, CheckSquare, FolderInput, FolderPlus, Minimize2, Pencil, RotateCcw, RotateCw, Trash2, UserPlus, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { app, useApp } from '../store'
 import { addPersonByHand, setDescription, trashMedia } from '../sync/media'
 import { canRotate, rotateMedia } from '../sync/rotate'
 import { CompressDialog } from './CompressDialog'
+import { DateDialog } from './DateDialog'
+import { useIsPro } from '../models/pro'
 import { ConfirmDialog, PromptDialog } from './Dialog'
 import { MoveMediaDialog } from './MoveMediaDialog'
 import { NewAlbumDialog } from './NewAlbumDialog'
 import type { Library, LibraryItem } from './useLibrary'
 import type { People } from './usePeople'
 
-type Action = 'move' | 'newAlbum' | 'description' | 'person' | 'compress' | 'delete' | null
+type Action = 'move' | 'newAlbum' | 'description' | 'person' | 'compress' | 'date' | 'delete' | null
 
 /** Actions on the selected media (bottom bar). */
 export function SelectionBar({ lib, people, items, parentId }: { lib: Library; people: People; items: LibraryItem[]; parentId: string }) {
@@ -20,6 +22,7 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
   const set = useApp((s) => s.set)
   const [action, setAction] = useState<Action>(null)
   const [busy, setBusy] = useState<{ done: number; total: number } | null>(null)
+  const isPro = useIsPro()
   useEffect(() => {
     if (!selection) return
     const onKey = (e: KeyboardEvent) => {
@@ -94,6 +97,10 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
             <button className="btn" onClick={() => setAction('compress')}>
               <Minimize2 size={16} /> <span className="only-desktop">{t('compress.button')}</span>
             </button>
+            <button className="btn" onClick={() => (isPro ? setAction('date') : set({ proOpen: true }))} title={t('dates.change')}>
+              <CalendarClock size={16} /> <span className="only-desktop">{t('dates.change')}</span>
+              {!isPro && <span className="tag pro">Pro</span>}
+            </button>
             <button className="btn" onClick={() => setAction('delete')}>
               <Trash2 size={16} /> <span className="only-desktop">{t('common.delete')}</span>
             </button>
@@ -101,6 +108,7 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
         )}
       </div>
 
+      {action === 'date' && <DateDialog recs={selectedItems.map((i) => i.rec)} onClose={() => setAction(null)} onDone={done} />}
       {action === 'move' && <MoveMediaDialog lib={lib} ids={ids} onDone={done} onClose={() => setAction(null)} />}
       {action === 'newAlbum' && (
         <NewAlbumDialog

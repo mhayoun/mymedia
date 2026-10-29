@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, ExternalLink, FolderPlus, Info, Loader2, Maximize2, Play, RotateCcw, RotateCw, Share2, Trash2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Crown, ExternalLink, FolderPlus, Info, Loader2, Maximize2, Pencil, Play, RotateCcw, RotateCw, Share2, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -18,10 +18,12 @@ import { chooseFolder } from '../classify/engine'
 import { assignFaces, namePerson, removeFaces, splitFaces } from '../faces/engine'
 import { AlbumTreeChoice } from './AlbumTreeChoice'
 import { CompressDialog } from './CompressDialog'
+import { DateDialog } from './DateDialog'
 import { ConfirmDialog, Modal } from './Dialog'
 import { FaceImg } from './FaceImg'
 import { NewAlbumDialog } from './NewAlbumDialog'
 import { useLibraryContext } from './libraryContext'
+import { useIsPro } from '../models/pro'
 import { useOpenPerson, usePeopleContext } from './peopleContext'
 import type { LibraryItem } from './useLibrary'
 import { useProvenanceLabel } from './useProvenanceLabel'
@@ -528,6 +530,8 @@ function InfoPanel({ item }: { item: LibraryItem }) {
   // The face whose person is being chosen.
   const [picking, setPicking] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
+  const [dating, setDating] = useState(false)
+  const isPro = useIsPro()
   const giveName = async (f: (typeof faces)[number]) => {
     const name = newName.trim()
     if (!name) return
@@ -543,7 +547,20 @@ function InfoPanel({ item }: { item: LibraryItem }) {
     <aside className="info-panel">
       <dl>
         <dt>{t('viewer.date')}</dt>
-        <dd>{fmt.dateTime(rec.takenAt)}</dd>
+        <dd>
+          {fmt.dateTime(rec.takenAt)}
+          {!readOnly && (
+            <button
+              className="icon-btn small"
+              onClick={() => (isPro ? setDating(true) : set({ proOpen: true }))}
+              aria-label={t('dates.change')}
+              title={isPro ? t('dates.change') : `${t('dates.change')} (Pro)`}
+            >
+              {isPro ? <Pencil size={14} /> : <Crown size={14} />}
+            </button>
+          )}
+          {dating && <DateDialog recs={[rec]} onClose={() => setDating(false)} onDone={() => setDating(false)} />}
+        </dd>
         {meta?.group && (
           <>
             <dt>{t('viewer.group')}</dt>

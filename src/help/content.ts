@@ -142,7 +142,8 @@ const fr: HelpContent = {
     {
       title: 'MyMedia Pro',
       items: [
-        'La version gratuite fait l’essentiel. Pro ajoute : la recherche des doublons déjà présents, les photos floues, le partage avec plus de 2 personnes et l’envoi vers un autre compte (transfert). Recevoir un transfert reste gratuit.',
+        'La version gratuite fait l’essentiel. Pro ajoute : la recherche des doublons déjà présents, les photos floues, le partage avec plus de 2 personnes, l’envoi vers un autre compte (transfert) et le changement de date des photos. Recevoir un transfert reste gratuit.',
+        'Changer la date (Pro) : dans une photo, le crayon à côté de la date ; pour plusieurs, sélectionnez-les puis « Changer la date ». Mettez une date pour toutes (sans heure, chacune garde la sienne) ou décalez-les (par exemple -2 heures si l’horloge de l’appareil était fausse). « Remettre la date d’origine » annule. Le fichier lui-même n’est pas modifié : Google Photos et Drive gardent l’ancienne date.',
         'Menu ☰ → MyMedia Pro : 1 an pour 36 ₪ (3 ₪ par mois, payés en une fois, sans renouvellement automatique) ou à vie pour 50 ₪. Le paiement se fait sur la page de PayPal, qui vous ramène dans MyMedia.',
         'Pro est lié à votre compte Google : il marche sur le site et dans l’appli Android, sur tous vos appareils.',
       ],
@@ -290,7 +291,8 @@ const en: HelpContent = {
     {
       title: 'MyMedia Pro',
       items: [
-        'The free version does the essentials. Pro adds: finding the duplicates already there, blurry photos, sharing with more than 2 people and sending to another account (transfer). Receiving a transfer stays free.',
+        'The free version does the essentials. Pro adds: finding the duplicates already there, blurry photos, sharing with more than 2 people, sending to another account (transfer) and changing the date of photos. Receiving a transfer stays free.',
+        'Change the date (Pro): in a photo, the pencil next to the date; for several, select them then "Change the date". Set one date for all (without a time, each keeps its own) or shift them (for example -2 hours if the camera clock was wrong). "Back to the original date" undoes it. The file itself is not changed: Google Photos and Drive keep the old date.',
         'Menu ☰ → MyMedia Pro: 1 year for ₪36 (₪3 a month, paid at once, no automatic renewal) or for life for ₪50. You pay on PayPal’s page, which brings you back to MyMedia.',
         'Pro is bound to your Google account: it works on the website and in the Android app, on all your devices.',
       ],
@@ -438,7 +440,8 @@ const he: HelpContent = {
     {
       title: 'MyMedia Pro',
       items: [
-        'הגרסה החינמית עושה את העיקר. Pro מוסיף: חיפוש כפילויות שכבר קיימות, תמונות מטושטשות, שיתוף עם יותר משני אנשים ושליחה לחשבון אחר (העברה). קבלת העברה נשארת בחינם.',
+        'הגרסה החינמית עושה את העיקר. Pro מוסיף: חיפוש כפילויות שכבר קיימות, תמונות מטושטשות, שיתוף עם יותר משני אנשים, שליחה לחשבון אחר (העברה) ושינוי התאריך של תמונות. קבלת העברה נשארת בחינם.',
+        'שינוי התאריך (Pro): בתמונה, העיפרון ליד התאריך; לכמה תמונות, בוחרים אותן ואז „שינוי התאריך”. קובעים תאריך אחד לכולן (בלי שעה, כל אחת שומרת את שלה) או מזיזים אותן (למשל ‎-2 שעות אם השעון של המצלמה היה שגוי). „חזרה לתאריך המקורי” מבטל. הקובץ עצמו לא משתנה: Google Photos ו-Drive שומרים את התאריך הישן.',
         'תפריט ☰ ← MyMedia Pro: שנה ב-36 ₪ (3 ₪ לחודש, בתשלום אחד, ללא חידוש אוטומטי) או לכל החיים ב-50 ₪. התשלום בדף של PayPal, שמחזיר אותך ל-MyMedia.',
         'Pro מקושר לחשבון Google שלך: הוא עובד באתר ובאפליקציית Android, בכל המכשירים שלך.',
       ],

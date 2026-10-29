@@ -559,7 +559,8 @@ export async function createMediaFile(
 }
 
 /** Sets hidden app properties on a file (its content is not touched). */
-export async function setAppProperties(id: string, appProperties: Record<string, string>): Promise<void> {
+/** Sets the file's hidden properties (null removes one). */
+export async function setAppProperties(id: string, appProperties: Record<string, string | null>): Promise<void> {
   await request(`${API}/files/${id}?supportsAllDrives=true&fields=id`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },

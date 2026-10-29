@@ -349,6 +349,8 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .pro-plan.primary .hint { color: inherit; opacity: 0.85; }
 .pro-gate { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 40px 20px; text-align: center; color: var(--text-2); }
 .pro-gate svg { color: #d4a017; }
+.date-shift { flex: 1 1 70px; min-inline-size: 70px; }
+.date-shift input { inline-size: 100%; }
 .stats-table { inline-size: 100%; border-collapse: collapse; font-size: 0.92rem; }
 .stats-table th, .stats-table td { text-align: start; padding: 6px 8px; border-block-end: 1px solid var(--border); }
 .stats-table td.num { text-align: end; white-space: nowrap; }

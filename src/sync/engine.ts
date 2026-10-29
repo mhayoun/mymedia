@@ -21,7 +21,7 @@ import { auth } from '../auth/google'
 import { planChanges } from '../lib/changes'
 import { keepPendingPlaces } from './moveQueue'
 import { markLinksFresh } from './thumbs'
-import { dateFromFileName, detectOrigin, FOLDER_MIME, mediaTypeOf, parseExifDate } from '../lib/media'
+import { DATE_SET_KEY, dateFromFileName, detectOrigin, FOLDER_MIME, mediaTypeOf, parseExifDate } from '../lib/media'
 import { isMassRemoval, type MediaMeta } from '../lib/metadata'
 import { placementOf, subtreeIds, type FolderNode } from '../lib/tree'
 import { app } from '../store'
@@ -71,8 +71,8 @@ export function toRecord(f: DriveFile): MediaRecord | null {
     md5: f.md5Checksum,
     createdTime: created,
     modifiedTime: f.modifiedTime ?? created,
-    // EXIF, else the date MyMedia found when it uploaded the file, else the file name, else Drive's date.
-    takenAt: parseExifDate(img?.time) ?? f.appProperties?.mymedia_taken ?? dateFromFileName(f.name) ?? created,
+    // The date given in MyMedia, else EXIF, else the date MyMedia found when it uploaded the file, else the file name, else Drive's date.
+    takenAt: f.appProperties?.[DATE_SET_KEY] ?? parseExifDate(img?.time) ?? f.appProperties?.mymedia_taken ?? dateFromFileName(f.name) ?? created,
     width: img?.width ?? vid?.width,
     height: img?.height ?? vid?.height,
     durationMs: vid?.durationMillis ? Number(vid.durationMillis) : undefined,
