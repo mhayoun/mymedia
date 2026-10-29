@@ -27,4 +27,4 @@ interface MyMediaPlugin {
 export const native = registerPlugin<MyMediaPlugin>('MyMedia')
 
 /** Where the server functions are: the site itself, or the web site from the Android app. */
-export const apiBase = isNative ? 'https://www.media-keep.com' : ''
+export const apiBase = isNative ? 'https://media-keep.vercel.app' : ''
