@@ -713,7 +713,17 @@
     "sharedTitle": "Shared to copy",
     "sharedHint": "The other account can see these folders (not change them). Once its copy is made, withdraw the access: its copies stay with it.",
     "withdraw": "Withdraw access",
-    "withdrawn": "Access withdrawn."
+    "withdrawn": "Access withdrawn.",
+    "byFolders": "Categories or albums",
+    "byYears": "Years (the photos of these years, in all albums)",
+    "chooseYears": "Tick one or more years (date taken).",
+    "confirmYears_one": "The photo of {{years}} will be offered to {{email}}, in its category and album.",
+    "confirmYears_other": "The {{count}} photos of {{years}} will be offered to {{email}}, in their categories and albums.",
+    "confirmYearsCopy_one": "The photo of {{years}} will be shared with {{email}} to copy, in its category and album.",
+    "confirmYearsCopy_other": "The {{count}} photos of {{years}} will be shared with {{email}} to copy, in their categories and albums.",
+    "yearsCopyHint": "On the other account, missing albums are created and hold only these years. Nothing changes on yours.",
+    "yearsGiveHint": "The photos of these years are first gathered on your side in a folder \"years → address\", with the same categories and albums. When the other account accepts, they join its albums of the same name (created if missing), and your albums keep the other years.",
+    "yearsPlace": "Years {{years}}"
   },
   "models": {
     "title": "Classification models",

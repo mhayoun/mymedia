@@ -123,6 +123,7 @@ const fr: HelpContent = {
       title: 'Donner des photos à un autre compte',
       items: [
         'Compte (votre photo en haut à droite) → Transfert vers un autre compte : choisissez une catégorie ou un album (par exemple ציפורים) et l’adresse Gmail, puis Envoyer.',
+        'Par années : choisissez « Des années » et cochez par exemple 2019. Les photos prises en 2019 partent, où qu’elles soient : chez l’autre compte, chacune arrive dans sa catégorie et son album (créés s’il ne les a pas), qui ne contiennent que 2019. En « Donner », vos albums gardent les autres années ; en attendant l’acceptation, les photos données sont regroupées chez vous dans un dossier « 2019 → adresse ».',
         'L’autre compte ouvre MyMedia, Compte → Transfert vers un autre compte, et clique sur Accepter. Le dossier arrive au même endroit dans son MyMedia, avec espèces, textes, dates et personnes.',
         'Rien n’est copié ni renvoyé : les photos changent seulement de propriétaire. Après l’acceptation, la place est libérée sur le premier compte.',
         'Seuls vos propres fichiers peuvent être donnés ; MyMedia indique ceux qui appartiennent à un autre compte.',
@@ -270,6 +271,7 @@ const en: HelpContent = {
       title: 'Give photos to another account',
       items: [
         'Account (your photo at the top right) → Transfer to another account: choose a category or an album (e.g. ציפורים) and the Gmail address, then Send.',
+        'By years: choose "Years" and tick, for example, 2019. The photos taken in 2019 go, wherever they are: on the other account each lands in its category and album (created if missing), which hold only 2019. With "Give", your albums keep the other years; until it is accepted, the photos given are gathered on your side in a folder "2019 → address".',
         'The other account opens MyMedia, Account → Transfer to another account, and clicks Accept. The folder lands at the same place in their MyMedia, with species, texts, dates and people.',
         'Nothing is copied or uploaded again: only the owner changes. Once accepted, the space is freed on the first account.',
         'Only your own files can be given; MyMedia tells which ones belong to another account.',
@@ -417,6 +419,7 @@ const he: HelpContent = {
       title: 'מסירת תמונות לחשבון אחר',
       items: [
         'חשבון (התמונה שלכם למעלה) ← העברה לחשבון אחר: בוחרים קטגוריה או אלבום (למשל ציפורים) ואת כתובת ה-Gmail, ואז שליחה.',
+        'לפי שנים: בוחרים „שנים” ומסמנים למשל 2019. התמונות שצולמו ב-2019 נשלחות, איפה שהן: בחשבון השני כל אחת מגיעה לקטגוריה ולאלבום שלה (נוצרים אם חסרים), שמכילים רק את 2019. ב„מסירה” האלבומים שלך שומרים את שאר השנים; עד הקבלה, התמונות הנמסרות מקובצות אצלך בתיקייה „2019 → כתובת”.',
         'החשבון השני פותח את MyMedia, חשבון ← העברה לחשבון אחר, ולוחץ לקבל. התיקייה מגיעה לאותו מקום ב-MyMedia שלו, עם המינים, הטקסטים, התאריכים והאנשים.',
         'שום דבר לא מועתק ולא מועלה מחדש: רק הבעלים משתנה. אחרי הקבלה, המקום מתפנה בחשבון הראשון.',
         'אפשר למסור רק קבצים שלך; MyMedia מציינת אילו שייכים לחשבון אחר.',

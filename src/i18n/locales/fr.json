@@ -711,7 +711,17 @@
     "sharedTitle": "Partagés pour copie",
     "sharedHint": "Ces dossiers sont visibles (sans modification possible) par l'autre compte. Une fois sa copie faite, retirez l'accès : ses copies restent chez lui.",
     "withdraw": "Retirer l'accès",
-    "withdrawn": "Accès retiré."
+    "withdrawn": "Accès retiré.",
+    "byFolders": "Des catégories ou des albums",
+    "byYears": "Des années (les photos de ces années, dans tous les albums)",
+    "chooseYears": "Cochez une ou plusieurs années (date de prise de vue).",
+    "confirmYears_one": "La photo de {{years}} sera proposée à {{email}}, dans sa catégorie et son album.",
+    "confirmYears_other": "Les {{count}} photos de {{years}} seront proposées à {{email}}, dans leurs catégories et albums.",
+    "confirmYearsCopy_one": "La photo de {{years}} sera partagée avec {{email}} pour qu'il la copie, dans sa catégorie et son album.",
+    "confirmYearsCopy_other": "Les {{count}} photos de {{years}} seront partagées avec {{email}} pour qu'il les copie, dans leurs catégories et albums.",
+    "yearsCopyHint": "Chez l'autre compte, les albums manquants sont créés et ne contiennent que ces années. Chez vous, rien ne change.",
+    "yearsGiveHint": "Les photos de ces années sont d'abord regroupées chez vous dans un dossier « années → adresse », avec les mêmes catégories et albums. Quand l'autre compte accepte, elles rejoignent ses albums du même nom (créés s'il ne les a pas), et vos albums gardent les autres années.",
+    "yearsPlace": "Années {{years}}"
   },
   "models": {
     "title": "Modèles de classement",

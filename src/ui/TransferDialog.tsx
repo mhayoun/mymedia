@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
 import { useFormat } from '../i18n/format'
+import { buildPeriods } from '../lib/periods'
 import { useIsPro } from '../models/pro'
 import { useApp } from '../store'
 import {
@@ -10,6 +11,7 @@ import {
   findIncoming,
   findOutgoingCopies,
   sendFolder,
+  sendYears,
   sendPeople,
   TransferError,
   withdrawCopy,
@@ -42,6 +44,9 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
   const [reclaimOpen, setReclaimOpen] = useState<null | 'list' | 'direct'>(null)
   // Copy by default: the sender keeps everything if the other account stops half-way.
   const [copy, setCopy] = useState(true)
+  // What is sent: categories and albums, or the photos of some years (wherever they are).
+  const [byYears, setByYears] = useState(false)
+  const [years, setYears] = useState<Set<string>>(new Set())
   const isPro = useIsPro()
   const [outgoing, setOutgoing] = useState<IncomingTransfer[]>([])
   const authStatus = useAuthStatus()
@@ -65,7 +70,8 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
     void reloadOutgoing()
   }, [])
 
-  const placeOf = (tr: IncomingTransfer) => (tr.manifest.path.length ? tr.manifest.path.join(' / ') : t('transfer.everything'))
+  const placeOf = (tr: IncomingTransfer) =>
+    tr.manifest.years ? t('transfer.yearsPlace', { years: tr.manifest.years.join(', ') }) : tr.manifest.path.length ? tr.manifest.path.join(' / ') : t('transfer.everything')
   const isCopy = (tr: IncomingTransfer) => tr.manifest.mode === 'copy'
 
   // What is sent: the ticked folders not inside another ticked one (it takes them along).
@@ -85,6 +91,11 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
   const chosenCount = chosen.reduce((n, f) => n + f.count, 0)
   const [current, setCurrent] = useState<{ n: number; total: number; name: string } | null>(null)
   const validEmail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())
+  const allYears = useMemo(() => buildPeriods((lib?.items ?? []).map((i) => i.rec.takenAt)), [lib])
+  const yearsChosen = allYears.filter((y) => years.has(y.year))
+  const yearsCount = yearsChosen.reduce((n, y) => n + y.count, 0)
+  const yearsText = yearsChosen.map((y) => y.year).reverse().join(', ')
+  const ready = byYears ? yearsChosen.length > 0 : chosen.length > 0
 
   /** Several transfers one after the other, their results added up. */
   const runAll = async <T,>(list: T[], name: (x: T) => string, fn: (x: T) => Promise<TransferResult>): Promise<TransferResult> => {
@@ -200,15 +211,45 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
         <>
         <div className="field">
           {t('transfer.what')}
-          <span className="hint">{t('transfer.choose')}</span>
-          <FolderChecklist
-            categories={lib?.categories ?? []}
-            checked={checked}
-            onChange={setChecked}
-            disabled={!!busy}
-            root={rootId ? { id: rootId, label: `${t('transfer.everything')} (${fmt.number(lib?.items.length ?? 0)})` } : undefined}
-            extra={(f) => <span className="hint">({fmt.number(f.count)})</span>}
-          />
+          <label>
+            <input type="radio" checked={!byYears} onChange={() => setByYears(false)} disabled={!!busy} /> {t('transfer.byFolders')}
+          </label>
+          <label>
+            <input type="radio" checked={byYears} onChange={() => setByYears(true)} disabled={!!busy} /> {t('transfer.byYears')}
+          </label>
+          {byYears ? (
+            <>
+              <span className="hint">{t('transfer.chooseYears')}</span>
+              {allYears.map((y) => (
+                <label key={y.year} className="check-row">
+                  <input
+                    type="checkbox"
+                    checked={years.has(y.year)}
+                    disabled={!!busy}
+                    onChange={(e) => {
+                      const next = new Set(years)
+                      if (e.target.checked) next.add(y.year)
+                      else next.delete(y.year)
+                      setYears(next)
+                    }}
+                  />
+                  {y.year} <span className="hint">({fmt.number(y.count)})</span>
+                </label>
+              ))}
+            </>
+          ) : (
+            <>
+              <span className="hint">{t('transfer.choose')}</span>
+              <FolderChecklist
+                categories={lib?.categories ?? []}
+                checked={checked}
+                onChange={setChecked}
+                disabled={!!busy}
+                root={rootId ? { id: rootId, label: `${t('transfer.everything')} (${fmt.number(lib?.items.length ?? 0)})` } : undefined}
+                extra={(f) => <span className="hint">({fmt.number(f.count)})</span>}
+              />
+            </>
+          )}
         </div>
         <div className="field">
           {t('transfer.how')}
@@ -229,23 +270,31 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
           {t('transfer.message')}
           <input type="text" dir="auto" value={message} onChange={(e) => setMessage(e.target.value)} disabled={!!busy} />
         </label>
-        {chosen.length > 0 && validEmail && (
+        {byYears && yearsChosen.length > 0 && validEmail && (
+          <p>{t(copy ? 'transfer.confirmYearsCopy' : 'transfer.confirmYears', { years: yearsText, count: yearsCount, email: email.trim() })}</p>
+        )}
+        {byYears && yearsChosen.length > 0 && <p className="hint">{t(copy ? 'transfer.yearsCopyHint' : 'transfer.yearsGiveHint')}</p>}
+        {!byYears && chosen.length > 0 && validEmail && (
           <p>
             {chosen.length === 1
               ? t(copy ? 'transfer.confirmCopy' : 'transfer.confirm', { name: chosen[0].name, count: chosen[0].count, email: email.trim() })
               : t(copy ? 'transfer.confirmCopyMany' : 'transfer.confirmMany', { folders: chosen.length, count: chosenCount, email: email.trim() })}
           </p>
         )}
-        {everything && <p className="hint">{t('transfer.everythingHint')}</p>}
+        {!byYears && everything && <p className="hint">{t('transfer.everythingHint')}</p>}
         <button
           className="btn primary"
-          disabled={!!busy || !chosen.length || !validEmail}
+          disabled={!!busy || !ready || !validEmail}
           onClick={() =>
             run(
-              () => runAll(chosen, (f) => f.name, (f) => sendFolder(f.id, email, message, (done, total) => setBusy({ done, total }), copy)),
+              () =>
+                byYears
+                  ? sendYears(yearsChosen.map((y) => y.year), email, message, (done, total) => setBusy({ done, total }), copy)
+                  : runAll(chosen, (f) => f.name, (f) => sendFolder(f.id, email, message, (done, total) => setBusy({ done, total }), copy)),
               copy ? 'transfer.shared' : 'transfer.sent',
             ).then(() => {
               setChecked(new Set())
+              setYears(new Set())
               void reloadOutgoing()
             })
           }
