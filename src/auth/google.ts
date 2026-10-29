@@ -5,6 +5,11 @@
 // user gesture). If it has already expired, Drive requests simply wait and a
 // "Reconnect" banner is shown; nothing is lost and everything resumes after
 // the click.
+//
+// In the Android app the phone's Google accounts give the token instead: once
+// Drive access was accepted, a new one comes back without any click.
+
+import { isNative, native } from '../native'
 
 export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive'
 
@@ -50,6 +55,8 @@ const HINT_KEY = 'mymedia.loginHint'
 const RENEW_MARGIN_MS = 10 * 60 * 1000
 /** Consider the token expired slightly early to avoid failing requests. */
 const EXPIRY_MARGIN_MS = 60 * 1000
+/** Android: how often the token is checked (and renewed without a click). */
+const NATIVE_CHECK_MS = 60 * 1000
 
 type Waiter = (token: string) => void
 
@@ -113,6 +120,15 @@ class GoogleAuth {
   }
 
   async init(clientId: string): Promise<void> {
+    if (isNative) {
+      setInterval(() => this.renewIfNeeded(), NATIVE_CHECK_MS)
+      if (this.isValid()) this.setStatus('signedIn')
+      else if (this.loginHint) {
+        this.setStatus('needsReconnect')
+        this.nativeRenew()
+      }
+      return
+    }
     await loadScript('https://accounts.google.com/gsi/client')
     const oauth2 = window.google!.accounts.oauth2
     this.client = oauth2.initTokenClient({
@@ -152,9 +168,13 @@ class GoogleAuth {
       this.emit()
       return
     }
+    this.accept(r.access_token, Number(r.expires_in ?? 3600))
+  }
+
+  private accept(accessToken: string, expiresIn: number) {
     this.lastError = null
     this.serial++
-    this.token = { accessToken: r.access_token, expiresAt: Date.now() + Number(r.expires_in ?? 3600) * 1000 }
+    this.token = { accessToken, expiresAt: Date.now() + expiresIn * 1000 }
     try {
       localStorage.setItem(TOKEN_KEY, JSON.stringify(this.token))
     } catch {
@@ -168,13 +188,14 @@ class GoogleAuth {
     }
     const waiters = this.waiters
     this.waiters = []
-    for (const w of waiters) w(r.access_token)
+    for (const w of waiters) w(accessToken)
     this.setStatus('signedIn')
     this.emit()
   }
 
   /** Must be called from a click handler (opens Google's popup). */
   signIn(chooseAccount = false) {
+    if (isNative) return void this.nativeSignIn(chooseAccount)
     if (!this.client) return
     this.requesting = true
     this.switching = chooseAccount && !!this.loginHint
@@ -186,6 +207,10 @@ class GoogleAuth {
 
   /** Opens MyMedia on another account already used here (Google asks only if needed). */
   switchTo(email: string) {
+    if (isNative) {
+      this.switching = true
+      return void this.nativeAuthorize(email, true)
+    }
     if (!this.client) return
     this.requesting = true
     this.switching = true
@@ -193,6 +218,10 @@ class GoogleAuth {
   }
 
   private renewIfNeeded() {
+    if (isNative) {
+      if (!this.token || this.token.expiresAt - RENEW_MARGIN_MS < Date.now()) this.nativeRenew()
+      return
+    }
     if (!this.client || this.requesting || !this.loginHint) return
     if (this.token && this.token.expiresAt - RENEW_MARGIN_MS > Date.now()) return
     this.signIn()
@@ -203,6 +232,8 @@ class GoogleAuth {
    * if the token would expire during the task, so it does not stop halfway.
    */
   renewBefore(taskMs: number) {
+    // Android renews by itself during the task.
+    if (isNative) return
     if (!this.client || this.requesting || !this.loginHint) return
     if (this.token && this.token.expiresAt - EXPIRY_MARGIN_MS - taskMs > Date.now()) return
     this.signIn()
@@ -211,12 +242,15 @@ class GoogleAuth {
   /** Returns a valid access token, waiting for the user to reconnect if needed. */
   getToken(): Promise<string> {
     if (this.isValid()) return Promise.resolve(this.token!.accessToken)
-    this.setStatus(this.loginHint ? 'needsReconnect' : 'signedOut')
-    return new Promise((resolve) => this.waiters.push(resolve))
+    const waiting = new Promise<string>((resolve) => this.waiters.push(resolve))
+    if (isNative && this.loginHint) this.nativeRenew()
+    else this.setStatus(this.loginHint ? 'needsReconnect' : 'signedOut')
+    return waiting
   }
 
   /** Called when Google rejects the token (401). */
   invalidate() {
+    if (isNative && this.token) void native.clearToken({ token: this.token.accessToken })
     this.token = null
     try {
       localStorage.removeItem(TOKEN_KEY)
@@ -231,6 +265,64 @@ class GoogleAuth {
     this.loginHint = null
     this.setStatus('signedOut')
   }
+
+  // ---- Android ----
+
+  /** A new token without any click; if Google needs the user, the "Reconnect" banner is shown. */
+  private nativeRenew() {
+    if (!this.requesting && this.loginHint) void this.nativeAuthorize(this.loginHint, false)
+  }
+
+  private async nativeSignIn(chooseAccount: boolean) {
+    let email = this.loginHint
+    if (chooseAccount || !email) {
+      try {
+        email = (await native.chooseAccount()).email
+      } catch (e) {
+        this.fail(e)
+        return
+      }
+      // Another account: nothing of the open one may run with it.
+      this.switching = !!this.loginHint && email !== this.loginHint
+    }
+    await this.nativeAuthorize(email, true)
+  }
+
+  private async nativeAuthorize(email: string, interactive: boolean) {
+    if (this.requesting) return
+    this.requesting = true
+    try {
+      const { accessToken } = await native.authorize({ email, interactive })
+      this.requesting = false
+      if (!this.loginHint) this.loginHint = email
+      this.accept(accessToken, await expiresIn(accessToken))
+    } catch (e) {
+      this.requesting = false
+      this.switching = false
+      this.fail(e)
+    }
+  }
+
+  private fail(e: unknown) {
+    const code = (e as { code?: string }).code
+    // needs_ui: Google wants the user (first time, access removed): the banner's button asks.
+    this.lastError = code === 'needs_ui' ? null : (code ?? 'unknown')
+    if (code === 'scope_denied') this.setStatus('signedOut')
+    else if (this.waiters.length || !this.isValid()) this.setStatus(this.token || this.loginHint ? 'needsReconnect' : 'signedOut')
+    this.emit()
+  }
+}
+
+/** Seconds left on a token given by Android (which does not say); one hour if Google cannot be asked. */
+async function expiresIn(token: string): Promise<number> {
+  try {
+    const r = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(token)}`)
+    const n = Number(((await r.json()) as { expires_in?: string }).expires_in)
+    if (n > 0) return n
+  } catch {
+    // Offline: assume a fresh token.
+  }
+  return 3600
 }
 
 export const auth = new GoogleAuth()

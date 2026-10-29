@@ -32,6 +32,11 @@ import { del, get, list, put } from '@vercel/blob'
 import { createHash, randomUUID } from 'node:crypto'
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? '246067015646-63ga5nqjgihi3sd8mmb3ch0urb0i1q5m.apps.googleusercontent.com'
+// The Android app's tokens come from its own Google client (comma-separated if several).
+const ANDROID_CLIENT_IDS = process.env.GOOGLE_ANDROID_CLIENT_ID ?? '246067015646-hcjsb25dpcm6d0ukdlts48f0irfq5ivb.apps.googleusercontent.com'
+const CLIENT_IDS = [CLIENT_ID, ...ANDROID_CLIENT_IDS.split(',').map((s) => s.trim())].filter(Boolean)
+/** The Android app's page is served from this address inside the phone. */
+const APP_ORIGIN = 'https://localhost'
 // Without PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET, every model is free (test).
 const PAYPAL_ID = (process.env.PAYPAL_CLIENT_ID ?? '').trim()
 const PAYPAL_SECRET = (process.env.PAYPAL_CLIENT_SECRET ?? '').trim()
@@ -158,7 +163,7 @@ async function account(req: Request): Promise<string> {
   const info = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(token)}`)
   if (!info.ok) throw new HttpError(401, 'invalid token')
   const t = (await info.json()) as { aud?: string; azp?: string; expires_in?: string }
-  if (t.aud !== CLIENT_ID && t.azp !== CLIENT_ID) throw new HttpError(401, 'token of another app')
+  if (!CLIENT_IDS.includes(t.aud ?? '') && !CLIENT_IDS.includes(t.azp ?? '')) throw new HttpError(401, 'token of another app')
   const about = await fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)', {
     headers: { Authorization: `Bearer ${token}` },
   })
@@ -513,6 +518,16 @@ async function payout(req: Request) {
 }
 
 async function handle(req: Request): Promise<Response> {
+  const res = await answer(req)
+  // The Android app asks from its own address.
+  if (req.headers.get('origin') === APP_ORIGIN) {
+    res.headers.set('Access-Control-Allow-Origin', APP_ORIGIN)
+    res.headers.append('Vary', 'Origin')
+  }
+  return res
+}
+
+async function answer(req: Request): Promise<Response> {
   try {
     const url = new URL(req.url)
     const action = url.searchParams.get('action')
@@ -538,3 +553,18 @@ async function handle(req: Request): Promise<Response> {
 export const GET = handle
 export const POST = handle
 export const DELETE = handle
+
+/** The Android app's browser asks first whether it may send its requests. */
+export function OPTIONS(req: Request): Response {
+  if (req.headers.get('origin') !== APP_ORIGIN) return new Response(null, { status: 204 })
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': APP_ORIGIN,
+      'Access-Control-Allow-Methods': 'GET, POST, DELETE',
+      'Access-Control-Allow-Headers': 'Authorization, Content-Type',
+      'Access-Control-Max-Age': '86400',
+      Vary: 'Origin',
+    },
+  })
+}

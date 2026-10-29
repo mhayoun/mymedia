@@ -1,7 +1,7 @@
 {
   "name": "mymedia",
   "private": true,
-  "version": "1.0.27",
+  "version": "1.0.28",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,9 +10,14 @@
     "preview": "vite preview",
     "test": "vitest run",
     "predev": "node scripts/prepare-assets.mjs",
-    "prebuild": "node scripts/prepare-assets.mjs"
+    "prebuild": "node scripts/prepare-assets.mjs",
+    "build:android": "npm run build && cap sync android",
+    "android:apk": "npm run build:android && cd android && ./gradlew assembleRelease",
+    "android:bundle": "npm run build:android && cd android && ./gradlew bundleRelease"
   },
   "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/core": "^8.6.0",
     "@mediabunny/aac-encoder": "^1.61.3",
     "@tanstack/react-virtual": "^3.14.13",
     "@vercel/blob": "^2.8.1",
@@ -32,6 +37,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.6.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",

@@ -26,7 +26,7 @@ import { LibraryContext } from './libraryContext'
 import { ReviewView } from './ReviewView'
 import { StatsDialog } from './StatsDialog'
 import { AUTO, BLURRY, DUPLICATES, filterItems, MISFILED, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
-import { clearSharedFiles, hasSharedFiles, readSharedFiles } from '../import/shared'
+import { clearSharedFiles, hasSharedFiles, onNativeShare, readSharedFiles } from '../import/shared'
 import { paypalReturn } from '../models/shop'
 import { FacesIntro } from './FacesIntro'
 import { HelpPanel } from './HelpPanel'
@@ -100,6 +100,9 @@ export function Shell() {
 
   // Files shared to MyMedia from another app (Android Share menu).
   const [sharedReadOnly, setSharedReadOnly] = useState(false)
+  // Android app: files shared while MyMedia is already open.
+  const [shareTick, setShareTick] = useState(0)
+  useEffect(() => onNativeShare(() => setShareTick((n) => n + 1)), [])
   useEffect(() => {
     if (!rootId || !hasSharedFiles()) return
     // A library shared for viewing cannot take them: offer to open the user's own (the files wait).
@@ -120,7 +123,7 @@ export function Shell() {
         } else app().set({ toast: { key: 'shareIn.notReceived', detail: why } })
       }
     })
-  }, [rootId])
+  }, [rootId, shareTick])
 
   const personMedia = filters.personId ? people.byId.get(filters.personId)?.mediaIds : undefined
   // Folder shown (album or category), used by Add and Compress in the top bar.

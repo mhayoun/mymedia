@@ -1,6 +1,7 @@
 // The shop of classification models (api/models.ts on MyMedia's server).
 
 import { auth } from '../auth/google'
+import { apiBase } from '../native'
 
 export interface ShopModel {
   id: string
@@ -106,7 +107,7 @@ async function call<T>(method: string, query: string, body?: unknown, signedIn =
   const headers: Record<string, string> = {}
   if (signedIn) headers.Authorization = `Bearer ${await auth.getToken()}`
   if (body !== undefined) headers['Content-Type'] = 'application/json'
-  const res = await fetch(`/api/models${query}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) })
+  const res = await fetch(`${apiBase}/api/models${query}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) })
   const out = (await res.json().catch(() => null)) as (T & { error?: string }) | null
   if (!res.ok) throw new ShopError(res.status, out?.error ?? res.statusText)
   // No server behind /api (e.g. `npm run dev` serves api/models.ts as a script): not a shop answer.
@@ -144,7 +145,7 @@ function pack(head: unknown, bytes: Uint8Array): Uint8Array {
 /** Fingerprints go as bytes (a third smaller than base64): more of them fit in a request. */
 export async function publishModel(input: PublishInput): Promise<ShopModel> {
   const { vecs, ...head } = input
-  const res = await fetch('/api/models', {
+  const res = await fetch(`${apiBase}/api/models`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${await auth.getToken()}`, 'Content-Type': 'application/octet-stream' },
     body: pack(head, base64ToBytes(vecs)) as BodyInit,
@@ -174,7 +175,7 @@ export async function capturePayment(id: string, order: string): Promise<void> {
 type Downloaded = { info: Omit<ShopModel, 'mine' | 'owned' | 'paymentsLive'>; buyer: string; data: ModelData }
 
 export async function downloadModel(id: string): Promise<Downloaded> {
-  const res = await fetch(`/api/models?action=data&format=bin&id=${encodeURIComponent(id)}`, {
+  const res = await fetch(`${apiBase}/api/models?action=data&format=bin&id=${encodeURIComponent(id)}`, {
     headers: { Authorization: `Bearer ${await auth.getToken()}` },
   })
   if (!res.ok) {
