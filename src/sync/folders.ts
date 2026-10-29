@@ -72,6 +72,13 @@ export async function moveFolder(id: string, toId: string): Promise<void> {
   const same = await findFolderNamed(toId, cleanName(f.name), id)
   if (same) throw new FolderExistsError(same)
   await moveInto(id, toId)
+  // The new place in the menu at once; a load already running may have read the old one.
+  const placed = () => db().folders.update(id, { parentId: toId })
+  await placed()
+  if (isSyncing()) {
+    await syncNow()
+    await placed()
+  }
   await syncNow()
 }
 
