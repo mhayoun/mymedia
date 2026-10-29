@@ -57,6 +57,7 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
     const list = selectedItems.filter((i) => canRotate(i.rec)).map((i) => i.rec.id)
     await each((id) => rotateMedia(id, turns), list)
     if (list.length < ids.length) app().set({ toast: { key: 'rotate.skipped', count: ids.length - list.length } })
+    done()
   }
 
   return (
