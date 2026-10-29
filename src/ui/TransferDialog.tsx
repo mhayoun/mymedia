@@ -115,7 +115,9 @@ export function TransferDialog({ onClose }: { onClose: () => void }) {
         e instanceof TransferError
           ? e.step === 'notOwner'
             ? t('transfer.notOwner', { name: e.detail, owner: e.owner ?? '?' })
-            : t(`transfer.failed.${e.step}`, { message: e.detail })
+            : e.step === 'gone'
+              ? t('transfer.gone', { name: e.detail })
+              : t(`transfer.failed.${e.step}`, { message: e.detail })
           : t('errors.generic', { message: (e as Error).message }),
       )
     } finally {

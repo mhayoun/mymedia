@@ -60,7 +60,7 @@ export function isMyMediaFile(f: { name: string; mimeType: string }): boolean {
 
 /** A step that failed, with what the user needs to know. */
 export class TransferError extends Error {
-  step: 'notOwner' | 'send' | 'accept' | 'move' | 'peopleNotYet' | 'peopleNone'
+  step: 'notOwner' | 'gone' | 'send' | 'accept' | 'move' | 'peopleNotYet' | 'peopleNone'
   detail: string
   owner?: string
   constructor(step: TransferError['step'], detail: string, owner?: string) {
@@ -165,11 +165,13 @@ export async function sendFolder(folderId: string, email: string, message: strin
   const d = db()
   // Photos just moved must be in their folder on Drive before it is given.
   await step('send', flushMoves)
+  // Its name, for the message if Drive no longer has it under MyMedia.
+  const name = (await d.folders.get(folderId))?.name ?? ''
   await syncNow()
   const folders = await d.folders.toArray()
   // The root: all of MyMedia.
   const chain = folderId === rootId ? [] : folderChain(folderId, new Map(folders.map((f) => [f.id, f])), rootId)
-  if (!chain || (!chain.length && folderId !== rootId)) throw new Error('not in MyMedia')
+  if (!chain || (!chain.length && folderId !== rootId)) throw new TransferError('gone', name)
 
   const ids = subtreeIds(folderId, folders)
   const media = await d.media.where('folderId').anyOf([...ids]).toArray()
