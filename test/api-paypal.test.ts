@@ -17,6 +17,7 @@ process.env.PAYPAL_CLIENT_ID = 'pp-id'
 process.env.PAYPAL_CLIENT_SECRET = 'pp-secret'
 process.env.MYMEDIA_FEE = '15'
 process.env.MYMEDIA_ADMINS = 'admin@gmail.com'
+process.env.MYMEDIA_PRO = 'family@gmail.com, Friend2@gmail.com'
 
 const CLIENT = '246067015646-63ga5nqjgihi3sd8mmb3ch0urb0i1q5m.apps.googleusercontent.com'
 /** PayPal orders: id → what was asked, and whether the buyer approved it. */
@@ -192,6 +193,13 @@ describe('model shop with PayPal', () => {
     expect(await (await POST(req('POST', `?action=capturePro&order=${life.order}`, 'buyer'))).json()).toMatchObject({ pro: true, life: true })
     expect(await (await POST(req('POST', '?action=buyPro&plan=year', 'buyer'))).json()).toMatchObject({ ok: true, life: true })
     expect(await (await GET(req('GET', '?action=pro', 'friend'))).json()).toMatchObject({ pro: false })
+  })
+
+  it('gives Pro to the accounts offered it, without an order', async () => {
+    expect(await (await GET(req('GET', '?action=pro', 'family'))).json()).toMatchObject({ pro: true, life: true, offered: true })
+    expect(await (await GET(req('GET', '?action=pro', 'friend2'))).json()).toMatchObject({ pro: true, offered: true })
+    expect(await (await POST(req('POST', '?action=buyPro&plan=year', 'family'))).json()).toMatchObject({ ok: true, offered: true })
+    expect(orders.size).toBe(0)
   })
 
   it('does not sell Pro inside the Android app', async () => {

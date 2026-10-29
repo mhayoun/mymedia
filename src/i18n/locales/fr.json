@@ -1018,6 +1018,7 @@
     "statusFree": "Vous avez la version gratuite.",
     "statusUntil": "Vous avez Pro jusqu'au {{date}}.",
     "statusLife": "Vous avez Pro à vie.",
+    "statusOffered": "Pro vous est offert par MyMedia.",
     "thanks": "Merci ! Pro est activé sur ce compte Google, sur le site et dans l'appli Android.",
     "includes": "Pro ajoute",
     "featureDuplicates": "La recherche des doublons déjà présents",

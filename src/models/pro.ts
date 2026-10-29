@@ -11,6 +11,8 @@ export type ProPlan = 'year' | 'life'
 export interface ProStatus {
   pro: boolean
   life: boolean
+  /** Given by MyMedia (MYMEDIA_PRO), not bought. */
+  offered?: boolean
   /** End of the paid years (ISO), if any. */
   until: string | null
   plans: { id: ProPlan; price: number; currency: string }[]

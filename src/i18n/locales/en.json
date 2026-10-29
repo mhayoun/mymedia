@@ -1020,6 +1020,7 @@
     "statusFree": "You have the free version.",
     "statusUntil": "You have Pro until {{date}}.",
     "statusLife": "You have Pro for life.",
+    "statusOffered": "MyMedia gives you Pro.",
     "thanks": "Thank you! Pro is on for this Google account, on the website and in the Android app.",
     "includes": "Pro adds",
     "featureDuplicates": "Finding the duplicates already there",

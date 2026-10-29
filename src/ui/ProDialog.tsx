@@ -74,8 +74,10 @@ export function ProDialog({ onClose }: { onClose: () => void }) {
           <strong>
             {!pro?.pro
               ? t('pro.statusFree')
-              : pro.life
-                ? t('pro.statusLife')
+              : pro.offered
+                ? t('pro.statusOffered')
+                : pro.life
+                  ? t('pro.statusLife')
                 : t('pro.statusUntil', { date: fmt.date(pro.until ?? undefined) })}
           </strong>
         </p>

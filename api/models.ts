@@ -52,6 +52,8 @@ const testMoney = () => !paymentsLive() || PAYPAL_API.includes('sandbox')
 /** MyMedia's commission, in % of the price. */
 const FEE = Math.min(Math.max(Number(process.env.MYMEDIA_FEE ?? 15) || 0, 0), 100)
 const ADMINS = (process.env.MYMEDIA_ADMINS ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean)
+/** Accounts given Pro without paying. */
+const PRO_ACCOUNTS = (process.env.MYMEDIA_PRO ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean)
 // Vercel takes 4.5 MB a request or a response: fingerprints are sent as bytes
 // (see `pack`), 5,400 of them ≈ 4.35 MB with the album names, labels and file hashes.
 const MAX_EXAMPLES = 5400
@@ -545,10 +547,11 @@ const validPlan = (plan: string | null): ProPlan => {
   return plan
 }
 
-function proStatus(r: ProRecord | null) {
+function proStatus(r: ProRecord | null, offered = false) {
   return {
-    pro: proActive(r),
-    life: !!r?.life,
+    pro: offered || proActive(r),
+    life: offered || !!r?.life,
+    offered,
     until: r?.until ?? null,
     plans: (Object.keys(PRO_PLANS) as ProPlan[]).map((id) => ({ id, price: PRO_PLANS[id].price, currency: PRO_CURRENCY })),
     paymentsLive: paymentsLive(),
@@ -558,7 +561,7 @@ function proStatus(r: ProRecord | null) {
 
 async function pro(req: Request) {
   const email = await account(req)
-  return json(proStatus(await readJson<ProRecord>(proPath(email))))
+  return json(proStatus(await readJson<ProRecord>(proPath(email)), PRO_ACCOUNTS.includes(email)))
 }
 
 async function givePro(email: string, plan: ProPlan, order: string) {
@@ -580,6 +583,7 @@ async function buyPro(req: Request, plan: ProPlan) {
   if (req.headers.get('origin') === APP_ORIGIN) throw new HttpError(403, 'not in the android app')
   const email = await account(req)
   const r = await readJson<ProRecord>(proPath(email))
+  if (PRO_ACCOUNTS.includes(email)) return json({ ok: true, ...proStatus(r, true) })
   if (r?.life) return json({ ok: true, ...proStatus(r) })
   if (!paymentsLive()) return json({ ok: true, ...proStatus(await givePro(email, plan, `free-${randomUUID()}`)) })
   const back = `${new URL(req.url).origin}/?paypal=1&pro=${plan}`
