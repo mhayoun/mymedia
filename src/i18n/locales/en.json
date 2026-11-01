@@ -110,7 +110,9 @@
     "viewMonths": "By month"
   },
   "sync": {
-    "firstLoadHint": "First time: MyMedia reads your whole library. With thousands of photos this can take a minute or two.",
+    "scanningOf": "Reading your library… {{done}} / {{total}} files",
+    "firstLoadOnce": "This loading happens only once on this device.",
+    "firstLoadHint": "After that, MyMedia opens at once and only loads what is new. With thousands of photos this first time can take a minute or two: just leave the screen open.",
     "scanning": "Reading your Drive folders… {{done}} files found",
     "checking": "Checking for new files…",
     "applying": "Loading changes {{done}} / {{total}}",

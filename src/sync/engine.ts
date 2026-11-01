@@ -13,6 +13,7 @@ import {
   getStartPageToken,
   listChanges,
   listFiles,
+  setAppProperties,
   setDriveReadOnly,
   type DriveFile,
 } from '../drive/api'
@@ -228,12 +229,31 @@ async function scanTrees(
   return { folders, media }
 }
 
+/** On the root folder: how many media the library had at its last check (Drive cannot count a folder tree). */
+const COUNT_KEY = 'mymedia_count'
+
+/** The number of media written on the root folder by the last check, from any device (0: unknown). */
+async function knownCount(rootId: string): Promise<number> {
+  const f = await getFile(rootId, 'appProperties').catch(() => null)
+  return Number(f?.appProperties?.[COUNT_KEY]) || 0
+}
+
+/** Writes the library's number of media on the root folder when it changed: a first load elsewhere shows how far it is. */
+async function saveCount(rootId: string) {
+  const d = db()
+  const n = await d.media.count()
+  if (n === (await d.getKv<number>('rootCount'))) return
+  await setAppProperties(rootId, { [COUNT_KEY]: String(n) })
+  await d.setKv('rootCount', n)
+}
+
 async function fullScan(rootId: string, signal: AbortSignal) {
   // Token first: changes made during the scan are picked up next time.
-  const pageToken = await getStartPageToken()
-  app().set({ sync: { step: 'sync.scanning', done: 0, total: 0 } })
+  const [pageToken, total] = await Promise.all([getStartPageToken(), knownCount(rootId)])
+  await db().setKv('rootCount', total)
+  app().set({ sync: { step: 'sync.scanning', done: 0, total } })
   const { folders, media } = await scanTrees([rootId], signal, (_f, files) =>
-    app().set({ sync: { step: 'sync.scanning', done: files, total: 0 } }),
+    app().set({ sync: { step: 'sync.scanning', done: files, total: Math.max(total, files) } }),
   )
   signal.throwIfAborted()
   await keepPendingPlaces(media)
@@ -405,6 +425,7 @@ export function syncNow(options: { full?: boolean } = {}): Promise<void> {
       if (!app().readOnly) {
         await reconcileMeta(rootId)
         await saveMeta()
+        await saveCount(rootId).catch((e) => console.warn('[MyMedia] count not saved', e))
       }
       app().set({ lastSyncAt: Date.now() })
       // In the background: compress new big files, then learn and classify.
