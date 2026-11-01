@@ -791,6 +791,7 @@ function Toast() {
 function EmptyState({ first }: { first: boolean }) {
   const { t } = useTranslation()
   const sync = useApp((s) => s.sync)
+  const shared = useApp((s) => s.shared)
   const rootName = app().settings.rootName
   // Nothing here yet because the library is being read for the first time (thousands of files: a while).
   if (first && sync)
@@ -799,7 +800,9 @@ function EmptyState({ first }: { first: boolean }) {
         <Loader2 size={72} className="spin" />
         {sync.step === 'sync.scanning' && sync.total > 0 ? (
           <>
-            <p className="first-load-step">{t('sync.scanningOf')}</p>
+            <p className="first-load-step">
+              {shared ? t('sync.scanningShared', { name: shared.ownerName || shared.ownerEmail || '' }) : t('sync.scanningOf')}
+            </p>
             {/* One line, left to right in Hebrew too: "done / total". */}
             <p className="first-load-count" dir="ltr">
               {sync.done} / {sync.total}
