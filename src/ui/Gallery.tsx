@@ -169,7 +169,7 @@ export function Gallery({ items, folderId, folders }: { items: LibraryItem[]; fo
                 style={{ top: v.start + GAP, gridTemplateColumns: `repeat(${cols}, ${cell}px)` }}
               >
                 {row.items.map((it) => (
-                  <Thumb key={it.rec.id} rec={it.rec} onOpen={open} selected={selected ? selected.has(it.rec.id) : undefined} onLongPress={startSelection} />
+                  <Thumb key={it.rec.id} eager rec={it.rec} onOpen={open} selected={selected ? selected.has(it.rec.id) : undefined} onLongPress={startSelection} />
                 ))}
               </div>
             )

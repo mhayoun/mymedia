@@ -15,6 +15,8 @@ interface Props {
   onLongPress?: (id: string) => void
   /** The Enlarge button in the corner, where a tap ticks ("To classify", "Auto"): opens the photo. */
   onZoom?: (id: string) => void
+  /** In the gallery, only the rows on screen exist: drawn at once (the browser's lazy loading left cells empty until a scroll). */
+  eager?: boolean
 }
 
 const LONG_PRESS_MS = 500
@@ -24,7 +26,7 @@ const LONG_PRESS_MS = 500
  */
 const RETRY_MS = [1500, 5000, 15000]
 
-export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, onZoom }: Props) {
+export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, onZoom, eager }: Props) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const bySize = useApp((s) => s.settings.sort === 'largest' || s.settings.sort === 'smallest')
@@ -95,7 +97,7 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, o
           key={tries}
           src={url}
           alt=""
-          loading="lazy"
+          loading={eager ? 'eager' : 'lazy'}
           decoding="async"
           draggable={false}
           referrerPolicy="no-referrer"

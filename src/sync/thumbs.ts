@@ -313,11 +313,18 @@ const stats = { ok: 0, failed: 0, slowPacks: 0 }
 /** When each thumbnail being made started (to see one that never ends). */
 const running = new Set<number>()
 
-async function produce(rec: MediaRecord): Promise<Blob | null> {
+/**
+ * Makes the thumbnail. 'direct': Google's preview could not be read and, meanwhile, this browser
+ * was found unable to read any (first load, cache empty): shown from Google's address instead of
+ * downloading the original (20 originals at once held back the rest of the screen).
+ */
+async function produce(rec: MediaRecord, noDirect = false): Promise<Blob | null | 'direct'> {
   const started = performance.now()
   running.add(started)
   try {
-    const b = (await driveThumbnail(rec)) ?? (rec.type === 'video' ? await videoFrameThumbnail(rec, THUMB_SIZE) : await localPhotoPreview(rec))
+    const preview = await driveThumbnail(rec)
+    if (!preview && showDirect && !noDirect) return 'direct'
+    const b = preview ?? (rec.type === 'video' ? await videoFrameThumbnail(rec, THUMB_SIZE) : await localPhotoPreview(rec))
     stats[b ? 'ok' : 'failed']++
     return b
   } finally {
@@ -427,8 +434,9 @@ function pump() {
       continue
     }
     active++
-    produce(task.rec)
+    produce(task.rec, task.noDirect)
       .then(async (blob) => {
+        if (blob === 'direct') return void queue.push(task)
         if (!blob) return task.resolve(null)
         // Shown at once; kept on the device after (writing is slow on phones).
         task.resolve(remember(task.rec.id, blob))
@@ -584,7 +592,7 @@ export function warmThumbs(all: MediaRecord[]): void {
           // Google's previews cannot be read here: not the originals in advance (only packs).
           if (showDirect) continue
           const blob = await produce(rec)
-          if (blob) await db().thumbs.put({ id: rec.id, version: thumbVersion(rec), blob })
+          if (blob instanceof Blob) await db().thumbs.put({ id: rec.id, version: thumbVersion(rec), blob })
         } catch {
           // tried again when it scrolls into view
         } finally {
