@@ -108,6 +108,7 @@
     "viewMonths": "Par mois"
   },
   "sync": {
+    "firstLoadHint": "Première ouverture : MyMedia lit toute votre bibliothèque. Avec des milliers de photos, cela peut prendre une ou deux minutes.",
     "scanning": "Lecture de vos dossiers Drive… {{done}} fichiers trouvés",
     "checking": "Recherche de nouveaux fichiers…",
     "applying": "Chargement des modifications {{done}} / {{total}}",

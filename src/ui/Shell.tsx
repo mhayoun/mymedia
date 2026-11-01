@@ -202,7 +202,7 @@ export function Shell() {
           ) : filters.categoryId === BLURRY ? (
             isPro ? <BlurryView lib={lib} /> : <ProGate feature={t('cleanup.blurry')} />
           ) : lib.ready && items.length === 0 ? (
-            <EmptyState />
+            <EmptyState first={lib.items.length === 0} />
           ) : filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO ? (
             <ReviewView lib={lib} items={items} mode={filters.categoryId === AUTO ? 'auto' : 'classify'} />
           ) : (
@@ -788,9 +788,19 @@ function Toast() {
   )
 }
 
-function EmptyState() {
+function EmptyState({ first }: { first: boolean }) {
   const { t } = useTranslation()
+  const sync = useApp((s) => s.sync)
   const rootName = app().settings.rootName
+  // Nothing here yet because the library is being read for the first time (thousands of files: a while).
+  if (first && sync)
+    return (
+      <div className="empty first-load" role="status">
+        <Loader2 size={64} className="spin" />
+        <p>{t(sync.step, { done: sync.done, total: sync.total })}</p>
+        <p className="hint">{t('sync.firstLoadHint')}</p>
+      </div>
+    )
   return (
     <div className="empty">
       <p>{t('gallery.empty')}</p>

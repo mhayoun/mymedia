@@ -211,6 +211,8 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .cell .badge.size { inset-inline-end: auto; inset-inline-start: 4px; }
 .cell .fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-2); font-size: 0.75rem; padding: 4px; text-align: center; word-break: break-all; }
 .empty { padding: 48px 20px; text-align: center; color: var(--text-2); }
+.empty.first-load { display: flex; flex-direction: column; align-items: center; gap: 12px; padding-block-start: 18vh; }
+.empty.first-load svg { color: var(--accent); }
 
 /* ---------- Viewer ---------- */
 .viewer { position: fixed; inset: 0; z-index: 50; background: #000; color: #fff; display: grid; grid-template-columns: 1fr auto; }

@@ -110,6 +110,7 @@
     "viewMonths": "By month"
   },
   "sync": {
+    "firstLoadHint": "First time: MyMedia reads your whole library. With thousands of photos this can take a minute or two.",
     "scanning": "Reading your Drive folders… {{done}} files found",
     "checking": "Checking for new files…",
     "applying": "Loading changes {{done}} / {{total}}",
