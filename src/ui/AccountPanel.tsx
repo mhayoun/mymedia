@@ -1,11 +1,9 @@
 import { LogIn, LogOut, RefreshCw, Send, UserRound, X } from 'lucide-react'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
 import { signOut } from '../session'
 import { useApp } from '../store'
 import { LibraryInfo } from './LibraryDialog'
-import { TransferDialog } from './TransferDialog'
 
 /** The Google account: who is signed in, reconnect, switch, sign out, and transfers to another account. */
 export function AccountPanel() {
@@ -14,7 +12,6 @@ export function AccountPanel() {
   const rootId = useApp((s) => s.rootId)
   const shared = useApp((s) => s.shared)
   const set = useApp((s) => s.set)
-  const [transfer, setTransfer] = useState(false)
   const close = () => set({ accountOpen: false })
 
   return (
@@ -62,14 +59,13 @@ export function AccountPanel() {
         {!shared && (
           <section>
             <h3>{t('transfer.title')}</h3>
-            <button className="btn" onClick={() => setTransfer(true)} disabled={!rootId}>
+            <button className="btn" onClick={() => set({ transferOpen: true, accountOpen: false })} disabled={!rootId}>
               <Send size={16} /> {t('transfer.open')}
             </button>
             <p className="hint">{t('transfer.settingsHint')}</p>
           </section>
         )}
       </aside>
-      {transfer && <TransferDialog onClose={() => setTransfer(false)} />}
     </>
   )
 }

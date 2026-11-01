@@ -646,6 +646,7 @@
     "albumMade_other": "Album “{{detail}}” created with {{count}} photos"
   },
   "transfer": {
+    "menu": "Transfer to another account",
     "title": "Transfer to another account",
     "open": "Send or receive a transfer",
     "settingsHint": "Copy or give a category or an album (e.g. ציפורים) to another Google account, with species, texts and dates.",

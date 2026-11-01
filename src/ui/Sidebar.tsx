@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronDown, ChevronRight, CircleHelp, Cloud, Copy, Crown, Download, Eye, Focus, Folder, FolderOpen, Gauge, Images, Inbox, MessagesSquare, MonitorDown, Plus, ScrollText, Share2, Sparkles, Upload, Users, Wand2, Store } from 'lucide-react'
+import { CalendarDays, ChevronDown, ChevronRight, CircleHelp, Cloud, Copy, Crown, Download, Eye, Focus, Folder, FolderOpen, Gauge, Images, Inbox, MessagesSquare, MonitorDown, Plus, ScrollText, Send, Share2, Sparkles, Upload, Users, Wand2, Store } from 'lucide-react'
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -33,6 +33,7 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
   const facesEnabled = useApp((s) => s.settings.facesEnabled)
   const readOnly = useApp((s) => s.readOnly)
   const shared = useApp((s) => s.shared)
+  const rootId = useApp((s) => s.rootId)
   // The chosen category or album, clicked again, closes (or opens again) its sub-albums.
   const [closedId, setClosed] = useState<string | null>(null)
   // Only while it is still the chosen one (a new album opened elsewhere shows its category open).
@@ -176,6 +177,12 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
           <button className="nav-item" onClick={() => set({ shareOpen: 'share', sidebarOpen: false })}>
             <Share2 size={18} />
             <span className="label">{t('share.menu')}</span>
+          </button>
+        )}
+        {!shared && (
+          <button className="nav-item" onClick={() => set({ transferOpen: true, sidebarOpen: false })} disabled={!rootId}>
+            <Send size={18} />
+            <span className="label">{t('transfer.menu')}</span>
           </button>
         )}
         <button className="nav-item" onClick={() => set({ shareOpen: 'view', sidebarOpen: false })}>

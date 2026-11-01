@@ -149,6 +149,8 @@ interface AppState {
   pro: ProStatus | null
   /** The MyMedia Pro window. */
   proOpen: boolean
+  /** The window to send or receive a transfer to another account. */
+  transferOpen: boolean
   /** Back from paying Pro on PayPal: the Pro window finishes the purchase. */
   proResume: PaypalReturn | null
   helpOpen: boolean
@@ -189,6 +191,7 @@ export const useApp = create<AppState>((set, get) => ({
   shopResume: null,
   pro: null,
   proOpen: false,
+  transferOpen: false,
   proResume: null,
   helpOpen: false,
   speedOpen: false,

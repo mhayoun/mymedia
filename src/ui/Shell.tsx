@@ -35,6 +35,7 @@ import { AccountPanel } from './AccountPanel'
 import { LibraryDialog } from './LibraryDialog'
 import { ModelsDialog } from './ModelsDialog'
 import { ProDialog, ProGate } from './ProDialog'
+import { TransferDialog } from './TransferDialog'
 import { ShareDialog } from './ShareDialog'
 import { FilterBar } from './FilterBar'
 import { SelectionBar } from './SelectionBar'
@@ -83,6 +84,7 @@ export function Shell() {
   const activityOpen = useApp((s) => s.activityOpen)
   const shopOpen = useApp((s) => s.shopOpen)
   const proOpen = useApp((s) => s.proOpen)
+  const transferOpen = useApp((s) => s.transferOpen)
   const isPro = useIsPro()
   const email = useApp((s) => s.user?.email)
   const shareOpen = useApp((s) => s.shareOpen)
@@ -214,6 +216,7 @@ export function Shell() {
       {libraryOpen && <LibraryDialog />}
       {shareOpen && <ShareDialog mode={shareOpen} onClose={() => app().set({ shareOpen: false })} />}
       {shopOpen && <ModelsDialog view={shopOpen === 'publish' ? 'publish' : 'use'} onClose={() => app().set({ shopOpen: false, shopResume: null })} />}
+      {transferOpen && <TransferDialog onClose={() => app().set({ transferOpen: false })} />}
       {proOpen && <ProDialog onClose={() => app().set({ proOpen: false, proResume: null })} />}
       {statsOpen && <StatsDialog lib={lib} />}
       {speedOpen && <SpeedDialog onClose={() => app().set({ speedOpen: false })} />}
