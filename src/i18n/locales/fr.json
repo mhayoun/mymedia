@@ -108,7 +108,7 @@
     "viewMonths": "Par mois"
   },
   "sync": {
-    "scanningOf": "Lecture de votre bibliothèque… {{done}} / {{total}} fichiers",
+    "scanningOf": "Lecture de votre bibliothèque…",
     "firstLoadOnce": "Ce chargement ne se fait qu'une seule fois sur cet appareil.",
     "firstLoadHint": "Ensuite, MyMedia s'ouvre tout de suite et ne charge que les nouveautés. Avec des milliers de photos, cette première fois peut prendre une ou deux minutes : laissez simplement l'écran ouvert.",
     "scanning": "Lecture de vos dossiers Drive… {{done}} fichiers trouvés",

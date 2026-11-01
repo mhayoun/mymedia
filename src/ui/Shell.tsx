@@ -797,12 +797,18 @@ function EmptyState({ first }: { first: boolean }) {
     return (
       <div className="empty first-load" role="status">
         <Loader2 size={72} className="spin" />
-        <p className="first-load-step">
-          {sync.step === 'sync.scanning' && sync.total
-            ? t('sync.scanningOf', { done: sync.done, total: sync.total })
-            : t(sync.step, { done: sync.done, total: sync.total })}
-        </p>
-        {sync.step === 'sync.scanning' && sync.total > 0 && <progress max={sync.total} value={sync.done} />}
+        {sync.step === 'sync.scanning' && sync.total > 0 ? (
+          <>
+            <p className="first-load-step">{t('sync.scanningOf')}</p>
+            {/* One line, left to right in Hebrew too: "done / total". */}
+            <p className="first-load-count" dir="ltr">
+              {sync.done} / {sync.total}
+            </p>
+            <progress max={sync.total} value={sync.done} />
+          </>
+        ) : (
+          <p className="first-load-step">{t(sync.step, { done: sync.done, total: sync.total })}</p>
+        )}
         <p>{t('sync.firstLoadOnce')}</p>
         <p className="hint">{t('sync.firstLoadHint')}</p>
       </div>

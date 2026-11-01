@@ -110,7 +110,7 @@
     "viewMonths": "By month"
   },
   "sync": {
-    "scanningOf": "Reading your library… {{done}} / {{total}} files",
+    "scanningOf": "Reading your library…",
     "firstLoadOnce": "This loading happens only once on this device.",
     "firstLoadHint": "After that, MyMedia opens at once and only loads what is new. With thousands of photos this first time can take a minute or two: just leave the screen open.",
     "scanning": "Reading your Drive folders… {{done}} files found",

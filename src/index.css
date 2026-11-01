@@ -215,6 +215,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .empty.first-load svg { color: var(--accent); }
 .empty.first-load p { font-size: 1.15rem; max-inline-size: 34em; margin: 0; line-height: 1.5; }
 .empty.first-load .first-load-step { font-size: 1.5rem; font-weight: 600; color: var(--text); }
+.empty.first-load .first-load-count { font-size: 1.6rem; font-weight: 600; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .empty.first-load progress { inline-size: min(360px, 80vw); block-size: 10px; accent-color: var(--accent); }
 
 /* ---------- Viewer ---------- */
