@@ -798,20 +798,23 @@ function EmptyState({ first }: { first: boolean }) {
     return (
       <div className="empty first-load" role="status">
         <Loader2 size={72} className="spin" />
-        {sync.step === 'sync.scanning' && sync.total > 0 ? (
-          <>
-            <p className="first-load-step">
-              {shared ? t('sync.scanningShared', { name: shared.ownerName || shared.ownerEmail || '' }) : t('sync.scanningOf')}
-            </p>
-            {/* One line, left to right in Hebrew too: "done / total". */}
-            <p className="first-load-count" dir="ltr">
-              {sync.done} / {sync.total}
-            </p>
-            <progress max={sync.total} value={sync.done} />
-          </>
-        ) : (
-          <p className="first-load-step">{t(sync.step, { done: sync.done, total: sync.total })}</p>
-        )}
+        {/* Same height at every step: the lines below do not move when the counter goes. */}
+        <div className="first-load-progress">
+          {sync.step === 'sync.scanning' && sync.total > 0 ? (
+            <>
+              <p className="first-load-step">
+                {shared ? t('sync.scanningShared', { name: shared.ownerName || shared.ownerEmail || '' }) : t('sync.scanningOf')}
+              </p>
+              {/* One line, left to right in Hebrew too: "done / total". */}
+              <p className="first-load-count" dir="ltr">
+                {sync.done} / {sync.total}
+              </p>
+              <progress max={sync.total} value={sync.done} />
+            </>
+          ) : (
+            <p className="first-load-step">{t(sync.step, { done: sync.done, total: sync.total })}</p>
+          )}
+        </div>
         <p>{t('sync.firstLoadOnce')}</p>
         <p className="hint">{t('sync.firstLoadHint')}</p>
       </div>
