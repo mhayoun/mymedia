@@ -170,7 +170,7 @@
     "syncAuto": "Automatic",
     "syncManual": "Manual (“Load new files” button)",
     "syncInterval": "Check every (minutes)",
-    "syncAutoHint": "Checks when the app opens, then regularly while it is open.",
+    "syncAutoHint": "Checks when the app opens, when you come back to it (after a minute), then regularly while it is open.",
     "rescan": "Re-read the whole folder",
     "rescanHint": "Only needed if something looks wrong.",
     "storage": "Saved on this device",

@@ -168,7 +168,7 @@
     "syncAuto": "Automatique",
     "syncManual": "Manuel (bouton « Charger les nouveaux fichiers »)",
     "syncInterval": "Vérifier toutes les (minutes)",
-    "syncAutoHint": "Vérifie à l'ouverture de l'application, puis régulièrement tant qu'elle est ouverte.",
+    "syncAutoHint": "Vérifie à l'ouverture de l'application, quand vous y revenez (après une minute), puis régulièrement tant qu'elle est ouverte.",
     "rescan": "Relire tout le dossier",
     "rescanHint": "Utile seulement si quelque chose semble incorrect.",
     "storage": "Enregistré sur cet appareil",

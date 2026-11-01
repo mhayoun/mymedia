@@ -394,7 +394,9 @@ export function syncNow(options: { full?: boolean } = {}): Promise<void> {
   running = (async () => {
     try {
       app().set({ error: null })
-      if (options.full) await fullScan(rootId, signal)
+      // Someone else's MyMedia: Drive's changes miss files its owner adds (seen: 1000 photos imported
+      // from the phone never came), so it is read again in full (a few requests).
+      if (options.full || app().shared) await fullScan(rootId, signal)
       else await applyChanges(rootId, signal)
       if (app().phase === 'rootMissing') return
       app().set({ sync: { step: 'sync.metadata', done: 0, total: 0 } })

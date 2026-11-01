@@ -31,6 +31,9 @@ export function useOnline(): boolean {
   )
 }
 
+/** Automatic mode, back on the app: Drive is checked again when the last check is older than this. */
+const RETURN_MS = 60 * 1000
+
 /** Automatic mode: check Drive regularly while the app is open and visible. */
 export function useAutoSync() {
   const mode = useApp((s) => s.settings.syncMode)
@@ -39,20 +42,23 @@ export function useAutoSync() {
   useEffect(() => {
     if (mode !== 'auto' || phase !== 'app') return
     const intervalMs = Math.max(1, minutes) * 60 * 1000
-    const due = () => {
+    const due = (ms: number) => {
       const last = useApp.getState().lastSyncAt ?? 0
-      return Date.now() - last >= intervalMs
+      return Date.now() - last >= ms
     }
-    const tick = () => {
-      if (document.visibilityState === 'visible' && navigator.onLine && due() && !isAutoSyncHeld()) void syncNow()
+    const check = (ms: number) => {
+      if (document.visibilityState === 'visible' && navigator.onLine && due(ms) && !isAutoSyncHeld()) void syncNow()
     }
+    const tick = () => check(intervalMs)
+    // Back on the app (e.g. after importing from the Android app, its tab was paused): sooner.
+    const back = () => check(Math.min(intervalMs, RETURN_MS))
     const timer = setInterval(tick, 30 * 1000)
-    document.addEventListener('visibilitychange', tick)
-    window.addEventListener('online', tick)
+    document.addEventListener('visibilitychange', back)
+    window.addEventListener('online', back)
     return () => {
       clearInterval(timer)
-      document.removeEventListener('visibilitychange', tick)
-      window.removeEventListener('online', tick)
+      document.removeEventListener('visibilitychange', back)
+      window.removeEventListener('online', back)
     }
   }, [mode, minutes, phase])
 }
