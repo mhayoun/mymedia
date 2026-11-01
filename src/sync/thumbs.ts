@@ -59,7 +59,13 @@ function nextTask(): Task | undefined {
 }
 
 const urls = new Map<string, string>() // id → object URL (insertion order = LRU)
-const inflight = new Map<string, Promise<string | null>>()
+/** A thumbnail being loaded, and the cells waiting for it. */
+interface Inflight {
+  promise: Promise<string | null>
+  askers: { isWanted: () => boolean; order: () => number }[]
+  task?: Task
+}
+const inflight = new Map<string, Inflight>()
 const queue: Task[] = []
 let active = 0
 
@@ -482,18 +488,28 @@ export function loadThumb(rec: MediaRecord, isWanted: () => boolean, order: () =
   const hit = cachedThumbUrl(rec.id)
   if (hit) return Promise.resolve(hit)
   const pending = inflight.get(rec.id)
-  if (pending) return pending
-  const p = (async () => {
+  if (pending) {
+    // Another cell asks too (e.g. the grid went from 3 to 6 columns: the cell made again):
+    // the request is dropped only when no cell wants it any more.
+    pending.askers.push({ isWanted, order })
+    if (pending.task) pending.task.cancelled = false
+    return pending.promise
+  }
+  const entry: Inflight = { promise: Promise.resolve(null), askers: [{ isWanted, order }] }
+  const wanted = () => entry.askers.some((a) => a.isWanted())
+  const nearest = () => Math.min(...entry.askers.map((a) => (a.isWanted() ? a.order() : Number.MAX_SAFE_INTEGER)))
+  entry.promise = (async () => {
     const stored = await db().thumbs.get(rec.id)
     const valid = stored && (stored.version === thumbVersion(rec) || stored.version === rec.modifiedTime)
     if (stored && (valid || !navigator.onLine)) return remember(rec.id, stored.blob)
     if (!navigator.onLine) return null
-    if (!isWanted()) return null
+    if (!wanted()) return null
     return new Promise<string | null>((resolve) => {
-      const task: Task = { rec, resolve, cancelled: false, order }
+      const task: Task = { rec, resolve, cancelled: false, order: nearest }
+      entry.task = task
       queue.push(task)
       const check = setInterval(() => {
-        if (!isWanted()) task.cancelled = true
+        if (!wanted()) task.cancelled = true
       }, 500)
       const done = (url: string | null) => {
         clearInterval(check)
@@ -503,8 +519,8 @@ export function loadThumb(rec: MediaRecord, isWanted: () => boolean, order: () =
       schedulePump()
     })
   })().finally(() => inflight.delete(rec.id))
-  inflight.set(rec.id, p)
-  return p
+  inflight.set(rec.id, entry)
+  return entry.promise
 }
 
 // ---- Preparing in advance -----------------------------------------------------

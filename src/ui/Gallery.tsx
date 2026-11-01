@@ -145,7 +145,8 @@ export function Gallery({ items, folderId, folders }: { items: LibraryItem[]; fo
     <>
       <div className="gallery-scroll" ref={scrollRef}>
         <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
-          {virtualizer.getVirtualItems().map((v) => {
+          {/* Drawn once its width is known: not first in 3 columns, then again in 6. */}
+          {width > 0 && virtualizer.getVirtualItems().map((v) => {
             const row = rows[v.index]
             if (row.kind === 'header') {
               return (
