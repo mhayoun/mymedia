@@ -128,6 +128,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .avatar { inline-size: 32px; block-size: 32px; border-radius: 50%; }
 .only-mobile { display: none; }
 .only-mobile-inline { display: none; }
+.sync-count { font-size: 0.75rem; font-variant-numeric: tabular-nums; }
 .sync-info { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 
 .banner {
