@@ -678,7 +678,7 @@ function Toolbar({ lib, people, count, onDialog, actions }: ToolbarProps) {
           <bdi>{title}</bdi>
         </h1>
         <button className="icon-btn small only-mobile" onClick={() => app().set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
-          <CircleHelp size={20} />
+          <CircleHelp size={26} />
         </button>
       </div>
     )
@@ -766,7 +766,7 @@ function Toolbar({ lib, people, count, onDialog, actions }: ToolbarProps) {
         {t('gallery.count', { count })}
       </span>
       <button className="icon-btn small only-mobile" onClick={() => app().set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
-        <CircleHelp size={20} />
+        <CircleHelp size={26} />
       </button>
       <span className="grow" />
       {actions}
