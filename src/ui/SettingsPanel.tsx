@@ -42,6 +42,7 @@ export function SettingsPanel() {
   const setLanguage = (lang: Language) => {
     updateSettings({ language: lang })
     void changeLanguage(lang)
+    close()
   }
 
   return (

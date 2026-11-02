@@ -491,7 +491,8 @@ function TopBar() {
       )}
 
       <SpeedButton />
-      <button className="icon-btn" onClick={() => set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
+      {/* Phone: in the second line, after the count. */}
+      <button className="icon-btn only-desktop" onClick={() => set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
         <CircleHelp />
       </button>
       {!readOnly && (
@@ -676,6 +677,9 @@ function Toolbar({ lib, people, count, onDialog, actions }: ToolbarProps) {
         <h1>
           <bdi>{title}</bdi>
         </h1>
+        <button className="icon-btn small only-mobile" onClick={() => app().set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
+          <CircleHelp size={20} />
+        </button>
       </div>
     )
   }
@@ -761,6 +765,9 @@ function Toolbar({ lib, people, count, onDialog, actions }: ToolbarProps) {
       <span className="result-count" title={t('gallery.count', { count })}>
         {t('gallery.count', { count })}
       </span>
+      <button className="icon-btn small only-mobile" onClick={() => app().set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
+        <CircleHelp size={20} />
+      </button>
       <span className="grow" />
       {actions}
       </div>
