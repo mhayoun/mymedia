@@ -22,7 +22,9 @@
   },
   "auth": {
     "signIn": "Se connecter avec Google",
-    "signInHint": "MyMedia communique uniquement avec votre propre Google Drive. Rien n'est stocké sur un autre serveur.",
+    "signInHint": "Vos photos restent dans votre propre Google Drive : elles ne sont jamais envoyées sur un autre serveur.",
+    "aboutLink": "À propos de MyMedia",
+    "privacyLink": "Politique de confidentialité",
     "switchAccount": "Utiliser un autre compte",
     "signOut": "Se déconnecter sur cet appareil",
     "reconnectTitle": "La connexion Google doit être renouvelée",

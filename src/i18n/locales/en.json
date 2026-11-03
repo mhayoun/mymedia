@@ -22,7 +22,9 @@
   },
   "auth": {
     "signIn": "Sign in with Google",
-    "signInHint": "MyMedia only talks to your own Google Drive. Nothing is stored on any other server.",
+    "signInHint": "Your photos stay in your own Google Drive: they are never sent to another server.",
+    "aboutLink": "About MyMedia",
+    "privacyLink": "Privacy policy",
     "switchAccount": "Use another account",
     "signOut": "Sign out on this device",
     "reconnectTitle": "Google connection needs to be renewed",

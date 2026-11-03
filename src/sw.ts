@@ -245,4 +245,5 @@ registerRoute(
   },
 )
 
-registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html')))
+// The public pages (about, privacy) are real pages, not the app.
+registerRoute(new NavigationRoute(createHandlerBoundToURL('index.html'), { denylist: [/^\/(about|privacy)\.html$/] }))

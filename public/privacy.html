@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-title-en="MyMedia – Privacy policy" data-title-fr="MyMedia – Politique de confidentialité">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MyMedia – Privacy policy</title>
+  <meta name="description" content="How MyMedia uses your Google Drive data: what it reads, where it is processed, what is stored, and how to delete it." />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/site.css" />
+  <script src="/site.js" defer></script>
+</head>
+<body>
+  <header>
+    <img src="/favicon.svg" alt="" />
+    <a class="name" href="/about.html">MyMedia</a>
+    <nav>
+      <button type="button" data-set-lang="en">English</button>
+      <button type="button" data-set-lang="fr">Français</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ================= ENGLISH ================= -->
+    <div data-lang="en">
+      <h1>Privacy policy</h1>
+      <p class="lead">Last updated: November 3, 2026</p>
+
+      <p>MyMedia (<a href="https://www.media-keep.com">www.media-keep.com</a> and the MyMedia Android app) is a photo and video organizer that works on the user's own Google Drive. Contact: <a href="mailto:yelotag@gmail.com">yelotag@gmail.com</a>.</p>
+
+      <div class="note">
+        <p><strong>In short:</strong> your photos and videos stay in your Google Drive. MyMedia works on them in your browser or phone. They are never copied to MyMedia's servers, never sold, never shown to anyone you did not choose, and never used for advertising or to train AI models.</p>
+      </div>
+
+      <h2>1. Google data MyMedia accesses</h2>
+      <p>When you sign in with Google, MyMedia asks for the Google Drive permission (<code>https://www.googleapis.com/auth/drive</code>). With it, MyMedia:</p>
+      <ul>
+        <li><strong>reads</strong> the folders, photos and videos of your MyMedia folder, with their names, dates, sizes, camera information and Drive thumbnails;</li>
+        <li><strong>creates, moves, renames and deletes</strong> folders and files in it, only when you ask (upload, sorting, compression, deletion…);</li>
+        <li><strong>reads and writes</strong> its own information files in your MyMedia folder: <code>mymedia.json</code> (texts, albums, people, import details), <code>mymedia-faces.json</code> (people and face fingerprints) and the files of the classification models you installed;</li>
+        <li><strong>reads</strong> other Drive folders only when you choose them for an import, and the MyMedia libraries other people share with you;</li>
+        <li><strong>manages the sharing</strong> of your MyMedia folder (adds or removes readers) when you ask;</li>
+        <li>reads your Google account's <strong>email address, name and picture</strong>, to show which account is open.</li>
+      </ul>
+
+      <h2>2. Where your data is processed</h2>
+      <p>All of this runs <strong>on your device</strong>, in the browser or the Android app, which talks directly to Google Drive. The analyses (dates, compression, duplicates, blurry photos, face recognition, automatic sorting) are done on your device too. Their results are saved in your own Google Drive, in the files above.</p>
+      <p>To be faster, MyMedia keeps on your device a copy of the list of your files, their thumbnails and the analysis results (browser storage). The Google sign-in token is kept on your device as well.</p>
+
+      <h2>3. What MyMedia's server receives and keeps</h2>
+      <p>MyMedia's server (hosted by Vercel) never receives your photos or videos. It is used only for MyMedia Pro and for the classification models shop:</p>
+      <div class="table-wrap">
+        <table>
+          <tr><th>When</th><th>What the server receives or keeps</th></tr>
+          <tr><td>Any call to the server</td><td>Your Google sign-in token, used only to ask Google for your email address. It is not saved; the answer is kept in memory for at most 10 minutes.</td></tr>
+          <tr><td>MyMedia Pro</td><td>Your email address, your plan, its end date and your purchases (PayPal order number, price, date).</td></tr>
+          <tr><td>Publishing a classification model</td><td>Your name, email address and PayPal address, the name, description and price of the model, the names of its albums, and for its example photos: number fingerprints and file checksums. <strong>Not the photos themselves.</strong> These fingerprints cannot be turned back into the photos.</td></tr>
+          <tr><td>Buying a model</td><td>Your email address (your licence), the order and the sale.</td></tr>
+        </table>
+      </div>
+      <p>Payments are made with PayPal. MyMedia never sees your card or bank details.</p>
+
+      <h2>4. Who your data is shared with</h2>
+      <ul>
+        <li><strong>Google</strong>: your files are in your Google Drive, under Google's own privacy policy.</li>
+        <li><strong>People you share with</strong>: only the Google accounts you add in MyMedia see your library, read-only. You can remove them at any time.</li>
+        <li><strong>Buyers of a model you publish</strong> see its name, description, price, your seller name and the names of its albums.</li>
+        <li><strong>Service providers</strong>: Vercel (hosting of the website and the server) and PayPal (payments).</li>
+      </ul>
+      <p>MyMedia does not sell data, does not show advertising and does not use analytics or tracking cookies.</p>
+
+      <h2>5. Google API Services User Data Policy</h2>
+      <p>MyMedia's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, including the Limited Use requirements. In particular, Google user data is used only to provide the features of MyMedia that you see and use; it is not transferred except as described above, not used for advertising, not read by humans unless you ask us for help and agree, or when required by law or for security, and not used to develop, improve or train generalized AI or machine learning models.</p>
+
+      <h2>6. Face recognition</h2>
+      <p>If you use the People feature, MyMedia finds the faces in your photos and computes a number fingerprint for each, on your device. The fingerprints and the names you give are saved only in <code>mymedia-faces.json</code> in your own Drive and on your devices. They are never sent to MyMedia's server. You can delete a person in MyMedia, or delete this file, at any time.</p>
+
+      <h2>7. Keeping and deleting your data</h2>
+      <ul>
+        <li><strong>Your Drive files</strong> stay yours. MyMedia deletes nothing on its own; what you delete in MyMedia goes to the Drive trash.</li>
+        <li><strong>Stop MyMedia's access</strong>: remove MyMedia in your Google account, at <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</li>
+        <li><strong>The copy on your device</strong>: sign out and remove the account in MyMedia, clear the site's data in the browser, or uninstall the app.</li>
+        <li><strong>Data on MyMedia's server</strong>: write to <a href="mailto:yelotag@gmail.com">yelotag@gmail.com</a> and it will be deleted within 30 days, except the payment records that the law requires us to keep.</li>
+      </ul>
+
+      <h2>8. Security</h2>
+      <p>All connections use HTTPS. The server data is kept in private storage. Access to your Drive is given by Google and can be removed by you at any time.</p>
+
+      <h2>9. Children</h2>
+      <p>MyMedia is not intended for children under 13 and does not knowingly collect their data.</p>
+
+      <h2>10. Changes</h2>
+      <p>If this policy changes, the new version will be published on this page with its date. Important changes will be announced in the app.</p>
+
+      <h2>11. Contact</h2>
+      <p>MyMedia – <a href="mailto:yelotag@gmail.com">yelotag@gmail.com</a></p>
+    </div>
+
+    <!-- ================= FRANÇAIS ================= -->
+    <div data-lang="fr">
+      <h1>Politique de confidentialité</h1>
+      <p class="lead">Dernière mise à jour : 3 novembre 2026</p>
+
+      <p>MyMedia (<a href="https://www.media-keep.com">www.media-keep.com</a> et l'app Android MyMedia) range les photos et vidéos dans le propre Google Drive de l'utilisateur. Contact : <a href="mailto:yelotag@gmail.com">yelotag@gmail.com</a>.</p>
+
+      <div class="note">
+        <p><strong>En bref :</strong> vos photos et vidéos restent dans votre Google Drive. MyMedia travaille dessus dans votre navigateur ou votre téléphone. Elles ne sont jamais copiées sur les serveurs de MyMedia, jamais vendues, jamais montrées à quelqu'un que vous n'avez pas choisi, et jamais utilisées pour la publicité ou pour entraîner des modèles d'IA.</p>
+      </div>
+
+      <h2>1. Les données Google utilisées par MyMedia</h2>
+      <p>À la connexion avec Google, MyMedia demande l'autorisation Google Drive (<code>https://www.googleapis.com/auth/drive</code>). Avec elle, MyMedia :</p>
+      <ul>
+        <li><strong>lit</strong> les dossiers, photos et vidéos de votre dossier MyMedia, avec leurs noms, dates, tailles, informations de l'appareil photo et miniatures Drive ;</li>
+        <li><strong>crée, déplace, renomme et supprime</strong> des dossiers et fichiers dedans, seulement quand vous le demandez (upload, rangement, compression, suppression…) ;</li>
+        <li><strong>lit et écrit</strong> ses propres fichiers d'informations dans votre dossier MyMedia : <code>mymedia.json</code> (textes, albums, personnes, détails des imports), <code>mymedia-faces.json</code> (personnes et empreintes des visages) et les fichiers des modèles de classement installés ;</li>
+        <li><strong>lit</strong> d'autres dossiers Drive seulement quand vous les choisissez pour un import, et les bibliothèques MyMedia que d'autres personnes partagent avec vous ;</li>
+        <li><strong>gère le partage</strong> de votre dossier MyMedia (ajoute ou retire des lecteurs) quand vous le demandez ;</li>
+        <li>lit l'<strong>adresse e-mail, le nom et la photo</strong> de votre compte Google, pour montrer quel compte est ouvert.</li>
+      </ul>
+
+      <h2>2. Où vos données sont traitées</h2>
+      <p>Tout cela se fait <strong>sur votre appareil</strong>, dans le navigateur ou l'app Android, qui parle directement à Google Drive. Les analyses (dates, compression, doublons, photos floues, reconnaissance des visages, classement automatique) se font aussi sur votre appareil. Leurs résultats sont enregistrés dans votre propre Google Drive, dans les fichiers ci-dessus.</p>
+      <p>Pour aller plus vite, MyMedia garde sur votre appareil une copie de la liste de vos fichiers, de leurs miniatures et des résultats des analyses (stockage du navigateur). Le jeton de connexion Google est aussi gardé sur votre appareil.</p>
+
+      <h2>3. Ce que le serveur de MyMedia reçoit et garde</h2>
+      <p>Le serveur de MyMedia (hébergé chez Vercel) ne reçoit jamais vos photos ni vos vidéos. Il sert seulement à MyMedia Pro et à la boutique de modèles de classement :</p>
+      <div class="table-wrap">
+        <table>
+          <tr><th>Quand</th><th>Ce que le serveur reçoit ou garde</th></tr>
+          <tr><td>Tout appel au serveur</td><td>Votre jeton de connexion Google, utilisé seulement pour demander à Google votre adresse e-mail. Il n'est pas enregistré ; la réponse reste en mémoire 10 minutes au plus.</td></tr>
+          <tr><td>MyMedia Pro</td><td>Votre adresse e-mail, votre formule, sa date de fin et vos achats (numéro de commande PayPal, prix, date).</td></tr>
+          <tr><td>Publication d'un modèle de classement</td><td>Votre nom, adresse e-mail et adresse PayPal, le nom, la description et le prix du modèle, les noms de ses albums, et pour ses photos d'exemple : des empreintes chiffrées et les sommes de contrôle des fichiers. <strong>Pas les photos elles-mêmes.</strong> Ces empreintes ne permettent pas de retrouver les photos.</td></tr>
+          <tr><td>Achat d'un modèle</td><td>Votre adresse e-mail (votre licence), la commande et la vente.</td></tr>
+        </table>
+      </div>
+      <p>Les paiements passent par PayPal. MyMedia ne voit jamais vos données de carte ou de banque.</p>
+
+      <h2>4. Avec qui vos données sont partagées</h2>
+      <ul>
+        <li><strong>Google</strong> : vos fichiers sont dans votre Google Drive, sous la politique de confidentialité de Google.</li>
+        <li><strong>Les personnes avec qui vous partagez</strong> : seuls les comptes Google que vous ajoutez dans MyMedia voient votre bibliothèque, en lecture seule. Vous pouvez les retirer à tout moment.</li>
+        <li><strong>Les acheteurs d'un modèle que vous publiez</strong> voient son nom, sa description, son prix, votre nom de vendeur et les noms de ses albums.</li>
+        <li><strong>Les prestataires</strong> : Vercel (hébergement du site et du serveur) et PayPal (paiements).</li>
+      </ul>
+      <p>MyMedia ne vend pas de données, n'affiche pas de publicité et n'utilise ni statistiques de visite ni cookies de suivi.</p>
+
+      <h2>5. Règles Google sur les données des utilisateurs</h2>
+      <p>L'utilisation par MyMedia des informations reçues des API Google, et leur transfert vers toute autre application, respectent la <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>, y compris les exigences « Limited Use ». En particulier, les données Google servent seulement aux fonctions de MyMedia que vous voyez et utilisez ; elles ne sont pas transférées en dehors de ce qui est décrit ici, pas utilisées pour la publicité, pas lues par une personne sauf si vous demandez de l'aide et l'acceptez, ou si la loi ou la sécurité l'exige, et pas utilisées pour développer, améliorer ou entraîner des modèles généraux d'IA ou d'apprentissage automatique.</p>
+
+      <h2>6. Reconnaissance des visages</h2>
+      <p>Si vous utilisez la fonction Personnes, MyMedia trouve les visages sur vos photos et calcule une empreinte chiffrée pour chacun, sur votre appareil. Les empreintes et les noms que vous donnez sont enregistrés seulement dans <code>mymedia-faces.json</code> dans votre propre Drive et sur vos appareils. Ils ne sont jamais envoyés au serveur de MyMedia. Vous pouvez supprimer une personne dans MyMedia, ou supprimer ce fichier, à tout moment.</p>
+
+      <h2>7. Conservation et suppression</h2>
+      <ul>
+        <li><strong>Vos fichiers Drive</strong> restent à vous. MyMedia ne supprime rien de lui-même ; ce que vous supprimez dans MyMedia va dans la corbeille de Drive.</li>
+        <li><strong>Couper l'accès de MyMedia</strong> : retirez MyMedia dans votre compte Google, sur <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.</li>
+        <li><strong>La copie sur votre appareil</strong> : déconnectez-vous et retirez le compte dans MyMedia, effacez les données du site dans le navigateur, ou désinstallez l'app.</li>
+        <li><strong>Les données sur le serveur de MyMedia</strong> : écrivez à <a href="mailto:yelotag@gmail.com">yelotag@gmail.com</a>, elles seront supprimées sous 30 jours, sauf les traces de paiement que la loi oblige à garder.</li>
+      </ul>
+
+      <h2>8. Sécurité</h2>
+      <p>Toutes les connexions passent en HTTPS. Les données du serveur sont dans un stockage privé. L'accès à votre Drive est donné par Google, et vous pouvez le retirer à tout moment.</p>
+
+      <h2>9. Enfants</h2>
+      <p>MyMedia n'est pas destiné aux enfants de moins de 13 ans et ne collecte pas sciemment leurs données.</p>
+
+      <h2>10. Modifications</h2>
+      <p>Si cette politique change, la nouvelle version sera publiée sur cette page avec sa date. Les changements importants seront annoncés dans l'app.</p>
+
+      <h2>11. Contact</h2>
+      <p>MyMedia – <a href="mailto:yelotag@gmail.com">yelotag@gmail.com</a></p>
+    </div>
+  </main>
+
+  <footer>
+    <a href="/about.html">MyMedia</a> · <a href="/privacy.html"><span data-lang="en">Privacy policy</span><span data-lang="fr">Politique de confidentialité</span></a> · <a href="/">media-keep.com</a> · © 2026 MyMedia
+  </footer>
+</body>
+</html>

@@ -44,6 +44,9 @@ export function SignIn() {
         {error === 'scope_denied' && <p className="error-text">{t('auth.scopeDenied')}</p>}
         {error === 'popup_failed_to_open' && <p className="error-text">{t('auth.popupBlocked')}</p>}
         <p className="hint">{t('auth.signInHint')}</p>
+        <p className="hint">
+          <a href="/about.html">{t('auth.aboutLink')}</a> · <a href="/privacy.html">{t('auth.privacyLink')}</a>
+        </p>
         <LanguageSwitch />
       </div>
     </div>

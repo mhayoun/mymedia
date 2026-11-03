@@ -22,7 +22,9 @@
   },
   "auth": {
     "signIn": "כניסה עם Google",
-    "signInHint": "MyMedia מתקשרת רק עם ה-Google Drive שלך. שום דבר לא נשמר בשרת אחר.",
+    "signInHint": "התמונות שלך נשארות ב-Google Drive שלך: הן אף פעם לא נשלחות לשרת אחר.",
+    "aboutLink": "אודות MyMedia",
+    "privacyLink": "מדיניות פרטיות",
     "switchAccount": "שימוש בחשבון אחר",
     "signOut": "התנתקות במכשיר זה",
     "reconnectTitle": "יש לחדש את החיבור ל-Google",
