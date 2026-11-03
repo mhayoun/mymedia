@@ -28,7 +28,7 @@ export function LanguageSwitch() {
 }
 
 export function SignIn() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const error = useAuthError()
   return (
     <div className="center-screen">
@@ -45,7 +45,8 @@ export function SignIn() {
         {error === 'popup_failed_to_open' && <p className="error-text">{t('auth.popupBlocked')}</p>}
         <p className="hint">{t('auth.signInHint')}</p>
         <p className="hint">
-          <a href="/about.html">{t('auth.aboutLink')}</a> · <a href="/privacy.html">{t('auth.privacyLink')}</a>
+          <a href={`/about.html?lang=${i18n.language.slice(0, 2)}`}>{t('auth.aboutLink')}</a> ·{' '}
+          <a href={`/privacy.html?lang=${i18n.language.slice(0, 2)}`}>{t('auth.privacyLink')}</a>
         </p>
         <LanguageSwitch />
       </div>
