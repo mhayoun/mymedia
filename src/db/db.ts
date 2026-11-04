@@ -26,6 +26,8 @@ export interface MediaRecord {
   thumbnailLink?: string
   webViewLink?: string
   appProperties?: Record<string, string>
+  /** Notes written only as private properties: their public copy is still to be made (see sync/publicProps). */
+  privateOnly?: boolean
 }
 
 export interface ThumbRecord {

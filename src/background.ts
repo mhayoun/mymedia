@@ -8,6 +8,7 @@ import { startIndexer } from './ml/indexer'
 import { pullFaces } from './faces/store'
 import { app, withStep } from './store'
 import { kick as sendMoves } from './sync/moveQueue'
+import { copyNotesToPublic } from './sync/publicProps'
 import { buildPacks, preparePacks } from './sync/thumbPacks'
 import { fixVideoDates } from './sync/videoDates'
 
@@ -26,6 +27,8 @@ export function afterSync(): Promise<void> {
   }
   // Moves left from an earlier visit (offline, closed too soon).
   sendMoves()
+  // The files' notes as public properties too (once, then what older versions wrote): beside the rest.
+  void copyNotesToPublic()
   running ??= (async () => {
     // The thumbnail packs made by other devices, then those to make or bring up to date.
     await preparePacks()

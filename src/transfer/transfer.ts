@@ -491,7 +491,8 @@ async function copiesOf(folderId: string): Promise<Map<string, string>> {
   const copied = new Map<string, string>()
   await step('accept', () =>
     listFiles(
-      `appProperties has { key='${OF_KEY}' and value='${folderId}' } and 'me' in owners and trashed = false`,
+      // Public copy first (written since 1.0.47, read by every project of MyMedia), private for older copies.
+      `(properties has { key='${OF_KEY}' and value='${folderId}' } or appProperties has { key='${OF_KEY}' and value='${folderId}' }) and 'me' in owners and trashed = false`,
       (list) => {
         for (const f of list) if (f.appProperties?.[FROM_KEY]) copied.set(f.appProperties[FROM_KEY], f.id)
       },

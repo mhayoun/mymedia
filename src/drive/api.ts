@@ -9,7 +9,7 @@ const UPLOAD = 'https://www.googleapis.com/upload/drive/v3'
 
 export const FILE_FIELDS =
   'id,name,mimeType,parents,size,md5Checksum,createdTime,modifiedTime,thumbnailLink,trashed,webViewLink,' +
-  'imageMediaMetadata(width,height,time,cameraMake,cameraModel,rotation),videoMediaMetadata(width,height,durationMillis),appProperties'
+  'imageMediaMetadata(width,height,time,cameraMake,cameraModel,rotation),videoMediaMetadata(width,height,durationMillis),appProperties,properties'
 
 export interface DriveFile {
   id: string
@@ -32,7 +32,12 @@ export interface DriveFile {
     rotation?: number
   }
   videoMediaMetadata?: { width?: number; height?: number; durationMillis?: string }
+  /** MyMedia's notes on the file: the private ones and the public copies merged (see `withPublicProps`). */
   appProperties?: Record<string, string>
+  /** The public copies, as Drive sent them. */
+  properties?: Record<string, string>
+  /** Private notes without their public copy yet (written by an older version of the app). */
+  privateOnly?: boolean
   ownedByMe?: boolean
   owners?: { emailAddress?: string; displayName?: string }[]
   permissions?: { id: string; pendingOwner?: boolean }[]
@@ -132,6 +137,32 @@ async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> {
 
 const q = (s: string) => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")
 
+// MyMedia's notes on a file (real date, compression, copy of…) are written twice: as private
+// properties (appProperties), which only the Google Cloud project that wrote them can read,
+// and as public ones (properties), which any project of MyMedia reads. So a library keeps
+// them when the app signs in through another project (free and Pro use two projects).
+
+/** The metadata to send: its private properties also as public ones (null removes both). */
+export function withPublicProps<T extends { appProperties?: Record<string, string | null> }>(m: T): T & { properties?: Record<string, string | null> } {
+  return m.appProperties ? { ...m, properties: m.appProperties } : m
+}
+
+/** Fields asked to Drive: the public copies with the private properties. */
+export function withPublicFields(fields: string): string {
+  return /(^|[^A-Za-z])appProperties/.test(fields) && !/(^|[^A-Za-z])properties/.test(fields)
+    ? fields.replace(/(^|[^A-Za-z])appProperties/, '$1appProperties,properties')
+    : fields
+}
+
+/** Merges the public copies into appProperties; the private value wins (every version of the app writes it). */
+export function mergeProps<T extends DriveFile>(f: T): T {
+  const priv = f.appProperties
+  const pub = f.properties
+  if (priv) f.privateOnly = Object.entries(priv).some(([k, v]) => pub?.[k] !== v) || undefined
+  if (pub) f.appProperties = { ...pub, ...priv }
+  return f
+}
+
 export async function about(): Promise<{ email: string; name: string; photo?: string }> {
   const r = await getJson<{ user: { emailAddress: string; displayName: string; photoLink?: string } }>(
     `${API}/about?fields=user(emailAddress,displayName,photoLink)`,
@@ -163,7 +194,7 @@ export async function listFiles(
   do {
     const params = new URLSearchParams({
       q: query,
-      fields: `nextPageToken,files(${fields})`,
+      fields: `nextPageToken,files(${withPublicFields(fields)})`,
       pageSize: '1000',
       spaces: 'drive',
       includeItemsFromAllDrives: 'true',
@@ -171,7 +202,7 @@ export async function listFiles(
     })
     if (pageToken) params.set('pageToken', pageToken)
     const r = await getJson<{ files: DriveFile[]; nextPageToken?: string }>(`${API}/files?${params}`, signal)
-    await onPage(r.files ?? [])
+    await onPage((r.files ?? []).map(mergeProps))
     pageToken = r.nextPageToken
   } while (pageToken)
 }
@@ -181,7 +212,7 @@ export function childrenQuery(parentIds: string[]): string {
 }
 
 export async function getFile(id: string, fields = FILE_FIELDS): Promise<DriveFile> {
-  return getJson<DriveFile>(`${API}/files/${id}?fields=${encodeURIComponent(fields)}&supportsAllDrives=true`)
+  return mergeProps(await getJson<DriveFile>(`${API}/files/${id}?fields=${encodeURIComponent(withPublicFields(fields))}&supportsAllDrives=true`))
 }
 
 export async function findFolderInMyDrive(name: string): Promise<DriveFile | null> {
@@ -318,7 +349,7 @@ export async function listChanges(
       `${API}/changes?${params}`,
       signal,
     )
-    changes.push(...(r.changes ?? []))
+    for (const c of r.changes ?? []) changes.push(c.file ? { ...c, file: mergeProps(c.file) } : c)
     if (r.newStartPageToken) return { changes, newStartPageToken: r.newStartPageToken }
     if (!r.nextPageToken) throw new Error('Drive changes: missing page token')
     token = r.nextPageToken
@@ -417,7 +448,9 @@ export function createBinaryFile(name: string, parentId: string, content: Blob, 
 /** Creates (no id) or replaces a binary data file of MyMedia, with its hidden properties. */
 export function writeDataFile(id: string | null, name: string, parentId: string, content: Blob, appProperties: Record<string, string>): Promise<DriveFile> {
   const mime = 'application/octet-stream'
-  return id ? upload('PATCH', `/${id}`, { appProperties }, content, mime) : upload('POST', '', { name, parents: [parentId], mimeType: mime, appProperties }, content, mime)
+  return id
+    ? upload('PATCH', `/${id}`, withPublicProps({ appProperties }), content, mime)
+    : upload('POST', '', withPublicProps({ name, parents: [parentId], mimeType: mime, appProperties }), content, mime)
 }
 
 export function updateBinaryFile(id: string, content: Blob, mime = 'application/octet-stream'): Promise<DriveFile> {
@@ -462,6 +495,7 @@ export async function uploadNewContent(
   onProgress?: (p: number) => void,
   signal?: AbortSignal,
 ): Promise<DriveFile> {
+  metadata = withPublicProps(metadata)
   const query = `supportsAllDrives=true&fields=${encodeURIComponent(FILE_FIELDS)}`
   if (blob.size <= MULTIPART_MAX) {
     const { body, boundary } = multipartBody(metadata, blob, metadata.mimeType ?? blob.type)
@@ -471,7 +505,7 @@ export async function uploadNewContent(
       body,
     }, signal)
     onProgress?.(1)
-    return res.json()
+    return mergeProps(await res.json())
   }
   const init = await request(`${UPLOAD}/files/${id}?uploadType=resumable&${query}`, {
     method: 'PATCH',
@@ -484,7 +518,7 @@ export async function uploadNewContent(
   }, signal)
   const location = init.headers.get('Location')
   if (!location) throw new Error('Drive did not return an upload address')
-  return JSON.parse(await putWithProgress(location, blob, onProgress, signal)) as DriveFile
+  return mergeProps(JSON.parse(await putWithProgress(location, blob, onProgress, signal)) as DriveFile)
 }
 
 /** Server-side copy of a file into another folder. */
@@ -492,9 +526,9 @@ export async function copyFile(id: string, name: string, parentId: string, extra
   const res = await request(`${API}/files/${id}/copy?supportsAllDrives=true&fields=${encodeURIComponent(fields)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...extra, name, parents: [parentId] }),
+    body: JSON.stringify(withPublicProps({ ...extra, name, parents: [parentId] })),
   })
-  return res.json()
+  return mergeProps(await res.json())
 }
 
 /** Marks the version before the current one "keep forever" (no automatic deletion after 30 days). */
@@ -533,6 +567,7 @@ export async function createMediaFile(
   onProgress?: (p: number) => void,
   signal?: AbortSignal,
 ): Promise<DriveFile> {
+  metadata = withPublicProps(metadata)
   const query = `supportsAllDrives=true&fields=${encodeURIComponent(FILE_FIELDS)}`
   if (blob.size <= MULTIPART_MAX) {
     const { body, boundary } = multipartBody(metadata, blob, metadata.mimeType)
@@ -542,7 +577,7 @@ export async function createMediaFile(
       body,
     }, signal)
     onProgress?.(1)
-    return res.json()
+    return mergeProps(await res.json())
   }
   const init = await request(`${UPLOAD}/files?uploadType=resumable&${query}`, {
     method: 'POST',
@@ -555,16 +590,24 @@ export async function createMediaFile(
   }, signal)
   const location = init.headers.get('Location')
   if (!location) throw new Error('Drive did not return an upload address')
-  return JSON.parse(await putWithProgress(location, blob, onProgress, signal)) as DriveFile
+  return mergeProps(JSON.parse(await putWithProgress(location, blob, onProgress, signal)) as DriveFile)
 }
 
-/** Sets hidden app properties on a file (its content is not touched). */
-/** Sets the file's hidden properties (null removes one). */
+/** Sets the file's notes, private and public (null removes one); its content is not touched. */
 export async function setAppProperties(id: string, appProperties: Record<string, string | null>): Promise<void> {
   await request(`${API}/files/${id}?supportsAllDrives=true&fields=id`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ appProperties }),
+    body: JSON.stringify(withPublicProps({ appProperties })),
+  })
+}
+
+/** Writes only the public copies of the file's notes (the private ones are already there). */
+export async function setPublicProperties(id: string, properties: Record<string, string>): Promise<void> {
+  await request(`${API}/files/${id}?supportsAllDrives=true&fields=id`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ properties }),
   })
 }
 

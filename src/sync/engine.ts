@@ -82,6 +82,7 @@ export function toRecord(f: DriveFile): MediaRecord | null {
     thumbnailLink: f.thumbnailLink,
     webViewLink: f.webViewLink,
     appProperties: f.appProperties,
+    ...(f.privateOnly ? { privateOnly: true } : {}),
   }
 }
 
