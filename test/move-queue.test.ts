@@ -5,6 +5,7 @@ const moved: [string, string, string][] = []
 let failNext = false
 
 vi.mock('../src/db/db', () => ({
+  hasDb: () => true,
   db: () => ({
     getKv: async (k: string) => kv.get(k),
     setKv: async (k: string, v: unknown) => void kv.set(k, structuredClone(v)),

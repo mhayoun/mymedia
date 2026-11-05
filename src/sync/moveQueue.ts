@@ -3,7 +3,7 @@
 // until Drive has done it (offline, errors: tried again later), and a load
 // from Drive in the meantime keeps the new place.
 
-import { db, type MediaRecord } from '../db/db'
+import { db, hasDb, type MediaRecord } from '../db/db'
 import { DriveError, moveFile } from '../drive/api'
 import { app } from '../store'
 
@@ -99,11 +99,13 @@ export function flushMoves(): Promise<void> {
 
 /** Starts sending in the background; tried again later on failure. */
 export function kick(): void {
+  // No library open yet (sign-in screen, a page shared by a link): nothing to send.
+  if (!hasDb()) return
   if (retry) {
     clearTimeout(retry)
     retry = null
   }
-  void pendingMoves().then((m) => app().set({ moving: Object.keys(m).length }))
+  void pendingMoves().then((m) => app().set({ moving: Object.keys(m).length }), () => undefined)
   if (!navigator.onLine) return
   flushMoves().catch(() => {
     retry = setTimeout(kick, RETRY_MS)
