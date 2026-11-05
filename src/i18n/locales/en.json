@@ -898,7 +898,7 @@
     "linkCopy": "Copy the link",
     "linkCopied": "Link copied",
     "linkStop": "Stop sharing by link",
-    "linkWarning": "Careful: anyone who gets this link sees your whole MyMedia. To stop it, the link stops working for everyone.",
+    "linkWarning": "Anyone who gets the link sees what is ticked, without signing in. To stop it: “Stop sharing by link” in the list below.",
     "linkWhatsappText": "Hi! {{owner}} is sharing their photos and videos with you on MyMedia. Tap here to see them (no account needed):\n{{link}}",
     "linkStopTitle": "Stop sharing by link?",
     "linkStopText": "The link will stop working for everyone. You can create a new one later.",
@@ -918,7 +918,11 @@
     "tabPeople": "With people",
     "sentTitle": "Albums shared by a link",
     "sentStopText": "The albums “{{names}}” will no longer be visible by any link. You can create a new link later.",
-    "inheritedStop": "These albums stay visible, because your whole library is shared by a link (at the top of this window). To hide them, stop the whole library's link first."
+    "inheritedStop": "These albums stay visible, because your whole library is shared by a link (at the top of this window). To hide them, stop the whole library's link first.",
+    "pickHint": "All of “{{name}}” is ticked. Untick it to choose one or more albums.",
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all",
+    "pickNone": "Tick the library or at least one album."
   },
   "install": {
     "menu": "Install the app",

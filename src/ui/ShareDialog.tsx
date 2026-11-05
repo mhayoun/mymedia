@@ -5,7 +5,7 @@ import { listPermissions, removePermission, shareAsReader, type Permission } fro
 import { FREE_SHARES, useIsPro } from '../models/pro'
 import { app, useApp } from '../store'
 import { ConfirmDialog, Modal } from './Dialog'
-import { ChosenAlbumsLink, LinkShare, SentLinks } from './LinkShare'
+import { LinkPicker, SentLinks } from './LinkShare'
 import { SharedLibraries } from './SharedLibraries'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -88,9 +88,7 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
       )}
       {mode === 'share' && !shared && tab === 'link' && (
         <section>
-          <p className="hint">{t('share.linkIntro')}</p>
-          {rootId && <LinkShare folderId={rootId} />}
-          <ChosenAlbumsLink />
+          <LinkPicker />
           <SentLinks />
         </section>
       )}

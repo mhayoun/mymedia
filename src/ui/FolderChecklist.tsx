@@ -11,14 +11,16 @@ interface Props {
   root?: { id: string; label: ReactNode }
   /** Text after each name, e.g. its number of photos. */
   extra?: (f: FolderInfo) => ReactNode
+  /** The folders shown open at first (e.g. all of them: "Expand all"). */
+  initialOpen?: Iterable<string>
 }
 
 /**
  * Categories and albums with a box each; a category opens to show its albums.
  * A ticked folder takes all it holds, so the boxes below it show ticked.
  */
-export function FolderChecklist({ categories, checked, onChange, disabled, root, extra }: Props) {
-  const [open, setOpen] = useState<Set<string>>(new Set())
+export function FolderChecklist({ categories, checked, onChange, disabled, root, extra, initialOpen }: Props) {
+  const [open, setOpen] = useState<Set<string>>(() => new Set(initialOpen))
   const all = !!root && checked.has(root.id)
   const toggle = (id: string) => {
     const n = new Set(checked)

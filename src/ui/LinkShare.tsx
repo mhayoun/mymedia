@@ -136,102 +136,107 @@ export function AlbumLinkDialog({ id, name, onClose }: { id: string; name: strin
   )
 }
 
-/** Ticked albums shared together: one link shows them side by side (each album keeps its own link setting). */
-export function ChosenAlbumsLink() {
+/**
+ * "By a link": the whole library ticked by default, or one or more of its albums. The link is made (Drive's
+ * "anyone with the link") when it is copied or sent, and joins the links sent below.
+ */
+export function LinkPicker() {
   const { t } = useTranslation()
   const lib = useLibraryContext()
   const user = useApp((s) => s.user)
-  const [checked, setChecked] = useState<Set<string>>(new Set())
+  const rootId = useApp((s) => s.rootId)
+  const rootName = useApp((s) => s.settings.rootName)
+  const [checked, setChecked] = useState<Set<string>>(() => new Set(rootId ? [rootId] : []))
+  const [expanded, setExpanded] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [link, setLink] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // A ticked category takes its albums: only the top folders go in the link.
-  const top = [...checked].filter((id) => {
-    for (let p = lib?.folders.get(id)?.parentId; p; p = lib?.folders.get(p)?.parentId) if (checked.has(p)) return false
-    return true
-  })
+  if (!lib || !rootId) return null
+  // A ticked folder takes what it holds: only the top ones go in the link.
+  const top = checked.has(rootId)
+    ? [rootId]
+    : [...checked].filter((id) => {
+        for (let p = lib.folders.get(id)?.parentId; p; p = lib.folders.get(p)?.parentId) if (checked.has(p)) return false
+        return true
+      })
+  const nameOf = (id: string) => (id === rootId ? rootName : (lib.folders.get(id)?.name ?? ''))
+  const names = top.map(nameOf)
+  const link = top.length ? publicLink(top) : ''
+  const tooMany = top.length > MAX_LINK_FOLDERS
+  const parents = [...lib.folders.values()].filter((f) => [...lib.folders.values()].some((c) => c.parentId === f.id)).map((f) => f.id)
 
-  async function create() {
+  /** Shares the ticked folders by a link (those not shared yet), and keeps the link in the list below. */
+  async function make(): Promise<boolean> {
     setBusy(true)
     setError(null)
     try {
-      for (const id of top) {
-        try {
-          await shareWithLink(id)
-        } catch (e) {
-          // Already shared by a link: nothing to add.
-          if (!(await listPermissions(id)).some((p) => p.type === 'anyone')) throw e
-        }
-      }
-      setLink(publicLink(top))
+      for (const id of top) if (!(await linkPermission(id))) await shareWithLink(id)
+      await rememberSent(top, names)
+      return true
     } catch (e) {
       setError(t('errors.generic', { message: (e as Error).message }))
+      return false
     } finally {
       setBusy(false)
     }
   }
 
-  const remember = () => lib && void rememberSent(top, top.map((id) => lib.folders.get(id)?.name ?? ''))
-
   async function copy() {
-    if (!link) return
-    remember()
+    if (!(await make())) return
     try {
       await navigator.clipboard.writeText(link)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Clipboard refused: the link stays shown, to copy by hand.
+      // Clipboard refused: the link stays in the list below, to copy from there.
     }
   }
 
-  if (!lib) return null
-  const names = top.map((id) => lib.folders.get(id)?.name ?? '').join(', ')
+  async function whatsapp() {
+    // Opened at once (still the click), filled once the link works.
+    const w = window.open('', '_blank')
+    if (!(await make())) return w?.close()
+    const text = top[0] === rootId ? t('share.linkWhatsappText', { owner: user?.name || user?.email || '', link }) : t('share.albumWhatsappText', { owner: user?.name || user?.email || '', album: names.join(', '), link })
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`
+    if (w) w.location.href = url
+    else location.href = url
+  }
+
   return (
     <>
-      <h3>{t('share.chosenTitle')}</h3>
-      <p className="hint">{t('share.chosenIntro')}</p>
+      <p className="hint">{t('share.linkIntro')}</p>
+      <div className="row">
+        <span className="hint" style={{ flex: 1 }}>
+          {checked.has(rootId) && t('share.pickHint', { name: rootName })}
+        </span>
+        <button className="btn" onClick={() => setExpanded((x) => !x)}>
+          {expanded ? t('share.collapseAll') : t('share.expandAll')}
+        </button>
+      </div>
       <div className="folder-checklist-scroll">
         <FolderChecklist
+          key={String(expanded)}
           categories={lib.categories}
           checked={checked}
-          onChange={(c) => {
-            setChecked(c)
-            setLink(null)
-          }}
+          onChange={setChecked}
           disabled={busy}
+          root={{ id: rootId, label: rootName }}
+          initialOpen={expanded ? parents : []}
         />
       </div>
-      {link ? (
-        <>
-          <input className="share-link" type="text" dir="ltr" readOnly value={link} onFocus={(e) => e.target.select()} />
-          <div className="actions">
-            <button className="btn primary" onClick={() => void copy()}>
-              <Copy size={16} /> {copied ? t('share.linkCopied') : t('share.linkCopy')}
-            </button>
-            <a
-              className="btn"
-              href={`https://wa.me/?text=${encodeURIComponent(t('share.albumWhatsappText', { owner: user?.name || user?.email || '', album: names, link }))}`}
-              onClick={remember}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <MessageCircle size={16} /> {t('share.whatsapp')}
-            </a>
-          </div>
-          <p className="hint">{t('share.chosenStop')}</p>
-        </>
-      ) : (
-        <div className="actions">
-          <button className="btn primary" onClick={() => void create()} disabled={busy || !top.length || top.length > MAX_LINK_FOLDERS}>
-            {busy ? <Loader2 size={16} className="spin" /> : <Link2 size={16} />} {t('share.chosenCreate', { count: top.length })}
-          </button>
-        </div>
-      )}
-      {top.length > MAX_LINK_FOLDERS && <p className="error-text">{t('share.chosenTooMany', { max: MAX_LINK_FOLDERS })}</p>}
+      <div className="actions">
+        <button className="btn primary" onClick={() => void copy()} disabled={busy || !top.length || tooMany}>
+          {busy ? <Loader2 size={16} className="spin" /> : <Copy size={16} />} {copied ? t('share.linkCopied') : t('share.linkCopy')}
+        </button>
+        <button className="btn" onClick={() => void whatsapp()} disabled={busy || !top.length || tooMany}>
+          <MessageCircle size={16} /> {t('share.whatsapp')}
+        </button>
+      </div>
+      {!top.length && <p className="hint">{t('share.pickNone')}</p>}
+      {tooMany && <p className="error-text">{t('share.chosenTooMany', { max: MAX_LINK_FOLDERS })}</p>}
       {error && <p className="error-text">{error}</p>}
+      <p className="hint">{t('share.linkWarning')}</p>
     </>
   )
 }
@@ -292,6 +297,7 @@ export function SentLinks() {
   const { t } = useTranslation()
   const fmt = useFormat()
   const user = useApp((s) => s.user)
+  const rootId = useApp((s) => s.rootId)
   const [list, setList] = useState<SentLink[]>([])
   const [copied, setCopied] = useState<string | null>(null)
   const [stopping, setStopping] = useState<SentLink | null>(null)
@@ -344,7 +350,9 @@ export function SentLinks() {
               </button>
               <a
                 className="btn"
-                href={`https://wa.me/?text=${encodeURIComponent(t('share.albumWhatsappText', { owner, album: l.names.join(', '), link }))}`}
+                href={`https://wa.me/?text=${encodeURIComponent(
+                  l.ids[0] === rootId ? t('share.linkWhatsappText', { owner, link }) : t('share.albumWhatsappText', { owner, album: l.names.join(', '), link }),
+                )}`}
                 target="_blank"
                 rel="noopener noreferrer"
               >

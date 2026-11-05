@@ -896,7 +896,7 @@
     "linkCopy": "Copier le lien",
     "linkCopied": "Lien copié",
     "linkStop": "Arrêter le partage par lien",
-    "linkWarning": "Attention : toute personne qui reçoit ce lien voit tout votre MyMedia. Pour l'arrêter, le lien cesse de marcher pour tout le monde.",
+    "linkWarning": "Toute personne qui reçoit le lien voit ce qui est coché, sans se connecter. Pour l'arrêter : « Arrêter le partage par lien » dans la liste ci-dessous.",
     "linkWhatsappText": "Bonjour ! {{owner}} partage ses photos et vidéos avec toi sur MyMedia. Clique ici pour les voir (pas besoin de compte) :\n{{link}}",
     "linkStopTitle": "Arrêter le partage par lien ?",
     "linkStopText": "Le lien ne marchera plus pour personne. Vous pourrez en créer un nouveau plus tard.",
@@ -916,7 +916,11 @@
     "tabPeople": "À des personnes",
     "sentTitle": "Albums partagés par un lien",
     "sentStopText": "Les albums « {{names}} » ne seront plus visibles par aucun lien. Vous pourrez créer un nouveau lien plus tard.",
-    "inheritedStop": "Ces albums restent visibles, car toute votre bibliothèque est partagée par un lien (en haut de cette fenêtre). Pour les cacher, arrêtez d'abord le lien de toute la bibliothèque."
+    "inheritedStop": "Ces albums restent visibles, car toute votre bibliothèque est partagée par un lien (en haut de cette fenêtre). Pour les cacher, arrêtez d'abord le lien de toute la bibliothèque.",
+    "pickHint": "Tout « {{name}} » est coché. Décochez-le pour choisir un ou plusieurs albums.",
+    "expandAll": "Tout déplier",
+    "collapseAll": "Tout replier",
+    "pickNone": "Cochez la bibliothèque ou au moins un album."
   },
   "install": {
     "menu": "Installer l'application",
