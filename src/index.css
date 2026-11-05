@@ -599,3 +599,4 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .pub-caption { position: absolute; inset-block-end: 8px; inset-inline: 16px; margin: 0; text-align: center; color: #ddd; font-size: 13px; }
 .share-link { inline-size: 100%; padding: 6px 8px; font: inherit; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-2); color: var(--text); }
 .pub-head a.btn { text-decoration: none; }
+.folder-checklist-scroll { max-block-size: 260px; overflow: auto; border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; margin-block: 6px; }

@@ -5,7 +5,7 @@ import { listPermissions, removePermission, shareAsReader, type Permission } fro
 import { FREE_SHARES, useIsPro } from '../models/pro'
 import { app, useApp } from '../store'
 import { ConfirmDialog, Modal } from './Dialog'
-import { LinkShare, SharedAlbumLinks } from './LinkShare'
+import { ChosenAlbumsLink, LinkShare, SharedAlbumLinks } from './LinkShare'
 import { SharedLibraries } from './SharedLibraries'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -25,6 +25,7 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
   const [done, setDone] = useState<{ text: string; email: string } | null>(null)
   const [removing, setRemoving] = useState<Permission | null>(null)
   const isPro = useIsPro()
+  const [linksChanged, setLinksChanged] = useState(0)
   // Shared by a link (LinkShare): not a person.
   const persons = people?.filter((p) => p.type !== 'anyone') ?? null
   // Free: up to FREE_SHARES people (those already there stay).
@@ -81,7 +82,8 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
           </h3>
           <p className="hint">{t('share.linkIntro')}</p>
           {rootId && <LinkShare folderId={rootId} />}
-          <SharedAlbumLinks />
+          <ChosenAlbumsLink onShared={() => setLinksChanged((n) => n + 1)} />
+          <SharedAlbumLinks refresh={linksChanged} />
         </section>
       )}
       {mode === 'share' && !shared && (

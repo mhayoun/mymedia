@@ -7,9 +7,11 @@ import { useTranslation } from 'react-i18next'
 import { db } from '../db/db'
 import { listFiles, listPermissions, removePermission, shareWithLink, type Permission } from '../drive/api'
 import { FOLDER_MIME } from '../lib/media'
-import { publicLink } from '../lib/publicLink'
+import { MAX_LINK_FOLDERS, publicLink } from '../lib/publicLink'
 import { useApp } from '../store'
 import { ConfirmDialog, Modal } from './Dialog'
+import { FolderChecklist } from './FolderChecklist'
+import { useLibraryContext } from './libraryContext'
 
 /** The link of one folder: create it, copy it, send it, stop it. `album`: the folder is an album (not the whole library). */
 export function LinkShare({ folderId, album }: { folderId: string; album?: string }) {
@@ -129,7 +131,7 @@ export function AlbumLinkDialog({ id, name, onClose }: { id: string; name: strin
 }
 
 /** The albums of this library shared by a link, each opened in its own window (to copy or stop its link). */
-export function SharedAlbumLinks() {
+export function SharedAlbumLinks({ refresh = 0 }: { refresh?: number }) {
   const { t } = useTranslation()
   const rootId = useApp((s) => s.rootId)
   const [albums, setAlbums] = useState<{ id: string; name: string }[]>([])
@@ -145,7 +147,7 @@ export function SharedAlbumLinks() {
       'id,name',
     )
     setAlbums(found.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })))
-  }, [rootId])
+  }, [rootId, refresh])
 
   useEffect(() => {
     load().catch((e) => console.warn('[MyMedia] albums shared by link', e))
@@ -175,6 +177,103 @@ export function SharedAlbumLinks() {
           }}
         />
       )}
+    </>
+  )
+}
+
+/** Ticked albums shared together: one link shows them side by side (each album keeps its own link setting). */
+export function ChosenAlbumsLink({ onShared }: { onShared: () => void }) {
+  const { t } = useTranslation()
+  const lib = useLibraryContext()
+  const user = useApp((s) => s.user)
+  const [checked, setChecked] = useState<Set<string>>(new Set())
+  const [busy, setBusy] = useState(false)
+  const [link, setLink] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // A ticked category takes its albums: only the top folders go in the link.
+  const top = [...checked].filter((id) => {
+    for (let p = lib?.folders.get(id)?.parentId; p; p = lib?.folders.get(p)?.parentId) if (checked.has(p)) return false
+    return true
+  })
+
+  async function create() {
+    setBusy(true)
+    setError(null)
+    try {
+      for (const id of top) {
+        try {
+          await shareWithLink(id)
+        } catch (e) {
+          // Already shared by a link: nothing to add.
+          if (!(await listPermissions(id)).some((p) => p.type === 'anyone')) throw e
+        }
+      }
+      setLink(publicLink(top))
+      onShared()
+    } catch (e) {
+      setError(t('errors.generic', { message: (e as Error).message }))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function copy() {
+    if (!link) return
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard refused: the link stays shown, to copy by hand.
+    }
+  }
+
+  if (!lib) return null
+  const names = top.map((id) => lib.folders.get(id)?.name ?? '').join(', ')
+  return (
+    <>
+      <h3>{t('share.chosenTitle')}</h3>
+      <p className="hint">{t('share.chosenIntro')}</p>
+      <div className="folder-checklist-scroll">
+        <FolderChecklist
+          categories={lib.categories}
+          checked={checked}
+          onChange={(c) => {
+            setChecked(c)
+            setLink(null)
+          }}
+          disabled={busy}
+        />
+      </div>
+      {link ? (
+        <>
+          <input className="share-link" type="text" dir="ltr" readOnly value={link} onFocus={(e) => e.target.select()} />
+          <div className="actions">
+            <button className="btn primary" onClick={() => void copy()}>
+              <Copy size={16} /> {copied ? t('share.linkCopied') : t('share.linkCopy')}
+            </button>
+            <a
+              className="btn"
+              href={`https://wa.me/?text=${encodeURIComponent(t('share.albumWhatsappText', { owner: user?.name || user?.email || '', album: names, link }))}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <MessageCircle size={16} /> {t('share.whatsapp')}
+            </a>
+          </div>
+          <p className="hint">{t('share.chosenStop')}</p>
+        </>
+      ) : (
+        <div className="actions">
+          <button className="btn primary" onClick={() => void create()} disabled={busy || !top.length || top.length > MAX_LINK_FOLDERS}>
+            {busy ? <Loader2 size={16} className="spin" /> : <Link2 size={16} />} {t('share.chosenCreate', { count: top.length })}
+          </button>
+        </div>
+      )}
+      {top.length > MAX_LINK_FOLDERS && <p className="error-text">{t('share.chosenTooMany', { max: MAX_LINK_FOLDERS })}</p>}
+      {error && <p className="error-text">{error}</p>}
     </>
   )
 }

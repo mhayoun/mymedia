@@ -64,7 +64,27 @@ function takenAt(f: PubFile): string {
 const sized = (f: PubFile, px: number) =>
   f.thumbnailLink ? f.thumbnailLink.replace(/=s\d+(-c)?$/, `=s${px}`) : `https://drive.google.com/thumbnail?id=${f.id}&sz=w${px}`
 
-export function PublicLibrary({ rootId }: { rootId: string }) {
+/** Several albums chosen together: the link's first page shows them side by side. */
+const CHOSEN = '*'
+
+/** The albums of a link of several (those still shared; one stopped since is left out). */
+async function chosenAlbums(ids: string[], key: string): Promise<PubFile[]> {
+  const got = await Promise.all(
+    ids.map((id) =>
+      read<PubFile>(`/files/${id}?fields=id,name,mimeType`, key).catch((e) => {
+        if (e instanceof Gone) return null
+        throw e
+      }),
+    ),
+  )
+  const albums = got.filter((f): f is PubFile => !!f)
+  if (!albums.length) throw new Gone('404')
+  return albums
+}
+
+export function PublicLibrary({ rootIds }: { rootIds: string[] }) {
+  const rootId = rootIds.length > 1 ? CHOSEN : rootIds[0]
+  const ids = rootIds.join(',')
   const { t } = useTranslation()
   const fmt = useFormat()
   const [key, setKey] = useState<string | null>(null)
@@ -81,6 +101,11 @@ export function PublicLibrary({ rootId }: { rootId: string }) {
   // The library's name (its root folder).
   useEffect(() => {
     if (!key) return
+    if (rootId === CHOSEN) {
+      setPath([{ id: CHOSEN, name: t('publicLib.albums') }])
+      document.title = `${t('publicLib.albums')} · MyMedia`
+      return
+    }
     read<{ name: string }>(`/files/${rootId}?fields=name`, key).then(
       (f) => {
         setPath([{ id: rootId, name: f.name }])
@@ -88,21 +113,22 @@ export function PublicLibrary({ rootId }: { rootId: string }) {
       },
       (e) => setError(e instanceof Gone ? 'gone' : 'failed'),
     )
-  }, [key, rootId])
+  }, [key, rootId, t])
 
   useEffect(() => {
     if (!key || !path.length) return
     let alive = true
     setFiles(null)
     setOpen(null)
-    children(here, key).then(
+    const listed = here === CHOSEN ? chosenAlbums(ids.split(','), key) : children(here, key)
+    listed.then(
       (f) => alive && setFiles(f),
       (e) => alive && setError(e instanceof Gone ? 'gone' : 'failed'),
     )
     return () => {
       alive = false
     }
-  }, [key, here, path.length])
+  }, [key, here, path.length, ids])
 
   const folders = (files ?? []).filter(isFolder).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
   const media = (files ?? []).filter(isMedia).sort((a, b) => takenAt(b).localeCompare(takenAt(a)))

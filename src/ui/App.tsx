@@ -3,15 +3,15 @@ import { useTranslation } from 'react-i18next'
 import { boot } from '../session'
 import { useApp } from '../store'
 import { RootMissing, Setup } from './Setup'
-import { publicLibraryId } from '../lib/publicLink'
+import { publicLibraryIds } from '../lib/publicLink'
 import { PublicLibrary } from './PublicLibrary'
 import { Shell } from './Shell'
 import { FullAccess, NotConfigured, SignIn } from './SignIn'
 
 export function App() {
   // A library shared by a link: shown without signing in, nothing else of the app starts.
-  const view = publicLibraryId()
-  return view ? <PublicLibrary rootId={view} /> : <MainApp />
+  const view = publicLibraryIds()
+  return view ? <PublicLibrary rootIds={view} /> : <MainApp />
 }
 
 function MainApp() {
