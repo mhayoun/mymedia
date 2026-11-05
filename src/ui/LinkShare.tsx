@@ -222,7 +222,8 @@ export function LinkPicker() {
           onChange={setChecked}
           disabled={busy}
           root={{ id: rootId, label: rootName }}
-          initialOpen={expanded ? parents : []}
+          collapsibleRoot
+          initialOpen={expanded ? [rootId, ...parents] : []}
         />
       </div>
       <div className="actions">
