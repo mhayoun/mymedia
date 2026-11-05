@@ -4,6 +4,8 @@
 import { Copy, Link2, Loader2, MessageCircle } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { db } from '../db/db'
+import { useFormat } from '../i18n/format'
 import { listPermissions, removePermission, shareWithLink, type Permission } from '../drive/api'
 import { MAX_LINK_FOLDERS, publicLink } from '../lib/publicLink'
 import { useApp } from '../store'
@@ -47,7 +49,11 @@ export function LinkShare({ folderId, album }: { folderId: string; album?: strin
     }
   }
 
+  // An album's link joins the links sent (the whole library's link is shown above them).
+  const remember = () => album && void rememberSent([folderId], [album])
+
   async function copy() {
+    remember()
     try {
       await navigator.clipboard.writeText(link)
       setCopied(true)
@@ -74,6 +80,7 @@ export function LinkShare({ folderId, album }: { folderId: string; album?: strin
               href={`https://wa.me/?text=${encodeURIComponent(
                 album ? t('share.albumWhatsappText', { owner, album, link }) : t('share.linkWhatsappText', { owner, link }),
               )}`}
+              onClick={remember}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -165,8 +172,11 @@ export function ChosenAlbumsLink() {
     }
   }
 
+  const remember = () => lib && void rememberSent(top, top.map((id) => lib.folders.get(id)?.name ?? ''))
+
   async function copy() {
     if (!link) return
+    remember()
     try {
       await navigator.clipboard.writeText(link)
       setCopied(true)
@@ -203,6 +213,7 @@ export function ChosenAlbumsLink() {
             <a
               className="btn"
               href={`https://wa.me/?text=${encodeURIComponent(t('share.albumWhatsappText', { owner: user?.name || user?.email || '', album: names, link }))}`}
+              onClick={remember}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -220,6 +231,123 @@ export function ChosenAlbumsLink() {
       )}
       {top.length > MAX_LINK_FOLDERS && <p className="error-text">{t('share.chosenTooMany', { max: MAX_LINK_FOLDERS })}</p>}
       {error && <p className="error-text">{error}</p>}
+    </>
+  )
+}
+
+// ---- The links sent (copied or sent by WhatsApp), to find them again ----------------------------
+
+export interface SentLink {
+  ids: string[]
+  names: string[]
+  at: string
+}
+
+const SENT_KEY = 'sentLinks'
+const sentListeners = new Set<() => void>()
+
+async function sentLinks(): Promise<SentLink[]> {
+  return (await db().getKv<SentLink[]>(SENT_KEY)) ?? []
+}
+
+async function saveSent(list: SentLink[]) {
+  await db().setKv(SENT_KEY, list)
+  for (const fn of sentListeners) fn()
+}
+
+/** Kept when the link is copied or sent: the same albums again replace the older line. */
+export async function rememberSent(ids: string[], names: string[]): Promise<void> {
+  const key = [...ids].sort().join(',')
+  const others = (await sentLinks()).filter((l) => [...l.ids].sort().join(',') !== key)
+  await saveSent([{ ids, names, at: new Date().toISOString() }, ...others])
+}
+
+/** The album links sent from this library, each to copy, send again or stop. */
+export function SentLinks() {
+  const { t } = useTranslation()
+  const fmt = useFormat()
+  const user = useApp((s) => s.user)
+  const [list, setList] = useState<SentLink[]>([])
+  const [copied, setCopied] = useState<string | null>(null)
+  const [stopping, setStopping] = useState<SentLink | null>(null)
+
+  const load = useCallback(async () => {
+    const all = await sentLinks()
+    // A link whose albums were all stopped (from an album's 🔗) is gone.
+    const alive = await Promise.all(
+      all.map(async (l) => {
+        const shared = await Promise.all(l.ids.map((id) => listPermissions(id).then((p) => p.some((x) => x.type === 'anyone'), () => false)))
+        return shared.some(Boolean)
+      }),
+    )
+    const kept = all.filter((_, i) => alive[i])
+    if (kept.length !== all.length) await db().setKv(SENT_KEY, kept)
+    setList(kept)
+  }, [])
+
+  useEffect(() => {
+    const reload = () => void load().catch((e) => console.warn('[MyMedia] links sent', e))
+    reload()
+    sentListeners.add(reload)
+    return () => void sentListeners.delete(reload)
+  }, [load])
+
+  if (!list.length) return null
+  const owner = user?.name || user?.email || ''
+  return (
+    <>
+      <h3>{t('share.sentTitle')}</h3>
+      {list.map((l) => {
+        const link = publicLink(l.ids)
+        const key = l.ids.join(',')
+        return (
+          <div key={key} className="sent-link">
+            <div>
+              <Link2 size={14} /> <bdi>{l.names.join(', ')}</bdi> <span className="hint">· {fmt.date(l.at)}</span>
+            </div>
+            <div className="actions">
+              <button
+                className="btn"
+                onClick={() =>
+                  void navigator.clipboard.writeText(link).then(() => {
+                    setCopied(key)
+                    setTimeout(() => setCopied(null), 2000)
+                  }, () => undefined)
+                }
+              >
+                <Copy size={16} /> {copied === key ? t('share.linkCopied') : t('share.linkCopy')}
+              </button>
+              <a
+                className="btn"
+                href={`https://wa.me/?text=${encodeURIComponent(t('share.albumWhatsappText', { owner, album: l.names.join(', '), link }))}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MessageCircle size={16} /> {t('share.whatsapp')}
+              </a>
+              <button className="btn" onClick={() => setStopping(l)}>
+                {t('share.linkStop')}
+              </button>
+            </div>
+          </div>
+        )
+      })}
+      {stopping && (
+        <ConfirmDialog
+          title={t('share.linkStopTitle')}
+          text={t('share.sentStopText', { names: stopping.names.join(', ') })}
+          confirmLabel={t('share.linkStop')}
+          danger
+          onConfirm={async () => {
+            for (const id of stopping.ids) {
+              const perm = (await listPermissions(id)).find((p) => p.type === 'anyone')
+              if (perm) await removePermission(id, perm.id)
+            }
+            await saveSent((await sentLinks()).filter((l) => l.ids.join(',') !== stopping.ids.join(',')))
+          }}
+          onClose={() => setStopping(null)}
+        />
+      )}
     </>
   )
 }

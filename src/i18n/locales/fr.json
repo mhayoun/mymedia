@@ -910,10 +910,12 @@
     "chosenCreate_one": "Créer le lien pour cet album",
     "chosenCreate_other": "Créer le lien pour ces {{count}} albums",
     "chosenCreate_zero": "Cochez au moins un album",
-    "chosenStop": "Pour arrêter, ouvrez chaque album et cliquez sur l'icône 🔗, puis « Arrêter le partage par lien ».",
+    "chosenStop": "Pour arrêter, utilisez « Arrêter le partage par lien » dans la liste ci-dessous (elle apparaît dès que le lien est copié ou envoyé).",
     "chosenTooMany": "{{max}} albums au plus par lien : cochez plutôt leur catégorie.",
     "tabLink": "Par un lien",
-    "tabPeople": "À des personnes"
+    "tabPeople": "À des personnes",
+    "sentTitle": "Albums partagés par un lien",
+    "sentStopText": "Les albums « {{names}} » ne seront plus visibles par aucun lien. Vous pourrez créer un nouveau lien plus tard."
   },
   "install": {
     "menu": "Installer l'application",

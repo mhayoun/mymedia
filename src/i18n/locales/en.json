@@ -912,10 +912,12 @@
     "chosenCreate_one": "Create the link for this album",
     "chosenCreate_other": "Create the link for these {{count}} albums",
     "chosenCreate_zero": "Tick at least one album",
-    "chosenStop": "To stop it, open each album and click the 🔗 icon, then “Stop sharing by link”.",
+    "chosenStop": "To stop it, use “Stop sharing by link” in the list below (it appears once the link is copied or sent).",
     "chosenTooMany": "At most {{max}} albums per link: tick their category instead.",
     "tabLink": "By a link",
-    "tabPeople": "With people"
+    "tabPeople": "With people",
+    "sentTitle": "Albums shared by a link",
+    "sentStopText": "The albums “{{names}}” will no longer be visible by any link. You can create a new link later."
   },
   "install": {
     "menu": "Install the app",
