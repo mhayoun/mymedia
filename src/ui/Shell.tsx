@@ -1,4 +1,4 @@
-import { Brain, Check, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Settings as SettingsIcon, Store, Trash2, UserPlus, UserRound, X } from 'lucide-react'
+import { Brain, Check, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, Link2, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Settings as SettingsIcon, Store, Trash2, UserPlus, UserRound, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -45,6 +45,7 @@ import { PersonDialog } from './PersonDialog'
 import { MisfiledView } from './MisfiledView'
 import { DuplicatesView } from './DuplicatesView'
 import { BlurryView } from './BlurryView'
+import { AlbumLinkDialog } from './LinkShare'
 import { MoveFolderDialog } from './MoveFolderDialog'
 import { usePeople, type People } from './usePeople'
 import { useProvenanceLabel } from './useProvenanceLabel'
@@ -54,6 +55,7 @@ type DialogState =
   | { kind: 'newAlbum'; parentId: string; parentName: string }
   | { kind: 'rename'; id: string; name: string }
   | { kind: 'move'; id: string; name: string; count: number }
+  | { kind: 'albumLink'; id: string; name: string }
   | { kind: 'delete'; id: string; name: string; count: number }
   | { kind: 'compress'; title: string; folderId: string | null }
   | { kind: 'import'; destId: string; files?: File[]; fromShare?: boolean }
@@ -255,6 +257,7 @@ export function Shell() {
           onClose={() => setDialog(null)}
         />
       )}
+      {dialog?.kind === 'albumLink' && <AlbumLinkDialog id={dialog.id} name={dialog.name} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'move' && <MoveFolderDialog lib={lib} id={dialog.id} name={dialog.name} count={dialog.count} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'compress' && (
         <CompressDialog
@@ -708,6 +711,14 @@ function Toolbar({ lib, people, count, onDialog, actions }: ToolbarProps) {
             onClick={() => onDialog({ kind: 'newAlbum', parentId: folder.id, parentName: folder.name })}
           >
             <FolderPlus size={18} />
+          </button>
+          <button
+            className="icon-btn small"
+            title={t('share.albumButton')}
+            aria-label={t('share.albumButton')}
+            onClick={() => onDialog({ kind: 'albumLink', id: folder.id, name: folder.name })}
+          >
+            <Link2 size={18} />
           </button>
           <button
             className="icon-btn small"

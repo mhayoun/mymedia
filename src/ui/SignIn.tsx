@@ -84,13 +84,15 @@ export function FullAccess() {
         <p>
           <bdi dir="ltr">{user?.email}</bdi>
         </p>
-        <p>{t('door.fullText')}</p>
-        <p className="hint">{t('door.warning')}</p>
+        <p>
+          <strong>{t('door.welcome')}</strong>
+        </p>
         <div className="actions">
           <button className="btn primary" onClick={() => user && auth.upgrade(user.email)}>
             {t('door.continue')}
           </button>
         </div>
+        <p className="hint">{t('door.confirmHint')}</p>
         {error === 'scope_denied' && <p className="error-text">{t('door.denied')}</p>}
         {error === 'popup_failed_to_open' && <p className="error-text">{t('auth.popupBlocked')}</p>}
         <p className="hint">

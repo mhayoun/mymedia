@@ -899,7 +899,14 @@
     "linkWarning": "Attention : toute personne qui reçoit ce lien voit tout votre MyMedia. Pour l'arrêter, le lien cesse de marcher pour tout le monde.",
     "linkWhatsappText": "Bonjour ! {{owner}} partage ses photos et vidéos avec toi sur MyMedia. Clique ici pour les voir (pas besoin de compte) :\n{{link}}",
     "linkStopTitle": "Arrêter le partage par lien ?",
-    "linkStopText": "Le lien ne marchera plus pour personne. Vous pourrez en créer un nouveau plus tard."
+    "linkStopText": "Le lien ne marchera plus pour personne. Vous pourrez en créer un nouveau plus tard.",
+    "albumButton": "Partager cet album par un lien",
+    "albumTitle": "Partager « {{name}} » par un lien",
+    "albumIntro": "Toute personne qui a le lien voit cet album et ses sous-albums, sans se connecter. Elle ne voit rien d'autre de votre MyMedia.",
+    "albumWarning": "Toute personne qui reçoit ce lien voit tout cet album. Pour l'arrêter, le lien cesse de marcher pour tout le monde.",
+    "albumWhatsappText": "Bonjour ! {{owner}} partage l'album « {{album}} » avec toi sur MyMedia. Clique ici pour le voir (pas besoin de compte) :\n{{link}}",
+    "albumsTitle": "Albums partagés par un lien",
+    "albumManage": "Voir le lien"
   },
   "install": {
     "menu": "Installer l'application",
@@ -1094,13 +1101,15 @@
   "door": {
     "fullText": "Ce compte utilise MyMedia avec l'accès complet à Google Drive. Google va vous demander de le confirmer sur cet appareil.",
     "warning": "Google peut afficher « Google n'a pas validé cette application » : choisissez « Paramètres avancés », puis « Accéder à MyMedia », et cochez l'accès à Google Drive.",
-    "continue": "Continuer avec l'accès complet",
+    "continue": "Ouvrir ma bibliothèque",
     "denied": "L'accès complet n'a pas été donné. Réessayez et cochez l'accès à Google Drive.",
     "gate": "« {{feature}} » a besoin de l'accès complet à votre Google Drive, inclus dans votre Pro.",
     "grantTitle": "Votre Pro peut maintenant utiliser l'accès complet à Google Drive : les photos ajoutées hors MyMedia, l'import depuis Drive, le transfert et les bibliothèques partagées avec vous.",
     "grant": "Donner l'accès complet",
     "proNeedsFull": "Avec Pro, MyMedia vous demandera l'accès complet à votre Google Drive.",
-    "featureLibraries": "Voir le MyMedia qu'une autre personne vous a partagé"
+    "featureLibraries": "Voir le MyMedia qu'une autre personne vous a partagé",
+    "welcome": "Bon retour ! Votre compte est reconnu.",
+    "confirmHint": "Google vous demandera une dernière confirmation, une seule fois sur cet appareil. S'il affiche « application non validée » : Paramètres avancés, puis Accéder à MyMedia."
   },
   "publicLib": {
     "readOnly": "Partagé par un lien · lecture seule",
