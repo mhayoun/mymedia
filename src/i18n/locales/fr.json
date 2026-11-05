@@ -867,7 +867,7 @@
     "menu": "Partager",
     "title": "Partager",
     "mineTitle": "Montrer mon MyMedia",
-    "intro": "La personne pourra regarder, chercher et télécharger vos photos et vidéos, sans votre compte et sans rien pouvoir changer. Il lui faut un compte Google (Gmail).",
+    "intro": "Avec Pro, vous pouvez montrer votre MyMedia à des personnes choisies, par leur adresse Gmail. Elles aussi doivent avoir Pro.",
     "email": "Son adresse Gmail",
     "notify": "Prévenir par e-mail (envoyé par Google)",
     "submit": "Partager en lecture seule",
@@ -888,7 +888,18 @@
     "viewIntro": "Les MyMedia que d'autres comptes Google partagent avec vous. Ouvrez-en un pour le regarder ; vous revenez au vôtre ici.",
     "whatsapp": "Expliquer par WhatsApp",
     "whatsappHint": "Ouvre WhatsApp avec un message qui explique comment voir votre MyMedia ; vous choisissez à qui l'envoyer.",
-    "whatsappText": "Bonjour ! {{owner}} a partagé ses photos et vidéos avec toi sur MyMedia (en lecture seule).\n\n1. Ouvre {{link}}\n2. Connecte-toi avec ton compte Google {{email}}\n3. Ouvre le menu ☰ puis 👁 Voir, et choisis « MyMedia de {{owner}} ».\n\nPour l'avoir comme une application : menu ☰ → « Installer l'application »."
+    "whatsappText": "Bonjour ! {{owner}} a partagé ses photos et vidéos avec toi sur MyMedia (en lecture seule).\n\n1. Ouvre {{link}}\n2. Connecte-toi avec ton compte Google {{email}}\n3. Ouvre le menu ☰ puis 👁 Voir, et choisis « MyMedia de {{owner}} ».\n\nPour l'avoir comme une application : menu ☰ → « Installer l'application ».",
+    "introPro": "La personne pourra regarder, chercher et télécharger vos photos et vidéos, sans rien pouvoir changer. Pour l'ouvrir dans MyMedia, elle doit aussi avoir Pro ; sinon, envoyez-lui le lien ci-dessus.",
+    "linkTitle": "Partager par un lien",
+    "linkIntro": "Toute personne qui a le lien voit votre MyMedia, sans se connecter et sans compte Google. Gratuit.",
+    "linkCreate": "Créer le lien",
+    "linkCopy": "Copier le lien",
+    "linkCopied": "Lien copié",
+    "linkStop": "Arrêter le partage par lien",
+    "linkWarning": "Attention : toute personne qui reçoit ce lien voit tout votre MyMedia. Pour l'arrêter, le lien cesse de marcher pour tout le monde.",
+    "linkWhatsappText": "Bonjour ! {{owner}} partage ses photos et vidéos avec toi sur MyMedia. Clique ici pour les voir (pas besoin de compte) :\n{{link}}",
+    "linkStopTitle": "Arrêter le partage par lien ?",
+    "linkStopText": "Le lien ne marchera plus pour personne. Vous pourrez en créer un nouveau plus tard."
   },
   "install": {
     "menu": "Installer l'application",
@@ -1060,10 +1071,10 @@
     "includes": "Pro ajoute",
     "featureDuplicates": "La recherche des doublons déjà présents",
     "featureBlurry": "Les photos floues (tri et nettoyage)",
-    "featureShare": "Le partage avec plus de {{count}} personnes",
+    "featureShare": "Le partage avec des personnes choisies (par adresse Gmail ; elles aussi doivent avoir Pro)",
     "featureTransfer": "L'envoi vers un autre compte Google (transfert)",
     "featureDates": "Le changement de date des photos (une ou plusieurs)",
-    "freeRest": "Tout le reste est gratuit : galerie, albums, ajout, recherche, visages, classement, compression, boutique de modèles, et les doublons repérés à l'ajout.",
+    "freeRest": "Tout le reste est gratuit : galerie, albums, ajout, recherche, visages, classement, compression, doublons, photos floues, boutique de modèles, et le partage par lien.",
     "buyTitle": "Passer à Pro",
     "extendTitle": "Ajouter du temps",
     "planYear": "1 an : {{perMonth}} / mois",
@@ -1077,6 +1088,29 @@
     "androidSoon": "L'achat de Pro dans l'appli Android arrive bientôt.",
     "gate": "« {{feature}} » fait partie de MyMedia Pro.",
     "discover": "Découvrir Pro",
-    "shareFull": "La version gratuite partage avec {{count}} personnes au plus. Retirez quelqu'un, ou passez à Pro pour un partage illimité."
+    "shareFull": "Le partage avec des personnes choisies fait partie de Pro. En gratuit, partagez par un lien (ci-dessus).",
+    "featureDrive": "L'accès complet à Google Drive : les photos ajoutées hors MyMedia, l'import depuis d'autres dossiers, et les bibliothèques partagées avec vous"
+  },
+  "door": {
+    "fullText": "Ce compte utilise MyMedia avec l'accès complet à Google Drive. Google va vous demander de le confirmer sur cet appareil.",
+    "warning": "Google peut afficher « Google n'a pas validé cette application » : choisissez « Paramètres avancés », puis « Accéder à MyMedia », et cochez l'accès à Google Drive.",
+    "continue": "Continuer avec l'accès complet",
+    "denied": "L'accès complet n'a pas été donné. Réessayez et cochez l'accès à Google Drive.",
+    "gate": "« {{feature}} » a besoin de l'accès complet à votre Google Drive, inclus dans votre Pro.",
+    "grantTitle": "Votre Pro peut maintenant utiliser l'accès complet à Google Drive : les photos ajoutées hors MyMedia, l'import depuis Drive, le transfert et les bibliothèques partagées avec vous.",
+    "grant": "Donner l'accès complet",
+    "proNeedsFull": "Avec Pro, MyMedia vous demandera l'accès complet à votre Google Drive.",
+    "featureLibraries": "Voir le MyMedia qu'une autre personne vous a partagé"
+  },
+  "publicLib": {
+    "readOnly": "Partagé par un lien · lecture seule",
+    "makeYours": "Créer mon MyMedia",
+    "count_one": "{{count}} photo ou vidéo",
+    "count_other": "{{count}} photos et vidéos",
+    "empty": "Rien ici.",
+    "gone": "Ce lien ne marche plus : le partage a été arrêté.",
+    "failed": "La bibliothèque n'a pas pu être lue. Vérifiez la connexion et réessayez.",
+    "prev": "Précédente",
+    "next": "Suivante"
   }
 }

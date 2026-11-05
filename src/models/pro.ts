@@ -20,10 +20,15 @@ export interface ProStatus {
   paymentsLive: boolean
   /** Paid with PayPal's test money (sandbox). */
   test: boolean
+  /** The account uses the full Drive access (MyMedia's full door), for good. Missing from an older server. */
+  full?: boolean
 }
 
-/** People a free account may share its MyMedia with. */
-export const FREE_SHARES = 2
+/**
+ * People a free account may share its MyMedia with (by their Google account). None until Google's review:
+ * each of them must open it by the full door, which takes one of its 100 places; free accounts share by a link.
+ */
+export const FREE_SHARES = 0
 
 const cacheKey = (email: string) => `mymedia.pro.${email}`
 
@@ -69,5 +74,23 @@ export async function capturePro(email: string, order: string): Promise<void> {
   keep(email, await call<ProStatus>('POST', `?action=capturePro&order=${encodeURIComponent(order)}`))
 }
 
+/**
+ * Asks the server whether this account must use the full door (it used it once, or before the free door
+ * existed). Null: the server cannot be asked.
+ */
+export async function usesFullDoor(email: string): Promise<boolean | null> {
+  try {
+    const s = await call<ProStatus>('GET', '?action=pro')
+    keep(email, s)
+    return s.full ?? false
+  } catch (e) {
+    console.warn('[MyMedia] door unknown', e)
+    return null
+  }
+}
+
 /** Whether this account has Pro now. */
 export const useIsPro = () => useApp((s) => !!s.pro?.pro)
+
+/** Pro, and the full Drive access given (what transfers, imports from Drive and others' libraries need). */
+export const useHasFullAccess = () => useApp((s) => s.door === 'full')

@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
 import { changeLanguage, LANGUAGES } from '../i18n'
+import { signOut } from '../session'
 import { useApp } from '../store'
 import { useAuthError } from './hooks'
 
@@ -62,6 +63,41 @@ export function NotConfigured() {
         <h1>{t('app.name')}</h1>
         <p className="error-text">{t('auth.configMissing')}</p>
         <LanguageSwitch />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * This account used MyMedia's full door (whole Drive): it came in by the free one on this device,
+ * Google must now give the full access (a click is needed to open Google's window).
+ */
+export function FullAccess() {
+  const { t } = useTranslation()
+  const user = useApp((s) => s.user)
+  const error = useAuthError()
+  return (
+    <div className="center-screen">
+      <div className="card">
+        <img className="logo" src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" />
+        <h1>{t('app.name')}</h1>
+        <p>
+          <bdi dir="ltr">{user?.email}</bdi>
+        </p>
+        <p>{t('door.fullText')}</p>
+        <p className="hint">{t('door.warning')}</p>
+        <div className="actions">
+          <button className="btn primary" onClick={() => user && auth.upgrade(user.email)}>
+            {t('door.continue')}
+          </button>
+        </div>
+        {error === 'scope_denied' && <p className="error-text">{t('door.denied')}</p>}
+        {error === 'popup_failed_to_open' && <p className="error-text">{t('auth.popupBlocked')}</p>}
+        <p className="hint">
+          <button className="btn" onClick={() => signOut()}>
+            {t('auth.switchAccount')}
+          </button>
+        </p>
       </div>
     </div>
   )

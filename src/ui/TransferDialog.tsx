@@ -29,7 +29,24 @@ import type { FolderInfo } from './useLibrary'
 type Busy = { done: number; total: number } | null
 
 /** Settings → give a category or album to another Google account, or accept one. */
+/** Sending and receiving reach another account's files: only the full Drive access (Pro) can. */
 export function TransferDialog({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation()
+  const door = useApp((s) => s.door)
+  if (door === 'full') return <Transfer onClose={onClose} />
+  return (
+    <Modal title={t('transfer.title')} onClose={onClose}>
+      <ProGate feature={t('pro.featureTransfer')} needsFull />
+      <div className="actions">
+        <button className="btn" onClick={onClose}>
+          {t('common.close')}
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+function Transfer({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const lib = useLibraryContext()

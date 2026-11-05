@@ -3,10 +3,18 @@ import { useTranslation } from 'react-i18next'
 import { boot } from '../session'
 import { useApp } from '../store'
 import { RootMissing, Setup } from './Setup'
+import { publicLibraryId } from '../lib/publicLink'
+import { PublicLibrary } from './PublicLibrary'
 import { Shell } from './Shell'
-import { NotConfigured, SignIn } from './SignIn'
+import { FullAccess, NotConfigured, SignIn } from './SignIn'
 
 export function App() {
+  // A library shared by a link: shown without signing in, nothing else of the app starts.
+  const view = publicLibraryId()
+  return view ? <PublicLibrary rootId={view} /> : <MainApp />
+}
+
+function MainApp() {
   const { t } = useTranslation()
   const phase = useApp((s) => s.phase)
   const [configured, setConfigured] = useState(true)
@@ -25,6 +33,8 @@ export function App() {
       return <Setup />
     case 'rootMissing':
       return <RootMissing />
+    case 'fullAccess':
+      return <FullAccess />
     case 'app':
       return <Shell />
   }

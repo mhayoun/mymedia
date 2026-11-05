@@ -92,12 +92,10 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
             <button className="nav-item" aria-current={filters.categoryId === DUPLICATES} onClick={() => select(DUPLICATES, null)}>
               <Copy size={18} />
               <span className="label">{t('cleanup.duplicates')}</span>
-              {!isPro && <span className="tag pro">Pro</span>}
             </button>
             <button className="nav-item" aria-current={filters.categoryId === BLURRY} onClick={() => select(BLURRY, null)}>
               <Focus size={18} />
               <span className="label">{t('cleanup.blurry')}</span>
-              {!isPro && <span className="tag pro">Pro</span>}
             </button>
           </>
         )}

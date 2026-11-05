@@ -1,7 +1,8 @@
-import { Crown, Eye, Loader2, MessageCircle } from 'lucide-react'
+import { Copy, Crown, Eye, Link2, Loader2, MessageCircle } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { listPermissions, removePermission, shareAsReader, type Permission } from '../drive/api'
+import { listPermissions, removePermission, shareAsReader, shareWithLink, type Permission } from '../drive/api'
+import { publicLink } from '../lib/publicLink'
 import { FREE_SHARES, useIsPro } from '../models/pro'
 import { app, useApp } from '../store'
 import { ConfirmDialog, Modal } from './Dialog'
@@ -24,8 +25,38 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
   const [done, setDone] = useState<{ text: string; email: string } | null>(null)
   const [removing, setRemoving] = useState<Permission | null>(null)
   const isPro = useIsPro()
+  const [linkBusy, setLinkBusy] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [stopping, setStopping] = useState(false)
+  // Shared by a link: anyone who has it sees the library, without signing in (free, no place taken).
+  const linkPerm = people?.find((p) => p.type === 'anyone') ?? null
+  const persons = people?.filter((p) => p.type !== 'anyone') ?? null
+  const link = rootId ? publicLink(rootId) : ''
   // Free: up to FREE_SHARES people (those already there stay).
-  const full = !isPro && !!people && people.filter((p) => p.type === 'user').length >= FREE_SHARES
+  const full = !isPro && !!persons && persons.filter((p) => p.type === 'user').length >= FREE_SHARES
+
+  async function createLink() {
+    setLinkBusy(true)
+    setError(null)
+    try {
+      await shareWithLink(rootId!)
+      await load()
+    } catch (e) {
+      setError(t('errors.generic', { message: (e as Error).message }))
+    } finally {
+      setLinkBusy(false)
+    }
+  }
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard refused: the link stays shown, to copy by hand.
+    }
+  }
 
   const load = useCallback(async () => {
     if (!rootId || shared || mode !== 'share') return
@@ -73,9 +104,47 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
       )}
       {mode === 'share' && !shared && (
         <section>
+          <h3>
+            <Link2 size={16} /> {t('share.linkTitle')}
+          </h3>
+          <p className="hint">{t('share.linkIntro')}</p>
+          {!people && !error ? (
+            <Loader2 size={16} className="spin" />
+          ) : linkPerm ? (
+            <>
+              <input className="share-link" type="text" dir="ltr" readOnly value={link} onFocus={(e) => e.target.select()} />
+              <div className="actions">
+                <button className="btn primary" onClick={() => void copyLink()}>
+                  <Copy size={16} /> {copied ? t('share.linkCopied') : t('share.linkCopy')}
+                </button>
+                <a
+                  className="btn"
+                  href={`https://wa.me/?text=${encodeURIComponent(t('share.linkWhatsappText', { owner: user?.name || user?.email || '', link }))}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MessageCircle size={16} /> {t('share.whatsapp')}
+                </a>
+                <button className="btn" onClick={() => setStopping(true)}>
+                  {t('share.linkStop')}
+                </button>
+              </div>
+              <p className="hint">{t('share.linkWarning')}</p>
+            </>
+          ) : (
+            <div className="actions">
+              <button className="btn primary" onClick={() => void createLink()} disabled={linkBusy || !rootId}>
+                {linkBusy ? <Loader2 size={16} className="spin" /> : <Link2 size={16} />} {t('share.linkCreate')}
+              </button>
+            </div>
+          )}
+        </section>
+      )}
+      {mode === 'share' && !shared && (
+        <section>
           <h3>{t('share.mineTitle')}</h3>
-          <p className="hint">{t('share.intro')}</p>
-          <label className="field">
+          <p className="hint">{t(isPro ? 'share.introPro' : 'share.intro')}</p>
+          {!full && <label className="field">
             {t('share.email')}
             <input
               type="email"
@@ -86,16 +155,16 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
               onKeyDown={(e) => e.key === 'Enter' && void share()}
               disabled={busy || !rootId}
             />
-          </label>
-          <label className="radio-row">
+          </label>}
+          {!full && <label className="radio-row">
             <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} disabled={busy} />
             {t('share.notify')}
-          </label>
-          <div className="actions">
+          </label>}
+          {!full && <div className="actions">
             <button className="btn primary" onClick={() => void share()} disabled={busy || !rootId || !email.trim() || full}>
               {busy ? <Loader2 size={16} className="spin" /> : <Eye size={16} />} {t('share.submit')}
             </button>
-          </div>
+          </div>}
           {full && (
             <div className="row">
               <p className="hint" style={{ flex: 1 }}>
@@ -118,8 +187,8 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
 
           <h3>{t('share.people')}</h3>
           {!people && !error && <Loader2 size={16} className="spin" />}
-          {people && !people.length && <p className="hint">{t('share.nobody')}</p>}
-          {people?.map((p) => (
+          {persons && !persons.length && <p className="hint">{t('share.nobody')}</p>}
+          {persons?.map((p) => (
             <div key={p.id} className="check-row">
               <span style={{ flex: 1, minWidth: 0 }}>
                 <bdi>{who(p)}</bdi>
@@ -153,6 +222,20 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
           {t('common.close')}
         </button>
       </div>
+
+      {stopping && linkPerm && (
+        <ConfirmDialog
+          title={t('share.linkStopTitle')}
+          text={t('share.linkStopText')}
+          confirmLabel={t('share.linkStop')}
+          danger
+          onConfirm={async () => {
+            await removePermission(rootId!, linkPerm.id)
+            await load()
+          }}
+          onClose={() => setStopping(false)}
+        />
+      )}
 
       {removing && (
         <ConfirmDialog

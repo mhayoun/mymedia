@@ -2,7 +2,12 @@
 // can be changed without rebuilding the app.
 
 export interface AppConfig {
+  /** The full door: the whole Drive (Google project "MyMedia"; also the Android app's). */
   googleClientId: string
+  /** MyMedia Free: only the files MyMedia makes (Google project "MyMedia Free"). Empty: one door only. */
+  googleFreeClientId?: string
+  /** MyMedia Free's API key: libraries shared by a link are read with it, without signing in. */
+  googleApiKey?: string
 }
 
 const CACHE_KEY = 'mymedia.config'

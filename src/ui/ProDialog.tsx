@@ -5,6 +5,7 @@ import { LOCALES } from '../i18n'
 import { useFormat } from '../i18n/format'
 import { buyPro, capturePro, FREE_SHARES, loadPro, type ProPlan } from '../models/pro'
 import { ShopError } from '../models/shop'
+import { auth } from '../auth/google'
 import { isNative } from '../native'
 import { app, useApp, type Language } from '../store'
 import { Modal } from './Dialog'
@@ -15,6 +16,7 @@ export function ProDialog({ onClose }: { onClose: () => void }) {
   const fmt = useFormat()
   const user = useApp((s) => s.user)
   const pro = useApp((s) => s.pro)
+  const door = useApp((s) => s.door)
   const [busy, setBusy] = useState<ProPlan | 'resume' | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
@@ -85,13 +87,13 @@ export function ProDialog({ onClose }: { onClose: () => void }) {
 
         <h3>{t('pro.includes')}</h3>
         <ul className="pro-features">
-          <li>{t('pro.featureDuplicates')}</li>
-          <li>{t('pro.featureBlurry')}</li>
           <li>{t('pro.featureShare', { count: FREE_SHARES })}</li>
           <li>{t('pro.featureTransfer')}</li>
+          <li>{t('pro.featureDrive')}</li>
           <li>{t('pro.featureDates')}</li>
         </ul>
         <p className="hint">{t('pro.freeRest')}</p>
+        {pro?.pro && door === 'free' && !isNative && <FullAccessButton />}
 
         {busy === 'resume' ? (
           <p className="hint">
@@ -140,15 +142,37 @@ export function ProDialog({ onClose }: { onClose: () => void }) {
   )
 }
 
-/** In place of a Pro feature, for a free account. */
-export function ProGate({ feature }: { feature: string }) {
+/**
+ * In place of a Pro feature, for a free account. `needsFull`: the feature also needs the full Drive access
+ * (MyMedia's full door), which a Pro account opened by the free door gives here with one click.
+ */
+export function ProGate({ feature, needsFull = false }: { feature: string; needsFull?: boolean }) {
   const { t } = useTranslation()
+  const isPro = useApp((s) => !!s.pro?.pro)
+  if (isPro && needsFull) return <FullAccessButton feature={feature} />
   return (
     <div className="pro-gate">
       <Crown size={28} />
       <p>{t('pro.gate', { feature })}</p>
+      {needsFull && <p className="hint">{t('door.proNeedsFull')}</p>}
       <button className="btn primary" onClick={() => app().set({ proOpen: true, sidebarOpen: false, accountOpen: false })}>
         <Crown size={16} /> {t('pro.discover')}
+      </button>
+    </div>
+  )
+}
+
+/** A Pro account opened by the free door: gives the full Drive access (Google's window, then the app starts again). */
+export function FullAccessButton({ feature }: { feature?: string }) {
+  const { t } = useTranslation()
+  const user = useApp((s) => s.user)
+  return (
+    <div className="pro-gate">
+      <Crown size={28} />
+      <p>{feature ? t('door.gate', { feature }) : t('door.grantTitle')}</p>
+      <p className="hint">{t('door.warning')}</p>
+      <button className="btn primary" onClick={() => user && auth.upgrade(user.email)}>
+        {t('door.grant')}
       </button>
     </div>
   )

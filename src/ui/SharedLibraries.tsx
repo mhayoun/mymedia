@@ -2,6 +2,7 @@ import { Eye, FolderOpen, Loader2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useApp } from '../store'
+import { ProGate } from './ProDialog'
 import { findSharedLibraries, openLibrary, type SharedLibrary } from '../sync/library'
 
 /** The MyMedia shared with this account, each opened with one tap (and the user's own, from a shared one). */
@@ -12,8 +13,11 @@ export function SharedLibraries({ hideEmpty = false, intro }: { hideEmpty?: bool
   const shared = useApp((s) => s.shared)
   const [list, setList] = useState<SharedLibrary[] | null>(null)
   const [failed, setFailed] = useState(false)
+  const door = useApp((s) => s.door)
 
   useEffect(() => {
+    // MyMedia Free does not see others' files (Google's rule): their libraries need the full door.
+    if (door === 'free') return
     let alive = true
     findSharedLibraries().then(
       (l) => alive && setList(l),
@@ -25,9 +29,10 @@ export function SharedLibraries({ hideEmpty = false, intro }: { hideEmpty?: bool
     return () => {
       alive = false
     }
-  }, [])
+  }, [door])
 
   if (!user) return null
+  if (door === 'free') return hideEmpty ? null : <ProGate feature={t('door.featureLibraries')} needsFull />
   const others = list?.filter((l) => l.id !== rootId) ?? []
   if (hideEmpty && !shared && (!list || !others.length)) return null
   const owner = (l: SharedLibrary) => l.ownerName ?? l.ownerEmail ?? l.name

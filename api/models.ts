@@ -17,6 +17,7 @@
 //   orders/<paypal order>.json PayPal orders started, until paid
 //   sales/<seller hash>/<paypal order>.json  one per sale: price, commission, seller's share, paid out
 //   pro/<hash>.json            one per Pro account: until when, the purchases
+//   full/<hash>.json           one per account that gave the full Drive access (the Pro door)
 //
 //   GET    /api/models                      shop
 //   POST   /api/models                      publish (body: PublishBody)
@@ -28,7 +29,7 @@
 //   GET    /api/models?action=sales         the seller's sales: owed and paid out
 //   GET    /api/models?action=payouts       admins: what is owed to each seller
 //   POST   /api/models?action=payout        admins: these sales are paid out (body: { orders })
-//   GET    /api/models?action=pro           this account's Pro, and the plans
+//   GET    /api/models?action=pro           this account's Pro, the plans, and whether it uses the full Drive access
 //   POST   /api/models?action=buyPro&plan=  a PayPal order for Pro (year or life) to approve
 //   POST   /api/models?action=capturePro&order=  after PayPal: take the payment, give Pro
 
@@ -38,7 +39,37 @@ import { createHash, randomUUID } from 'node:crypto'
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID ?? '246067015646-63ga5nqjgihi3sd8mmb3ch0urb0i1q5m.apps.googleusercontent.com'
 // The Android app's tokens come from its own Google client (comma-separated if several).
 const ANDROID_CLIENT_IDS = process.env.GOOGLE_ANDROID_CLIENT_ID ?? '246067015646-hcjsb25dpcm6d0ukdlts48f0irfq5ivb.apps.googleusercontent.com'
-const CLIENT_IDS = [CLIENT_ID, ...ANDROID_CLIENT_IDS.split(',').map((s) => s.trim())].filter(Boolean)
+// MyMedia has two doors (two Google projects): the full Drive access (CLIENT_ID and Android, 100 accounts
+// until Google's review) and MyMedia Free (only the files MyMedia made, no limit).
+const FREE_CLIENT_ID = process.env.GOOGLE_FREE_CLIENT_ID ?? '94880969749-8nu1dudc5hufa138k1hhviakr2fv0emb.apps.googleusercontent.com'
+const FULL_CLIENT_IDS = [CLIENT_ID, ...ANDROID_CLIENT_IDS.split(',').map((s) => s.trim())].filter(Boolean)
+const CLIENT_IDS = [...FULL_CLIENT_IDS, FREE_CLIENT_ID].filter(Boolean)
+const FULL_SCOPE = 'https://www.googleapis.com/auth/drive'
+/**
+ * Accounts that used the full access before the free door existed (hash of the address, see `hashOf`):
+ * their files were made by the full door's project, the free door would not see them.
+ */
+const FULL_BEFORE_FREE = new Set([
+  'b83441b9aa774193b35dfdee0509ba72',
+  'a4b4f6e414f4ad2b7cb482fb22de9e79',
+  '5a3df48d3345730111b291684eaf0f59',
+  '6336b4d1c79543cbd7cb83982f05a358',
+  'e3fa4c707988d1b6ec2ac1f49afa2cd1',
+  '9422ae081e5d1e2672f3ce02e073268a',
+  'edd3e8d98e95b194e69a334cca27df17',
+  '2f220f2cc94e727fea0f4bc409ef3408',
+  '2c0f38be9e2f7edee52cfc87362f02ae',
+  '2ae8fb235566b2691b577ea2bcfd8724',
+  '383f29a68b7b63900b55b30cd91972c1',
+  '0f35163502b4d9e574987cbafb38d392',
+  'bf861f81973e523dd18c95e8428af524',
+  '1dadc0f84964c71c8a9e58f0a4e6fafd',
+  '979fdd71ae06019bed3a747653190de2',
+  '0e605d66d272edb4c2f5bead29f8bb07',
+  'aa0b4a2e9d64ece966b410ddd7e9c3c6',
+  'e68b47dc93956135b3b3dfa18dfb6fde',
+  'aaf6defaeae2ed6e78bd222dd2d5ba7c',
+])
 /** The Android app's page is served from this address inside the phone. */
 const APP_ORIGIN = 'https://localhost'
 // Without PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET, every model is free (test).
@@ -160,26 +191,39 @@ const json = (body: unknown, status = 200) =>
 
 // ---- Who is asking -----------------------------------------------------------
 
-const known = new Map<string, { email: string; until: number }>()
+interface Caller {
+  email: string
+  /** The token came through the full door with the whole Drive. */
+  fullToken: boolean
+  until: number
+}
+
+const known = new Map<string, Caller>()
 
 /** The Google account of the request: a MyMedia access token, checked with Google. */
 async function account(req: Request): Promise<string> {
+  return (await caller(req)).email
+}
+
+async function caller(req: Request): Promise<Caller> {
   const token = req.headers.get('authorization')?.replace(/^Bearer\s+/i, '')
   if (!token) throw new HttpError(401, 'sign in')
   const hit = known.get(token)
-  if (hit && hit.until > Date.now()) return hit.email
+  if (hit && hit.until > Date.now()) return hit
   const info = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(token)}`)
   if (!info.ok) throw new HttpError(401, 'invalid token')
-  const t = (await info.json()) as { aud?: string; azp?: string; expires_in?: string }
+  const t = (await info.json()) as { aud?: string; azp?: string; expires_in?: string; scope?: string }
   if (!CLIENT_IDS.includes(t.aud ?? '') && !CLIENT_IDS.includes(t.azp ?? '')) throw new HttpError(401, 'token of another app')
+  const fullToken = (FULL_CLIENT_IDS.includes(t.aud ?? '') || FULL_CLIENT_IDS.includes(t.azp ?? '')) && (t.scope ?? '').split(' ').includes(FULL_SCOPE)
   const about = await fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)', {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!about.ok) throw new HttpError(401, 'account unknown')
   const email = ((await about.json()) as { user?: { emailAddress?: string } }).user?.emailAddress?.toLowerCase()
   if (!email) throw new HttpError(401, 'account unknown')
-  known.set(token, { email, until: Date.now() + Math.min(Number(t.expires_in ?? 600), 600) * 1000 })
-  return email
+  const c = { email, fullToken, until: Date.now() + Math.min(Number(t.expires_in ?? 600), 600) * 1000 }
+  known.set(token, c)
+  return c
 }
 
 async function optionalAccount(req: Request): Promise<string | null> {
@@ -559,9 +603,25 @@ function proStatus(r: ProRecord | null, offered = false) {
   }
 }
 
+const fullPath = (email: string) => `full/${hashOf(email)}.json`
+
+/**
+ * Whether the account uses the full door. Once it has, never the free one again: its library may hold files
+ * the free door does not see. The first full token of an account is written down.
+ */
+async function usesFullDoor(c: Caller): Promise<boolean> {
+  if (FULL_BEFORE_FREE.has(hashOf(c.email))) return true
+  if (await readJson<{ since: string }>(fullPath(c.email))) return true
+  if (!c.fullToken) return false
+  await writeJson(fullPath(c.email), { since: new Date().toISOString() })
+  return true
+}
+
 async function pro(req: Request) {
-  const email = await account(req)
-  return json(proStatus(await readJson<ProRecord>(proPath(email)), PRO_ACCOUNTS.includes(email)))
+  const c = await caller(req)
+  const email = c.email
+  const [r, full] = await Promise.all([readJson<ProRecord>(proPath(email)), usesFullDoor(c)])
+  return json({ ...proStatus(r, PRO_ACCOUNTS.includes(email)), full })
 }
 
 async function givePro(email: string, plan: ProPlan, order: string) {

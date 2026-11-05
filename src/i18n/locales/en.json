@@ -869,7 +869,7 @@
     "menu": "Share",
     "title": "Share",
     "mineTitle": "Show my MyMedia",
-    "intro": "They can look at, search and download your photos and videos, without your account and without changing anything. They need a Google (Gmail) account.",
+    "intro": "With Pro, you can show your MyMedia to chosen people, by their Gmail address. They need Pro too.",
     "email": "Their Gmail address",
     "notify": "Tell them by e-mail (sent by Google)",
     "submit": "Share read-only",
@@ -890,7 +890,18 @@
     "viewIntro": "The MyMedia other Google accounts share with you. Open one to look at it; come back to yours here.",
     "whatsapp": "Explain on WhatsApp",
     "whatsappHint": "Opens WhatsApp with a message explaining how to see your MyMedia; you choose who gets it.",
-    "whatsappText": "Hi! {{owner}} shared their photos and videos with you on MyMedia (view only).\n\n1. Open {{link}}\n2. Sign in with your Google account {{email}}\n3. Open the ☰ menu, then 👁 View, and choose \"MyMedia of {{owner}}\".\n\nTo have it as an app: ☰ menu → \"Install the app\"."
+    "whatsappText": "Hi! {{owner}} shared their photos and videos with you on MyMedia (view only).\n\n1. Open {{link}}\n2. Sign in with your Google account {{email}}\n3. Open the ☰ menu, then 👁 View, and choose \"MyMedia of {{owner}}\".\n\nTo have it as an app: ☰ menu → \"Install the app\".",
+    "introPro": "They can look at, search and download your photos and videos, without changing anything. To open it in MyMedia they need Pro too; otherwise send them the link above.",
+    "linkTitle": "Share by a link",
+    "linkIntro": "Anyone with the link sees your MyMedia, without signing in and without a Google account. Free.",
+    "linkCreate": "Create the link",
+    "linkCopy": "Copy the link",
+    "linkCopied": "Link copied",
+    "linkStop": "Stop sharing by link",
+    "linkWarning": "Careful: anyone who gets this link sees your whole MyMedia. To stop it, the link stops working for everyone.",
+    "linkWhatsappText": "Hi! {{owner}} is sharing their photos and videos with you on MyMedia. Tap here to see them (no account needed):\n{{link}}",
+    "linkStopTitle": "Stop sharing by link?",
+    "linkStopText": "The link will stop working for everyone. You can create a new one later."
   },
   "install": {
     "menu": "Install the app",
@@ -1062,10 +1073,10 @@
     "includes": "Pro adds",
     "featureDuplicates": "Finding the duplicates already there",
     "featureBlurry": "Blurry photos (sorting and clean-up)",
-    "featureShare": "Sharing with more than {{count}} people",
+    "featureShare": "Sharing with chosen people (by Gmail address; they need Pro too)",
     "featureTransfer": "Sending to another Google account (transfer)",
     "featureDates": "Changing the date of photos (one or many)",
-    "freeRest": "Everything else is free: gallery, albums, adding, search, faces, classification, compression, models shop, and duplicates caught when adding.",
+    "freeRest": "Everything else is free: gallery, albums, adding, search, faces, classification, compression, duplicates, blurry photos, models shop, and sharing by a link.",
     "buyTitle": "Get Pro",
     "extendTitle": "Add time",
     "planYear": "1 year: {{perMonth}} / month",
@@ -1079,6 +1090,29 @@
     "androidSoon": "Buying Pro in the Android app is coming soon.",
     "gate": "“{{feature}}” is part of MyMedia Pro.",
     "discover": "Discover Pro",
-    "shareFull": "The free version shares with {{count}} people at most. Remove someone, or get Pro for unlimited sharing."
+    "shareFull": "Sharing with chosen people is part of Pro. On the free version, share by a link (above).",
+    "featureDrive": "Full access to Google Drive: photos added outside MyMedia, import from other folders, and libraries shared with you"
+  },
+  "door": {
+    "fullText": "This account uses MyMedia with full access to Google Drive. Google will ask you to confirm it on this device.",
+    "warning": "Google may show “Google hasn't verified this app”: choose “Advanced”, then “Go to MyMedia”, and tick the access to Google Drive.",
+    "continue": "Continue with full access",
+    "denied": "Full access was not given. Try again and tick the access to Google Drive.",
+    "gate": "“{{feature}}” needs full access to your Google Drive, included in your Pro.",
+    "grantTitle": "Your Pro can now use full access to Google Drive: photos added outside MyMedia, import from Drive, transfers and the libraries shared with you.",
+    "grant": "Give full access",
+    "proNeedsFull": "With Pro, MyMedia will ask for full access to your Google Drive.",
+    "featureLibraries": "Viewing a MyMedia someone shared with you"
+  },
+  "publicLib": {
+    "readOnly": "Shared by a link · view only",
+    "makeYours": "Create my MyMedia",
+    "count_one": "{{count}} photo or video",
+    "count_other": "{{count}} photos and videos",
+    "empty": "Nothing here.",
+    "gone": "This link no longer works: the sharing was stopped.",
+    "failed": "The library could not be read. Check the connection and try again.",
+    "prev": "Previous",
+    "next": "Next"
   }
 }

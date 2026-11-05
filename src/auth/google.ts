@@ -8,10 +8,39 @@
 //
 // In the Android app the phone's Google accounts give the token instead: once
 // Drive access was accepted, a new one comes back without any click.
+//
+// Two doors (two Google projects): MyMedia Free asks only for the files MyMedia
+// makes (no limit of accounts, no warning); the full door asks for the whole
+// Drive (100 accounts until Google's review). A new account comes in by the
+// free door; one that used the full door (the server knows) goes through it,
+// for good. The Android app uses only the full door.
 
 import { isNative, native } from '../native'
 
 export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive'
+export const FREE_SCOPE = 'https://www.googleapis.com/auth/drive.file'
+
+export type Door = 'free' | 'full'
+
+const doorKey = (email: string) => `mymedia.door.${email.toLowerCase()}`
+
+/** The door this account used last on this device; an account used before the free door existed: full. */
+export function savedDoor(email: string): Door | null {
+  try {
+    const d = localStorage.getItem(doorKey(email))
+    return d === 'free' || d === 'full' ? d : null
+  } catch {
+    return null
+  }
+}
+
+export function saveDoor(email: string, door: Door): void {
+  try {
+    localStorage.setItem(doorKey(email), door)
+  } catch {
+    // Asked to the server again at the next start.
+  }
+}
 
 interface TokenResponse {
   access_token?: string
@@ -45,6 +74,8 @@ declare global {
 interface StoredToken {
   accessToken: string
   expiresAt: number
+  /** Missing in tokens kept before the free door existed: full. */
+  door?: Door
 }
 
 export type AuthStatus = 'signedOut' | 'signedIn' | 'needsReconnect'
@@ -62,6 +93,11 @@ type Waiter = (token: string) => void
 
 class GoogleAuth {
   private client: TokenClient | null = null
+  private clientIds: Record<Door, string> = { full: '', free: '' }
+  /** Which Google project the token comes from. */
+  door: Door = 'full'
+  /** Asking the full access for an account that came by the free door: start again on it. */
+  private upgrading: string | null = null
   private token: StoredToken | null = null
   private waiters: Waiter[] = []
   private listeners = new Set<() => void>()
@@ -119,7 +155,37 @@ class GoogleAuth {
     }
   }
 
-  async init(clientId: string): Promise<void> {
+  /** The door for this account (null: a new sign-in, account not known yet). */
+  doorFor(email: string | null): Door {
+    if (isNative || !this.clientIds.free) return 'full'
+    if (!email) return 'free'
+    // Known on this device before the free door existed: it came by the full one.
+    return savedDoor(email) ?? 'full'
+  }
+
+  private useDoor(door: Door) {
+    if (this.door === door && this.client) return
+    this.door = door
+    this.client = window.google!.accounts.oauth2.initTokenClient({
+      client_id: this.clientIds[door],
+      scope: door === 'full' ? DRIVE_SCOPE : FREE_SCOPE,
+      callback: (r) => this.onToken(r),
+      error_callback: (e) => {
+        this.requesting = false
+        this.switching = false
+        this.upgrading = null
+        // popup_closed / popup_failed_to_open: keep waiting, the banner stays.
+        this.lastError = e.type
+        if (this.waiters.length || !this.isValid()) this.setStatus(this.token || this.loginHint ? 'needsReconnect' : 'signedOut')
+        this.emit()
+      },
+    })
+  }
+
+  async init(clientId: string, freeClientId = ''): Promise<void> {
+    this.clientIds = { full: clientId, free: freeClientId }
+    // The kept token says which door it came by (e.g. after a switch of account).
+    this.door = isNative || !freeClientId ? 'full' : this.isValid() ? (this.token!.door ?? 'full') : this.doorFor(this.loginHint)
     if (isNative) {
       setInterval(() => this.renewIfNeeded(), NATIVE_CHECK_MS)
       if (this.isValid()) this.setStatus('signedIn')
@@ -130,20 +196,9 @@ class GoogleAuth {
       return
     }
     await loadScript('https://accounts.google.com/gsi/client')
-    const oauth2 = window.google!.accounts.oauth2
-    this.client = oauth2.initTokenClient({
-      client_id: clientId,
-      scope: DRIVE_SCOPE,
-      callback: (r) => this.onToken(r),
-      error_callback: (e) => {
-        this.requesting = false
-        this.switching = false
-        // popup_closed / popup_failed_to_open: keep waiting, the banner stays.
-        this.lastError = e.type
-        if (this.waiters.length || !this.isValid()) this.setStatus(this.token || this.loginHint ? 'needsReconnect' : 'signedOut')
-        this.emit()
-      },
-    })
+    const door = this.door
+    this.client = null
+    this.useDoor(door)
     window.addEventListener('click', () => this.renewIfNeeded(), true)
     if (this.isValid()) this.setStatus('signedIn')
     else if (this.loginHint) this.setStatus('needsReconnect')
@@ -162,7 +217,8 @@ class GoogleAuth {
       this.emit()
       return
     }
-    if (!oauth2.hasGrantedAllScopes(r, DRIVE_SCOPE)) {
+    if (!oauth2.hasGrantedAllScopes(r, this.door === 'full' ? DRIVE_SCOPE : FREE_SCOPE)) {
+      this.upgrading = null
       this.lastError = 'scope_denied'
       this.setStatus('signedOut')
       this.emit()
@@ -174,11 +230,18 @@ class GoogleAuth {
   private accept(accessToken: string, expiresIn: number) {
     this.lastError = null
     this.serial++
-    this.token = { accessToken, expiresAt: Date.now() + expiresIn * 1000 }
+    this.token = { accessToken, expiresAt: Date.now() + expiresIn * 1000, door: this.door }
     try {
       localStorage.setItem(TOKEN_KEY, JSON.stringify(this.token))
     } catch {
       // Not persisted: the user will reconnect after a restart.
+    }
+    if (this.upgrading) {
+      // The same account, now by the full door: the app starts again on it.
+      saveDoor(this.upgrading, 'full')
+      this.loginHint = this.upgrading
+      location.reload()
+      return
     }
     if (this.switching) {
       // Nothing of the open account may run with the new one: start again on it.
@@ -197,6 +260,8 @@ class GoogleAuth {
   signIn(chooseAccount = false) {
     if (isNative) return void this.nativeSignIn(chooseAccount)
     if (!this.client) return
+    // Another account (not known yet): by the free door; the server then says if it must take the full one.
+    if (chooseAccount || !this.loginHint) this.useDoor(this.doorFor(null))
     this.requesting = true
     this.switching = chooseAccount && !!this.loginHint
     const hint = this.loginHint
@@ -212,9 +277,22 @@ class GoogleAuth {
       return void this.nativeAuthorize(email, true)
     }
     if (!this.client) return
+    this.useDoor(this.doorFor(email))
     this.requesting = true
     this.switching = true
     this.client.requestAccessToken({ prompt: '', login_hint: email })
+  }
+
+  /**
+   * Must be called from a click: this account (signed in by the free door) gives the full Drive access.
+   * Google shows the full door's screen; then the app starts again on it.
+   */
+  upgrade(email: string) {
+    if (isNative || !this.client || !this.clientIds.free) return
+    this.useDoor('full')
+    this.requesting = true
+    this.upgrading = email
+    this.client.requestAccessToken({ prompt: 'consent', login_hint: email })
   }
 
   private renewIfNeeded() {

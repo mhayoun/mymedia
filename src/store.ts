@@ -83,7 +83,7 @@ export interface SyncProgress {
   total: number
 }
 
-export type Phase = 'boot' | 'signedOut' | 'setup' | 'app' | 'rootMissing'
+export type Phase = 'boot' | 'signedOut' | 'setup' | 'app' | 'rootMissing' | 'fullAccess'
 
 export interface Filters {
   categoryId: string | null
@@ -147,6 +147,8 @@ interface AppState {
   shopResume: PaypalReturn | null
   /** This account's MyMedia Pro (null: not known yet, so free). */
   pro: ProStatus | null
+  /** MyMedia Free (only the files MyMedia made) or the full Drive access. */
+  door: 'free' | 'full'
   /** The MyMedia Pro window. */
   proOpen: boolean
   /** The window to send or receive a transfer to another account. */
@@ -190,6 +192,7 @@ export const useApp = create<AppState>((set, get) => ({
   shareOpen: false,
   shopResume: null,
   pro: null,
+  door: 'full',
   proOpen: false,
   transferOpen: false,
   proResume: null,

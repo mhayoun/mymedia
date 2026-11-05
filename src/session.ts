@@ -1,11 +1,12 @@
 // App start-up and sign-in flow.
 
-import { auth } from './auth/google'
+import { auth, saveDoor, savedDoor } from './auth/google'
 import { isConfigured, loadConfig } from './config'
 import { about } from './drive/api'
 import { loadUser, locateRoot, openCachedUser, syncNow } from './sync/engine'
 import { app } from './store'
-import { takeLibraryLost } from './sync/library'
+import { usesFullDoor } from './models/pro'
+import { chosenLibrary, openLibrary, takeLibraryLost } from './sync/library'
 import { keepStreamTokenFresh } from './sync/stream'
 
 let sessionStarted = false
@@ -22,7 +23,7 @@ export async function boot(): Promise<BootResult> {
   if (cached) app().set({ phase: 'app' })
 
   try {
-    await auth.init(cfg.googleClientId)
+    await auth.init(cfg.googleClientId, cfg.googleFreeClientId ?? '')
   } catch (e) {
     // Offline: Google's script cannot load. Cached browsing still works.
     console.warn('[MyMedia]', e)
@@ -52,6 +53,23 @@ export async function startSession(): Promise<void> {
   try {
     const previous = app().user?.email
     await loadUser()
+    const email = app().user!.email
+    if (auth.door === 'free') {
+      // Before anything touches the library: an account that used the full door must not open it by the free one
+      // (its folder and older files are invisible there; MyMedia would think them removed).
+      const full = await usesFullDoor(email)
+      // Server unreachable: an account already known here as free goes on; a new one waits (it may be a full one).
+      if (full === null && savedDoor(email) !== 'free') throw new Error('door unknown')
+      if (full) {
+        // The full door's screen needs a click (FullAccess).
+        app().set({ phase: 'fullAccess', door: 'free' })
+        return
+      }
+      // Others' libraries need the full door.
+      if (chosenLibrary(email)) return openLibrary(email, null)
+    }
+    saveDoor(email, auth.door)
+    app().set({ door: auth.door })
     // The shared MyMedia that was open is no longer shared: the user's own is open, say why.
     if (takeLibraryLost()) app().set({ toast: { key: 'library.lost' } })
     if (previous && previous !== app().user?.email) {

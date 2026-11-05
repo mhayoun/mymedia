@@ -27,14 +27,14 @@ import { ReviewView } from './ReviewView'
 import { StatsDialog } from './StatsDialog'
 import { AUTO, BLURRY, DUPLICATES, filterItems, MISFILED, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
 import { clearSharedFiles, hasSharedFiles, onNativeShare, readSharedFiles } from '../import/shared'
-import { loadPro, useIsPro } from '../models/pro'
+import { loadPro } from '../models/pro'
 import { paypalReturn } from '../models/shop'
 import { FacesIntro } from './FacesIntro'
 import { HelpPanel } from './HelpPanel'
 import { AccountPanel } from './AccountPanel'
 import { LibraryDialog } from './LibraryDialog'
 import { ModelsDialog } from './ModelsDialog'
-import { ProDialog, ProGate } from './ProDialog'
+import { ProDialog } from './ProDialog'
 import { TransferDialog } from './TransferDialog'
 import { ShareDialog } from './ShareDialog'
 import { FilterBar } from './FilterBar'
@@ -85,7 +85,6 @@ export function Shell() {
   const shopOpen = useApp((s) => s.shopOpen)
   const proOpen = useApp((s) => s.proOpen)
   const transferOpen = useApp((s) => s.transferOpen)
-  const isPro = useIsPro()
   const email = useApp((s) => s.user?.email)
   const shareOpen = useApp((s) => s.shareOpen)
   const statsOpen = useApp((s) => s.statsOpen)
@@ -198,9 +197,9 @@ export function Shell() {
           ) : filters.categoryId === MISFILED ? (
             <MisfiledView lib={lib} />
           ) : filters.categoryId === DUPLICATES ? (
-            isPro ? <DuplicatesView lib={lib} /> : <ProGate feature={t('cleanup.duplicates')} />
+            <DuplicatesView lib={lib} />
           ) : filters.categoryId === BLURRY ? (
-            isPro ? <BlurryView lib={lib} /> : <ProGate feature={t('cleanup.blurry')} />
+            <BlurryView lib={lib} />
           ) : lib.ready && items.length === 0 ? (
             <EmptyState first={lib.items.length === 0} />
           ) : filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO ? (

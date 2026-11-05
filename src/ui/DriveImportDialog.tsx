@@ -7,12 +7,30 @@ import { cancelDriveImport, collect, importFromDrive, isFolder, listShared, mark
 import { useApp } from '../store'
 import { Modal } from './Dialog'
 import { FolderTreePicker } from './FolderTreePicker'
+import { ProGate } from './ProDialog'
 import type { Library } from './useLibrary'
 
 type Phase = 'browse' | 'collect' | 'copy' | 'done'
 
 /** Import → "From Google Drive": files other accounts shared with this one, copied by Google into MyMedia. */
-export function DriveImportDialog({ lib, destId: initialDest, onClose }: { lib: Library; destId: string; onClose: () => void }) {
+/** Files of other folders or accounts: only the full Drive access (Pro) sees them. */
+export function DriveImportDialog(props: { lib: Library; destId: string; onClose: () => void }) {
+  const { t } = useTranslation()
+  const door = useApp((s) => s.door)
+  if (door === 'full') return <DriveImport {...props} />
+  return (
+    <Modal title={t('driveImport.title')} onClose={props.onClose}>
+      <ProGate feature={t('driveImport.title')} needsFull />
+      <div className="actions">
+        <button className="btn" onClick={props.onClose}>
+          {t('common.close')}
+        </button>
+      </div>
+    </Modal>
+  )
+}
+
+function DriveImport({ lib, destId: initialDest, onClose }: { lib: Library; destId: string; onClose: () => void }) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!

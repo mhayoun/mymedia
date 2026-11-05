@@ -645,6 +645,15 @@ export async function shareAsReader(id: string, email: string, notify: boolean, 
   })
 }
 
+/** Anyone with the link sees the folder and everything in it, without signing in (not found by Google's search). */
+export async function shareWithLink(id: string): Promise<void> {
+  await request(`${API}/files/${id}/permissions?supportsAllDrives=true&fields=id`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role: 'reader', type: 'anyone', allowFileDiscovery: false }),
+  })
+}
+
 export async function removePermission(id: string, permissionId: string): Promise<void> {
   await request(`${API}/files/${id}/permissions/${permissionId}?supportsAllDrives=true`, { method: 'DELETE' })
 }
