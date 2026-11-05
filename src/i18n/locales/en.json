@@ -891,7 +891,7 @@
     "whatsapp": "Explain on WhatsApp",
     "whatsappHint": "Opens WhatsApp with a message explaining how to see your MyMedia; you choose who gets it.",
     "whatsappText": "Hi! {{owner}} shared their photos and videos with you on MyMedia (view only).\n\n1. Open {{link}}\n2. Sign in with your Google account {{email}}\n3. Open the ☰ menu, then 👁 View, and choose \"MyMedia of {{owner}}\".\n\nTo have it as an app: ☰ menu → \"Install the app\".",
-    "introPro": "They can look at, search and download your photos and videos, without changing anything. To open it in MyMedia they need Pro too; otherwise send them the link above.",
+    "introPro": "They can look at, search and download your photos and videos, without changing anything. To open it in MyMedia they need Pro too; otherwise send them a link (“By a link” tab).",
     "linkTitle": "Share by a link",
     "linkIntro": "Anyone with the link sees your MyMedia, without signing in and without a Google account. Free.",
     "linkCreate": "Create the link",
@@ -915,7 +915,9 @@
     "chosenCreate_other": "Create the link for these {{count}} albums",
     "chosenCreate_zero": "Tick at least one album",
     "chosenStop": "To stop it, use “See the link” on each album in the list below.",
-    "chosenTooMany": "At most {{max}} albums per link: tick their category instead."
+    "chosenTooMany": "At most {{max}} albums per link: tick their category instead.",
+    "tabLink": "By a link",
+    "tabPeople": "With people"
   },
   "install": {
     "menu": "Install the app",
@@ -1104,7 +1106,7 @@
     "androidSoon": "Buying Pro in the Android app is coming soon.",
     "gate": "“{{feature}}” is part of MyMedia Pro.",
     "discover": "Discover Pro",
-    "shareFull": "Sharing with chosen people is part of Pro. On the free version, share by a link (above).",
+    "shareFull": "Sharing with chosen people is part of Pro. On the free version, share by a link (“By a link” tab).",
     "featureDrive": "Full access to Google Drive: photos added outside MyMedia, import from other folders, and libraries shared with you"
   },
   "door": {

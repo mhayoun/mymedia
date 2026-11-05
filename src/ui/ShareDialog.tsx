@@ -1,4 +1,4 @@
-import { Crown, Eye, Link2, Loader2, MessageCircle } from 'lucide-react'
+import { Crown, Eye, Link2, Loader2, MessageCircle, Users } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { listPermissions, removePermission, shareAsReader, type Permission } from '../drive/api'
@@ -26,6 +26,7 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
   const [removing, setRemoving] = useState<Permission | null>(null)
   const isPro = useIsPro()
   const [linksChanged, setLinksChanged] = useState(0)
+  const [tab, setTab] = useState<'link' | 'people'>('link')
   // Shared by a link (LinkShare): not a person.
   const persons = people?.filter((p) => p.type !== 'anyone') ?? null
   // Free: up to FREE_SHARES people (those already there stay).
@@ -76,19 +77,26 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
         </section>
       )}
       {mode === 'share' && !shared && (
+        <div className="tabs" role="tablist">
+          <button role="tab" aria-selected={tab === 'link'} onClick={() => setTab('link')}>
+            <Link2 size={16} /> {t('share.tabLink')}
+          </button>
+          <button role="tab" aria-selected={tab === 'people'} onClick={() => setTab('people')}>
+            <Users size={16} /> {t('share.tabPeople')}
+            {!isPro && <span className="tag pro">Pro</span>}
+          </button>
+        </div>
+      )}
+      {mode === 'share' && !shared && tab === 'link' && (
         <section>
-          <h3>
-            <Link2 size={16} /> {t('share.linkTitle')}
-          </h3>
           <p className="hint">{t('share.linkIntro')}</p>
           {rootId && <LinkShare folderId={rootId} />}
           <ChosenAlbumsLink onShared={() => setLinksChanged((n) => n + 1)} />
           <SharedAlbumLinks refresh={linksChanged} />
         </section>
       )}
-      {mode === 'share' && !shared && (
+      {mode === 'share' && !shared && tab === 'people' && (
         <section>
-          <h3>{t('share.mineTitle')}</h3>
           <p className="hint">{t(isPro ? 'share.introPro' : 'share.intro')}</p>
           {!full && <label className="field">
             {t('share.email')}

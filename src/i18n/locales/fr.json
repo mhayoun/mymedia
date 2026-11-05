@@ -889,7 +889,7 @@
     "whatsapp": "Expliquer par WhatsApp",
     "whatsappHint": "Ouvre WhatsApp avec un message qui explique comment voir votre MyMedia ; vous choisissez à qui l'envoyer.",
     "whatsappText": "Bonjour ! {{owner}} a partagé ses photos et vidéos avec toi sur MyMedia (en lecture seule).\n\n1. Ouvre {{link}}\n2. Connecte-toi avec ton compte Google {{email}}\n3. Ouvre le menu ☰ puis 👁 Voir, et choisis « MyMedia de {{owner}} ».\n\nPour l'avoir comme une application : menu ☰ → « Installer l'application ».",
-    "introPro": "La personne pourra regarder, chercher et télécharger vos photos et vidéos, sans rien pouvoir changer. Pour l'ouvrir dans MyMedia, elle doit aussi avoir Pro ; sinon, envoyez-lui le lien ci-dessus.",
+    "introPro": "La personne pourra regarder, chercher et télécharger vos photos et vidéos, sans rien pouvoir changer. Pour l'ouvrir dans MyMedia, elle doit aussi avoir Pro ; sinon, envoyez-lui un lien (onglet « Par un lien »).",
     "linkTitle": "Partager par un lien",
     "linkIntro": "Toute personne qui a le lien voit votre MyMedia, sans se connecter et sans compte Google. Gratuit.",
     "linkCreate": "Créer le lien",
@@ -913,7 +913,9 @@
     "chosenCreate_other": "Créer le lien pour ces {{count}} albums",
     "chosenCreate_zero": "Cochez au moins un album",
     "chosenStop": "Pour arrêter, utilisez « Voir le lien » sur chaque album dans la liste ci-dessous.",
-    "chosenTooMany": "{{max}} albums au plus par lien : cochez plutôt leur catégorie."
+    "chosenTooMany": "{{max}} albums au plus par lien : cochez plutôt leur catégorie.",
+    "tabLink": "Par un lien",
+    "tabPeople": "À des personnes"
   },
   "install": {
     "menu": "Installer l'application",
@@ -1102,7 +1104,7 @@
     "androidSoon": "L'achat de Pro dans l'appli Android arrive bientôt.",
     "gate": "« {{feature}} » fait partie de MyMedia Pro.",
     "discover": "Découvrir Pro",
-    "shareFull": "Le partage avec des personnes choisies fait partie de Pro. En gratuit, partagez par un lien (ci-dessus).",
+    "shareFull": "Le partage avec des personnes choisies fait partie de Pro. En gratuit, partagez par un lien (onglet « Par un lien »).",
     "featureDrive": "L'accès complet à Google Drive : les photos ajoutées hors MyMedia, l'import depuis d'autres dossiers, et les bibliothèques partagées avec vous"
   },
   "door": {
