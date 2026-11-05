@@ -915,7 +915,8 @@
     "tabLink": "Par un lien",
     "tabPeople": "À des personnes",
     "sentTitle": "Albums partagés par un lien",
-    "sentStopText": "Les albums « {{names}} » ne seront plus visibles par aucun lien. Vous pourrez créer un nouveau lien plus tard."
+    "sentStopText": "Les albums « {{names}} » ne seront plus visibles par aucun lien. Vous pourrez créer un nouveau lien plus tard.",
+    "inheritedStop": "Ces albums restent visibles, car toute votre bibliothèque est partagée par un lien (en haut de cette fenêtre). Pour les cacher, arrêtez d'abord le lien de toute la bibliothèque."
   },
   "install": {
     "menu": "Installer l'application",

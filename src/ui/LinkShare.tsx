@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { db } from '../db/db'
 import { useFormat } from '../i18n/format'
-import { listPermissions, removePermission, shareWithLink, type Permission } from '../drive/api'
+import { linkPermission, listPermissions, removePermission, shareWithLink, type Permission } from '../drive/api'
 import { MAX_LINK_FOLDERS, publicLink } from '../lib/publicLink'
 import { useApp } from '../store'
 import { ConfirmDialog, Modal } from './Dialog'
@@ -109,8 +109,9 @@ export function LinkShare({ folderId, album }: { folderId: string; album?: strin
           confirmLabel={t('share.linkStop')}
           danger
           onConfirm={async () => {
-            await removePermission(folderId, perm.id)
+            const stillShown = await stopLinks([folderId])
             await load()
+            if (stillShown) throw new Error(t('share.inheritedStop'))
           }}
           onClose={() => setStopping(false)}
         />
@@ -235,6 +236,30 @@ export function ChosenAlbumsLink() {
   )
 }
 
+/**
+ * Stops the links of these folders. A folder shown only through a link set higher up (the whole library)
+ * cannot be stopped alone: true when one of them stays visible that way.
+ */
+async function stopLinks(ids: string[]): Promise<boolean> {
+  let inherited = false
+  for (const id of ids) {
+    const perm = await linkPermission(id)
+    if (!perm) continue
+    if (perm.inherited) {
+      inherited = true
+      continue
+    }
+    try {
+      await removePermission(id, perm.id)
+    } catch (e) {
+      // Google's answer for a permission set on a folder above.
+      if (!/inherited/i.test((e as Error).message)) throw e
+      inherited = true
+    }
+  }
+  return inherited
+}
+
 // ---- The links sent (copied or sent by WhatsApp), to find them again ----------------------------
 
 export interface SentLink {
@@ -339,11 +364,9 @@ export function SentLinks() {
           confirmLabel={t('share.linkStop')}
           danger
           onConfirm={async () => {
-            for (const id of stopping.ids) {
-              const perm = (await listPermissions(id)).find((p) => p.type === 'anyone')
-              if (perm) await removePermission(id, perm.id)
-            }
+            const stillShown = await stopLinks(stopping.ids)
             await saveSent((await sentLinks()).filter((l) => l.ids.join(',') !== stopping.ids.join(',')))
+            if (stillShown) throw new Error(t('share.inheritedStop'))
           }}
           onClose={() => setStopping(null)}
         />

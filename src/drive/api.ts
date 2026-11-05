@@ -645,6 +645,19 @@ export async function shareAsReader(id: string, email: string, notify: boolean, 
   })
 }
 
+/**
+ * The "anyone with the link" permission of a folder: set on it, or only inherited from a folder above
+ * (e.g. the whole library shared by a link): an inherited one can only be removed from where it was set.
+ */
+export async function linkPermission(id: string): Promise<{ id: string; inherited: boolean } | null> {
+  const params = new URLSearchParams({ supportsAllDrives: 'true', pageSize: '100', fields: 'permissions(id,type,permissionDetails(inherited))' })
+  const r = await getJson<{ permissions?: (Permission & { permissionDetails?: { inherited?: boolean }[] })[] }>(`${API}/files/${id}/permissions?${params}`)
+  const p = r.permissions?.find((x) => x.type === 'anyone')
+  if (!p) return null
+  const details = p.permissionDetails ?? []
+  return { id: p.id, inherited: details.length > 0 && details.every((d) => d.inherited) }
+}
+
 /** Anyone with the link sees the folder and everything in it, without signing in (not found by Google's search). */
 export async function shareWithLink(id: string): Promise<void> {
   await request(`${API}/files/${id}/permissions?supportsAllDrives=true&fields=id`, {
