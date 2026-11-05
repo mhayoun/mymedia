@@ -11,8 +11,6 @@ import { importSourceName } from '../lib/provenance'
 import { useFormat } from '../i18n/format'
 import { placementOf } from '../lib/tree'
 import { auth } from '../auth/google'
-import { sameFolderName } from '../drive/api'
-import { installedModels } from '../models/references'
 import { useApp } from '../store'
 import { Modal } from './Dialog'
 import { DriveImportDialog } from './DriveImportDialog'
@@ -135,8 +133,8 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
   const [checked, setChecked] = useState<Set<string>>(new Set())
   const [compress, setCompress] = useState(true)
   const [originPath, setOriginPath] = useState('')
-  const [createFolder, setCreateFolder] = useState(false)
-  const [folderMode, setFolderMode] = useState<'folders' | 'sort'>('sort')
+  // Where a chosen folder goes: as a new album, its photos straight into the destination, or sorted by MyMedia.
+  const [where, setWhere] = useState<'album' | 'direct' | 'sort' | null>(null)
   const [outcomes, setOutcomes] = useState<Record<string, ImportOutcome>>({})
   const [result, setResult] = useState<{ count: number; before: number; after: number } | null>(null)
   const filesInput = useRef<HTMLInputElement>(null)
@@ -153,8 +151,13 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
     return [p.category, p.album].filter(Boolean).join(' / ')
   }
   const destName = nameOf(destId)
-  const items = useMemo(() => insideDestination(picked, createFolder), [picked, createFolder])
   const topFolder = fb ? null : pickedFolder(picked)
+  // Into the root or a category that has albums, MyMedia can sort the photos itself.
+  const canSort = destId === rootId || (lib.folders.get(destId)?.parentId === rootId && [...lib.folders.values()].some((f) => f.parentId === destId))
+  const fallback = topFolder !== null ? 'album' : 'direct'
+  // A choice no longer offered (another folder added, another destination): the default.
+  const place = (where === 'album' && topFolder === null) || (where === 'sort' && !canSort) ? fallback : (where ?? fallback)
+  const items = useMemo(() => insideDestination(picked, place === 'album'), [picked, place])
   const recent = recentDestinations().filter((id) => id !== destId && (id === rootId || lib.folders.has(id)))
 
   useEffect(() => {
@@ -231,17 +234,10 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
   const selected = items.filter((i) => checked.has(i.key))
   const sizeBefore = selected.reduce((n, i) => n + i.file.size, 0)
   const sizeAfter = selected.reduce((n, i) => n + (compress && i.estimate !== null ? i.estimate : i.file.size), 0)
-  const hasFolders = !fb && items.some((i) => i.relDir.length > 0)
-  // Into the root or a category that has albums, MyMedia can sort the photos itself.
-  const canSort = destId === rootId || (lib.folders.get(destId)?.parentId === rootId && [...lib.folders.values()].some((f) => f.parentId === destId))
-  const sortByModel = hasFolders && canSort && folderMode === 'sort'
-  // Photos put straight into a category are sorted into its albums (its own, or those of a model).
-  const [modelCategories, setModelCategories] = useState<string[]>([])
-  useEffect(() => {
-    installedModels().then((ms) => setModelCategories(ms.map((m) => m.category)), () => undefined)
-  }, [])
-  const destFolder = lib.folders.get(destId)
-  const sortsInside = canSort || (destFolder?.parentId === rootId && modelCategories.some((c) => sameFolderName(c, destFolder.name)))
+  const hasFolders = !fb && picked.some((i) => i.relDir.length > 0)
+  const sortByModel = hasFolders && canSort && place === 'sort'
+  // The chosen folder's own photos (not those of its sub-folders), straight into the destination.
+  const direct = selected.filter((i) => sortByModel || !i.relDir.length).length
   // Albums the chosen folder gives, as a tree: name, depth, photos, already in MyMedia or new.
   const albumTree = useMemo(() => {
     const counts = new Map<string, number>()
@@ -263,6 +259,8 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
       return { key: k, name: parts[parts.length - 1], depth: parts.length - 1, photos: counts.get(k) ?? 0, exists: id !== null }
     })
   }, [items, checked, lib.folders, destId])
+  const topExists = topFolder !== null && [...lib.folders.values()].some((f) => f.parentId === destId && f.name.localeCompare(topFolder, undefined, { sensitivity: 'base' }) === 0)
+  const hasSubFolders = topFolder !== null && picked.some((i) => i.relDir.length > 1)
   const duplicates = items.filter((i) => i.duplicate).length
   const replacements = items.filter((i) => i.replaces).length
 
@@ -569,44 +567,67 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
                 <input type="checkbox" checked={compress} onChange={(e) => setCompress(e.target.checked)} />
                 {t('import.compress')}
               </label>
-              {hasFolders && canSort && (
-                <div className="folder-mode">
+              {hasFolders && (topFolder !== null || canSort) && (
+                <div className="folder-mode" role="radiogroup" aria-label={t('import.whereTitle', { count: selected.length })}>
+                  <p>
+                    <strong>{t('import.whereTitle', { count: selected.length })}</strong>
+                  </p>
+                  {topFolder !== null && (
+                    <label className="radio-row">
+                      <input type="radio" name="folder-mode" checked={place === 'album'} onChange={() => setWhere('album')} />
+                      <span>{t(topExists ? 'import.whereAlbumExisting' : 'import.whereAlbumNew', { name: topFolder, dest: destName })}</span>
+                    </label>
+                  )}
                   <label className="radio-row">
-                    <input type="radio" name="folder-mode" checked={folderMode === 'sort'} onChange={() => setFolderMode('sort')} />
-                    <span>{t('import.modeSort', { dest: destName })}</span>
+                    <input type="radio" name="folder-mode" checked={place === 'direct'} onChange={() => setWhere('direct')} />
+                    <span>
+                      {topFolder === null
+                        ? t('import.whereFolders', { dest: destName })
+                        : t(hasSubFolders ? 'import.whereDirectSub' : 'import.whereDirect', { dest: destName })}
+                    </span>
                   </label>
-                  <label className="radio-row">
-                    <input type="radio" name="folder-mode" checked={folderMode === 'folders'} onChange={() => setFolderMode('folders')} />
-                    <span>{t('import.modeFolders')}</span>
-                  </label>
+                  {canSort && (
+                    <label className="radio-row">
+                      <input type="radio" name="folder-mode" checked={place === 'sort'} onChange={() => setWhere('sort')} />
+                      <span>
+                        {t('import.whereSort', { dest: destName })}
+                        {place === 'sort' && (
+                          <>
+                            <br />
+                            <span className="hint">{t('import.whereSortHint')}</span>
+                          </>
+                        )}
+                      </span>
+                    </label>
+                  )}
                 </div>
               )}
-              {topFolder !== null && !sortByModel && (
-                <label className="radio-row">
-                  <input type="checkbox" checked={createFolder} onChange={(e) => setCreateFolder(e.target.checked)} />
-                  <span>
-                    {t('import.createFolder', { name: topFolder, dest: destName })}
-                    <br />
-                    <span className="hint">{t(sortsInside ? 'import.createFolderHintSorted' : 'import.createFolderHint', { dest: destName })}</span>
-                  </span>
-                </label>
-              )}
-              {hasFolders && sortByModel && <p className="hint">{t('import.modeSortHint', { dest: destName })}</p>}
-              {hasFolders && !sortByModel && (
+              {hasFolders && (
                 <div className="album-tree">
-                  <p>{t('import.intoAlbumsIn', { dest: destName })}</p>
+                  <p>{t('import.result')}</p>
                   <ul>
-                    {albumTree.map((a) => (
-                      <li key={a.key} style={{ paddingInlineStart: a.depth * 22 }}>
-                        <FolderOpen size={15} /> <strong><bdi>{a.name}</bdi></strong>
+                    <li>
+                      <FolderOpen size={15} /> <strong><bdi>{destName}</bdi></strong>
+                      {direct > 0 && (
                         <span className="hint">
                           {' — '}
-                          {a.photos ? t('import.albumPhotos', { count: a.photos }) : t('import.albumOnlySub')}
-                          {' · '}
-                          {a.exists ? t('import.albumExists') : t('import.albumNew')}
+                          {t('import.albumPhotos', { count: direct })}
+                          {sortByModel && <> · {t('import.resultSorted')}</>}
                         </span>
-                      </li>
-                    ))}
+                      )}
+                    </li>
+                    {!sortByModel &&
+                      albumTree.map((a) => (
+                        <li key={a.key} style={{ paddingInlineStart: (a.depth + 1) * 22 }}>
+                          <FolderOpen size={15} /> <strong><bdi>{a.name}</bdi></strong>
+                          <span className="hint">
+                            {' — '}
+                            {a.photos ? t('import.albumPhotos', { count: a.photos }) : t('import.albumOnlySub')}
+                            {' · '}
+                            {a.exists ? t('import.albumExists') : t('import.albumNew')}
+                          </span>
+                        </li>
+                      ))}
                   </ul>
                 </div>
               )}
