@@ -4,9 +4,7 @@
 import { Copy, Link2, Loader2, MessageCircle } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { db } from '../db/db'
-import { listFiles, listPermissions, removePermission, shareWithLink, type Permission } from '../drive/api'
-import { FOLDER_MIME } from '../lib/media'
+import { listPermissions, removePermission, shareWithLink, type Permission } from '../drive/api'
 import { MAX_LINK_FOLDERS, publicLink } from '../lib/publicLink'
 import { useApp } from '../store'
 import { ConfirmDialog, Modal } from './Dialog'
@@ -130,59 +128,8 @@ export function AlbumLinkDialog({ id, name, onClose }: { id: string; name: strin
   )
 }
 
-/** The albums of this library shared by a link, each opened in its own window (to copy or stop its link). */
-export function SharedAlbumLinks({ refresh = 0 }: { refresh?: number }) {
-  const { t } = useTranslation()
-  const rootId = useApp((s) => s.rootId)
-  const [albums, setAlbums] = useState<{ id: string; name: string }[]>([])
-  const [open, setOpen] = useState<{ id: string; name: string } | null>(null)
-
-  const load = useCallback(async () => {
-    const mine = new Set((await db().folders.toCollection().primaryKeys()) as string[])
-    const found: { id: string; name: string }[] = []
-    await listFiles(
-      `mimeType = '${FOLDER_MIME}' and visibility = 'anyoneWithLink' and 'me' in owners and trashed = false`,
-      (files) => void found.push(...files.filter((f) => f.id !== rootId && mine.has(f.id)).map((f) => ({ id: f.id, name: f.name }))),
-      undefined,
-      'id,name',
-    )
-    setAlbums(found.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })))
-  }, [rootId, refresh])
-
-  useEffect(() => {
-    load().catch((e) => console.warn('[MyMedia] albums shared by link', e))
-  }, [load])
-
-  if (!albums.length) return null
-  return (
-    <>
-      <h3>{t('share.albumsTitle')}</h3>
-      {albums.map((a) => (
-        <div key={a.id} className="check-row">
-          <span style={{ flex: 1, minWidth: 0 }}>
-            <Link2 size={14} /> <bdi>{a.name}</bdi>
-          </span>
-          <button className="btn" onClick={() => setOpen(a)}>
-            {t('share.albumManage')}
-          </button>
-        </div>
-      ))}
-      {open && (
-        <AlbumLinkDialog
-          id={open.id}
-          name={open.name}
-          onClose={() => {
-            setOpen(null)
-            void load()
-          }}
-        />
-      )}
-    </>
-  )
-}
-
 /** Ticked albums shared together: one link shows them side by side (each album keeps its own link setting). */
-export function ChosenAlbumsLink({ onShared }: { onShared: () => void }) {
+export function ChosenAlbumsLink() {
   const { t } = useTranslation()
   const lib = useLibraryContext()
   const user = useApp((s) => s.user)
@@ -211,7 +158,6 @@ export function ChosenAlbumsLink({ onShared }: { onShared: () => void }) {
         }
       }
       setLink(publicLink(top))
-      onShared()
     } catch (e) {
       setError(t('errors.generic', { message: (e as Error).message }))
     } finally {
