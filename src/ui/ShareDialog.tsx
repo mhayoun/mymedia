@@ -94,6 +94,7 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
       )}
       {mode === 'share' && !shared && tab === 'people' && (
         <section>
+          <h3>{t('share.peopleTitle')}</h3>
           <p className="hint">{t(isPro ? 'share.introPro' : 'share.intro')}</p>
           {!full && <label className="field">
             {t('share.email')}
