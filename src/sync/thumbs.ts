@@ -466,6 +466,7 @@ function pump() {
  * own (not from a pack). `otherWay`: not from Google's address (made from the original).
  */
 export async function reloadThumb(rec: MediaRecord, isWanted: () => boolean, order: () => number = () => 0, otherWay = false): Promise<string | null> {
+  if (rec.type === 'document') return documentThumb(rec, true)
   const url = urls.get(rec.id)
   if (url) {
     urls.delete(rec.id)
@@ -484,9 +485,20 @@ export async function reloadThumb(rec: MediaRecord, isWanted: () => boolean, ord
   })
 }
 
+/**
+ * A document's first page: Google's preview, shown from its address (MyMedia cannot make one
+ * from the original). None for some files: the cell then shows the document's name.
+ */
+async function documentThumb(rec: MediaRecord, renew = false): Promise<string | null> {
+  if (!navigator.onLine) return null
+  const url = await directUrl(rec, renew).catch(() => null)
+  return url ? rememberUrl(rec.id, url) : null
+}
+
 export function loadThumb(rec: MediaRecord, isWanted: () => boolean, order: () => number = () => 0): Promise<string | null> {
   const hit = cachedThumbUrl(rec.id)
   if (hit) return Promise.resolve(hit)
+  if (rec.type === 'document') return documentThumb(rec)
   const pending = inflight.get(rec.id)
   if (pending) {
     // Another cell asks too (e.g. the grid went from 3 to 6 columns: the cell made again):
@@ -582,6 +594,7 @@ export function warmThumbs(all: MediaRecord[]): void {
     if (gen !== warmGen || !navigator.onLine) return
     const stored = await db().thumbs.bulkGet(recs.map((r) => r.id))
     const todo = recs.filter((r, i) => {
+      if (r.type === 'document') return false // shown from Google's address, nothing to prepare
       const s = stored[i]
       return !(s && (s.version === thumbVersion(r) || s.version === r.modifiedTime))
     })

@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Cloud, FileArchive, FolderOpen, ImagePlus, Loader2, Play, RefreshCw, X } from 'lucide-react'
+import { ArrowRight, Check, Cloud, FileArchive, FileText, FolderOpen, ImagePlus, Loader2, Play, RefreshCw, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { extractFiles, FacebookFormatError, isFacebookZip, readFacebookZip, type FacebookExport } from '../import/facebook'
@@ -10,6 +10,7 @@ import { speciesInText } from '../lib/katia'
 import { importSourceName } from '../lib/provenance'
 import { useFormat } from '../i18n/format'
 import { placementOf } from '../lib/tree'
+import { DOC_EXT_MIME } from '../lib/media'
 import { auth } from '../auth/google'
 import { useApp } from '../store'
 import { Modal } from './Dialog'
@@ -96,7 +97,7 @@ function FilePreview({ item }: { item: ImportItem }) {
   }, [item])
   return (
     <span className="list-thumb">
-      {url ? <img src={url} alt="" loading="lazy" /> : item.type === 'video' ? <Play size={18} className="flip-rtl" style={{ margin: 11 }} /> : null}
+      {url ? <img src={url} alt="" loading="lazy" /> : item.type === 'video' ? <Play size={18} className="flip-rtl" style={{ margin: 11 }} /> : item.type === 'document' ? <FileText size={18} style={{ margin: 11 }} /> : null}
     </span>
   )
 }
@@ -428,7 +429,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
           <p className="hint">{t('import.dateHint')}</p>
           <p className="hint">{t('facebook.hint')}</p>
           <input ref={zipInput} type="file" multiple hidden accept=".zip,application/zip" onChange={(e) => void onZip(e.target.files ? [...e.target.files] : [])} />
-          <input ref={filesInput} type="file" multiple hidden accept="image/*,video/*,.heic,.heif,.mov,.avi" onChange={(e) => onFiles(e.target.files)} />
+          <input ref={filesInput} type="file" multiple hidden accept={`image/*,video/*,.heic,.heif,.mov,.avi,${Object.keys(DOC_EXT_MIME).map((e) => `.${e}`).join(',')}`} onChange={(e) => onFiles(e.target.files)} />
           <input
             ref={folderInput}
             type="file"

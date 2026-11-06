@@ -771,6 +771,7 @@ function Toolbar({ lib, people, count, onDialog, actions }: ToolbarProps) {
         <option value="all">{t('gallery.typeAll')}</option>
         <option value="photo">{t('gallery.typePhoto')}</option>
         <option value="video">{t('gallery.typeVideo')}</option>
+        <option value="document">{t('gallery.typeDocument')}</option>
       </select>
       <span className="result-count" title={t('gallery.count', { count })}>
         {t('gallery.count', { count })}

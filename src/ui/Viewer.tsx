@@ -1,10 +1,10 @@
-import { ChevronLeft, ChevronRight, Crown, ExternalLink, FolderPlus, Info, Loader2, Maximize2, Pencil, Play, RotateCcw, RotateCw, Share2, Trash2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Crown, ExternalLink, FileText, FolderPlus, Info, Loader2, Maximize2, Pencil, Play, RotateCcw, RotateCw, Share2, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { downloadBlob } from '../drive/api'
 import { useFormat } from '../i18n/format'
-import { canPlayVideo, ORIGINS, type Origin } from '../lib/media'
+import { canPlayVideo, ORIGINS, sizedThumbnailLink, type Origin } from '../lib/media'
 import { ALBUM_SEPARATOR } from '../lib/tree'
 import { bytesBeforePlay, VIDEO_CHANNEL, type VideoProgress } from '../lib/videoBuffer'
 import { app, useApp } from '../store'
@@ -127,7 +127,7 @@ export function Viewer({ ids, items }: Props) {
             </a>
           )}
           <ShareButton key={item.rec.id} item={item} />
-          {!readOnly && (
+          {!readOnly && item.rec.type !== 'document' && (
             <>
               <button className="icon-btn" disabled={!!rotateBlocked} onClick={() => rotate(-1)} aria-label={t('rotate.left')} title={rotateBlocked ? t(rotateBlocked) : t('rotate.left')}>
                 <RotateCcw />
@@ -158,7 +158,9 @@ export function Viewer({ ids, items }: Props) {
         )}
         {/* A new version (turned) is shown again from its new content. */}
         <div className={`turn ${pendingTurns % 2 ? 'sideways' : ''}`} style={{ '--turn': `${pendingTurns * 90}deg` } as React.CSSProperties}>
-          {item.rec.type === 'photo' ? (
+          {item.rec.type === 'document' ? (
+            <DocumentStage key={item.rec.id} item={item} />
+          ) : item.rec.type === 'photo' ? (
             <PhotoStage key={`${item.rec.id}:${thumbVersion(item.rec)}`} item={item} />
           ) : (
             <VideoStage key={`${item.rec.id}:${thumbVersion(item.rec)}`} item={item} />
@@ -273,6 +275,30 @@ function ShareButton({ item }: { item: LibraryItem }) {
         </Modal>
       )}
     </>
+  )
+}
+
+/**
+ * A document (scanned paper, letter…): its first page as Google shows it, and the button that opens the
+ * whole document in Google Drive's viewer (every page, zoom, print, download).
+ */
+function DocumentStage({ item }: { item: LibraryItem }) {
+  const { t } = useTranslation()
+  const { rec } = item
+  const [failed, setFailed] = useState(false)
+  const page = rec.thumbnailLink && !failed ? sizedThumbnailLink(rec.thumbnailLink, 1600) : null
+  const open = rec.webViewLink ?? `https://drive.google.com/file/d/${rec.id}/view`
+  return (
+    <div className="doc-stage">
+      {page ? (
+        <img className="doc-page" src={page} alt={rec.name} referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+      ) : (
+        <FileText size={96} aria-hidden="true" />
+      )}
+      <a className="btn primary" href={open} target="_blank" rel="noreferrer">
+        <ExternalLink size={16} /> {t('viewer.openDocument')}
+      </a>
+    </div>
   )
 }
 
@@ -741,7 +767,7 @@ function InfoEdit({ item }: { item: LibraryItem }) {
   }
   return (
     <>
-      {!rec.appProperties?.mymedia_compressed && (
+      {!rec.appProperties?.mymedia_compressed && rec.type !== 'document' && (
         <button className="btn" style={{ marginBlockEnd: 12 }} onClick={() => setCompressOpen(true)}>
           {t('compress.button')}
         </button>

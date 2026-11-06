@@ -258,7 +258,7 @@ export async function faceCrop(face: FaceRecord): Promise<Blob | null> {
   if (hit) return hit.blob
   const rec = await d.media.get(face.mediaId)
   // Video faces come from frames this device does not have: no picture.
-  if (!rec || rec.type === 'video') return null
+  if (!rec || rec.type !== 'photo') return null
   const { driveThumbnail } = await import('../sync/thumbs')
   const image = await driveThumbnail(rec, 1024)
   if (!image) return null

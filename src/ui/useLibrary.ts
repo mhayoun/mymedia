@@ -93,6 +93,8 @@ export function useLibrary(): Library {
     const categoriesWithAlbums = new Set(categories.filter((c) => c.children.length > 0).map((c) => c.id))
     const toClassify = items.filter(
       (i) =>
+        // Documents are never sorted by MyMedia: they stay where they are put.
+        i.rec.type !== 'document' &&
         !i.meta?.keepHere &&
         (i.rec.folderId === rootId ||
           categoriesWithAlbums.has(i.rec.folderId) ||

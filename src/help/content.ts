@@ -35,6 +35,7 @@ const fr: HelpContent = {
       items: [
         'Charger les nouveaux fichiers : lit ce qui a changé dans votre dossier MyMedia sur Drive. En mode automatique, il le fait aussi seul toutes les 15 minutes.',
         'Ajouter : envoie des photos et vidéos depuis votre appareil, une clé USB ou une carte SD. Les fichiers gardent leur vraie date et sont compressés avant l’envoi. Les doublons sont repérés.',
+        'Papiers scannés et documents (PDF, Word, Excel, PowerPoint…) : Ajouter les accepte aussi, et ils se rangent dans les albums comme les photos. La grille montre leur première page et leur nom ; les ouvrir affiche la page et le bouton « Ouvrir le document » (toutes les pages, dans Google Drive). Le filtre « Documents » ne montre qu’eux. MyMedia ne les compresse pas, ne les tourne pas et ne les range pas tout seul. C’est gratuit.',
         'Menu de gauche : vos catégories et albums sont les dossiers de votre Drive. Les dossiers créés directement dans Drive apparaissent aussi.',
         'Sur ordinateur, le bouton ☰ en haut ferme le menu des albums pour voir les photos en grand, et le rouvre. La recherche est sur la même ligne que Ajouter et Compresser.',
         'Sur Android, dans la Galerie ou WhatsApp : Partager → MyMedia.',
@@ -184,6 +185,7 @@ const en: HelpContent = {
       items: [
         'Load new files: reads what changed in your MyMedia folder on Drive. In automatic mode it also does this on its own every 15 minutes.',
         'Add: upload photos and videos from this device, a USB stick or an SD card. Files keep their real date, are compressed before upload, and duplicates are spotted.',
+        'Scanned papers and documents (PDF, Word, Excel, PowerPoint…): Add accepts them too, and they go into albums like photos. The grid shows their first page and their name; opening one shows the page and the “Open the document” button (all pages, in Google Drive). The “Documents” filter shows only them. MyMedia does not compress, turn or sort them on its own. It is free.',
         'Left menu: your categories and albums are the folders of your Drive. Folders created directly in Drive appear too.',
         'On a computer, the ☰ button at the top closes the albums menu to see the photos larger, and opens it again.',
         'On Android, in Gallery or WhatsApp: Share → MyMedia.',
@@ -333,6 +335,7 @@ const he: HelpContent = {
       items: [
         'טעינת קבצים חדשים: קורא את מה שהשתנה בתיקיית MyMedia ב-Drive. במצב אוטומטי זה קורה גם לבד כל 15 דקות.',
         'הוספה: העלאת תמונות וסרטונים מהמכשיר, מדיסק און קי או מכרטיס SD. הקבצים שומרים על התאריך האמיתי, נדחסים לפני ההעלאה, וכפילויות מזוהות.',
+        'מסמכים ונייר סרוק (PDF‏, Word‏, Excel‏, PowerPoint…): גם אותם אפשר להוסיף, והם נכנסים לאלבומים כמו תמונות. ברשת רואים את העמוד הראשון ואת השם; בפתיחה רואים את העמוד ואת הכפתור „פתיחת המסמך” (כל העמודים, ב-Google Drive). המסנן „מסמכים” מראה רק אותם. MyMedia לא דוחסת, לא מסובבת ולא ממיינת אותם לבד. זה בחינם.',
         'התפריט הצדדי: הקטגוריות והאלבומים הם התיקיות של ה-Drive שלך. גם תיקיות שנוצרו ישירות ב-Drive מופיעות.',
         'במחשב, הכפתור ☰ למעלה סוגר את תפריט האלבומים כדי לראות את התמונות בגדול, ופותח אותו שוב.',
         'באנדרואיד, בגלריה או בוואטסאפ: שיתוף ← MyMedia.',

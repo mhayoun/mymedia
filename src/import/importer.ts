@@ -10,7 +10,7 @@ import { db, type MediaRecord } from '../db/db'
 import { createMediaFile, DriveError, ensureFolderPath } from '../drive/api'
 import { isJpegMime, planCompression } from '../lib/compressPlan'
 import { exifDateTime, heicExif, jpegDimensions, jpegExif } from '../lib/jpeg'
-import { dateFromFileName, detectOrigin, localIso, mediaTypeOf, type MediaType } from '../lib/media'
+import { dateFromFileName, detectOrigin, DOC_EXT_MIME, localIso, mediaTypeOf, type MediaType } from '../lib/media'
 import { mp4CreationTime } from '../lib/mp4'
 import { app } from '../store'
 import type { FacebookPost } from './facebook'
@@ -53,6 +53,7 @@ export type ImportOutcome =
 const MIME_BY_EXT: Record<string, string> = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', heic: 'image/heic', heif: 'image/heif',
   mp4: 'video/mp4', mov: 'video/quicktime', avi: 'video/x-msvideo',
+  ...DOC_EXT_MIME,
 }
 
 function mimeOf(file: File): string {
@@ -115,7 +116,7 @@ export async function analyze(files: File[], onProgress: (done: number) => void)
       const dims = jpegDimensions(head)
       width = dims?.width
       height = dims?.height
-    } else {
+    } else if (type === 'video') {
       const created = await mp4CreationTime(async (a, b) => new Uint8Array(await file.slice(a, b).arrayBuffer()), file.size).catch(() => null)
       if (created) {
         taken = localIso(created)

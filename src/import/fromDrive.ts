@@ -4,12 +4,12 @@
 
 import { db } from '../db/db'
 import { childrenQuery, copyFile, ensureFolderPath, FILE_FIELDS, listFiles, type DriveFile } from '../drive/api'
-import { dateFromFileName, detectOrigin, FOLDER_MIME, localIso, parseExifDate } from '../lib/media'
+import { dateFromFileName, detectOrigin, DOC_EXT_MIME, FOLDER_MIME, localIso, parseExifDate } from '../lib/media'
 import { syncNow, toRecord } from '../sync/engine'
 import { markMetaDirty } from '../sync/metaStore'
 import { knownFiles } from './importer'
 
-const MEDIA = `(mimeType = '${FOLDER_MIME}' or mimeType contains 'image/' or mimeType contains 'video/')`
+const MEDIA = `(mimeType = '${FOLDER_MIME}' or mimeType contains 'image/' or mimeType contains 'video/' or ${Object.values(DOC_EXT_MIME).map((m) => `mimeType = '${m}'`).join(' or ')})`
 const FIELDS = 'id,name,mimeType,size,md5Checksum,createdTime,imageMediaMetadata(time),owners(emailAddress),ownedByMe'
 
 export const isFolder = (f: DriveFile) => f.mimeType === FOLDER_MIME

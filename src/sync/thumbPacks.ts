@@ -110,7 +110,7 @@ async function packable(): Promise<MediaRecord[]> {
     }
     return r
   }
-  return (await d.media.toArray()).filter((m) => !parsePendingAlbum(m.folderId) && !isReserved(m.folderId))
+  return (await d.media.toArray()).filter((m) => m.type !== 'document' && !parsePendingAlbum(m.folderId) && !isReserved(m.folderId))
 }
 
 /** Learns which packs exist (one request); called after each load from Drive. */

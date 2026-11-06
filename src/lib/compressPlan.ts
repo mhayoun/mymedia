@@ -128,6 +128,7 @@ export function videoEstimate(input: PlanInput, s: CompressSettings): number {
 }
 
 export function planCompression(input: PlanInput, s: CompressSettings, ctx: PlanContext): Plan {
+  if (input.type === 'document') return { ok: false, reason: 'format' }
   if (input.appProperties?.mymedia_compressed) return { ok: false, reason: 'compressedByApp' }
   if (input.size < s.minSizeKB * 1024) return { ok: false, reason: 'tooSmall' }
   if (input.origin === 'whatsapp' || ALREADY_NAMES.test(input.name)) return { ok: false, reason: 'alreadyCompressed' }

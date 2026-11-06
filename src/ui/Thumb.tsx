@@ -1,4 +1,4 @@
-import { Check, Loader2, Play, ZoomIn } from 'lucide-react'
+import { Check, FileText, Loader2, Play, ZoomIn } from 'lucide-react'
 import { memo, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { MediaRecord } from '../db/db'
@@ -125,6 +125,11 @@ export const Thumb = memo(function Thumb({ rec, onOpen, selected, onLongPress, o
       {url !== null && !drawn && (
         <span className="cell-loading" aria-hidden="true">
           <Loader2 size={20} className="spin" />
+        </span>
+      )}
+      {rec.type === 'document' && (
+        <span className="doc-name" aria-label={t('gallery.document')}>
+          <FileText size={12} /> <bdi>{rec.name}</bdi>
         </span>
       )}
       {rec.type === 'video' && (

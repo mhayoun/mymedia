@@ -2,12 +2,12 @@
 // signing in. Drive gives the files of a folder set to "anyone with the link" to MyMedia Free's API key
 // (no account, so no place among the full door's 100). Read-only: albums, photos, videos, dates.
 
-import { ChevronLeft, ChevronRight, Folder, Loader2, Play, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ExternalLink, FileText, Folder, Loader2, Play, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { loadConfig } from '../config'
 import { useFormat } from '../i18n/format'
-import { FOLDER_MIME } from '../lib/media'
+import { FOLDER_MIME, mediaTypeOf } from '../lib/media'
 import { LanguageSwitch } from './SignIn'
 
 const API = 'https://www.googleapis.com/drive/v3'
@@ -49,7 +49,8 @@ async function children(id: string, key: string): Promise<PubFile[]> {
 }
 
 const isFolder = (f: PubFile) => f.mimeType === FOLDER_MIME
-const isMedia = (f: PubFile) => f.mimeType.startsWith('image/') || f.mimeType.startsWith('video/')
+const isMedia = (f: PubFile) => mediaTypeOf(f.mimeType, f.name) !== null
+const isDocument = (f: PubFile) => mediaTypeOf(f.mimeType, f.name) === 'document'
 const isVideo = (f: PubFile) => f.mimeType.startsWith('video/')
 
 /** The date the photo was taken, as MyMedia knows it (its public label), else the camera's, else the upload. */
@@ -216,6 +217,11 @@ export function PublicLibrary({ rootIds }: { rootIds: string[] }) {
               <button key={f.id} className="pub-thumb" onClick={() => setOpen(i)} title={fmt.date(takenAt(f) || undefined)}>
                 <img loading="lazy" src={sized(f, 400)} alt={f.name} referrerPolicy="no-referrer" />
                 {isVideo(f) && <Play className="pub-play" size={22} />}
+                {isDocument(f) && (
+                  <span className="doc-name">
+                    <FileText size={12} /> <bdi>{f.name}</bdi>
+                  </span>
+                )}
               </button>
             ))}
           </div>
@@ -233,7 +239,14 @@ export function PublicLibrary({ rootIds }: { rootIds: string[] }) {
               <ChevronLeft size={24} />
             </button>
           )}
-          {isVideo(shown) ? (
+          {isDocument(shown) ? (
+            <div className="doc-stage">
+              {shown.thumbnailLink ? <img key={shown.id} className="doc-page" src={sized(shown, 1600)} alt={shown.name} referrerPolicy="no-referrer" /> : <FileText size={96} />}
+              <a className="btn primary" href={`https://drive.google.com/file/d/${shown.id}/view`} target="_blank" rel="noreferrer">
+                <ExternalLink size={16} /> {t('viewer.openDocument')}
+              </a>
+            </div>
+          ) : isVideo(shown) ? (
             <video key={shown.id} src={`${API}/files/${shown.id}?alt=media&key=${encodeURIComponent(key)}`} controls autoPlay playsInline />
           ) : (
             <img key={shown.id} src={sized(shown, 2000)} alt={shown.name} referrerPolicy="no-referrer" />

@@ -12,7 +12,10 @@ describe('media', () => {
     expect(mediaTypeOf('image/jpeg', 'a.jpg')).toBe('photo')
     expect(mediaTypeOf('application/octet-stream', 'a.HEIC')).toBe('photo')
     expect(mediaTypeOf('video/quicktime', 'a.mov')).toBe('video')
-    expect(mediaTypeOf('application/pdf', 'a.pdf')).toBeNull()
+    expect(mediaTypeOf('application/pdf', 'a.pdf')).toBe('document')
+    expect(mediaTypeOf('application/octet-stream', 'scan.DOCX')).toBe('document')
+    expect(mediaTypeOf('application/json', 'mymedia.json')).toBeNull()
+    expect(mediaTypeOf('text/plain', 'notes.txt')).toBeNull()
   })
 
   it('AVI is a video the browser does not play', () => {
@@ -140,7 +143,7 @@ describe('changes', () => {
         { fileId: 'm1', removed: true },
         { fileId: 'm2', file: { id: 'm2', name: 'a.jpg', mimeType: 'image/jpeg', parents: ['outside'] } },
         { fileId: 'birds', file: { id: 'birds', name: 'Birds', mimeType: FOLDER, parents: ['root'], trashed: true } },
-        { fileId: 'doc', file: { id: 'doc', name: 'a.pdf', mimeType: 'application/pdf', parents: ['root'] } },
+        { fileId: 'other', file: { id: 'other', name: 'a.json', mimeType: 'application/json', parents: ['root'] } },
       ],
       'root', known, media,
     )

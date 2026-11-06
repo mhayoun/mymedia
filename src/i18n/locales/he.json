@@ -101,6 +101,7 @@
     "typeAll": "הכול",
     "typePhoto": "תמונות",
     "typeVideo": "סרטונים",
+    "typeDocument": "מסמכים",
     "empty": "אין כאן עדיין מדיה.",
     "emptyHint": "יש להוסיף תמונות או סרטונים לתיקייה \"{{name}}\" ב-Google Drive, ואז ללחוץ על “טעינת קבצים חדשים”.",
     "count_one": "{{count}} פריט",
@@ -108,6 +109,7 @@
     "count_other": "{{count}} פריטים",
     "noAlbum": "ללא אלבום",
     "video": "סרטון",
+    "document": "מסמך",
     "groupBy": "קיבוץ",
     "viewYears": "לפי שנה",
     "viewMonths": "לפי חודש"
@@ -146,6 +148,7 @@
     "shareReady": "הקובץ מוכן.",
     "shareFailed": "לא ניתן היה לשתף. בדקו את החיבור ונסו שוב.",
     "openInDrive": "פתיחה ב-Google Drive",
+    "openDocument": "פתיחת המסמך (כל העמודים)",
     "downloading": "מוריד {{percent}}",
     "cannotPlay": "אי אפשר להפעיל את הסרטון הזה בדפדפן זה.",
     "cannotShow": "אי אפשר להציג תמונה בפורמט הזה באיכות מלאה בדפדפן זה.",

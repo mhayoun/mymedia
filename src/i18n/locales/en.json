@@ -100,6 +100,7 @@
     "typeAll": "All",
     "typePhoto": "Photos",
     "typeVideo": "Videos",
+    "typeDocument": "Documents",
     "empty": "No media here yet.",
     "emptyHint": "Add photos or videos to the \"{{name}}\" folder in Google Drive, then press “Load new files”.",
     "count_one": "{{count}} item",
@@ -107,6 +108,7 @@
     "count_other": "{{count}} items",
     "noAlbum": "Without album",
     "video": "Video",
+    "document": "Document",
     "groupBy": "Group",
     "viewYears": "By year",
     "viewMonths": "By month"
@@ -145,6 +147,7 @@
     "shareReady": "The file is ready.",
     "shareFailed": "Sharing could not be done. Check the connection and try again.",
     "openInDrive": "Open in Google Drive",
+    "openDocument": "Open the document (all pages)",
     "downloading": "Downloading {{percent}}",
     "cannotPlay": "This video cannot be played in this browser.",
     "cannotShow": "This photo format cannot be shown in full quality in this browser.",

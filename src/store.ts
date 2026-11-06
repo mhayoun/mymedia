@@ -89,7 +89,7 @@ export interface Filters {
   categoryId: string | null
   /** "unfiled" = media directly in the root folder. */
   albumId: string | null
-  type: 'all' | 'photo' | 'video'
+  type: 'all' | 'photo' | 'video' | 'document'
   /** Only media showing this person. */
   personId?: string | null
   /** Only media from this Facebook group or import (key from lib/provenance). */

@@ -22,7 +22,8 @@ export interface ClassifyData {
 export async function loadData(rootId: string): Promise<ClassifyData> {
   const d = db()
   const [media, folders, metas, embeddings] = await Promise.all([
-    d.media.toArray(),
+    // Documents are not learnt from, analysed or sorted.
+    d.media.filter((m) => m.type !== 'document').toArray(),
     d.folders.toArray(),
     d.meta.toArray(),
     d.embeddings.toArray(),

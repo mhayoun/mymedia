@@ -1,6 +1,6 @@
 // Pure helpers about media files: type detection, dates, origin.
 
-export type MediaType = 'photo' | 'video'
+export type MediaType = 'photo' | 'video' | 'document'
 export type Origin = 'web' | 'whatsapp' | 'camera' | 'import' | 'unknown'
 
 export const ORIGINS: Origin[] = ['camera', 'whatsapp', 'web', 'import', 'unknown']
@@ -12,6 +12,21 @@ const PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/heic', 'image/heif
 const VIDEO_MIME = new Set(['video/mp4', 'video/quicktime', ...AVI_MIME])
 const PHOTO_EXT = new Set(['jpg', 'jpeg', 'png', 'heic', 'heif', 'webp'])
 const VIDEO_EXT = new Set(['mp4', 'mov', 'avi'])
+/** Documents (scanned papers, letters, invoices): kept and shown, never analysed, compressed or turned. */
+export const DOC_EXT_MIME: Record<string, string> = {
+  pdf: 'application/pdf',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ppt: 'application/vnd.ms-powerpoint',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  odt: 'application/vnd.oasis.opendocument.text',
+  ods: 'application/vnd.oasis.opendocument.spreadsheet',
+  odp: 'application/vnd.oasis.opendocument.presentation',
+  rtf: 'application/rtf',
+}
+const DOC_MIME = new Set(Object.values(DOC_EXT_MIME))
 
 export const FOLDER_MIME = 'application/vnd.google-apps.folder'
 
@@ -38,6 +53,7 @@ export function mediaTypeOf(mimeType: string, name: string): MediaType | null {
   const ext = extension(name)
   if (PHOTO_EXT.has(ext)) return 'photo'
   if (VIDEO_EXT.has(ext)) return 'video'
+  if (DOC_MIME.has(mimeType) || ext in DOC_EXT_MIME) return 'document'
   return null
 }
 

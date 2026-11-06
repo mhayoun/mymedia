@@ -1,4 +1,4 @@
-import { ChevronRight, Folder, Image, Loader2, Video } from 'lucide-react'
+import { ChevronRight, FileText, Folder, Image, Loader2, Video } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DriveFile } from '../drive/api'
@@ -122,7 +122,7 @@ function DriveImport({ lib, destId: initialDest, onClose }: { lib: Library; dest
                 <div key={f.id} className="check-row">
                   <label>
                     <input type="checkbox" checked={picked.has(f.id)} onChange={() => toggle(f)} />
-                    {isFolder(f) ? <Folder size={16} /> : f.mimeType.startsWith('video/') ? <Video size={16} /> : <Image size={16} />}
+                    {isFolder(f) ? <Folder size={16} /> : f.mimeType.startsWith('video/') ? <Video size={16} /> : f.mimeType.startsWith('image/') ? <Image size={16} /> : <FileText size={16} />}
                     <bdi>{f.name}</bdi>
                     <span className="hint">
                       {isFolder(f) ? '' : `${fmt.date(takenAtOf(f))} · ${fmt.bytes(Number(f.size ?? 0))}`}

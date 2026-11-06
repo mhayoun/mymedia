@@ -17,6 +17,7 @@ const MP4 = /^video\/(mp4|quicktime|3gpp2?|x-m4v)$/i
 
 /** Why it cannot be turned without re-encoding it (i18n key), or null when it can. */
 export function cannotRotate(rec: MediaRecord): string | null {
+  if (rec.type === 'document') return 'rotate.onlyJpeg'
   if (rec.type === 'photo') return /^image\/jpe?g$/i.test(rec.mimeType) ? null : 'rotate.onlyJpeg'
   if (!MP4.test(rec.mimeType)) return 'rotate.onlyMp4'
   return rec.size > MAX_ROTATE_VIDEO ? 'rotate.tooBig' : null
