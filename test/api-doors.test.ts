@@ -18,7 +18,7 @@ const FREE = '94880969749-8nu1dudc5hufa138k1hhviakr2fv0emb.apps.googleuserconten
 // Token "<name>.free" → <name>@gmail.com through MyMedia Free; "<name>.full" → through the full door.
 vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
   if (url.startsWith('https://oauth2.googleapis.com/tokeninfo')) {
-    const token = new URL(url).searchParams.get('access_token')!
+    const token = new URLSearchParams(String(init?.body)).get('access_token')!
     const full = token.endsWith('.full')
     return Response.json({
       aud: full ? FULL : FREE,

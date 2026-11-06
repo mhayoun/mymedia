@@ -394,7 +394,7 @@ class GoogleAuth {
 /** Seconds left on a token given by Android (which does not say); one hour if Google cannot be asked. */
 async function expiresIn(token: string): Promise<number> {
   try {
-    const r = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(token)}`)
+    const r = await fetch('https://oauth2.googleapis.com/tokeninfo', { method: 'POST', body: new URLSearchParams({ access_token: token }) })
     const n = Number(((await r.json()) as { expires_in?: string }).expires_in)
     if (n > 0) return n
   } catch {

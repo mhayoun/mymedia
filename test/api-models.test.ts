@@ -17,7 +17,7 @@ const CLIENT = '246067015646-63ga5nqjgihi3sd8mmb3ch0urb0i1q5m.apps.googleusercon
 // Google: token "seller", "buyer", "friend" → that account; "otherapp" belongs to another app.
 vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
   if (url.startsWith('https://oauth2.googleapis.com/tokeninfo')) {
-    const token = new URL(url).searchParams.get('access_token')
+    const token = new URLSearchParams(String(init?.body)).get('access_token')
     return Response.json({ aud: token === 'otherapp' ? 'someone-else' : CLIENT, expires_in: '3000' })
   }
   const token = String((init?.headers as Record<string, string>).Authorization).split(' ')[1]

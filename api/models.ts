@@ -210,7 +210,8 @@ async function caller(req: Request): Promise<Caller> {
   if (!token) throw new HttpError(401, 'sign in')
   const hit = known.get(token)
   if (hit && hit.until > Date.now()) return hit
-  const info = await fetch(`https://oauth2.googleapis.com/tokeninfo?access_token=${encodeURIComponent(token)}`)
+  // In the body, not the address: a token in a URL can end up in logs.
+  const info = await fetch('https://oauth2.googleapis.com/tokeninfo', { method: 'POST', body: new URLSearchParams({ access_token: token }) })
   if (!info.ok) throw new HttpError(401, 'invalid token')
   const t = (await info.json()) as { aud?: string; azp?: string; expires_in?: string; scope?: string }
   if (!CLIENT_IDS.includes(t.aud ?? '') && !CLIENT_IDS.includes(t.azp ?? '')) throw new HttpError(401, 'token of another app')
@@ -222,6 +223,8 @@ async function caller(req: Request): Promise<Caller> {
   const email = ((await about.json()) as { user?: { emailAddress?: string } }).user?.emailAddress?.toLowerCase()
   if (!email) throw new HttpError(401, 'account unknown')
   const c = { email, fullToken, until: Date.now() + Math.min(Number(t.expires_in ?? 600), 600) * 1000 }
+  // Tokens past their time are forgotten (the function's memory stays small).
+  for (const [k, v] of known) if (v.until <= Date.now()) known.delete(k)
   known.set(token, c)
   return c
 }
