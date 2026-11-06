@@ -706,19 +706,19 @@ function Toolbar({ lib, people, count, onDialog, actions }: ToolbarProps) {
           </button>
           <button
             className="icon-btn small"
-            title={t('nav.newAlbum')}
-            aria-label={t('nav.newAlbum')}
-            onClick={() => onDialog({ kind: 'newAlbum', parentId: folder.id, parentName: folder.name })}
-          >
-            <FolderPlus size={18} />
-          </button>
-          <button
-            className="icon-btn small"
             title={t('share.albumButton')}
             aria-label={t('share.albumButton')}
             onClick={() => onDialog({ kind: 'albumLink', id: folder.id, name: folder.name })}
           >
             <Link2 size={18} />
+          </button>
+          <button
+            className="icon-btn small"
+            title={t('nav.newAlbum')}
+            aria-label={t('nav.newAlbum')}
+            onClick={() => onDialog({ kind: 'newAlbum', parentId: folder.id, parentName: folder.name })}
+          >
+            <FolderPlus size={18} />
           </button>
           <button
             className="icon-btn small"
