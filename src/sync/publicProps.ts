@@ -6,7 +6,7 @@
 // another project (free and Pro) without losing them.
 
 import { db } from '../db/db'
-import { childrenQuery, getFile, listFiles, setPublicProperties, type DriveFile } from '../drive/api'
+import { childrenQuery, DriveError, getFile, listFiles, setPublicProperties, type DriveFile } from '../drive/api'
 import { app } from '../store'
 
 const DONE_KEY = 'publicPropsCopied'
@@ -46,11 +46,20 @@ async function scanLibrary(rootId: string): Promise<Todo[]> {
   return todo
 }
 
-/** Writes the public copies, a few files at a time. Returns how many failed. */
+/**
+ * Drive refuses this file for good (not ours to change, gone, notes too long): trying again
+ * on the next visit would give the same answer, so it does not hold the first copy back.
+ */
+function refusedForGood(e: unknown): boolean {
+  return e instanceof DriveError && e.status >= 400 && e.status < 500 && e.status !== 429
+}
+
+/** Writes the public copies, a few files at a time. Returns how many failed for a passing reason. */
 async function writeAll(todo: Todo[]): Promise<number> {
   const d = db()
   let next = 0
   let failed = 0
+  let refused = 0
   const worker = async () => {
     while (next < todo.length) {
       const t = todo[next++]
@@ -58,12 +67,17 @@ async function writeAll(todo: Todo[]): Promise<number> {
         await setPublicProperties(t.id, t.props)
         await d.media.update(t.id, { privateOnly: undefined })
       } catch (e) {
-        failed++
+        if (refusedForGood(e)) {
+          refused++
+          // Not offered again by the next syncs either.
+          await d.media.update(t.id, { privateOnly: undefined }).catch(() => undefined)
+        } else failed++
         console.warn('[MyMedia] public copy of the notes not written', t.id, e)
       }
     }
   }
   await Promise.all(Array.from({ length: WORKERS }, worker))
+  if (todo.length) console.info('[MyMedia] public copy of the notes:', todo.length - failed - refused, 'written,', refused, 'refused by Drive,', failed, 'to try again')
   return failed
 }
 
