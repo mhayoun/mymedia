@@ -1085,7 +1085,14 @@
     "notBlurry_other": "Not blurred ({{count}})",
     "sharpness": "Sharpness {{n}}",
     "blurHelpButton": "What do the scores mean?",
-    "blurHelp": "The sharpness score: the lower it is, the more blurred the photo.\n• below about 30: very blurred;\n• 30 to 80: blurred or a little blurred;\n• above 100: usually sharp.\nMyMedia cuts the thumbnail into 16 areas and keeps the score of the sharpest one: a sharp bird on a blurred background scores well. A plain sky, fog or a very small, distant bird can score low without being blurred.\nThe Severity slider sets the limit: to the left, only the most blurred; to the right, more photos."
+    "blurHelp": "The sharpness score: the lower it is, the more blurred the photo.\n• below about 30: very blurred;\n• 30 to 80: blurred or a little blurred;\n• above 100: usually sharp.\nMyMedia cuts the thumbnail into 16 areas and keeps the score of the sharpest one: a sharp bird on a blurred background scores well. A plain sky, fog or a very small, distant bird can score low without being blurred.\nThe Severity slider sets the limit: to the left, only the most blurred; to the right, more photos.",
+    "trashAll_one": "All to the bin (1 photo · {{size}})",
+    "trashAll_other": "All to the bin ({{count}} photos · {{size}})",
+    "trashAllTitle": "Move to the bin",
+    "trashAllText_one": "The ticked photo ({{size}}) goes to Google Drive's bin. You can restore it for 30 days.",
+    "trashAllText_other": "The {{count}} ticked photos in the groups shown ({{size}}) go to Google Drive's bin. You can restore them for 30 days.",
+    "trashAllFailed_one": "1 photo could not be moved to the bin. Try again.",
+    "trashAllFailed_other": "{{count}} photos could not be moved to the bin. Try again."
   },
   "rotate": {
     "left": "Rotate left",

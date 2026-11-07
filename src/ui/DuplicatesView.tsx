@@ -8,6 +8,7 @@ import { placementOf } from '../lib/tree'
 import { findDuplicates, NOT_DUPLICATES_KEY, type DuplicateSearch } from '../quality/cleanup'
 import { app, useApp } from '../store'
 import { trashMedia } from '../sync/media'
+import { ConfirmDialog } from './Dialog'
 import { Thumb } from './Thumb'
 import type { Library, LibraryItem } from './useLibrary'
 import { Viewer } from './Viewer'
@@ -40,6 +41,7 @@ export function DuplicatesView({ lib }: { lib: Library }) {
   const [drop, setDrop] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState<Set<string>>(new Set())
   const [shown, setShown] = useState(PAGE)
+  const [confirmAll, setConfirmAll] = useState(false)
 
   useEffect(() => {
     let alive = true
@@ -97,6 +99,24 @@ export function DuplicatesView({ lib }: { lib: Library }) {
       for (const id of ids) await trashMedia(id)
       app().set({ toast: { key: 'cleanup.trashed', count: ids.length } })
     })
+  /** Every ticked photo of the groups on screen, in one go (a few at a time to Drive). */
+  const trashAll = async (ids: string[]) => {
+    let failed = 0
+    const queue = [...ids]
+    const worker = async () => {
+      for (let id = queue.shift(); id; id = queue.shift()) {
+        try {
+          await trashMedia(id)
+        } catch {
+          failed++
+        }
+      }
+    }
+    await Promise.all(Array.from({ length: 4 }, worker))
+    const done = ids.length - failed
+    if (done) app().set({ toast: { key: 'cleanup.trashed', count: done } })
+    if (failed) throw new Error(t('cleanup.trashAllFailed', { count: failed }))
+  }
   const notDuplicates = (key: string, ids: string[]) =>
     run(key, async () => {
       const keys = ids.flatMap((a, i) => ids.slice(i + 1).map((b) => pairKey(a, b)))
@@ -121,6 +141,8 @@ export function DuplicatesView({ lib }: { lib: Library }) {
     )
 
   const visible = groups.slice(0, shown)
+  const allBin = visible.flatMap((g) => toBin(g.items))
+  const allBinSize = allBin.reduce((n, id) => n + (byId.get(id)?.rec.size ?? 0), 0)
   return (
     <div className="review">
       <div className="review-bar">
@@ -132,6 +154,11 @@ export function DuplicatesView({ lib }: { lib: Library }) {
           {groups.length ? t('cleanup.dupHint', { count: groups.length }) : t('cleanup.dupNone')}
           {found.waiting > 0 && <> {t('cleanup.dupWaiting', { count: found.waiting })}</>}
         </p>
+        {allBin.length > 0 && (
+          <button className="btn danger" disabled={busy.size > 0} onClick={() => setConfirmAll(true)}>
+            <Trash2 size={16} /> {t('cleanup.trashAll', { count: allBin.length, size: fmt.bytes(allBinSize) })}
+          </button>
+        )}
       </div>
       {visible.map((g) => {
         const key = g.ids.slice().sort().join(',')
@@ -180,6 +207,16 @@ export function DuplicatesView({ lib }: { lib: Library }) {
         <button className="btn ghost" onClick={() => setShown((n) => n + PAGE)}>
           {t('classify.showMore', { count: groups.length - shown })}
         </button>
+      )}
+      {confirmAll && (
+        <ConfirmDialog
+          title={t('cleanup.trashAllTitle')}
+          text={t('cleanup.trashAllText', { count: allBin.length, size: fmt.bytes(allBinSize) })}
+          confirmLabel={t('cleanup.toBin')}
+          danger
+          onConfirm={() => trashAll(allBin)}
+          onClose={() => setConfirmAll(false)}
+        />
       )}
       {viewerId && <Viewer ids={visible.flatMap((g) => g.items.map((i) => i.rec.id))} items={visible.flatMap((g) => g.items)} />}
     </div>

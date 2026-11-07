@@ -1083,7 +1083,14 @@
     "notBlurry_other": "Pas floues ({{count}})",
     "sharpness": "Netteté {{n}}",
     "blurHelpButton": "Que signifient les notes ?",
-    "blurHelp": "La note de netteté : plus elle est basse, plus la photo est floue.\n• en dessous d'environ 30 : très floue ;\n• de 30 à 80 : floue ou un peu floue ;\n• au-dessus de 100 : en général nette.\nMyMedia découpe la vignette en 16 zones et garde la note de la zone la plus nette : un oiseau net sur un fond flou a une bonne note. Un ciel uni, du brouillard ou un oiseau très petit et lointain peuvent avoir une note basse sans être flous.\nLe curseur Sévérité fixe la limite : à gauche, seulement les plus floues ; à droite, davantage de photos."
+    "blurHelp": "La note de netteté : plus elle est basse, plus la photo est floue.\n• en dessous d'environ 30 : très floue ;\n• de 30 à 80 : floue ou un peu floue ;\n• au-dessus de 100 : en général nette.\nMyMedia découpe la vignette en 16 zones et garde la note de la zone la plus nette : un oiseau net sur un fond flou a une bonne note. Un ciel uni, du brouillard ou un oiseau très petit et lointain peuvent avoir une note basse sans être flous.\nLe curseur Sévérité fixe la limite : à gauche, seulement les plus floues ; à droite, davantage de photos.",
+    "trashAll_one": "Tout à la corbeille (1 photo · {{size}})",
+    "trashAll_other": "Tout à la corbeille ({{count}} photos · {{size}})",
+    "trashAllTitle": "Mettre à la corbeille",
+    "trashAllText_one": "La photo cochée ({{size}}) va dans la corbeille de Google Drive. Vous pouvez la restaurer pendant 30 jours.",
+    "trashAllText_other": "Les {{count}} photos cochées dans les groupes affichés ({{size}}) vont dans la corbeille de Google Drive. Vous pouvez les restaurer pendant 30 jours.",
+    "trashAllFailed_one": "1 photo n'a pas pu être mise à la corbeille. Réessayez.",
+    "trashAllFailed_other": "{{count}} photos n'ont pas pu être mises à la corbeille. Réessayez."
   },
   "rotate": {
     "left": "Tourner à gauche",
