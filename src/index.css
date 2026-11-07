@@ -329,7 +329,10 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   [dir='rtl'] .toolbar select { background-position: left 6px center; }
   .toolbar .segmented, .toolbar .btn { flex-shrink: 0; }
   .toolbar .view-toggle { display: inline-flex; }
-  .toolbar .result-count { font-size: 0.85rem; padding-inline: 2px; }
+  .toolbar .result-count { font-size: 0.85rem; padding-inline: 2px; line-height: 1.15; }
+  /* Phone: the size under the count, so the line does not get wider. */
+  .toolbar .result-size { display: block; font-size: 0.78rem; }
+  .toolbar .result-size::before { content: none; }
   .toolbar .btn { padding: 7px 8px; }
   .toolbar .segmented button { padding: 6px 7px; }
   .toolbar h1 { font-size: 1rem; }
@@ -474,6 +477,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 
 .toolbar .grow, .grow { flex: 1; }
 .result-count { color: var(--text-2); font-variant-numeric: tabular-nums; white-space: nowrap; padding-inline: 4px; }
+.result-size::before { content: ' · '; }
 .filter-bar .search input { min-inline-size: 0; }
 @media (max-width: 800px) {
   /* Search, Filters, Select, Add and Compress on one line. */
@@ -623,3 +627,20 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .tabs button[aria-selected='true'] { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: 0 1px 3px rgb(0 0 0 / 0.12); }
 .sent-link { padding-block: 8px; border-block-end: 1px solid var(--border); }
 .sent-link .actions { margin-block-start: 6px; }
+
+/* ---------- What takes up space ---------- */
+.storage .storage-btn { justify-self: start; margin-block-start: 4px; }
+.storage-list, .storage-list ul { list-style: none; margin: 0; padding: 0; }
+.storage-list { display: grid; gap: 2px; max-block-size: 65vh; overflow-y: auto; }
+.storage-row { display: flex; align-items: flex-start; gap: 4px; }
+.storage-spacer { flex: 0 0 30px; }
+.storage-row > .icon-btn { flex: 0 0 auto; margin-block-start: 4px; }
+.storage-main { flex: 1; min-inline-size: 0; display: grid; gap: 3px; padding: 7px 8px; border: none; border-radius: 8px; background: none; cursor: pointer; text-align: start; color: inherit; font: inherit; }
+.storage-main:hover { background: var(--surface-2); }
+.storage-line { display: flex; gap: 8px; align-items: baseline; }
+.storage-line .name { flex: 1; min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.storage-line .size { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.storage-line .share { color: var(--text-2); font-variant-numeric: tabular-nums; min-inline-size: 3.2em; text-align: end; white-space: nowrap; }
+.storage-main .bar { block-size: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.storage-main .bar > span { display: block; block-size: 100%; background: var(--accent); }
+.storage-main .detail { font-size: 0.8rem; color: var(--text-2); }

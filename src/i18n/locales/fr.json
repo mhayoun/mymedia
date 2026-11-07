@@ -594,7 +594,14 @@
     "used": "{{used}} utilisés sur {{total}}",
     "usedUnlimited": "{{used}} utilisés",
     "free": "{{free}} libres",
-    "mine": "MyMedia : {{size}}"
+    "mine": "MyMedia : {{size}}",
+    "button": "Voir ce qui prend de la place",
+    "whatTitle": "Ce qui prend de la place — {{size}}",
+    "whatHint": "Les catégories et albums, du plus gros au plus petit (sous-albums compris). Touchez une ligne pour ouvrir l'album.",
+    "files_one": "{{files}} fichier",
+    "files_other": "{{files}} fichiers",
+    "videos_one": "dont {{videos}} vidéo ({{size}})",
+    "videos_other": "dont {{videos}} vidéos ({{size}})"
   },
   "facebook": {
     "choose": "Fichier ZIP (photos ou export Facebook)",

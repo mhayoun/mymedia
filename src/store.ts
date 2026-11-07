@@ -157,6 +157,7 @@ interface AppState {
   proResume: PaypalReturn | null
   helpOpen: boolean
   speedOpen: boolean
+  storageOpen: boolean
   activityOpen: boolean
   set: (patch: Partial<Omit<AppState, 'set' | 'updateSettings' | 'setFilters'>>) => void
   updateSettings: (patch: Partial<Settings>) => void
@@ -198,6 +199,7 @@ export const useApp = create<AppState>((set, get) => ({
   proResume: null,
   helpOpen: false,
   speedOpen: false,
+  storageOpen: false,
   activityOpen: false,
   set: (patch) => set(patch),
   updateSettings: (patch) => {

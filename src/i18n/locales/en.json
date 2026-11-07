@@ -596,7 +596,14 @@
     "used": "{{used}} used of {{total}}",
     "usedUnlimited": "{{used}} used",
     "free": "{{free}} free",
-    "mine": "MyMedia: {{size}}"
+    "mine": "MyMedia: {{size}}",
+    "button": "See what takes up space",
+    "whatTitle": "What takes up space — {{size}}",
+    "whatHint": "Categories and albums, largest first (sub-albums included). Tap a line to open the album.",
+    "files_one": "{{files}} file",
+    "files_other": "{{files}} files",
+    "videos_one": "including {{videos}} video ({{size}})",
+    "videos_other": "including {{videos}} videos ({{size}})"
   },
   "facebook": {
     "choose": "ZIP file (photos or Facebook export)",

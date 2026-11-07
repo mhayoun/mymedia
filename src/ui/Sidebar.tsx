@@ -423,6 +423,9 @@ function DriveStorage({ lib }: { lib: Library }) {
       </span>
       {quota.limit !== undefined && <span>{t('storage.free', { free: fmt.bytes(Math.max(0, quota.limit - quota.usage)) })}</span>}
       <span>{t('storage.mine', { size: fmt.bytes(mine) })}</span>
+      <button className="btn small storage-btn" onClick={() => useApp.getState().set({ storageOpen: true })}>
+        {t('storage.button')}
+      </button>
     </div>
   )
 }

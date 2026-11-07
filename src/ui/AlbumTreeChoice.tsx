@@ -22,6 +22,9 @@ function useChoiceTree(categories: FolderInfo[]): FolderInfo[] {
           name: t('classify.modelAlbum', { name: parsePendingAlbum(id)!.path.join(' / ') }),
           parentId: c.id,
           count: 0,
+          size: 0,
+          videoSize: 0,
+          videoCount: 0,
           children: [],
         }))
         if (!extra.length) return c

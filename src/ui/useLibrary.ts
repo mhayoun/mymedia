@@ -32,6 +32,10 @@ export interface LibraryItem {
 
 export interface FolderInfo extends FolderNode {
   count: number
+  /** Bytes of its files, sub-albums included; and of its videos alone, with their number. */
+  size: number
+  videoSize: number
+  videoCount: number
   children: FolderInfo[]
 }
 
@@ -67,12 +71,20 @@ export function useLibrary(): Library {
     const metas = new Map(data.meta.map((m) => [m.id, m]))
     const items: LibraryItem[] = []
     const directCount = new Map<string, number>()
+    const direct = new Map<string, { size: number; videoSize: number; videoCount: number }>()
     let unfiledCount = 0
     for (const rec of data.media) {
       const place = placementOf(rec.folderId, folders, rootId)
       items.push({ rec, meta: metas.get(rec.id), place })
       if (rec.folderId === rootId) unfiledCount++
       directCount.set(rec.folderId, (directCount.get(rec.folderId) ?? 0) + 1)
+      const d = direct.get(rec.folderId) ?? { size: 0, videoSize: 0, videoCount: 0 }
+      d.size += rec.size || 0
+      if (rec.type === 'video') {
+        d.videoSize += rec.size || 0
+        d.videoCount++
+      }
+      direct.set(rec.folderId, d)
     }
 
     const byParent = new Map<string, FolderNode[]>()
@@ -84,7 +96,11 @@ export function useLibrary(): Library {
     const build = (f: FolderNode): FolderInfo => {
       const children = (byParent.get(f.id) ?? []).map(build).sort((a, b) => collator.compare(a.name, b.name))
       const count = (directCount.get(f.id) ?? 0) + children.reduce((n, c) => n + c.count, 0)
-      return { ...f, count, children }
+      const d = direct.get(f.id)
+      const size = (d?.size ?? 0) + children.reduce((n, c) => n + c.size, 0)
+      const videoSize = (d?.videoSize ?? 0) + children.reduce((n, c) => n + c.videoSize, 0)
+      const videoCount = (d?.videoCount ?? 0) + children.reduce((n, c) => n + c.videoCount, 0)
+      return { ...f, count, size, videoSize, videoCount, children }
     }
     const categories = (byParent.get(rootId) ?? [])
       .filter((f) => !isReservedFolderName(f.name))

@@ -21,6 +21,7 @@ import { Gallery } from './Gallery'
 import { useAuthError, useAuthStatus, useAutoSync, useOnline } from './hooks'
 import { SettingsPanel } from './SettingsPanel'
 import { SpeedButton, SpeedDialog } from './SpeedButton'
+import { StorageDialog } from './StorageDialog'
 import { Sidebar } from './Sidebar'
 import { LibraryContext } from './libraryContext'
 import { ReviewView } from './ReviewView'
@@ -83,6 +84,7 @@ export function Shell() {
   const accountOpen = useApp((s) => s.accountOpen)
   const libraryOpen = useApp((s) => s.libraryOpen)
   const speedOpen = useApp((s) => s.speedOpen)
+  const storageOpen = useApp((s) => s.storageOpen)
   const activityOpen = useApp((s) => s.activityOpen)
   const shopOpen = useApp((s) => s.shopOpen)
   const proOpen = useApp((s) => s.proOpen)
@@ -167,6 +169,7 @@ export function Shell() {
     () => (rootId ? sortItems(filterItems(lib, filters, rootId, personMedia ?? new Set()), sort) : []),
     [lib, filters, rootId, sort, personMedia],
   )
+  const itemsSize = useMemo(() => items.reduce((n, i) => n + (i.rec.size || 0), 0), [items])
 
   const siblingsHaveName = (parentId: string, name: string, exceptId?: string) =>
     [...lib.folders.values()].some(
@@ -189,6 +192,7 @@ export function Shell() {
             lib={lib}
             people={people}
             count={items.length}
+            size={itemsSize}
             onDialog={setDialog}
             actions={filters.categoryId === MISFILED ? addCompress : undefined}
           />
@@ -221,6 +225,7 @@ export function Shell() {
       {proOpen && <ProDialog onClose={() => app().set({ proOpen: false, proResume: null })} />}
       {statsOpen && <StatsDialog lib={lib} />}
       {speedOpen && <SpeedDialog onClose={() => app().set({ speedOpen: false })} />}
+      {storageOpen && <StorageDialog lib={lib} onClose={() => app().set({ storageOpen: false })} />}
       {activityOpen && <ActivityDialog onClose={() => app().set({ activityOpen: false })} />}
       {compressOffer && (
         <CompressDialog mode="offer" title={t('compress.offerTitle')} planned={compressOffer} onClose={() => useApp.getState().set({ compressOffer: null })} />
@@ -615,6 +620,8 @@ interface ToolbarProps {
   lib: Library
   people: People
   count: number
+  /** Bytes of the media shown. */
+  size: number
   onDialog: (d: DialogState) => void
   /** Add and Compress, when the search line is not shown. */
   actions?: React.ReactNode
@@ -624,8 +631,9 @@ interface ToolbarProps {
  * One row: [title + folder actions] [view, sort, type] … count … [Add, Compress].
  * Logical order: in Hebrew the whole row is mirrored automatically.
  */
-function Toolbar({ lib, people, count, onDialog, actions }: ToolbarProps) {
+function Toolbar({ lib, people, count, size, onDialog, actions }: ToolbarProps) {
   const { t } = useTranslation()
+  const fmt = useFormat()
   const provenance = useProvenanceLabel()
   const filters = useApp((s) => s.filters)
   const setFilters = useApp((s) => s.setFilters)
@@ -775,6 +783,7 @@ function Toolbar({ lib, people, count, onDialog, actions }: ToolbarProps) {
       </select>
       <span className="result-count" title={t('gallery.count', { count })}>
         {t('gallery.count', { count })}
+        {size > 0 && <span className="result-size">{fmt.bytes(size)}</span>}
       </span>
       <button className="icon-btn small only-mobile" onClick={() => app().set({ helpOpen: true })} aria-label={t('nav.help')} title={t('nav.help')}>
         <CircleHelp size={26} />
