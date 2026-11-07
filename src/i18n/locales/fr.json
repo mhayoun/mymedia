@@ -601,7 +601,8 @@
     "files_one": "{{files}} fichier",
     "files_other": "{{files}} fichiers",
     "videos_one": "dont {{videos}} vidéo ({{size}})",
-    "videos_other": "dont {{videos}} vidéos ({{size}})"
+    "videos_other": "dont {{videos}} vidéos ({{size}})",
+    "open": "Ouvrir Google Drive"
   },
   "facebook": {
     "choose": "Fichier ZIP (photos ou export Facebook)",

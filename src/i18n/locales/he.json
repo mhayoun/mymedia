@@ -652,7 +652,8 @@
     "files_other": "{{files}} קבצים",
     "videos_one": "מתוכם סרטון אחד ({{size}})",
     "videos_two": "מתוכם {{videos}} סרטונים ({{size}})",
-    "videos_other": "מתוכם {{videos}} סרטונים ({{size}})"
+    "videos_other": "מתוכם {{videos}} סרטונים ({{size}})",
+    "open": "פתיחת Google Drive"
   },
   "facebook": {
     "choose": "קובץ ZIP (תמונות או ייצוא מפייסבוק)",

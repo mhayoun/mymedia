@@ -389,6 +389,7 @@ function Section({
 /** Google Drive space: used / free for the whole account, and what MyMedia takes. */
 function DriveStorage({ lib }: { lib: Library }) {
   const { t } = useTranslation()
+  const email = useApp((s) => s.user?.email)
   const fmt = useFormat()
   const [quota, setQuota] = useState<DriveQuota | null>(null)
   const count = lib.items.length
@@ -408,9 +409,16 @@ function DriveStorage({ lib }: { lib: Library }) {
   const ratio = quota.limit ? Math.min(1, quota.usage / quota.limit) : 0
   return (
     <div className="storage">
-      <span className="title">
+      {/* Opens Drive on the same account as MyMedia (u/0 would be the browser's first account). */}
+      <a
+        className="title"
+        href={`https://drive.google.com/drive/my-drive${email ? `?authuser=${encodeURIComponent(email)}` : ''}`}
+        target="_blank"
+        rel="noreferrer"
+        title={t('storage.open')}
+      >
         <Cloud size={16} /> {t('storage.title')}
-      </span>
+      </a>
       {quota.limit !== undefined && (
         <div className={`bar ${ratio > 0.9 ? 'full' : ''}`} role="progressbar" aria-valuenow={Math.round(ratio * 100)} aria-valuemin={0} aria-valuemax={100}>
           <span style={{ inlineSize: `${ratio * 100}%` }} />

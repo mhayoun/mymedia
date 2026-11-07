@@ -603,7 +603,8 @@
     "files_one": "{{files}} file",
     "files_other": "{{files}} files",
     "videos_one": "including {{videos}} video ({{size}})",
-    "videos_other": "including {{videos}} videos ({{size}})"
+    "videos_other": "including {{videos}} videos ({{size}})",
+    "open": "Open Google Drive"
   },
   "facebook": {
     "choose": "ZIP file (photos or Facebook export)",
