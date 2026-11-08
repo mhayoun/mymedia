@@ -332,25 +332,28 @@ export async function getStartPageToken(): Promise<string> {
 export async function listChanges(
   pageToken: string,
   signal?: AbortSignal,
-): Promise<{ changes: DriveChangeRaw[]; newStartPageToken: string }> {
+  onPage?: (pages: number, changes: number) => void,
+): Promise<{ changes: DriveChangeRaw[]; newStartPageToken: string; pages: number }> {
   const changes: DriveChangeRaw[] = []
   let token = pageToken
-  for (;;) {
+  // Drive goes through every change of the whole Drive (other apps too) and shows only those
+  // MyMedia can see: a busy Drive gives many nearly empty pages.
+  for (let pages = 1; ; pages++) {
     const params = new URLSearchParams({
       pageToken: token,
       fields: `nextPageToken,newStartPageToken,changes(fileId,removed,file(${FILE_FIELDS}))`,
       pageSize: '1000',
       includeRemoved: 'true',
+      // The library is always in a My Drive: shared drives' changes would only be read for nothing.
       spaces: 'drive',
-      includeItemsFromAllDrives: 'true',
-      supportsAllDrives: 'true',
     })
     const r = await getJson<{ changes: DriveChangeRaw[]; nextPageToken?: string; newStartPageToken?: string }>(
       `${API}/changes?${params}`,
       signal,
     )
     for (const c of r.changes ?? []) changes.push(c.file ? { ...c, file: mergeProps(c.file) } : c)
-    if (r.newStartPageToken) return { changes, newStartPageToken: r.newStartPageToken }
+    onPage?.(pages, changes.length)
+    if (r.newStartPageToken) return { changes, newStartPageToken: r.newStartPageToken, pages }
     if (!r.nextPageToken) throw new Error('Drive changes: missing page token')
     token = r.nextPageToken
   }

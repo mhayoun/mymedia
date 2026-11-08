@@ -8,6 +8,7 @@ import {
   childrenQuery,
   createFolder,
   DriveError,
+  driveStats,
   findFolderInMyDrive,
   getFile,
   getStartPageToken,
@@ -26,6 +27,7 @@ import { DATE_SET_KEY, dateFromFileName, detectOrigin, FOLDER_MIME, mediaTypeOf,
 import { isMassRemoval, type MediaMeta } from '../lib/metadata'
 import { placementOf, subtreeIds, type FolderNode } from '../lib/tree'
 import { app } from '../store'
+import { note } from '../activity'
 import { markMetaDirty, pullMeta, saveMeta } from './metaStore'
 
 const PARENTS_PER_QUERY = 25
@@ -280,7 +282,13 @@ async function applyChanges(rootId: string, signal: AbortSignal) {
   const pageToken = await d.getKv<string>('pageToken')
   if (!pageToken) return fullScan(rootId, signal)
   app().set({ sync: { step: 'sync.checking', done: 0, total: 0 } })
-  const { changes, newStartPageToken } = await listChanges(pageToken, signal)
+  const started = Date.now()
+  // One page is the usual case; from the second one the count is shown, a long wait then says why.
+  const { changes, newStartPageToken, pages } = await listChanges(pageToken, signal, (pages, found) => {
+    if (pages > 1) app().set({ sync: { step: 'sync.checkingPages', done: pages, total: found } })
+  })
+  const seconds = Math.round((Date.now() - started) / 1000)
+  if (pages > 1 || seconds >= 10) note('activity.changesRead', { pages, count: changes.length, seconds })
   if (changes.length === 0) {
     await d.setKv('pageToken', newStartPageToken)
     return
@@ -412,6 +420,7 @@ export function syncNow(options: { full?: boolean } = {}): Promise<void> {
   if (!rootId) return Promise.resolve()
   abort = new AbortController()
   const signal = abort.signal
+  const stats = { ...driveStats }
   running = (async () => {
     try {
       app().set({ error: null })
@@ -436,6 +445,11 @@ export function syncNow(options: { full?: boolean } = {}): Promise<void> {
       console.error('[MyMedia] sync failed', e)
       if (!app().error) app().set({ error: 'errors.syncFailed' })
     } finally {
+      // Drive's slow-downs and network failures during this load, for the Activity window.
+      const limited = driveStats.limited - stats.limited
+      const failed = driveStats.failed - stats.failed
+      if (limited || failed)
+        note('activity.driveTrouble', { requests: driveStats.requests - stats.requests, limited, failed, detail: driveStats.last }, 'warn')
       app().set({ sync: null })
       running = null
       abort = null

@@ -121,6 +121,7 @@
     "firstLoadHint": "אחר כך MyMedia נפתח מיד וטוען רק את מה שחדש. עם אלפי תמונות הפעם הראשונה יכולה לקחת דקה-שתיים: פשוט השאירו את המסך פתוח.",
     "scanning": "קורא את תיקיות ה-Drive… נמצאו {{done}} קבצים",
     "checking": "בודק אם יש קבצים חדשים…",
+    "checkingPages": "בודק אם יש קבצים חדשים… נקראו {{done}} עמודים של שינויים ב-Drive",
     "applying": "טוען שינויים {{done}} / {{total}}",
     "metadata": "שומר מידע…",
     "cancel": "ביטול",
@@ -1087,6 +1088,9 @@
     "empty": "אין עדיין כלום.",
     "loaded": "הטעינה הסתיימה",
     "online": "החיבור חזר",
+    "changesRead": "שינויים ב-Drive: נקראו {{pages}} עמודים ב-{{seconds}} שניות, {{count}} עבור MyMedia",
+    "driveTrouble": "Google Drive בטעינה הזו: {{requests}} בקשות, ביקש להאט {{limited}} פעמים, {{failed}} כשלי רשת (אחרון: {{detail}})",
+    "waitingReconnect": "ממתין להתחברות מחדש ל-Google (לחצו \"התחברות מחדש\")",
     "copy": "העתקה",
     "copied": "הועתק"
   },

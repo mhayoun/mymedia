@@ -2,6 +2,7 @@
 // load, the analysis, the compression and the background work, the messages
 // shown, and the problems written to the console. Kept in memory only.
 
+import { auth } from './auth/google'
 import { useApp } from './store'
 
 export interface ActivityEntry {
@@ -47,6 +48,11 @@ function finish(entry: ActivityEntry | null) {
   if (!entry || entry.end) return
   entry.end = Date.now()
   changed()
+}
+
+/** A line written by the app itself (diagnosis of a load…). */
+export function note(key: string, values?: Record<string, number | string>, kind: ActivityEntry['kind'] = 'info') {
+  add({ key, values, kind })
 }
 
 /** One step followed through its progress: a new line when its key changes. */
@@ -98,6 +104,11 @@ export function startActivityLog() {
       add({ text, kind: level })
     }
   }
+  // Google's access expired: Drive requests wait for "Reconnect", the step shown meanwhile is not slow.
+  const reconnect = tracker()
+  const onAuth = () => reconnect(auth.status === 'needsReconnect' ? 'activity.waitingReconnect' : null)
+  auth.subscribe(onAuth)
+  onAuth()
   if (!navigator.onLine) add({ key: 'sync.offline', kind: 'warn' })
   window.addEventListener('offline', () => add({ key: 'sync.offline', kind: 'warn' }))
   window.addEventListener('online', () => add({ key: 'activity.online', kind: 'info' }))

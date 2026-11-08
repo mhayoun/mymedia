@@ -120,6 +120,7 @@
     "firstLoadHint": "After that, MyMedia opens at once and only loads what is new. With thousands of photos this first time can take a minute or two: just leave the screen open.",
     "scanning": "Reading the Drive folders… {{done}} files found",
     "checking": "Checking for new files…",
+    "checkingPages": "Checking for new files… {{done}} pages of Drive changes read",
     "applying": "Loading changes {{done}} / {{total}}",
     "metadata": "Saving information…",
     "cancel": "Cancel",
@@ -1008,6 +1009,9 @@
     "empty": "Nothing yet.",
     "loaded": "Load finished",
     "online": "Back online",
+    "changesRead": "Drive changes: {{pages}} pages read in {{seconds}} s, {{count}} for MyMedia",
+    "driveTrouble": "Google Drive during this load: {{requests}} requests, asked to slow down {{limited}} times, {{failed}} network failures (last: {{detail}})",
+    "waitingReconnect": "Waiting for reconnection to Google (tap \"Reconnect\")",
     "copy": "Copy",
     "copied": "Copied"
   },

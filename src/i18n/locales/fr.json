@@ -118,6 +118,7 @@
     "firstLoadHint": "Ensuite, MyMedia s'ouvre tout de suite et ne charge que les nouveautés. Avec des milliers de photos, cette première fois peut prendre une ou deux minutes : laissez simplement l'écran ouvert.",
     "scanning": "Lecture des dossiers Drive… {{done}} fichiers trouvés",
     "checking": "Recherche de nouveaux fichiers…",
+    "checkingPages": "Recherche de nouveaux fichiers… {{done}} pages de changements Drive lues",
     "applying": "Chargement des modifications {{done}} / {{total}}",
     "metadata": "Enregistrement des informations…",
     "cancel": "Annuler",
@@ -1006,6 +1007,9 @@
     "empty": "Rien pour l'instant.",
     "loaded": "Chargement terminé",
     "online": "Connexion revenue",
+    "changesRead": "Changements Drive : {{pages}} pages lues en {{seconds}} s, {{count}} pour MyMedia",
+    "driveTrouble": "Google Drive pendant ce chargement : {{requests}} requêtes, ralentissement demandé {{limited}} fois, {{failed}} échecs réseau (dernier : {{detail}})",
+    "waitingReconnect": "En attente de reconnexion à Google (touchez « Se reconnecter »)",
     "copy": "Copier",
     "copied": "Copié"
   },
