@@ -19,6 +19,21 @@ const fr: HelpContent = {
   tagline: 'MyMedia range, reconnaît et allège vos photos et vidéos directement dans votre Google Drive — sans les envoyer ailleurs.',
   sections: [
     {
+      title: 'MyMedia en 10 points',
+      items: [
+        'Une bibliothèque pour toute la famille : vos photos rangées dans votre Google Drive, partagées avec les membres de la famille.',
+        'Rangement par événements, personnes, voyages… : des catégories et des albums qui sont de vrais dossiers Drive.',
+        'Il apprend à reconnaître les visages et apprend de vos albums : il propose le bon album pour chaque nouvelle photo.',
+        'Boutique de modèles : créez votre modèle de classement (par exemple 127 espèces d’oiseaux d’Israël), publiez-le dans la boutique et vendez-le, ou installez celui d’un autre.',
+        'Import de partout : WhatsApp et la Galerie (Partager → MyMedia), l’ordinateur, une clé USB, une carte SD, des dossiers entiers, un export Facebook.',
+        'Photos, vidéos, PDF et documents rangés ensemble ; les photos et vidéos sont compressées pour gagner de la place, et les doublons sont repérés à l’envoi.',
+        'Nettoyage en un geste : doublons, photos floues et photos mal rangées.',
+        'Recherche instantanée : par date, nom, événement, personne, espèce ou texte.',
+        'Partage avec vos amis : un album par un simple lien, ou toute une bibliothèque transférée vers un autre compte.',
+        'Privé et partout : l’analyse se fait sur votre appareil, vos photos ne quittent jamais votre Drive. Android, iPhone et ordinateur, en hébreu, français et anglais.',
+      ],
+    },
+    {
       title: 'Ce qui rend MyMedia différent',
       items: [
         'Vos photos restent chez vous. Elles restent de simples fichiers dans des dossiers de votre Google Drive. Pas de format propriétaire : si vous arrêtez MyMedia demain, tout reste rangé et lisible.',
@@ -169,6 +184,21 @@ const en: HelpContent = {
   tagline: 'MyMedia organises, recognises and slims down your photos and videos right in your Google Drive — without sending them anywhere else.',
   sections: [
     {
+      title: 'MyMedia in 10 points',
+      items: [
+        'One library for the whole family: your photos organized in your Google Drive, shared with your family members.',
+        'Organized by events, people, trips…: categories and albums that are real Drive folders.',
+        'It learns to recognize faces and learns from your albums: it suggests the right album for each new photo.',
+        'Model shop: create your own sorting model (for example 127 bird species of Israel), publish it in the shop and sell it, or install someone else’s.',
+        'Import from everywhere: WhatsApp and the Gallery (Share → MyMedia), the computer, a USB stick, an SD card, whole folders, a Facebook export.',
+        'Photos, videos, PDFs and documents filed together; photos and videos are compressed to save space, and duplicates are spotted when uploading.',
+        'Clean up in one go: duplicates, blurry photos and misfiled photos.',
+        'Instant search: by date, name, event, person, species or text.',
+        'Share with your friends: an album with a simple link, or a whole library transferred to another account.',
+        'Private and everywhere: the analysis runs on your device, your photos never leave your Drive. Android, iPhone and computer, in Hebrew, French and English.',
+      ],
+    },
+    {
       title: 'What makes MyMedia different',
       items: [
         'Your photos stay yours. They remain plain files in folders of your Google Drive. No proprietary format: if you stop using MyMedia tomorrow, everything stays organised and readable.',
@@ -318,6 +348,21 @@ const he: HelpContent = {
   title: 'עזרה',
   tagline: 'MyMedia מסדרת, מזהה ומקטינה את התמונות והסרטונים שלך ישירות ב-Google Drive שלך — בלי לשלוח אותם לשום מקום אחר.',
   sections: [
+    {
+      title: 'MyMedia ב-10 נקודות',
+      items: [
+        'ספרייה אחת לכל המשפחה: התמונות שלך מסודרות ב-Google Drive שלך, ומשותפות עם בני המשפחה.',
+        'סידור לפי אירועים, אנשים, טיולים…: קטגוריות ואלבומים שהם תיקיות אמיתיות ב-Drive.',
+        'לומד לזהות פנים ולומד מהאלבומים שלך: מציע את האלבום הנכון לכל תמונה חדשה.',
+        'חנות מודלים: יוצרים מודל מיון משלכם (למשל 127 מיני ציפורים של ישראל), מפרסמים אותו בחנות ומוכרים אותו, או מתקינים מודל של מישהו אחר.',
+        'ייבוא מכל מקום: WhatsApp והגלריה (שיתוף ← MyMedia), המחשב, דיסק און קי, כרטיס SD, תיקיות שלמות, ייצוא מפייסבוק.',
+        'תמונות, סרטונים, PDF ומסמכים מסודרים יחד; תמונות וסרטונים נדחסים כדי לחסוך מקום, וכפילויות מזוהות בזמן ההעלאה.',
+        'ניקוי בפעולה אחת: כפילויות, תמונות מטושטשות ותמונות שלא במקומן.',
+        'חיפוש מיידי: לפי תאריך, שם, אירוע, אדם, מין או טקסט.',
+        'שיתוף עם חברים: אלבום בקישור פשוט, או ספרייה שלמה שמועברת לחשבון אחר.',
+        'פרטי ובכל מקום: הניתוח נעשה במכשיר שלך, והתמונות לא יוצאות מה-Drive שלך. Android, iPhone ומחשב, בעברית, בצרפתית ובאנגלית.',
+      ],
+    },
     {
       title: 'מה מייחד את MyMedia',
       items: [
