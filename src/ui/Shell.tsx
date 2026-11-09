@@ -1,4 +1,4 @@
-import { Brain, Check, ChevronDown, ChevronUp, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, Link2, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Settings as SettingsIcon, Store, Trash2, UserPlus, UserRound, X } from 'lucide-react'
+import { Brain, Check, ChevronDown, ChevronUp, CircleHelp, Search, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, Link2, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Settings as SettingsIcon, Store, Trash2, UserPlus, UserRound, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -188,7 +188,7 @@ export function Shell() {
         <Sidebar lib={lib} people={people} onNewCategory={() => setDialog({ kind: 'newCategory' })} />
         {!sidebarHidden && <SidebarResizer onWidth={setSidebarWidth} />}
         <main className="main">
-          <div className="controls">
+          <div className={`controls ${controlsHidden ? 'folded' : ''}`}>
           <Toolbar
             lib={lib}
             people={people}
@@ -698,21 +698,14 @@ function Toolbar({ lib, people, count, size, onDialog, actions }: ToolbarProps) 
   }
 
   const showTitle = special || !!folder
-  // Folded (more room for the photos while sorting): only the title, the count and the button to open it again.
+  // Folded (more room for the photos while sorting): only a small button over the photos to open it again.
   if (hidden)
     return (
-      <div className="toolbar folded">
-        <h1>
-          <bdi>{title}</bdi>
-          <span className="count">{t('gallery.count', { count })}</span>
-          {/* A search still applies while folded: shown, so the missing photos are not a surprise. */}
-          {filters.query && <span className="count"><bdi>🔍 {filters.query}</bdi></span>}
-        </h1>
-        <span className="grow" />
-        <button className="icon-btn small" onClick={toggle} aria-label={t('gallery.showTools')} title={t('gallery.showTools')}>
-          <ChevronDown size={20} />
-        </button>
-      </div>
+      <button className="icon-btn small tools-reopen" onClick={toggle} aria-label={t('gallery.showTools')} title={t('gallery.showTools')}>
+        {/* A search still applies while folded: shown, so the missing photos are not a surprise. */}
+        {filters.query && <Search size={14} />}
+        <ChevronDown size={20} />
+      </button>
     )
   return (
     <div className="toolbar">
