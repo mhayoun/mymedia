@@ -154,9 +154,11 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                     }
                   >
                     <Check size={16} />
-                    {mode === 'auto'
-                      ? t('classify.groupCorrect', { count: sel.length })
-                      : t('classify.groupMove', { count: sel.length, name: name(g.folderId).split(' / ').pop() })}
+                    <span className="btn-text">
+                      {mode === 'auto'
+                        ? t('classify.groupCorrect', { count: sel.length })
+                        : t('classify.groupMove', { count: sel.length, name: name(g.folderId).split(' / ').pop() })}
+                    </span>
                   </button>
                 )}
                 <AlbumTreeChoice
@@ -174,7 +176,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                   aria-label={t('select.newAlbum')}
                 >
                   <FolderPlus size={16} />
-                  {t('classify.groupNew')}
+                  <span className="btn-label">{t('classify.groupNew')}</span>
                 </button>
                 <button
                   className="btn ghost"

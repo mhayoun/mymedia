@@ -66,8 +66,8 @@ export function AlbumTreeChoice({ categories, label, onChoose, disabled, exclude
   }
   return (
     <>
-      <button className="btn ghost" disabled={disabled} onClick={() => setOpen(true)}>
-        <FolderOpen size={16} /> {label}
+      <button className="btn ghost" disabled={disabled} onClick={() => setOpen(true)} title={label}>
+        <FolderOpen size={16} /> <span className="btn-label">{label}</span>
       </button>
       {open && !disabled && (
         <Modal title={label} onClose={close}>

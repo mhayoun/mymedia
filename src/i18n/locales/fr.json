@@ -120,7 +120,7 @@
     "firstLoadHint": "Ensuite, MyMedia s'ouvre tout de suite et ne charge que les nouveautés. Avec des milliers de photos, cette première fois peut prendre une ou deux minutes : laissez simplement l'écran ouvert.",
     "scanning": "Lecture des dossiers Drive… {{done}} fichiers trouvés",
     "checking": "Recherche de nouveaux fichiers…",
-    "checkingPages": "Recherche de nouveaux fichiers… {{done}} pages de changements Drive lues",
+    "checkingPages": "Recherche des changements faits dans Google Drive… Vous pouvez continuer à utiliser MyMedia : les nouvelles photos apparaîtront à la fin.",
     "applying": "Chargement des modifications {{done}} / {{total}}",
     "metadata": "Enregistrement des informations…",
     "cancel": "Annuler",

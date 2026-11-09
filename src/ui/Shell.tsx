@@ -472,7 +472,7 @@ function TopBar() {
             <RefreshCw size={14} className="spin" />
             <span className="only-desktop"> {t(sync.step, { done: fmt.number(sync.done), total: fmt.number(sync.total) })}</span>
             {/* Phone: the count only, small (with "/ total" it widened the bar and moved the buttons). */}
-            <span className="only-mobile-inline sync-count">{sync.done ? fmt.number(sync.done) : ''}</span>
+            <span className="only-mobile-inline sync-count">{sync.done && sync.step !== 'sync.checkingPages' ? fmt.number(sync.done) : ''}</span>
           </button>
           <button className="icon-btn small" onClick={cancelSync} aria-label={t('sync.cancel')} title={t('sync.cancel')}>
             <X size={18} />

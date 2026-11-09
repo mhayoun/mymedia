@@ -285,6 +285,7 @@ async function applyChanges(rootId: string, signal: AbortSignal) {
   const started = Date.now()
   // One page is the usual case; from the second one the count is shown, a long wait then says why.
   const { changes, newStartPageToken, pages } = await listChanges(pageToken, signal, (pages, found) => {
+    // The page count means nothing to the user: it stays in the Activity summary (activity.changesRead).
     if (pages > 1) app().set({ sync: { step: 'sync.checkingPages', done: pages, total: found } })
   })
   const seconds = Math.round((Date.now() - started) / 1000)
