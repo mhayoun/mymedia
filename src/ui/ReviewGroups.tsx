@@ -138,7 +138,11 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
               <label className="check-row">
                 <input type="checkbox" checked={all} disabled={isBusy} onChange={(e) => toggleGroup(g, e.target.checked)} />
                 <strong>
-                  <bdi>{isAlbum ? name(g.folderId) : g.folderId === WAITING ? t('classify.groupWaiting') : t('classify.groupNone')}</bdi>
+                  {isAlbum ? (
+                    <GroupName full={name(g.folderId)} />
+                  ) : (
+                    <bdi>{g.folderId === WAITING ? t('classify.groupWaiting') : t('classify.groupNone')}</bdi>
+                  )}
                 </strong>
                 <span className="count">{fmt.number(g.items.length)}</span>
               </label>
@@ -237,5 +241,25 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
         />
       )}
     </div>
+  )
+}
+
+/**
+ * An album's name with its path ("Category / Album"). On a phone the path becomes "…/" so the
+ * album's own name is always shown whole, next to the group's buttons.
+ */
+function GroupName({ full }: { full: string }) {
+  const parts = full.split(' / ')
+  const last = parts.pop() ?? full
+  return (
+    <bdi className="group-name">
+      {parts.length > 0 && (
+        <>
+          <span className="group-path">{parts.join(' / ')} / </span>
+          <span className="group-path-short">…/</span>
+        </>
+      )}
+      {last}
+    </bdi>
   )
 }

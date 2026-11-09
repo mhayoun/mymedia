@@ -517,6 +517,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .review-group-head .check-row { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; flex: 1 1 auto; min-width: 0; }
 .review-group-head .check-row input { inline-size: 20px; block-size: 20px; }
 .review-group-head .count { color: var(--text-2); font-size: 0.85rem; }
+.group-path-short { display: none; }
 .review-group-head select { inline-size: auto; max-inline-size: 220px; }
 .review-group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 4px; }
 .review-group-cell { position: relative; display: grid; }
@@ -538,7 +539,10 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   .review-group-head { gap: 6px; }
   .review-group-head .check-row { flex: 1 1 0; gap: 6px; }
   .review-group-head > .hint { flex: 1 1 100%; }
-  .review-group-head .check-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  /* The album's own name always whole (on two lines if needed, in a smaller font), its path as "…/". */
+  .review-group-head .check-row strong { min-width: 0; font-size: 0.85rem; line-height: 1.2; overflow-wrap: anywhere; }
+  .group-path { display: none; }
+  .group-path-short { display: inline; color: var(--text-2); font-weight: 400; }
   .review-group-head .row { flex: 0 1 auto; min-width: 0; flex-wrap: nowrap; gap: 4px; }
   .review-group-head .row .btn { flex: 0 0 auto; padding-inline: 8px; }
   .review-group-head .row .btn.primary { flex: 0 1 auto; min-width: 0; max-inline-size: 38vw; }
