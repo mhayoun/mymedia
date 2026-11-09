@@ -245,20 +245,15 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
 }
 
 /**
- * An album's name with its path ("Category / Album"). On a phone the path becomes "…/" so the
- * album's own name is always shown whole, next to the group's buttons.
+ * An album's name with its path ("Category / Album"). On a phone only the album's own name is
+ * shown, whole, next to the group's buttons.
  */
 function GroupName({ full }: { full: string }) {
   const parts = full.split(' / ')
   const last = parts.pop() ?? full
   return (
     <bdi className="group-name">
-      {parts.length > 0 && (
-        <>
-          <span className="group-path">{parts.join(' / ')} / </span>
-          <span className="group-path-short">…/</span>
-        </>
-      )}
+      {parts.length > 0 && <span className="group-path">{parts.join(' / ')} / </span>}
       {last}
     </bdi>
   )
