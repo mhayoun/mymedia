@@ -106,3 +106,14 @@ export function copyNotesToPublic(): Promise<void> {
     })
   return running
 }
+
+/**
+ * Before this account leaves the Google project that wrote its private notes (a move to MyMedia Pro):
+ * waits for their public copy, then says whether every one of them is copied.
+ */
+export async function notesAllPublic(): Promise<boolean> {
+  await (running ?? copyNotesToPublic())
+  const d = db()
+  if (!(await d.getKv<boolean>(DONE_KEY))) return false
+  return (await d.media.filter((r) => !!r.privateOnly).count()) === 0
+}

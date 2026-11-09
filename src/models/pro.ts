@@ -3,6 +3,7 @@
 // there, blurry photos, sharing with more than FREE_SHARES people and
 // transfers to another account.
 
+import { auth, type FullProject } from '../auth/google'
 import { app, useApp } from '../store'
 import { call } from './shop'
 
@@ -22,6 +23,11 @@ export interface ProStatus {
   test: boolean
   /** The account uses the full Drive access (MyMedia's full door), for good. Missing from an older server. */
   full?: boolean
+  /**
+   * The Google project of this account's full door: "MyMedia" (testers, accounts that already used it) or
+   * MyMedia Pro (the others). Missing from an older server: "MyMedia".
+   */
+  fullProject?: FullProject
 }
 
 /**
@@ -88,6 +94,17 @@ export async function usesFullDoor(email: string): Promise<boolean | null> {
     return null
   }
 }
+
+/** The project this account's full door must use (the server's word; "MyMedia" while MyMedia Pro is not set up). */
+export function fullProjectFor(s: ProStatus | null = app().pro): FullProject {
+  return s?.fullProject === 'pro' && auth.hasProProject ? 'pro' : 'mymedia'
+}
+
+/**
+ * This device opens the account by "MyMedia" but the server moved it to MyMedia Pro (MYMEDIA_MOVE_TO_PRO,
+ * or the move already made on another device): it must reconnect once through MyMedia Pro.
+ */
+export const useMoveToPro = () => useApp((s) => s.door === 'full' && !s.readOnly && fullProjectFor(s.pro) === 'pro' && auth.project !== 'pro')
 
 /** Whether this account has Pro now. */
 export const useIsPro = () => useApp((s) => !!s.pro?.pro)

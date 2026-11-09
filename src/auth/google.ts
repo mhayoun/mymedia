@@ -14,6 +14,10 @@
 // Drive (100 accounts until Google's review). A new account comes in by the
 // free door; one that used the full door (the server knows) goes through it,
 // for good. The Android app uses only the full door.
+//
+// The full door has two Google projects: "MyMedia" (the first one: testers and the accounts that already
+// used it, and the Android app) and MyMedia Pro (a fresh 100 accounts, for those who move from Free to
+// Pro). The server says which one an account takes (FullProject); a move to MyMedia Pro is never undone.
 
 import { isNative, native } from '../native'
 
@@ -21,6 +25,8 @@ export const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive'
 export const FREE_SCOPE = 'https://www.googleapis.com/auth/drive.file'
 
 export type Door = 'free' | 'full'
+/** The Google project of the full door. */
+export type FullProject = 'mymedia' | 'pro'
 
 const doorKey = (email: string) => `mymedia.door.${email.toLowerCase()}`
 
@@ -31,6 +37,25 @@ export function savedDoor(email: string): Door | null {
     return d === 'free' || d === 'full' ? d : null
   } catch {
     return null
+  }
+}
+
+const projectKey = (email: string) => `mymedia.fullProject.${email.toLowerCase()}`
+
+/** The full door's project this account used last on this device (before MyMedia Pro existed: "MyMedia"). */
+export function savedProject(email: string | null): FullProject {
+  try {
+    return email && localStorage.getItem(projectKey(email)) === 'pro' ? 'pro' : 'mymedia'
+  } catch {
+    return 'mymedia'
+  }
+}
+
+export function saveProject(email: string, project: FullProject): void {
+  try {
+    localStorage.setItem(projectKey(email), project)
+  } catch {
+    // Asked to the server again at the next start.
   }
 }
 
@@ -76,6 +101,8 @@ interface StoredToken {
   expiresAt: number
   /** Missing in tokens kept before the free door existed: full. */
   door?: Door
+  /** The full door's project (missing: "MyMedia"). */
+  project?: FullProject
 }
 
 export type AuthStatus = 'signedOut' | 'signedIn' | 'needsReconnect'
@@ -93,9 +120,11 @@ type Waiter = (token: string) => void
 
 class GoogleAuth {
   private client: TokenClient | null = null
-  private clientIds: Record<Door, string> = { full: '', free: '' }
+  private clientIds: Record<Door | 'pro', string> = { full: '', free: '', pro: '' }
   /** Which Google project the token comes from. */
   door: Door = 'full'
+  /** With the full door: "MyMedia" or MyMedia Pro. */
+  project: FullProject = 'mymedia'
   /** Asking the full access for an account that came by the free door: start again on it. */
   private upgrading: string | null = null
   private token: StoredToken | null = null
@@ -163,11 +192,18 @@ class GoogleAuth {
     return savedDoor(email) ?? 'full'
   }
 
-  private useDoor(door: Door) {
-    if (this.door === door && this.client) return
+  /** MyMedia Pro is set up in config.json (else the full door is always "MyMedia"). */
+  get hasProProject(): boolean {
+    return !isNative && !!this.clientIds.pro
+  }
+
+  private useDoor(door: Door, project: FullProject = this.project) {
+    if (!this.hasProProject) project = 'mymedia'
+    if (this.door === door && this.project === project && this.client) return
     this.door = door
+    this.project = project
     this.client = window.google!.accounts.oauth2.initTokenClient({
-      client_id: this.clientIds[door],
+      client_id: door === 'free' ? this.clientIds.free : project === 'pro' ? this.clientIds.pro : this.clientIds.full,
       scope: door === 'full' ? DRIVE_SCOPE : FREE_SCOPE,
       callback: (r) => this.onToken(r),
       error_callback: (e) => {
@@ -182,10 +218,11 @@ class GoogleAuth {
     })
   }
 
-  async init(clientId: string, freeClientId = ''): Promise<void> {
-    this.clientIds = { full: clientId, free: freeClientId }
+  async init(clientId: string, freeClientId = '', proClientId = ''): Promise<void> {
+    this.clientIds = { full: clientId, free: freeClientId, pro: proClientId }
     // The kept token says which door it came by (e.g. after a switch of account).
     this.door = isNative || !freeClientId ? 'full' : this.isValid() ? (this.token!.door ?? 'full') : this.doorFor(this.loginHint)
+    this.project = !this.hasProProject ? 'mymedia' : this.isValid() ? (this.token!.project ?? 'mymedia') : savedProject(this.loginHint)
     if (isNative) {
       setInterval(() => this.renewIfNeeded(), NATIVE_CHECK_MS)
       if (this.isValid()) this.setStatus('signedIn')
@@ -198,7 +235,7 @@ class GoogleAuth {
     await loadScript('https://accounts.google.com/gsi/client')
     const door = this.door
     this.client = null
-    this.useDoor(door)
+    this.useDoor(door, this.project)
     window.addEventListener('click', () => this.renewIfNeeded(), true)
     if (this.isValid()) this.setStatus('signedIn')
     else if (this.loginHint) this.setStatus('needsReconnect')
@@ -230,7 +267,7 @@ class GoogleAuth {
   private accept(accessToken: string, expiresIn: number) {
     this.lastError = null
     this.serial++
-    this.token = { accessToken, expiresAt: Date.now() + expiresIn * 1000, door: this.door }
+    this.token = { accessToken, expiresAt: Date.now() + expiresIn * 1000, door: this.door, ...(this.door === 'full' && this.project === 'pro' ? { project: 'pro' as const } : {}) }
     try {
       localStorage.setItem(TOKEN_KEY, JSON.stringify(this.token))
     } catch {
@@ -239,6 +276,7 @@ class GoogleAuth {
     if (this.upgrading) {
       // The same account, now by the full door: the app starts again on it.
       saveDoor(this.upgrading, 'full')
+      saveProject(this.upgrading, this.project)
       this.loginHint = this.upgrading
       location.reload()
       return
@@ -277,19 +315,21 @@ class GoogleAuth {
       return void this.nativeAuthorize(email, true)
     }
     if (!this.client) return
-    this.useDoor(this.doorFor(email))
+    this.useDoor(this.doorFor(email), savedProject(email))
     this.requesting = true
     this.switching = true
     this.client.requestAccessToken({ prompt: '', login_hint: email })
   }
 
   /**
-   * Must be called from a click: this account (signed in by the free door) gives the full Drive access.
-   * Google shows the full door's screen; then the app starts again on it.
+   * Must be called from a click: this account gives the full Drive access through `project` (the one the
+   * server gave it): from the free door, or from "MyMedia" to MyMedia Pro. Google shows that project's
+   * screen; then the app starts again on it.
    */
-  upgrade(email: string) {
-    if (isNative || !this.client || !this.clientIds.free) return
-    this.useDoor('full')
+  upgrade(email: string, project: FullProject = 'mymedia') {
+    if (isNative || !this.client) return
+    if (!this.clientIds.free && !(project === 'pro' && this.hasProProject)) return
+    this.useDoor('full', project)
     this.requesting = true
     this.upgrading = email
     this.client.requestAccessToken({ prompt: 'consent', login_hint: email })

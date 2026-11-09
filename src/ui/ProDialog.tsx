@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LOCALES } from '../i18n'
 import { useFormat } from '../i18n/format'
-import { buyPro, capturePro, FREE_SHARES, loadPro, type ProPlan } from '../models/pro'
+import { buyPro, capturePro, FREE_SHARES, fullProjectFor, loadPro, type ProPlan } from '../models/pro'
 import { ShopError } from '../models/shop'
 import { auth } from '../auth/google'
 import { isNative } from '../native'
@@ -171,7 +171,7 @@ export function FullAccessButton({ feature }: { feature?: string }) {
       <Crown size={28} />
       <p>{feature ? t('door.gate', { feature }) : t('door.grantTitle')}</p>
       <p className="hint">{t('door.warning')}</p>
-      <button className="btn primary" onClick={() => user && auth.upgrade(user.email)}>
+      <button className="btn primary" onClick={() => user && auth.upgrade(user.email, fullProjectFor())}>
         {t('door.grant')}
       </button>
     </div>

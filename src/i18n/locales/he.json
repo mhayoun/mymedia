@@ -1255,7 +1255,12 @@
     "proNeedsFull": "עם Pro, ‏MyMedia יבקש גישה מלאה ל-Google Drive שלכם.",
     "featureLibraries": "צפייה ב-MyMedia שמישהו אחר שיתף איתכם",
     "welcome": "ברוכים השבים! החשבון שלכם זוהה.",
-    "confirmHint": "‏Google יבקש מכם אישור אחרון, פעם אחת בלבד במכשיר הזה. אם מופיע „אפליקציה לא מאומתת”: מתקדם, ואז מעבר אל MyMedia."
+    "confirmHint": "‏Google יבקש מכם אישור אחרון, פעם אחת בלבד במכשיר הזה. אם מופיע „אפליקציה לא מאומתת”: מתקדם, ואז מעבר אל MyMedia.",
+    "moveTitle": "MyMedia עוברת ל-MyMedia Pro.",
+    "moveText": "התחברו פעם אחת דרך MyMedia Pro: הספרייה, האלבומים והפרטים של התמונות נשארים אותו דבר.",
+    "movePreparing": "מתכוננים: מעתיקים את הפרטים של התמונות בשביל MyMedia Pro…",
+    "moveLater": "חלק מהפרטים של התמונות עוד לא הועתקו: MyMedia תנסה שוב בטעינה הבאה.",
+    "moveButton": "מעבר ל-MyMedia Pro"
   },
   "publicLib": {
     "readOnly": "שותף בקישור · צפייה בלבד",

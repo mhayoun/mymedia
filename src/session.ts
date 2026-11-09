@@ -1,6 +1,6 @@
 // App start-up and sign-in flow.
 
-import { auth, saveDoor, savedDoor } from './auth/google'
+import { auth, saveDoor, savedDoor, saveProject } from './auth/google'
 import { isConfigured, loadConfig } from './config'
 import { about } from './drive/api'
 import { loadUser, locateRoot, openCachedUser, syncNow } from './sync/engine'
@@ -23,7 +23,7 @@ export async function boot(): Promise<BootResult> {
   if (cached) app().set({ phase: 'app' })
 
   try {
-    await auth.init(cfg.googleClientId, cfg.googleFreeClientId ?? '')
+    await auth.init(cfg.googleClientId, cfg.googleFreeClientId ?? '', cfg.googleProClientId ?? '')
   } catch (e) {
     // Offline: Google's script cannot load. Cached browsing still works.
     console.warn('[MyMedia]', e)
@@ -69,6 +69,7 @@ export async function startSession(): Promise<void> {
       if (chosenLibrary(email)) return openLibrary(email, null)
     }
     saveDoor(email, auth.door)
+    if (auth.door === 'full') saveProject(email, auth.project)
     app().set({ door: auth.door })
     // The shared MyMedia that was open is no longer shared: the user's own is open, say why.
     if (takeLibraryLost()) app().set({ toast: { key: 'library.lost' } })

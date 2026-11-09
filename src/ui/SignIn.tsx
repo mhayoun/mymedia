@@ -3,6 +3,7 @@ import { auth } from '../auth/google'
 import { changeLanguage, LANGUAGES } from '../i18n'
 import { signOut } from '../session'
 import { useApp } from '../store'
+import { fullProjectFor } from '../models/pro'
 import { useAuthError } from './hooks'
 
 export function LanguageSwitch() {
@@ -88,7 +89,7 @@ export function FullAccess() {
           <strong>{t('door.welcome')}</strong>
         </p>
         <div className="actions">
-          <button className="btn primary" onClick={() => user && auth.upgrade(user.email)}>
+          <button className="btn primary" onClick={() => user && auth.upgrade(user.email, fullProjectFor())}>
             {t('door.continue')}
           </button>
         </div>

@@ -1157,7 +1157,12 @@
     "proNeedsFull": "Avec Pro, MyMedia vous demandera l'accès complet à votre Google Drive.",
     "featureLibraries": "Voir le MyMedia qu'une autre personne vous a partagé",
     "welcome": "Bon retour ! Votre compte est reconnu.",
-    "confirmHint": "Google vous demandera une dernière confirmation, une seule fois sur cet appareil. S'il affiche « application non validée » : Paramètres avancés, puis Accéder à MyMedia."
+    "confirmHint": "Google vous demandera une dernière confirmation, une seule fois sur cet appareil. S'il affiche « application non validée » : Paramètres avancés, puis Accéder à MyMedia.",
+    "moveTitle": "MyMedia passe à MyMedia Pro.",
+    "moveText": "Reconnectez-vous une fois par MyMedia Pro : votre bibliothèque, vos albums et vos infos restent les mêmes.",
+    "movePreparing": "Préparation : copie des infos de vos photos pour MyMedia Pro…",
+    "moveLater": "Certaines infos de photos n'ont pas encore pu être copiées : MyMedia réessaiera au prochain chargement.",
+    "moveButton": "Passer à MyMedia Pro"
   },
   "publicLib": {
     "readOnly": "Partagé par un lien · lecture seule",

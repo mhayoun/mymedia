@@ -28,7 +28,8 @@ import { ReviewView } from './ReviewView'
 import { StatsDialog } from './StatsDialog'
 import { AUTO, BLURRY, DUPLICATES, filterItems, MISFILED, PEOPLE, sortItems, TO_CLASSIFY, UNFILED, useLibrary, type Library } from './useLibrary'
 import { clearSharedFiles, hasSharedFiles, onNativeShare, readSharedFiles } from '../import/shared'
-import { loadPro } from '../models/pro'
+import { loadPro, useMoveToPro } from '../models/pro'
+import { notesAllPublic } from '../sync/publicProps'
 import { paypalReturn } from '../models/shop'
 import { FacesIntro } from './FacesIntro'
 import { HelpPanel } from './HelpPanel'
@@ -605,6 +606,7 @@ function Banners() {
           </button>
         </div>
       )}
+      <MoveToProBanner />
       {error && (
         <div className="banner" role="alert">
           <div className="grow">{t(error)}</div>
@@ -612,6 +614,46 @@ function Banners() {
             <X size={18} />
           </button>
         </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * The server moved this account from the "MyMedia" project to MyMedia Pro: once its notes are copied
+ * where MyMedia Pro reads them, one click reconnects it there (Google's window, then the app starts again).
+ */
+function MoveToProBanner() {
+  const { t } = useTranslation()
+  const move = useMoveToPro()
+  const user = useApp((s) => s.user)
+  const rootId = useApp((s) => s.rootId)
+  const [ready, setReady] = useState<boolean | null>(null)
+  useEffect(() => {
+    if (!move || !rootId) return
+    let alive = true
+    setReady(null)
+    notesAllPublic().then(
+      (ok) => alive && setReady(ok),
+      () => alive && setReady(false),
+    )
+    return () => {
+      alive = false
+    }
+  }, [move, rootId])
+  if (!move || !user) return null
+  return (
+    <div className="banner" role="status">
+      <div className="grow">
+        <strong>{t('door.moveTitle')}</strong> {ready ? t('door.moveText') : ready === null ? t('door.movePreparing') : t('door.moveLater')}
+        {ready && <div className="hint">{t('door.warning')}</div>}
+      </div>
+      {ready ? (
+        <button className="btn primary" onClick={() => auth.upgrade(user.email, 'pro')}>
+          {t('door.moveButton')}
+        </button>
+      ) : (
+        ready === null && <Loader2 size={18} className="spin" />
       )}
     </div>
   )

@@ -17,7 +17,7 @@
 //   orders/<paypal order>.json PayPal orders started, until paid
 //   sales/<seller hash>/<paypal order>.json  one per sale: price, commission, seller's share, paid out
 //   pro/<hash>.json            one per Pro account: until when, the purchases
-//   full/<hash>.json           one per account that gave the full Drive access (the Pro door)
+//   full/<hash>.json           one per account that gave the full Drive access (the Pro door), with its Google project
 //
 //   GET    /api/models                      shop
 //   POST   /api/models                      publish (body: PublishBody)
@@ -42,7 +42,13 @@ const ANDROID_CLIENT_IDS = process.env.GOOGLE_ANDROID_CLIENT_ID ?? '246067015646
 // MyMedia has two doors (two Google projects): the full Drive access (CLIENT_ID and Android, 100 accounts
 // until Google's review) and MyMedia Free (only the files MyMedia made, no limit).
 const FREE_CLIENT_ID = process.env.GOOGLE_FREE_CLIENT_ID ?? '94880969749-8nu1dudc5hufa138k1hhviakr2fv0emb.apps.googleusercontent.com'
-const FULL_CLIENT_IDS = [CLIENT_ID, ...ANDROID_CLIENT_IDS.split(',').map((s) => s.trim())].filter(Boolean)
+// MyMedia Pro: a third Google project with the full Drive access, for the accounts that move from Free to Pro
+// (a fresh 100 accounts until Google's review). Unset: everybody keeps the "MyMedia" project, as before.
+const PRO_CLIENT_ID = (process.env.GOOGLE_PRO_CLIENT_ID ?? '').trim()
+const MYMEDIA_CLIENT_IDS = [CLIENT_ID, ...ANDROID_CLIENT_IDS.split(',').map((s) => s.trim())].filter(Boolean)
+const FULL_CLIENT_IDS = [...MYMEDIA_CLIENT_IDS, PRO_CLIENT_ID].filter(Boolean)
+/** Accounts sent from the "MyMedia" project to MyMedia Pro (they reconnect once; never back). */
+const MOVE_TO_PRO = (process.env.MYMEDIA_MOVE_TO_PRO ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean)
 const CLIENT_IDS = [...FULL_CLIENT_IDS, FREE_CLIENT_ID].filter(Boolean)
 const FULL_SCOPE = 'https://www.googleapis.com/auth/drive'
 /**
@@ -191,10 +197,15 @@ const json = (body: unknown, status = 200) =>
 
 // ---- Who is asking -----------------------------------------------------------
 
+/** The Google project that gives the full Drive access: the first one ("MyMedia") or MyMedia Pro. */
+type FullProject = 'mymedia' | 'pro'
+
 interface Caller {
   email: string
   /** The token came through the full door with the whole Drive. */
   fullToken: boolean
+  /** The Google project of a full token. */
+  project: FullProject | null
   until: number
 }
 
@@ -216,13 +227,14 @@ async function caller(req: Request): Promise<Caller> {
   const t = (await info.json()) as { aud?: string; azp?: string; expires_in?: string; scope?: string }
   if (!CLIENT_IDS.includes(t.aud ?? '') && !CLIENT_IDS.includes(t.azp ?? '')) throw new HttpError(401, 'token of another app')
   const fullToken = (FULL_CLIENT_IDS.includes(t.aud ?? '') || FULL_CLIENT_IDS.includes(t.azp ?? '')) && (t.scope ?? '').split(' ').includes(FULL_SCOPE)
+  const project: FullProject | null = !fullToken ? null : PRO_CLIENT_ID && (t.aud === PRO_CLIENT_ID || t.azp === PRO_CLIENT_ID) ? 'pro' : 'mymedia'
   const about = await fetch('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)', {
     headers: { Authorization: `Bearer ${token}` },
   })
   if (!about.ok) throw new HttpError(401, 'account unknown')
   const email = ((await about.json()) as { user?: { emailAddress?: string } }).user?.emailAddress?.toLowerCase()
   if (!email) throw new HttpError(401, 'account unknown')
-  const c = { email, fullToken, until: Date.now() + Math.min(Number(t.expires_in ?? 600), 600) * 1000 }
+  const c = { email, fullToken, project, until: Date.now() + Math.min(Number(t.expires_in ?? 600), 600) * 1000 }
   // Tokens past their time are forgotten (the function's memory stays small).
   for (const [k, v] of known) if (v.until <= Date.now()) known.delete(k)
   known.set(token, c)
@@ -608,23 +620,39 @@ function proStatus(r: ProRecord | null, offered = false) {
 
 const fullPath = (email: string) => `full/${hashOf(email)}.json`
 
+interface FullRecord {
+  since: string
+  /** Missing in records written before MyMedia Pro existed: the "MyMedia" project. */
+  project?: FullProject
+}
+
 /**
- * Whether the account uses the full door. Once it has, never the free one again: its library may hold files
- * the free door does not see. The first full token of an account is written down.
+ * Whether the account uses the full door, and through which Google project. Once it has, never the free
+ * door again: its library may hold files the free door does not see. The first full token of an account
+ * is written down; a first token of MyMedia Pro too (a move from "MyMedia" is never undone).
+ *
+ * The project: "MyMedia" for the accounts that already used it (testers, older records), MyMedia Pro for
+ * the others and for those in MYMEDIA_MOVE_TO_PRO; "MyMedia" for all while GOOGLE_PRO_CLIENT_ID is unset.
  */
-async function usesFullDoor(c: Caller): Promise<boolean> {
-  if (FULL_BEFORE_FREE.has(hashOf(c.email))) return true
-  if (await readJson<{ since: string }>(fullPath(c.email))) return true
-  if (!c.fullToken) return false
-  await writeJson(fullPath(c.email), { since: new Date().toISOString() })
-  return true
+async function fullDoor(c: Caller): Promise<{ full: boolean; fullProject: FullProject }> {
+  let rec = await readJson<FullRecord>(fullPath(c.email))
+  if (c.fullToken && (!rec || (c.project === 'pro' && rec.project !== 'pro'))) {
+    rec = { since: rec?.since ?? new Date().toISOString(), project: c.project ?? 'mymedia' }
+    await writeJson(fullPath(c.email), rec)
+  }
+  const full = !!rec || FULL_BEFORE_FREE.has(hashOf(c.email))
+  let fullProject: FullProject = 'pro'
+  if (!PRO_CLIENT_ID) fullProject = 'mymedia'
+  else if (rec?.project === 'pro' || MOVE_TO_PRO.includes(c.email)) fullProject = 'pro'
+  else if (full) fullProject = 'mymedia'
+  return { full, fullProject }
 }
 
 async function pro(req: Request) {
   const c = await caller(req)
   const email = c.email
-  const [r, full] = await Promise.all([readJson<ProRecord>(proPath(email)), usesFullDoor(c)])
-  return json({ ...proStatus(r, PRO_ACCOUNTS.includes(email)), full })
+  const [r, door] = await Promise.all([readJson<ProRecord>(proPath(email)), fullDoor(c)])
+  return json({ ...proStatus(r, PRO_ACCOUNTS.includes(email)), ...door })
 }
 
 async function givePro(email: string, plan: ProPlan, order: string) {

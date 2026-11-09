@@ -1159,7 +1159,12 @@
     "proNeedsFull": "With Pro, MyMedia will ask for full access to your Google Drive.",
     "featureLibraries": "Viewing a MyMedia someone shared with you",
     "welcome": "Welcome back! Your account is recognized.",
-    "confirmHint": "Google will ask you for one last confirmation, only once on this device. If it shows “unverified app”: Advanced, then Go to MyMedia."
+    "confirmHint": "Google will ask you for one last confirmation, only once on this device. If it shows “unverified app”: Advanced, then Go to MyMedia.",
+    "moveTitle": "MyMedia is moving to MyMedia Pro.",
+    "moveText": "Reconnect once through MyMedia Pro: your library, albums and photo details stay the same.",
+    "movePreparing": "Getting ready: copying your photos' details for MyMedia Pro…",
+    "moveLater": "Some photo details could not be copied yet: MyMedia will try again at the next load.",
+    "moveButton": "Move to MyMedia Pro"
   },
   "publicLib": {
     "readOnly": "Shared by a link · view only",

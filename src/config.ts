@@ -6,6 +6,11 @@ export interface AppConfig {
   googleClientId: string
   /** MyMedia Free: only the files MyMedia makes (Google project "MyMedia Free"). Empty: one door only. */
   googleFreeClientId?: string
+  /**
+   * MyMedia Pro: the whole Drive too, through a third Google project (a fresh 100 accounts), for the
+   * accounts that move from Free to Pro. Empty: the full door is always the "MyMedia" project.
+   */
+  googleProClientId?: string
   /** MyMedia Free's API key: libraries shared by a link are read with it, without signing in. */
   googleApiKey?: string
 }
