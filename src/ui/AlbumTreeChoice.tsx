@@ -85,6 +85,9 @@ export function AlbumTreeChoice({ categories, label, onChoose, disabled, exclude
               categories={shown}
               value={null}
               disabledId={exclude}
+              // A search shows what it found with its parents, all open.
+              expandAll={!!q}
+              key={q ? 'search' : 'tree'}
               onChange={(f) => {
                 close()
                 onChoose(f)
