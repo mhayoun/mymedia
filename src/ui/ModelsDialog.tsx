@@ -58,6 +58,7 @@ export function ModelsDialog({ view, onClose }: { view: 'use' | 'publish'; onClo
   const [seller, setSeller] = useState(user?.name ?? '')
   const [paypal, setPaypal] = useState(user?.email ?? '')
   const [price, setPrice] = useState('0')
+  const [ownWork, setOwnWork] = useState(false)
   const [currency, setCurrency] = useState('ILS')
 
   const money = (amount: number, cur: string) =>
@@ -340,16 +341,23 @@ export function ModelsDialog({ view, onClose }: { view: 'use' | 'publish'; onClo
               <p className="ok-text">{t('models.youGet', { share: money(share, currency), price: money(priceValue, currency), fee })}</p>
             )}
             <p className="hint">{t(paymentsLive ? 'models.priceHintLive' : 'models.priceHint', { fee })}</p>
+            <label className="radio-row">
+              <input type="checkbox" checked={ownWork} disabled={!!busy} onChange={(e) => setOwnWork(e.target.checked)} />
+              <span>{t('models.ownWork')}</span>
+            </label>
             <button
               className="btn primary"
-              disabled={!!busy || !canPublish}
+              disabled={!!busy || !canPublish || !ownWork}
               onClick={() =>
                 act('publish', async () => {
                   const built = await buildModel(categoryId)
-                  const { photos: _, left, ...data } = built
+                  const { photos: _, left, bought, ...data } = built
                   const m = await publishModel({ ...data, name: name.trim(), description: description.trim(), seller: seller.trim(), paypal: priceValue > 0 ? paypal.trim() : '', price: priceValue, currency })
                   const msg = t('models.published', { name: m.name, albums: m.albums, count: m.examples })
-                  return left.length ? `${msg} ${t('models.leftOut', { count: left.length, names: left.join(', ') })}` : msg
+                  const notes = [msg]
+                  if (left.length) notes.push(t('models.leftOut', { count: left.length, names: left.join(', ') }))
+                  if (bought) notes.push(t('models.boughtLeftOut', { count: bought }))
+                  return notes.join(' ')
                 })
               }
             >

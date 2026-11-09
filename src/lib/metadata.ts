@@ -22,6 +22,14 @@ export interface Suggestion {
   /** Destination folder (album, or category for media at the root). */
   folderId: string
   confidence: number
+  /** The bought model this album comes from (see MediaMeta.viaModel). */
+  model?: string
+}
+
+/** Where a bought model put a media. */
+export interface ModelPlacement {
+  model: string
+  folderId: string
 }
 
 export interface MediaMeta {
@@ -49,6 +57,12 @@ export interface MediaMeta {
   suggestions?: Suggestion[]
   /** Moved automatically by the learned model, not yet reviewed. */
   auto?: boolean
+  /**
+   * Put in this album by a bought model (automatic move, suggestion accepted, or the very file of
+   * one of its examples). While it stays there it is the seller's sorting, not this account's:
+   * it is never published in this account's own models (a bought model cannot be resold).
+   */
+  viaModel?: ModelPlacement | null
   /** The user said this media stays where it is (no more suggestions). */
   keepHere?: boolean
   /** Names of the people recognised in the media (faces) and added by hand. */
@@ -75,7 +89,7 @@ export const META_FILE_NAME = 'mymedia.json'
  * without one of them (a device that only had a blank copy) does not erase it: removing
  * one on purpose writes null.
  */
-const KEPT = ['description', 'group', 'imported', 'species', 'people', 'peopleManual', 'compression'] as const
+const KEPT = ['description', 'group', 'imported', 'species', 'people', 'peopleManual', 'compression', 'viaModel'] as const
 const TOMBSTONE_TTL_MS = 90 * 24 * 3600 * 1000
 
 export function emptyMetaFile(): MetaFile {

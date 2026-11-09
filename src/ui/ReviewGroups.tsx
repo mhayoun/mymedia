@@ -174,6 +174,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                   aria-label={t('select.newAlbum')}
                 >
                   <FolderPlus size={16} />
+                  {t('classify.groupNew')}
                 </button>
                 <button
                   className="btn ghost"

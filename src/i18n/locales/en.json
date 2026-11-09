@@ -258,7 +258,8 @@
     "groupMove_other": "Move {{count}} to “{{name}}”",
     "groupCorrect_one": "Correct ({{count}})",
     "groupCorrect_other": "Correct ({{count}})",
-    "groupOther": "Other album for the selection…",
+    "groupOther": "Other album",
+    "groupNew": "New",
     "zoom": "Enlarge",
     "groupWaiting": "Waiting for analysis",
     "waitingAnalysis": "Waiting for analysis: the suggestion will come once this photo is analysed.",
@@ -793,6 +794,7 @@
     "published": "“{{name}}” is in the shop: {{albums}} albums, {{count}} examples.",
     "error": {
       "tooFew": "This category does not have enough sorted photos: at least 2 albums with analysed photos are needed.",
+      "bought": "The photos of this category were sorted by a bought model: they cannot be published. Only the photos you sort yourself count (moving one by hand to another album, or confirming albums you made yourself).",
       "otherModel": "This model was made with another version of MyMedia: it cannot be used.",
       "noRoot": "The MyMedia folder is not ready yet.",
       "signIn": "Sign in to Google again, then retry.",
@@ -804,6 +806,9 @@
     "isMine": "Published by me",
     "leftOut_one": "Album left out (no analysed and checked photo): {{names}}.",
     "leftOut_other": "{{count}} albums left out (no analysed and checked photo): {{names}}.",
+    "boughtLeftOut_one": "{{count}} photo sorted by a bought model was not published (only your own sorting counts).",
+    "boughtLeftOut_other": "{{count}} photos sorted by a bought model were not published (only your own sorting counts).",
+    "ownWork": "I certify that this model comes from my own sorting. Reselling a bought model, or a model built with it, is forbidden: photos sorted by a bought model are never published.",
     "step": {
       "download": "Downloading the model…",
       "save": "Saving to your Drive…",

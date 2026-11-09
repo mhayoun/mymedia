@@ -31,8 +31,11 @@ async function calibrationFor(set: PackedSet): Promise<Calibration> {
   return cal
 }
 
-/** Moves a media to another folder in Drive and records how it was classified. */
-export async function moveMedia(rec: MediaRecord, to: string, patch: Partial<MediaMeta>): Promise<void> {
+/**
+ * Moves a media to another folder in Drive and records how it was classified.
+ * `model`: the bought model that chose this album (recorded in viaModel, so it is not resold).
+ */
+export async function moveMedia(rec: MediaRecord, to: string, patch: Partial<MediaMeta>, model?: string): Promise<void> {
   const rootId = app().rootId!
   // An album of a model not created yet: created now, for its first photo.
   const toFolderId = await ensureAlbum(to)
@@ -53,6 +56,7 @@ export async function moveMedia(rec: MediaRecord, to: string, patch: Partial<Med
       novel: undefined,
       keepHere: undefined,
       ...patch,
+      ...(model ? { viaModel: { model, folderId: toFolderId } } : {}),
       updatedAt: Date.now(),
     })
   }
@@ -87,7 +91,7 @@ async function run(): Promise<void> {
     const known = fileHashes(rec).map((h) => refs?.files.get(h)).find((f): f is string => !!f)
     const allowed = known ? allowedFor(rec, data) : null
     if (known && !data.meta.get(rec.id)?.keepHere && (!allowed || allowed.includes(known))) {
-      await moveMedia(rec, known, { source: 'model', confidence: 1, auto: true })
+      await moveMedia(rec, known, { source: 'model', confidence: 1, auto: true }, refs?.albumModel.get(known))
       continue
     }
     const text = meaningfulName(rec.name)
@@ -133,10 +137,13 @@ async function run(): Promise<void> {
       // The same photo as an example: sure, even for an album with only one or two examples.
       const samePhoto = (top.closest ?? 0) >= SAME_PHOTO
       if (!novel && settings.classifyAuto && top.confidence >= settings.thresholdHigh && (examples >= 3 || samePhoto)) {
-        await moveMedia(rec, top.label, { source: 'model', confidence: top.confidence, auto: true })
+        await moveMedia(rec, top.label, { source: 'model', confidence: top.confidence, auto: true }, refs?.albumModel.get(top.label))
         continue
       }
-      const suggestions = preds[i].map((p) => ({ folderId: p.label, confidence: Math.round(p.confidence * 1000) / 1000 }))
+      const suggestions = preds[i].map((p) => {
+        const model = refs?.albumModel.get(p.label)
+        return { folderId: p.label, confidence: Math.round(p.confidence * 1000) / 1000, ...(model ? { model } : {}) }
+      })
       const toCheck = novel || top.confidence < settings.thresholdMedium
       const meta = data.meta.get(rec.id)
       if (meta && (!sameSuggestions(meta.suggestions, suggestions) || !!meta.toCheck !== toCheck || !!meta.novel !== novel)) {
@@ -171,11 +178,16 @@ export async function chooseFolder(id: string, folderId: string): Promise<void> 
   const meta = await db().meta.get(id)
   const top = meta?.suggestions?.[0]
   const fromModel = top?.folderId === folderId
-  await moveMedia(await record(id), folderId, {
-    source: fromModel ? 'model' : 'manual',
-    confidence: fromModel ? top!.confidence : null,
-    auto: false,
-  })
+  await moveMedia(
+    await record(id),
+    folderId,
+    {
+      source: fromModel ? 'model' : 'manual',
+      confidence: fromModel ? top!.confidence : null,
+      auto: false,
+    },
+    fromModel ? top!.model : undefined,
+  )
 }
 
 /** The media stays where it is: no more suggestions for it. */

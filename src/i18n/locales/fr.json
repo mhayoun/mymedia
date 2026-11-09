@@ -256,7 +256,8 @@
     "groupMove_other": "Transférer {{count}} vers « {{name}} »",
     "groupCorrect_one": "Correct ({{count}})",
     "groupCorrect_other": "Correct ({{count}})",
-    "groupOther": "Autre album pour la sélection…",
+    "groupOther": "Autre album",
+    "groupNew": "Nouveau",
     "zoom": "Agrandir",
     "groupWaiting": "En attente d'analyse",
     "waitingAnalysis": "En attente d'analyse : la suggestion viendra quand cette photo sera analysée.",
@@ -791,6 +792,7 @@
     "published": "« {{name}} » est dans la boutique : {{albums}} albums, {{count}} exemples.",
     "error": {
       "tooFew": "Cette catégorie n'a pas assez de photos rangées : il faut au moins 2 albums avec des photos analysées.",
+      "bought": "Les photos de cette catégorie ont été rangées par un modèle acheté : elles ne peuvent pas être publiées. Seules les photos que vous rangez vous-même comptent.",
       "otherModel": "Ce modèle a été fait avec une autre version de MyMedia : il ne peut pas être utilisé.",
       "noRoot": "Le dossier MyMedia n'est pas encore prêt.",
       "signIn": "Reconnectez-vous à Google, puis réessayez.",
@@ -802,6 +804,9 @@
     "isMine": "Publié par moi",
     "leftOut_one": "Album non inclus (aucune photo analysée et vérifiée) : {{names}}.",
     "leftOut_other": "{{count}} albums non inclus (aucune photo analysée et vérifiée) : {{names}}.",
+    "boughtLeftOut_one": "{{count}} photo rangée par un modèle acheté n'a pas été publiée (seul votre propre classement compte).",
+    "boughtLeftOut_other": "{{count}} photos rangées par un modèle acheté n'ont pas été publiées (seul votre propre classement compte).",
+    "ownWork": "Je certifie que ce modèle vient de mon propre classement. Revendre un modèle acheté, ou un modèle construit avec lui, est interdit : les photos rangées par un modèle acheté ne sont jamais publiées.",
     "step": {
       "download": "Téléchargement du modèle…",
       "save": "Enregistrement dans votre Drive…",

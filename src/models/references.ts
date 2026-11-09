@@ -46,7 +46,7 @@ export interface InstalledModel {
 }
 
 export class ModelError extends Error {
-  code: 'otherModel' | 'tooFew' | 'noRoot'
+  code: 'otherModel' | 'tooFew' | 'noRoot' | 'bought'
   constructor(code: ModelError['code']) {
     super(code)
     this.code = code
@@ -100,19 +100,27 @@ export function albumCap(sizes: number[], max = MAX_EXAMPLES): number {
 }
 
 /** The examples of a category (its albums' sorted photos), ready to publish. */
-export async function buildModel(categoryId: string): Promise<Pick<PublishInput, keyof ModelData | 'category'> & { photos: number; left: string[] }> {
+export async function buildModel(
+  categoryId: string,
+): Promise<Pick<PublishInput, keyof ModelData | 'category'> & { photos: number; left: string[]; bought: number }> {
   const rootId = app().rootId
   if (!rootId) throw new ModelError('noRoot')
   const data = await loadData(rootId)
   const { set } = labeledSet(data)
   const byAlbum = new Map<string, number[]>()
+  // Sorted by a bought model and still where it put them: the seller's work, never resold.
+  let bought = 0
   set.labels.forEach((folderId, i) => {
     if (folderId === categoryId) return
     const chain = folderChain(folderId, data.folders, rootId)
     if (!chain?.some((f) => f.id === categoryId)) return
+    if (data.meta.get(set.ids[i])?.viaModel?.folderId === folderId) {
+      bought++
+      return
+    }
     byAlbum.set(folderId, [...(byAlbum.get(folderId) ?? []), i])
   })
-  if (byAlbum.size < 2) throw new ModelError('tooFew')
+  if (byAlbum.size < 2) throw new ModelError(bought ? 'bought' : 'tooFew')
   const total = [...byAlbum.values()].reduce((n, l) => n + l.length, 0)
   const cap = albumCap([...byAlbum.values()].map((l) => l.length))
   const albums: string[] = []
@@ -142,6 +150,7 @@ export async function buildModel(categoryId: string): Promise<Pick<PublishInput,
     vecs: toBase64(vecs),
     hashes,
     photos: total,
+    bought,
     // Albums without any example: empty, not analysed yet, or only automatic moves not checked yet.
     left: albumsUnder(categoryId, data)
       .filter((f) => !byAlbum.has(f.id) && !albumsUnder(f.id, data).length)
@@ -268,13 +277,29 @@ export async function modelAlbumsToCreate(folders: ReadonlyMap<string, FolderNod
 /** The examples the installed models add to this account's own, and their albums not created yet. */
 export async function referenceExamples(
   data: ClassifyData,
-): Promise<{ ids: string[]; labels: string[]; vecs: Int8Array[]; pending: Map<string, string[]>; files: Map<string, string> }> {
-  const out = { ids: [] as string[], labels: [] as string[], vecs: [] as Int8Array[], pending: new Map<string, string[]>(), files: new Map<string, string>() }
+): Promise<{
+  ids: string[]
+  labels: string[]
+  vecs: Int8Array[]
+  pending: Map<string, string[]>
+  files: Map<string, string>
+  /** Album (folder id, or pending album id) → the bought model it comes from. */
+  albumModel: Map<string, string>
+}> {
+  const out = {
+    ids: [] as string[],
+    labels: [] as string[],
+    vecs: [] as Int8Array[],
+    pending: new Map<string, string[]>(),
+    files: new Map<string, string>(),
+    albumModel: new Map<string, string>(),
+  }
   const twice = new Set<string>()
   for (const m of await installedModels()) {
     if (m.model !== MODEL_ID || m.dim !== EMBED_DIM || !(await licensed(m))) continue
     const categoryId = categoryOf(m, data.folders, data.rootId)
     const folders = m.albums.map((_, k) => albumFolder(m, k, data, categoryId))
+    for (const f of folders) if (f && !out.albumModel.has(f)) out.albumModel.set(f, m.id)
     for (const f of folders) {
       if (!f || !categoryId || !parsePendingAlbum(f)) continue
       const list = out.pending.get(categoryId) ?? []
