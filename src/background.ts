@@ -29,7 +29,13 @@ export function afterSync(): Promise<void> {
   sendMoves()
   // The files' notes as public properties too (once, then what older versions wrote): beside the rest.
   void copyNotesToPublic()
-  running ??= (async () => {
+  // Still busy with an earlier load (the thumbnail packs can take long): what this load brought
+  // (e.g. the photos of an import) is analysed now instead of waiting for the next load.
+  if (running) {
+    void startIndexer()
+    return running
+  }
+  running = (async () => {
     // The thumbnail packs made by other devices, then those to make or bring up to date.
     await preparePacks()
     try {

@@ -87,6 +87,8 @@
     "exists": "A folder with this name already exists here."
   },
   "gallery": {
+    "hideTools": "Fold the tools (view, sort, search)",
+    "showTools": "Show the tools (view, sort, search)",
     "loadNew": "Load new files",
     "viewGrid": "No grouping",
     "viewAlbums": "By album",

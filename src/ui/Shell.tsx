@@ -1,4 +1,4 @@
-import { Brain, Check, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, Link2, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Settings as SettingsIcon, Store, Trash2, UserPlus, UserRound, X } from 'lucide-react'
+import { Brain, Check, ChevronDown, ChevronUp, CircleHelp, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, Link2, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Settings as SettingsIcon, Store, Trash2, UserPlus, UserRound, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -70,6 +70,7 @@ export function Shell() {
   const filters = useApp((s) => s.filters)
   const sort = useApp((s) => s.settings.sort)
   const sidebarHidden = useApp((s) => !!s.settings.sidebarHidden)
+  const controlsHidden = useApp((s) => !!s.settings.controlsHidden)
   const savedSidebarWidth = useApp((s) => s.settings.sidebarWidth)
   // While dragging, before it is saved.
   const [dragWidth, setDragWidth] = useState<number | null>(null)
@@ -196,7 +197,7 @@ export function Shell() {
             onDialog={setDialog}
             actions={filters.categoryId === MISFILED ? addCompress : undefined}
           />
-          {!noSearch && <FilterBar people={people} lib={lib} actions={addCompress} />}
+          {!noSearch && !controlsHidden && <FilterBar people={people} lib={lib} actions={addCompress} />}
           </div>
           {filters.categoryId === PEOPLE ? (
             <PeopleView people={people} />
@@ -640,6 +641,8 @@ function Toolbar({ lib, people, count, size, onDialog, actions }: ToolbarProps) 
   const settings = useApp((s) => s.settings)
   const updateSettings = useApp((s) => s.updateSettings)
   const readOnly = useApp((s) => s.readOnly)
+  const hidden = !!settings.controlsHidden
+  const toggle = () => updateSettings({ controlsHidden: !hidden })
 
   const special =
     filters.categoryId === UNFILED || filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO || filters.categoryId === PEOPLE || filters.categoryId === MISFILED || filters.categoryId === DUPLICATES || filters.categoryId === BLURRY || !!filters.personId || !!filters.provenance
@@ -695,6 +698,22 @@ function Toolbar({ lib, people, count, size, onDialog, actions }: ToolbarProps) 
   }
 
   const showTitle = special || !!folder
+  // Folded (more room for the photos while sorting): only the title, the count and the button to open it again.
+  if (hidden)
+    return (
+      <div className="toolbar folded">
+        <h1>
+          <bdi>{title}</bdi>
+          <span className="count">{t('gallery.count', { count })}</span>
+          {/* A search still applies while folded: shown, so the missing photos are not a surprise. */}
+          {filters.query && <span className="count"><bdi>🔍 {filters.query}</bdi></span>}
+        </h1>
+        <span className="grow" />
+        <button className="icon-btn small" onClick={toggle} aria-label={t('gallery.showTools')} title={t('gallery.showTools')}>
+          <ChevronDown size={20} />
+        </button>
+      </div>
+    )
   return (
     <div className="toolbar">
       {showTitle && (
@@ -790,6 +809,9 @@ function Toolbar({ lib, people, count, size, onDialog, actions }: ToolbarProps) 
       </button>
       <span className="grow" />
       {actions}
+      <button className="icon-btn small" onClick={toggle} aria-label={t('gallery.hideTools')} title={t('gallery.hideTools')}>
+        <ChevronUp size={20} />
+      </button>
       </div>
     </div>
   )

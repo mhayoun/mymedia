@@ -86,6 +86,8 @@
     "exists": "Un dossier portant ce nom existe déjà ici."
   },
   "gallery": {
+    "hideTools": "Replier les outils (affichage, tri, recherche)",
+    "showTools": "Afficher les outils (affichage, tri, recherche)",
     "loadNew": "Charger les nouveaux fichiers",
     "viewGrid": "Sans regroupement",
     "viewAlbums": "Par album",

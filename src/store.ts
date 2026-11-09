@@ -29,6 +29,8 @@ export interface Settings {
   facesEnabled: boolean
   /** Computer: the side menu (categories and albums) is closed; the ☰ button opens it again. */
   sidebarHidden?: boolean
+  /** The title, view, sort and search lines are folded into one thin line (more room while sorting). */
+  controlsHidden?: boolean
   /** Computer: width of the side menu in pixels, set by dragging its edge. */
   sidebarWidth?: number
   /** Thumbnail packs used on this device (off: one by one, as before them). */

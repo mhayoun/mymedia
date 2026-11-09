@@ -4,7 +4,7 @@
 import { classifyPending } from '../classify/engine'
 import { addFaces } from '../faces/engine'
 import { pullFaces, saveFaces } from '../faces/store'
-import { inReservedFolder, loadData } from '../classify/data'
+import { inReservedFolder, isCandidate, loadData } from '../classify/data'
 import { db, type MediaRecord } from '../db/db'
 import { app, withStep } from '../store'
 import { afterScreenThumbs, driveThumbnail, isPhone, localPhotoPreview, previewsUnreadable } from '../sync/thumbs'
@@ -19,6 +19,8 @@ const SAVE_EVERY = 200
 const CLASSIFY_EVERY = 100
 
 let running: Promise<void> | null = null
+/** Asked again while running (e.g. an import ended): its list was made before, so run once more. */
+let again = false
 let abort: AbortController | null = null
 
 async function imagesFor(rec: MediaRecord, size: number): Promise<Blob[]> {
@@ -51,6 +53,10 @@ async function run(signal: AbortSignal) {
     .filter((m) => !inReservedFolder(m.folderId, data))
     .filter((m) => needsVec(m) || needsFaces(m))
     .sort((a, b) => (a.takenAt < b.takenAt ? 1 : -1))
+  // The photos waiting to be classified first (e.g. old photos just imported), then the rest newest first.
+  const toClassify = new Set(todo.filter((m) => needsVec(m) && isCandidate(m, data)).map((m) => m.id))
+  todo.sort((a, b) => Number(toClassify.has(b.id)) - Number(toClassify.has(a.id)))
+  let candidatesLeft = toClassify.size
   if (!todo.length) {
     if (rebuilding) await finishRebuild()
     await classifyPending()
@@ -85,7 +91,9 @@ async function run(signal: AbortSignal) {
     }
     done++
     app().set({ indexing: { done, total: todo.length } })
-    if (done % CLASSIFY_EVERY === 0) await classifyPending()
+    // Sorted as soon as the photos to classify are all analysed, not only every 100.
+    if (toClassify.has(rec.id) && --candidatesLeft === 0 && done < todo.length) await classifyPending()
+    else if (done % CLASSIFY_EVERY === 0) await classifyPending()
     if (done % SAVE_EVERY === 0 && !rebuilding) await saveIndex().catch((e) => console.warn('[MyMedia] index save failed', e))
   }
   if (rebuilding) {
@@ -102,9 +110,18 @@ async function finishRebuild() {
 
 /** Starts (or joins) the background learning. */
 export function startIndexer(): Promise<void> {
-  if (running) return running
+  if (running) {
+    again = true
+    return running
+  }
   abort = new AbortController()
-  running = run(abort.signal)
+  const signal = abort.signal
+  running = (async () => {
+    do {
+      again = false
+      await run(signal)
+    } while (again && !signal.aborted)
+  })()
     .catch((e) => console.error('[MyMedia] learning failed', e))
     .finally(() => {
       app().set({ indexing: null })
