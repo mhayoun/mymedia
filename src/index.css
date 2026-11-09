@@ -533,10 +533,15 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .cell:has(.zoom-btn) .badge.size { inset-inline-start: 40px; }
 @media (max-width: 800px) {
   .review-group-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
-  /* Phone: the group's buttons on one line, the secondary ones as icons only (their name in the tooltip). */
-  .review-group-head .row { flex: 1 1 100%; flex-wrap: nowrap; gap: 4px; }
-  .review-group-head .row .btn { flex: 0 0 auto; padding-inline: 10px; }
-  .review-group-head .row .btn.primary { flex: 0 1 auto; min-width: 0; }
+  /* Phone: the group's name, its count and its buttons on one line (a long name is cut with "…"),
+     the secondary buttons as icons only (their name in the tooltip); the progress line goes below. */
+  .review-group-head { gap: 6px; }
+  .review-group-head .check-row { flex: 1 1 0; gap: 6px; }
+  .review-group-head > .hint { flex: 1 1 100%; }
+  .review-group-head .check-row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .review-group-head .row { flex: 0 1 auto; min-width: 0; flex-wrap: nowrap; gap: 4px; }
+  .review-group-head .row .btn { flex: 0 0 auto; padding-inline: 8px; }
+  .review-group-head .row .btn.primary { flex: 0 1 auto; min-width: 0; max-inline-size: 38vw; }
   .review-group-head .row .btn-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
   .review-group-head .row .btn-label { display: none; }
 }
