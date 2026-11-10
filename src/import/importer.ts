@@ -4,6 +4,7 @@
 // Files are compressed before upload, and duplicates (same content as a file
 // already in Drive) are detected by MD5.
 
+import { albumPath } from '../lib/cameraFolders'
 import SparkMD5 from 'spark-md5'
 import { canCompressVideo, compressPhoto, compressVideo, localVideoDuration } from '../compress/media'
 import { db, type MediaRecord } from '../db/db'
@@ -101,7 +102,8 @@ export async function analyze(files: File[], onProgress: (done: number) => void)
     const mimeType = mimeOf(file)
     const type = mediaTypeOf(mimeType, file.name)!
     const path = (file as File & { webkitRelativePath?: string }).webkitRelativePath ?? ''
-    const relDir = path ? path.split('/').slice(0, -1) : []
+    // Camera folders (DCIM, 873NIKON, 876___10…) are left out: their photos go into the album above.
+    const relDir = path ? albumPath(path.split('/').slice(0, -1)) : []
     let taken: string | null = null
     let dateSource: DateSource = 'file'
     let width: number | undefined

@@ -31,7 +31,9 @@ export function ReviewView({ lib, items, mode }: Props) {
   const rootId = useApp((s) => s.rootId)!
   const medium = useApp((s) => s.settings.thresholdMedium)
   const viewerId = useApp((s) => s.viewerId)
-  const grouped = useApp((s) => s.settings.view === 'albums')
+  const view = useApp((s) => s.settings.view)
+  // Grouped by album, or by day (the photos of one day, e.g. one event, sorted at once).
+  const grouped = view === 'albums' || view === 'days'
   const analysed = useAnalysed()
   const set = useApp((s) => s.set)
   const [shown, setShown] = useState(PAGE)
@@ -121,7 +123,7 @@ export function ReviewView({ lib, items, mode }: Props) {
       </div>
 
       {grouped ? (
-        <ReviewGroups lib={lib} items={items} mode={mode} />
+        <ReviewGroups lib={lib} items={items} mode={mode} by={view === 'days' ? 'day' : 'album'} key={view} />
       ) : (
       <>
       <div className="review-grid">

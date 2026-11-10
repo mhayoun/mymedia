@@ -4,6 +4,7 @@
 
 import { db } from '../db/db'
 import { childrenQuery, copyFile, ensureFolderPath, FILE_FIELDS, listFiles, type DriveFile } from '../drive/api'
+import { albumPath } from '../lib/cameraFolders'
 import { dateFromFileName, detectOrigin, DOC_EXT_MIME, FOLDER_MIME, localIso, parseExifDate } from '../lib/media'
 import { syncNow, toRecord } from '../sync/engine'
 import { markMetaDirty } from '../sync/metaStore'
@@ -51,8 +52,10 @@ export function topShared(files: DriveFile[]): DriveFile[] {
 
 export interface DriveEntry {
   file: DriveFile
-  /** Folders between the chosen folder (included) and the file. */
+  /** The albums the folders between the chosen folder (included) and the file give (camera folders left out). */
   relDir: string[]
+  /** Those folders as they are in Drive (where the file came from). */
+  path: string[]
 }
 
 /** The photos and videos of the chosen files and folders (sub-folders included). */
@@ -60,7 +63,7 @@ export async function collect(chosen: DriveFile[], onCount: (n: number) => void)
   const out: DriveEntry[] = []
   const walk = async (f: DriveFile, dir: string[]) => {
     if (!isFolder(f)) {
-      out.push({ file: f, relDir: dir })
+      out.push({ file: f, relDir: albumPath(dir), path: dir })
       onCount(out.length)
       return
     }
@@ -115,7 +118,7 @@ export async function importFromDrive(
   let next = 0
   const worker = async () => {
     while (next < entries.length && !signal.aborted) {
-      const { file, relDir } = entries[next++]
+      const { file, relDir, path } = entries[next++]
       try {
         const takenAt = takenAtOf(file)
         const copy = await copyFile(
@@ -129,7 +132,7 @@ export async function importFromDrive(
         if (rec) {
           rec.takenAt = takenAt
           await d.media.put(rec)
-          const detected = detectOrigin({ name: file.name, type: rec.type, folderPath: relDir.join('/') })
+          const detected = detectOrigin({ name: file.name, type: rec.type, folderPath: path.join('/') })
           await d.meta.put({
             id: rec.id,
             name: rec.name,
@@ -137,7 +140,7 @@ export async function importFromDrive(
             takenAt,
             origin: detected === 'unknown' ? 'import' : detected,
             source: 'folder',
-            imported: { from: file.owners?.[0]?.emailAddress ?? 'Google Drive', on, ...(relDir.length ? { path: relDir.join('/') } : {}) },
+            imported: { from: file.owners?.[0]?.emailAddress ?? 'Google Drive', on, ...(path.length ? { path: path.join('/') } : {}) },
             updatedAt: Date.now(),
           })
         }

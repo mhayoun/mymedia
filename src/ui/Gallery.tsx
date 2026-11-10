@@ -11,7 +11,7 @@ import { groupByAlbum, type LibraryItem } from './useLibrary'
 import { Viewer } from './Viewer'
 
 type Row =
-  | { kind: 'header'; key: string; parts: string[]; count: number }
+  | { kind: 'header'; key: string; parts: string[]; count: number; ids: string[] }
   | { kind: 'cells'; key: string; items: LibraryItem[] }
 
 const GAP = 3
@@ -54,14 +54,14 @@ export function Gallery({ items, folderId, folders }: { items: LibraryItem[]; fo
       for (const g of groupByAlbum(items, folderId && folders && rootId ? { id: folderId, folders, rootId } : undefined, sort === 'name')) {
         // Each name is isolated so Hebrew and Latin names keep their own direction.
         const parts = [g.category, ...(g.album?.split(ALBUM_SEPARATOR) ?? [])].filter((p): p is string => !!p)
-        out.push({ kind: 'header', key: `h:${g.key}`, parts: parts.length ? parts : [t('nav.unfiled')], count: g.items.length })
+        out.push({ kind: 'header', key: `h:${g.key}`, parts: parts.length ? parts : [t('nav.unfiled')], count: g.items.length, ids: g.items.map((i) => i.rec.id) })
         chunk(g.items, g.key)
       }
-    } else if (view === 'years' || view === 'months') {
+    } else if (view === 'years' || view === 'months' || view === 'days') {
       const locale = LOCALES[i18n.language as keyof typeof LOCALES] ?? 'en-US'
       const groups = new Map<string, LibraryItem[]>()
       for (const it of items) {
-        const key = periodOf(it.rec.takenAt, view === 'years' ? 'year' : 'month') ?? ''
+        const key = periodOf(it.rec.takenAt, view === 'years' ? 'year' : view === 'months' ? 'month' : 'day') ?? ''
         const g = groups.get(key)
         if (g) g.push(it)
         else groups.set(key, [it])
@@ -70,7 +70,9 @@ export function Gallery({ items, folderId, folders }: { items: LibraryItem[]; fo
       const keys = [...groups.keys()].sort((a, b) => (!a ? 1 : !b ? -1 : sort === 'oldest' ? a.localeCompare(b) : b.localeCompare(a)))
       for (const key of keys) {
         const list = groups.get(key)!
-        out.push({ kind: 'header', key: `h:${key}`, parts: [key ? periodLabel(key, locale) : t('dates.none')], count: list.length })
+        // A day reads in the order it happened, whatever the sort.
+        if (view === 'days' && key) list.sort((a, b) => (a.rec.takenAt ?? '').localeCompare(b.rec.takenAt ?? ''))
+        out.push({ kind: 'header', key: `h:${key}`, parts: [key ? periodLabel(key, locale) : t('dates.none')], count: list.length, ids: list.map((i) => i.rec.id) })
         chunk(list, key || 'none')
       }
     } else chunk(items, 'all')
@@ -131,6 +133,19 @@ export function Gallery({ items, folderId, folders }: { items: LibraryItem[]; fo
     },
     [set, orderedIds],
   )
+  const readOnly = useApp((s) => s.readOnly)
+  /** The box of a group's title: the whole group (e.g. a day) ticked or unticked at once. */
+  const toggleGroup = useCallback(
+    (ids: string[], on: boolean) => {
+      const next = new Set(useApp.getState().selection ?? [])
+      for (const id of ids) {
+        if (on) next.add(id)
+        else next.delete(id)
+      }
+      set({ selection: next.size ? [...next] : null })
+    },
+    [set],
+  )
   const startSelection = useCallback(
     (id: string) => {
       // Read-only: nothing to do with a selection.
@@ -151,6 +166,16 @@ export function Gallery({ items, folderId, folders }: { items: LibraryItem[]; fo
             if (row.kind === 'header') {
               return (
                 <div key={v.key} className="group-header" style={{ top: v.start, height: HEADER_H }}>
+                  {!readOnly && (
+                    <input
+                      type="checkbox"
+                      className="group-check"
+                      checked={!!selected && row.ids.every((id) => selected.has(id))}
+                      onChange={(e) => toggleGroup(row.ids, e.target.checked)}
+                      aria-label={t('gallery.pickGroup', { name: row.parts.join(' / ') })}
+                      title={t('gallery.pickGroup', { name: row.parts.join(' / ') })}
+                    />
+                  )}
                   <span>
                     {row.parts.map((p, i) => (
                       <span key={i}>

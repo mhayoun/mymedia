@@ -813,6 +813,7 @@ function Toolbar({ lib, people, count, size, onDialog, actions }: ToolbarProps) 
         <option value="albums">{t('gallery.viewAlbums')}</option>
         <option value="years">{t('gallery.viewYears')}</option>
         <option value="months">{t('gallery.viewMonths')}</option>
+        <option value="days">{t('gallery.viewDays')}</option>
       </select>
       <select
         aria-label={t('gallery.sort')}

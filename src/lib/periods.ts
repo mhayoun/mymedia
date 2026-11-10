@@ -1,16 +1,18 @@
-// Years and months of the media (date taken), for the "Dates" menu and the
-// gallery grouped by year or month (pure, tested).
+// Years, months and days of the media (date taken), for the "Dates" menu and the
+// gallery grouped by year, month or day (pure, tested).
 
-/** "2024" or "2024-03"; null when the date is not readable. */
-export function periodOf(takenAt: string | undefined, by: 'year' | 'month'): string | null {
-  const m = /^(\d{4})-(\d{2})/.exec(takenAt ?? '')
+/** "2024", "2024-03" or "2024-03-17" (the day as the camera wrote it); null when the date is not readable. */
+export function periodOf(takenAt: string | undefined, by: 'year' | 'month' | 'day'): string | null {
+  const m = /^(\d{4})-(\d{2})(?:-(\d{2}))?/.exec(takenAt ?? '')
   if (!m) return null
-  return by === 'year' ? m[1] : `${m[1]}-${m[2]}`
+  if (by === 'year') return m[1]
+  if (by === 'month') return `${m[1]}-${m[2]}`
+  return m[3] ? `${m[1]}-${m[2]}-${m[3]}` : null
 }
 
-/** True when the media was taken in the period ("2024" or "2024-03"). */
+/** True when the media was taken in the period ("2024", "2024-03" or "2024-03-17"). */
 export function inPeriod(takenAt: string | undefined, period: string): boolean {
-  return periodOf(takenAt, period.length === 4 ? 'year' : 'month') === period
+  return periodOf(takenAt, period.length === 4 ? 'year' : period.length === 7 ? 'month' : 'day') === period
 }
 
 export interface YearEntry {
@@ -40,9 +42,11 @@ export function buildPeriods(dates: (string | undefined)[]): YearEntry[] {
     }))
 }
 
-/** "2024" as is; "2024-03" as "March 2024" in the language shown. */
+/** "2024" as is; "2024-03" as "March 2024"; "2024-03-17" as "Sunday 17 March 2024", in the language shown. */
 export function periodLabel(period: string, locale: string): string {
   if (period.length === 4) return period
-  const [y, m] = period.split('-').map(Number)
+  const [y, m, d] = period.split('-').map(Number)
+  if (d)
+    return new Intl.DateTimeFormat(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(Date.UTC(y, m - 1, d))
   return new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(Date.UTC(y, m - 1, 1))
 }

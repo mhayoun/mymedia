@@ -202,6 +202,7 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   padding: 0 12px 6px; font-weight: 600;
 }
 .group-header .count { color: var(--text-2); font-weight: normal; font-size: 0.85rem; }
+.group-header .group-check { inline-size: 18px; block-size: 18px; margin: 0 0 2px; cursor: pointer; flex: none; }
 .cell {
   position: relative; border: none; padding: 0; background: var(--surface-2); cursor: pointer;
   overflow: hidden; border-radius: 4px; aspect-ratio: 1;

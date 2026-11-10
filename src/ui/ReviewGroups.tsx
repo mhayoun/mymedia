@@ -2,7 +2,9 @@ import { Check, FolderPlus, Loader2, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { chooseFolder, confirmAuto } from '../classify/engine'
+import { LOCALES } from '../i18n'
 import { useFormat } from '../i18n/format'
+import { periodLabel, periodOf } from '../lib/periods'
 import { placementOf } from '../lib/tree'
 import { app, useApp } from '../store'
 import { trashMedia } from '../sync/media'
@@ -21,17 +23,37 @@ const NONE = ''
 const WAITING = 'waiting'
 
 interface Group {
-  /** The proposed album ("To classify") or the album it was put in ("Auto"); NONE: no suggestion; WAITING: not analysed yet. */
+  /**
+   * By album: the proposed album ("To classify") or the album it was put in ("Auto"); NONE: no suggestion;
+   * WAITING: not analysed yet. By day: the day ("2013-07-31"); NONE: no date.
+   */
   folderId: string
   items: LibraryItem[]
+}
+
+/** The album most of these photos are proposed for ("To classify" by day: where the day's photos go). */
+function mostProposed(items: LibraryItem[]): string | null {
+  const n = new Map<string, number>()
+  for (const i of items) {
+    const f = i.meta?.suggestions?.[0]?.folderId
+    if (f) n.set(f, (n.get(f) ?? 0) + 1)
+  }
+  let best: string | null = null
+  for (const [f, c] of n) if (!best || c > n.get(best)!) best = f
+  return best
 }
 
 /** Groups without an album come last: no suggestion, then waiting for analysis. */
 const last = (folderId: string) => (folderId === WAITING ? 2 : folderId === NONE ? 1 : 0)
 
-/** "To classify" and "Auto" in the Albums view: photos grouped by album, a whole group accepted at once. */
-export function ReviewGroups({ lib, items, mode }: { lib: Library; items: LibraryItem[]; mode: 'classify' | 'auto' }) {
-  const { t } = useTranslation()
+/**
+ * "To classify" and "Auto" grouped: by album (the Albums view) or by day (the Days view, the photos of one
+ * day together, e.g. one event); a whole group accepted or moved at once.
+ */
+export function ReviewGroups({ lib, items, mode, by = 'album' }: { lib: Library; items: LibraryItem[]; mode: 'classify' | 'auto'; by?: 'album' | 'day' }) {
+  const { t, i18n } = useTranslation()
+  const sort = useApp((s) => s.settings.sort)
+  const locale = LOCALES[i18n.language as keyof typeof LOCALES] ?? 'en-US'
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
   const set = useApp((s) => s.set)
@@ -48,6 +70,17 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
   const root = useRef<HTMLDivElement>(null)
 
   const groups = useMemo<Group[]>(() => {
+    if (by === 'day') {
+      const days = new Map<string, LibraryItem[]>()
+      for (const i of items) {
+        const day = periodOf(i.rec.takenAt, 'day') ?? NONE
+        days.set(day, [...(days.get(day) ?? []), i])
+      }
+      // Newest day first (oldest first when sorted so), no date at the end; a day in the order it happened.
+      return [...days.entries()]
+        .map(([folderId, list]) => ({ folderId, items: list.sort((a, b) => (a.rec.takenAt ?? '').localeCompare(b.rec.takenAt ?? '')) }))
+        .sort((a, b) => (!a.folderId ? 1 : !b.folderId ? -1 : sort === 'oldest' ? a.folderId.localeCompare(b.folderId) : b.folderId.localeCompare(a.folderId)))
+    }
     const map = new Map<string, LibraryItem[]>()
     for (const i of items) {
       const key =
@@ -60,7 +93,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
     return [...map.entries()]
       .map(([folderId, list]) => ({ folderId, items: list.sort((a, b) => conf(b) - conf(a)) }))
       .sort((a, b) => last(a.folderId) - last(b.folderId) || b.items.length - a.items.length)
-  }, [items, mode, analysed])
+  }, [items, mode, analysed, by, sort])
 
   useEffect(() => {
     const b = back.current
@@ -127,8 +160,11 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
     <div className="review-groups" ref={root}>
       {groups.map((g) => {
         const key = g.folderId || 'none'
-        const isAlbum = g.folderId !== NONE && g.folderId !== WAITING
         const sel = g.items.filter((i) => picked.has(i.rec.id)).map((i) => i.rec.id)
+        // By day: the photos ticked go where most of them are proposed (one click for the whole day).
+        const ticked = g.items.filter((i) => picked.has(i.rec.id))
+        const target = by === 'day' ? (mode === 'auto' ? null : mostProposed(ticked.length ? ticked : g.items)) : g.folderId
+        const isAlbum = by === 'day' ? mode === 'auto' || !!target : g.folderId !== NONE && g.folderId !== WAITING
         const all = sel.length === g.items.length
         const isBusy = busy !== null
         const limit = shown[key] ?? PAGE
@@ -138,7 +174,9 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
               <label className="check-row">
                 <input type="checkbox" checked={all} disabled={isBusy} onChange={(e) => toggleGroup(g, e.target.checked)} />
                 <strong>
-                  {isAlbum ? (
+                  {by === 'day' ? (
+                    <bdi>{g.folderId ? periodLabel(g.folderId, locale) : t('dates.none')}</bdi>
+                  ) : isAlbum ? (
                     <GroupName full={name(g.folderId)} />
                   ) : (
                     <bdi>{g.folderId === WAITING ? t('classify.groupWaiting') : t('classify.groupNone')}</bdi>
@@ -154,14 +192,14 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                     onClick={() =>
                       mode === 'auto'
                         ? run(key, sel, (id) => confirmAuto([id]))
-                        : run(key, sel, (id) => chooseFolder(id, g.folderId))
+                        : run(key, sel, (id) => chooseFolder(id, target!))
                     }
                   >
                     <Check size={16} />
                     <span className="btn-text">
                       {mode === 'auto'
                         ? t('classify.groupCorrect', { count: sel.length })
-                        : t('classify.groupMove', { count: sel.length, name: name(g.folderId).split(' / ').pop() })}
+                        : t('classify.groupMove', { count: sel.length, name: name(target!).split(' / ').pop() })}
                     </span>
                   </button>
                 )}
@@ -169,7 +207,7 @@ export function ReviewGroups({ lib, items, mode }: { lib: Library; items: Librar
                   categories={lib.categories}
                   label={t('classify.groupOther')}
                   disabled={isBusy || !sel.length}
-                  exclude={mode === 'auto' ? g.folderId : undefined}
+                  exclude={mode === 'auto' && by === 'album' ? g.folderId : undefined}
                   onChoose={(f) => run(key, sel, (id) => chooseFolder(id, f))}
                 />
                 <button

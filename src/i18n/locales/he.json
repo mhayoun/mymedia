@@ -114,7 +114,9 @@
     "document": "מסמך",
     "groupBy": "קיבוץ",
     "viewYears": "לפי שנה",
-    "viewMonths": "לפי חודש"
+    "viewMonths": "לפי חודש",
+    "viewDays": "לפי יום",
+    "pickGroup": "לבחור את כל „{{name}}”"
   },
   "sync": {
     "scanningOf": "קורא את הספרייה שלכם…",

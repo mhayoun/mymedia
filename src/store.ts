@@ -8,7 +8,7 @@ import type { ProStatus } from './models/pro'
 
 export type Language = 'he' | 'fr' | 'en'
 /** Gallery: all together, or under headings by album, year or month. */
-export type ViewMode = 'grid' | 'albums' | 'years' | 'months'
+export type ViewMode = 'grid' | 'albums' | 'years' | 'months' | 'days'
 export type SortMode = 'newest' | 'oldest' | 'name' | 'largest' | 'smallest'
 
 export interface Settings {

@@ -111,7 +111,9 @@
     "document": "Document",
     "groupBy": "Regrouper",
     "viewYears": "Par année",
-    "viewMonths": "Par mois"
+    "viewMonths": "Par mois",
+    "viewDays": "Par jour",
+    "pickGroup": "Sélectionner tout « {{name}} »"
   },
   "sync": {
     "scanningOf": "Lecture de votre bibliothèque…",
