@@ -392,7 +392,19 @@ function TreeSuggest({ lib, onImport, onImportAlbum, onClose, track }: Props & {
                     <Check size={16} /> {t('treeSuggest.allDone', { count: doneAlbums.length })}
                   </p>
                 )}
-                {plan.loose.files > 0 && <p className="hint">{t('treeSuggest.loose', { count: plan.loose.files })}</p>}
+                {plan.loose.files > 0 && (
+                  <details className="tree-loose">
+                    <summary className="hint">{t('treeSuggest.loose', { count: plan.loose.files })}</summary>
+                    <ul>
+                      {plan.looseDirs.map((l) => (
+                        <li key={l.path.join('/')}>
+                          <bdi>{[folder.name, ...l.path].join(' / ')}</bdi>
+                          <span className="hint"> — {t(l.camera ? 'treeSuggest.looseCamera' : 'treeSuggest.looseHere', { count: l.files })}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
                 {folder.handle && leftAlbums.length > 0 && <p className="hint">{t('treeSuggest.renameHint')}</p>}
                 {big && !folder.handle && <p className="hint">{t('treeSuggest.bigNoTrack')}</p>}
               </>

@@ -819,3 +819,10 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   padding-inline-start: 18px;
   margin: 4px 0;
 }
+.tree-loose ul {
+  list-style: none;
+  padding-inline-start: 18px;
+  margin: 4px 0;
+  max-block-size: 200px;
+  overflow: auto;
+}

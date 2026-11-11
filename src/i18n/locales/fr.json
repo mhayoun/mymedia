@@ -1261,8 +1261,6 @@
     "left_other": "Reste {{count}} albums à importer ({{done}} déjà importés) : {{files}} fichiers · {{size}}",
     "allDone_one": "Tout est importé ({{count}} album).",
     "allDone_other": "Tout est importé ({{count}} albums).",
-    "loose_one": "{{count}} fichier est directement dans un dossier conteneur (My Pictures…), hors album : il n'est pas proposé ici.",
-    "loose_other": "{{count}} fichiers sont directement dans des dossiers conteneurs (My Pictures…), hors album : ils ne sont pas proposés ici.",
     "renameHint": "Astuce : renommez sur le disque les dossiers pas encore importés (par exemple ceux de « Divers » qui n'ont qu'une date : « 2012_06_12 mariage Aharon »), puis cliquez sur « Relire l'arborescence » : ils seront reclassés. Ne renommez pas les dossiers déjà importés.",
     "doneAlbums_one": "Déjà importé ({{count}} album)",
     "doneAlbums_other": "Déjà importés ({{count}} albums)",
@@ -1271,7 +1269,13 @@
     "failed_other": "{{count}} en erreur",
     "importAlbum": "Importer",
     "albumSize_one": "{{files}} fichier · {{size}}",
-    "albumSize_other": "{{files}} fichiers · {{size}}"
+    "albumSize_other": "{{files}} fichiers · {{size}}",
+    "loose_one": "{{count}} fichier n'est dans aucun album (dossier d'appareil photo sans nom, DCIM…) : renommez son dossier sur le disque avec un nom d'événement, puis relisez l'arborescence.",
+    "loose_other": "{{count}} fichiers ne sont dans aucun album (dossiers d'appareil photo sans nom, DCIM…) : renommez ces dossiers sur le disque avec un nom d'événement, puis relisez l'arborescence.",
+    "looseCamera_one": "{{count}} fichier · dossier d'appareil photo, à renommer",
+    "looseCamera_other": "{{count}} fichiers · dossier d'appareil photo, à renommer",
+    "looseHere_one": "{{count}} fichier posé directement ici, à mettre dans un dossier nommé",
+    "looseHere_other": "{{count}} fichiers posés directement ici, à mettre dans un dossier nommé"
   },
   "importEstimate": {
     "files_one": "{{files}} photo ou vidéo · {{size}}",

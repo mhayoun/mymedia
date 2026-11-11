@@ -29,21 +29,47 @@ export interface Sizes {
   videoBytes: number
 }
 
-/** The album a file's folders give: the first folder that is neither a container nor a camera folder. */
+/**
+ * The album a file's folders give: the first folder that is neither a container nor a camera folder;
+ * else a container below the top holding the file itself ("My Pictures/photos01" is an album).
+ */
 export function albumOf(dirs: string[]): { name: string; dir: string[] } | null {
   for (let k = 0; k < dirs.length; k++) {
     const name = albumNameOf(dirs[k])
     if (name !== null && !isContainer(dirs[k])) return { name, dir: dirs.slice(0, k + 1) }
   }
+  const last = dirs.length - 1
+  if (last >= 1 && albumNameOf(dirs[last]) !== null) return { name: dirs[last].trim(), dir: dirs }
   return null
 }
 
+/** Where a file outside any album is: down to its first camera folder ("My Pictures/DCIM__"), or its folder. */
+function looseDir(dirs: string[]): string[] {
+  const k = dirs.findIndex((d) => albumNameOf(d) === null)
+  return k < 0 ? dirs : dirs.slice(0, k + 1)
+}
+
 /** The albums of the files read, sorted by name; the files outside any album apart. */
-export function planAlbums(files: WalkedFile[]): { albums: PlanAlbum[]; loose: Sizes } {
+export interface LooseFolder {
+  /** From the chosen folder ("My Pictures/DCIM__"); empty: the chosen folder itself. */
+  path: string[]
+  files: number
+  /** A camera folder (DCIM…): rename it on the disk to give it an album. */
+  camera: boolean
+}
+
+export function planAlbums(files: WalkedFile[]): { albums: PlanAlbum[]; loose: Sizes; looseDirs: LooseFolder[] } {
   const byName = new Map<string, PlanAlbum & { dirKeys: Set<string> }>()
   const loose: Sizes = { files: 0, bytes: 0, photoBytes: 0, videoBytes: 0 }
+  const looseDirs = new Map<string, LooseFolder>()
   for (const f of files) {
     const a = albumOf(f.dirs)
+    if (!a) {
+      const path = looseDir(f.dirs)
+      const key = path.join('/')
+      const l = looseDirs.get(key) ?? looseDirs.set(key, { path, files: 0, camera: path.some((d) => albumNameOf(d) === null) }).get(key)!
+      l.files++
+    }
     const target = a
       ? (byName.get(a.name) ??
         byName.set(a.name, { name: a.name, dirs: [], dirKeys: new Set(), files: 0, bytes: 0, photoBytes: 0, videoBytes: 0 }).get(a.name)!)
@@ -62,7 +88,7 @@ export function planAlbums(files: WalkedFile[]): { albums: PlanAlbum[]; loose: S
     if (f.type === 'video') target.videoBytes += f.size
   }
   const albums = [...byName.values()].map(({ dirKeys: _, ...a }) => a).sort((x, y) => x.name.localeCompare(y.name))
-  return { albums, loose }
+  return { albums, loose, looseDirs: [...looseDirs.values()].sort((x, y) => y.files - x.files) }
 }
 
 export function sumSizes(list: Sizes[]): Sizes {

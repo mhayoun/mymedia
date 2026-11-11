@@ -1263,8 +1263,6 @@
     "left_other": "{{count}} albums left to import ({{done}} already imported): {{files}} files · {{size}}",
     "allDone_one": "Everything is imported ({{count}} album).",
     "allDone_other": "Everything is imported ({{count}} albums).",
-    "loose_one": "{{count}} file is directly in a container folder (My Pictures…), outside any album: it is not proposed here.",
-    "loose_other": "{{count}} files are directly in container folders (My Pictures…), outside any album: they are not proposed here.",
     "renameHint": "Tip: rename on the disk the folders not imported yet (e.g. those in “Miscellaneous” that only have a date: “2012_06_12 Aharon wedding”), then click “Read the tree again”: they are sorted again. Don't rename the folders already imported.",
     "doneAlbums_one": "Already imported ({{count}} album)",
     "doneAlbums_other": "Already imported ({{count}} albums)",
@@ -1273,7 +1271,13 @@
     "failed_other": "{{count}} failed",
     "importAlbum": "Import",
     "albumSize_one": "{{files}} file · {{size}}",
-    "albumSize_other": "{{files}} files · {{size}}"
+    "albumSize_other": "{{files}} files · {{size}}",
+    "loose_one": "{{count}} file is in no album (camera folder without a name, DCIM…): rename its folder on the disk after the event, then read the tree again.",
+    "loose_other": "{{count}} files are in no album (camera folders without a name, DCIM…): rename these folders on the disk after the event, then read the tree again.",
+    "looseCamera_one": "{{count}} file · camera folder, to rename",
+    "looseCamera_other": "{{count}} files · camera folder, to rename",
+    "looseHere_one": "{{count}} file directly here, to put in a named folder",
+    "looseHere_other": "{{count}} files directly here, to put in a named folder"
   },
   "importEstimate": {
     "files_one": "{{files}} photo or video · {{size}}",

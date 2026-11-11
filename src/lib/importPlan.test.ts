@@ -12,19 +12,27 @@ describe('importPlan', () => {
     expect(albumOf(['My Pictures', '2013_02_21', '442___02Pourim5773'])).toEqual({ name: '2013_02_21', dir: ['My Pictures', '2013_02_21'] })
     expect(albumOf(['My Pictures2004'])).toBeNull()
     expect(albumOf(['DCIM', '100JLCAM'])).toBeNull()
+    expect(albumOf(['My Pictures', 'DCIM__', '890___08'])).toBeNull()
+    expect(albumOf(['My Pictures', 'photos01'])).toEqual({ name: 'photos01', dir: ['My Pictures', 'photos01'] })
   })
 
   it('one album for the same name in several containers, with its sizes', () => {
-    const { albums, loose } = planAlbums([
+    const { albums, loose, looseDirs } = planAlbums([
       f('My Pictures/anniv papa/a.jpg', 100),
       f('My Pictures2005/anniv papa/b.mp4', 300, 'video'),
       f('My Pictures2005/anniv papa/sub/c.jpg', 50),
       f('My Pictures2004/d.jpg', 10),
+      f('My Pictures/DCIM__/890___08/e.jpg', 10),
+      f('My Pictures/DCIM__/884___06/g.jpg', 10),
     ])
     expect(albums).toEqual([
       { name: 'anniv papa', dirs: [['My Pictures', 'anniv papa'], ['My Pictures2005', 'anniv papa']], files: 3, bytes: 450, photoBytes: 150, videoBytes: 300 },
     ])
-    expect(loose).toEqual({ files: 1, bytes: 10, photoBytes: 10, videoBytes: 0 })
+    expect(loose).toEqual({ files: 3, bytes: 30, photoBytes: 30, videoBytes: 0 })
+    expect(looseDirs).toEqual([
+      { path: ['My Pictures', 'DCIM__'], files: 2, camera: true },
+      { path: ['My Pictures2004'], files: 1, camera: false },
+    ])
   })
 
   it('estimates the Drive space and the time, then uses what was measured', () => {
