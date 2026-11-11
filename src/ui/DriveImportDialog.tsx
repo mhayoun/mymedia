@@ -6,6 +6,7 @@ import { useFormat } from '../i18n/format'
 import { cancelDriveImport, collect, importFromDrive, isFolder, listShared, markDuplicates, takenAtOf, type DriveEntry } from '../import/fromDrive'
 import { CategoryProposal, useCategoryProposal, type ProposalAlbum } from './CategoryProposal'
 import { useApp } from '../store'
+import { albumDirs } from '../lib/folderNames'
 import { Modal } from './Dialog'
 import { FolderTreePicker } from './FolderTreePicker'
 import { ProGate } from './ProDialog'
@@ -56,10 +57,9 @@ function DriveImport({ lib, destId: initialDest, onClose }: { lib: Library; dest
   const [pending, setPending] = useState<{ todo: DriveEntry[]; dup: number } | null>(null)
   const flat = useMemo(() => {
     const todo = pending?.todo ?? []
-    // One folder chosen: its sub-folders are the albums (the folder itself is not created).
-    const top = todo[0]?.relDir[0]
-    const single = top !== undefined && todo.every((e) => e.relDir[0] === top)
-    return single ? todo.map((e) => ({ ...e, relDir: e.relDir.slice(1) })) : todo
+    // The albums wherever they are below the chosen folders (inside "My Pictures2004"…).
+    const dirs = albumDirs(todo.map((e) => e.relDir))
+    return todo.map((e, k) => ({ ...e, relDir: dirs[k] }))
   }, [pending])
   const proposalAlbums = useMemo<ProposalAlbum[]>(() => {
     const counts = new Map<string, number>()

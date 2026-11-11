@@ -69,8 +69,19 @@ export function CategoryProposal({ state }: { state: CategoryProposalState }) {
     </li>
   )
 
+  const examples = (list: ProposalAlbum[]) =>
+    [...list]
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3)
+      .map((a) => a.name)
+      .join(', ') + (list.length > 3 ? '…' : '')
+  const kept = groups.filter((g) => !choice.off.includes(g.key)).length
+
   return (
     <div className="category-proposal">
+      <p>
+        <strong>{t('autoCategories.listTitle', { count: kept })}</strong>
+      </p>
       <p className="hint">{t('autoCategories.hint')}</p>
       {groups.map(({ key, albums: list }) => {
         const on = !choice.off.includes(key)
@@ -90,9 +101,13 @@ export function CategoryProposal({ state }: { state: CategoryProposalState }) {
                 onChange={(e) => setChoice((c) => ({ ...c, labels: { ...c.labels, [key]: e.target.value } }))}
                 aria-label={t('autoCategories.rename')}
               />
-              <span className="hint">{t('autoCategories.albums', { count: list.length })}</span>
             </div>
-            <ul>{list.map((a) => albumRow(a, key))}</ul>
+            <details>
+              <summary className="hint">
+                {t('autoCategories.albums', { count: list.length })} · <bdi>{examples(list)}</bdi>
+              </summary>
+              <ul>{list.map((a) => albumRow(a, key))}</ul>
+            </details>
           </section>
         )
       })}
@@ -100,9 +115,13 @@ export function CategoryProposal({ state }: { state: CategoryProposalState }) {
         <section>
           <div className="proposal-head">
             <strong>{t('autoCategories.none')}</strong>
-            <span className="hint">{t('autoCategories.noneHint')}</span>
           </div>
-          <ul>{none.map((a) => albumRow(a, null))}</ul>
+          <details>
+            <summary className="hint">
+              {t('autoCategories.albums', { count: none.length })} — {t('autoCategories.noneHint')}
+            </summary>
+            <ul>{none.map((a) => albumRow(a, null))}</ul>
+          </details>
         </section>
       )}
     </div>

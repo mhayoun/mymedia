@@ -10,6 +10,7 @@ import { speciesInText } from '../lib/katia'
 import { importSourceName } from '../lib/provenance'
 import { useFormat } from '../i18n/format'
 import { placementOf } from '../lib/tree'
+import { albumDirs } from '../lib/folderNames'
 import { DOC_EXT_MIME } from '../lib/media'
 import { auth } from '../auth/google'
 import { useApp } from '../store'
@@ -161,7 +162,12 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
   const fallback = topFolder !== null ? 'album' : 'direct'
   // A choice no longer offered (another folder added, another destination): the default.
   // Into MyMedia itself, the chosen folder's sub-folders can be put into categories proposed from their names.
-  const flat = useMemo(() => (fb || destId !== rootId ? [] : insideDestination(picked, false)), [fb, destId, rootId, picked])
+  const flat = useMemo(() => {
+    if (fb || destId !== rootId) return []
+    // The albums wherever they are below the chosen folder (inside "My Pictures2004"…).
+    const dirs = albumDirs(picked.map((i) => i.relDir))
+    return picked.map((i, k) => ({ ...i, relDir: dirs[k] }))
+  }, [fb, destId, rootId, picked])
   const proposalAlbums = useMemo<ProposalAlbum[]>(() => {
     const counts = new Map<string, number>()
     for (const i of flat) if (i.relDir.length) counts.set(i.relDir[0], (counts.get(i.relDir[0]) ?? 0) + 1)

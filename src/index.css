@@ -767,3 +767,8 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   justify-content: flex-end;
   gap: 8px;
 }
+.category-proposal details summary {
+  cursor: pointer;
+  margin-block-start: 4px;
+  overflow-wrap: anywhere;
+}

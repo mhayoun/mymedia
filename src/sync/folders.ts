@@ -134,3 +134,20 @@ export async function putIntoCategories(
   }
   return { moved, failed }
 }
+
+/** Categories created in the root (empty), those already there kept; one load at the end. */
+export async function createCategories(names: string[]): Promise<{ count: number; existing: number }> {
+  const rootId = app().rootId
+  if (!rootId) return { count: 0, existing: 0 }
+  let count = 0
+  let existing = 0
+  for (const name of names) {
+    if (await findFolderNamed(rootId, cleanName(name))) existing++
+    else {
+      await newFolder(name, rootId)
+      count++
+    }
+  }
+  await syncNow()
+  return { count, existing }
+}

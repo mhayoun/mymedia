@@ -1191,7 +1191,7 @@
     "family": "Family",
     "kids": "Children",
     "other": "Miscellaneous",
-    "hint": "Proposed from the folder names. Rename a category, untick it, or move an album to another category with the list next to its name.",
+    "hint": "Untick those you don't want, rename them if you like. Open a category to see its albums and move one to another category.",
     "moveTo": "Category of “{{name}}”",
     "none": "No category",
     "noneHint": "each of these albums stays on its own in MyMedia, as a category",
@@ -1211,7 +1211,9 @@
     "moved_one": "{{count}} album put into its category.",
     "moved_other": "{{count}} albums put into their categories.",
     "failed_one": "{{count}} album could not be moved (an album with the same name may already be in the category).",
-    "failed_other": "{{count}} albums could not be moved (an album with the same name may already be in the category)."
+    "failed_other": "{{count}} albums could not be moved (an album with the same name may already be in the category).",
+    "listTitle_one": "{{count}} category proposed",
+    "listTitle_other": "{{count}} categories proposed"
   },
   "treeSuggest": {
     "menu": "Tree suggestion",
@@ -1231,8 +1233,8 @@
     "computerHintUpload": "Choose the folder that holds all the others (e.g. “My Pictures” on the external disk). The browser speaks of “upload”: nothing is sent until you click “Import”. With Chrome or Edge, MyMedia also reads empty folders.",
     "computerOnly": "A folder is analysed on a computer (Chrome or Edge preferably).",
     "reading": "Reading the tree… {{dirs}} folders, {{files}} photos and videos",
-    "readDone_one": "{{dirs}} folders and sub-folders read, {{files}} photos and videos: {{count}} album found at the first level",
-    "readDone_other": "{{dirs}} folders and sub-folders read, {{files}} photos and videos: {{count}} albums found at the first level",
+    "readDone_one": "{{dirs}} folders and sub-folders read, {{files}} photos and videos: {{count}} album found",
+    "readDone_other": "{{dirs}} folders and sub-folders read, {{files}} photos and videos: {{count}} albums found",
     "showTree_one": "Show the tree read ({{count}} folder)",
     "showTree_other": "Show the tree read ({{count}} folders)",
     "downloadTree": "Download arbo.txt",
@@ -1241,6 +1243,12 @@
     "warnText": "This is Chrome's standard message for any site. MyMedia reads only the names of the folders and files, to propose categories. No photo is opened or sent. Nothing leaves your computer until you click “Import”. The permission ends when you close the tab.",
     "warnTitleUpload": "The browser will ask whether to “upload” the files of this folder.",
     "warnTextUpload": "This is the browser's standard message for any site. MyMedia reads only the names of the folders and files, to propose categories. No photo is opened or sent. Nothing leaves your computer until you click “Import”.",
-    "warnContinue": "Continue"
+    "warnContinue": "Continue",
+    "createOnly_one": "Create {{count}} category in MyMedia",
+    "createOnly_other": "Create these {{count}} categories in MyMedia",
+    "created_one": "{{count}} category created in MyMedia.",
+    "created_other": "{{count}} categories created in MyMedia.",
+    "existing_one": "{{count}} was already there.",
+    "existing_other": "{{count}} were already there."
   }
 }

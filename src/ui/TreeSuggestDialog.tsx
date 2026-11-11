@@ -5,7 +5,7 @@ import { canWalkFolders, filesOf, pickAndWalk, type WalkedFolder } from '../impo
 import { mediaFiles } from '../import/importer'
 import { useFormat } from '../i18n/format'
 import { foldersOfFiles, treeText } from '../lib/folderNames'
-import { putIntoCategories } from '../sync/folders'
+import { createCategories, putIntoCategories } from '../sync/folders'
 import { CategoryProposal, useCategoryProposal, type CategoryChoice, type ProposalAlbum } from './CategoryProposal'
 import { Modal } from './Dialog'
 import type { Library } from './useLibrary'
@@ -65,6 +65,8 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ done: number; failed: number; total: number } | null>(null)
   const [result, setResult] = useState<{ moved: number; failed: number } | null>(null)
+  const [created, setCreated] = useState<{ count: number; existing: number } | null>(null)
+  const [creating, setCreating] = useState(false)
   const folderInput = useRef<HTMLInputElement>(null)
 
   const fromComputer = useMemo(() => (folder ? foldersOfFiles(folder.paths) : NONE), [folder])
@@ -129,6 +131,19 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
     a.download = 'arbo.txt'
     a.click()
     setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+
+  /** The categories kept, created empty in MyMedia (photos can be put in them later). */
+  const kept = [...new Set(albums.map((a) => proposal.categoryOf(a.name)).filter((c): c is string => !!c))]
+  async function createOnly() {
+    setCreating(true)
+    setError(null)
+    try {
+      setCreated(await createCategories(kept))
+    } catch (e) {
+      setError(t('errors.generic', { message: (e as Error).message }))
+    }
+    setCreating(false)
   }
 
   async function sortLibrary() {
@@ -221,6 +236,12 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
             {source === 'library' && <p>{t('treeSuggest.libraryIntro', { count: lone.length })}</p>}
             {source && albums.length > 0 && !reading && <CategoryProposal state={proposal} />}
             {source === 'computer' && folder && albums.length === 0 && !reading && <p className="hint">{t('autoCategories.noFolders')}</p>}
+            {created && (
+              <p className="ok-text" aria-live="polite">
+                {t('treeSuggest.created', { count: created.count })}
+                {created.existing > 0 && <> {t('treeSuggest.existing', { count: created.existing })}</>}
+              </p>
+            )}
             {preparing !== null && (
               <p aria-live="polite">
                 <Loader2 size={16} className="spin" /> {t('treeSuggest.preparing', { done: fmt.number(preparing), total: fmt.number(folder?.paths.length ?? 0) })}
@@ -250,6 +271,11 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
             <button className="btn" disabled={busy} onClick={onClose}>
               {t('common.close')}
             </button>
+            {source === 'computer' && folder && kept.length > 0 && (
+              <button className="btn" disabled={busy || creating} onClick={() => void createOnly()}>
+                {creating && <Loader2 size={16} className="spin" />} {t('treeSuggest.createOnly', { count: kept.length })}
+              </button>
+            )}
             {source === 'computer' && folder && (
               <button className="btn primary" disabled={busy || !folder.paths.length || !fromComputer.length} onClick={() => void importFolder()}>
                 {t('treeSuggest.import', { count: folder.paths.length })}
