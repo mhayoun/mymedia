@@ -49,7 +49,11 @@ function cached(email: string): ProStatus | null {
   }
 }
 
-function keep(email: string, s: ProStatus) {
+function keep(email: string, answer: ProStatus) {
+  // An answer without the door (an older server) keeps the one known: else the full access would go
+  // to the "MyMedia" project, in Testing, and Google would block an account of MyMedia Pro.
+  const known = cached(email)
+  const s: ProStatus = { ...answer, full: answer.full ?? known?.full, fullProject: answer.fullProject ?? known?.fullProject }
   try {
     localStorage.setItem(cacheKey(email), JSON.stringify(s))
   } catch {

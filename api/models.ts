@@ -672,11 +672,13 @@ async function givePro(email: string, plan: ProPlan, order: string) {
 
 async function buyPro(req: Request, plan: ProPlan) {
   if (req.headers.get('origin') === APP_ORIGIN) throw new HttpError(403, 'not in the android app')
-  const email = await account(req)
-  const r = await readJson<ProRecord>(proPath(email))
-  if (PRO_ACCOUNTS.includes(email)) return json({ ok: true, ...proStatus(r, true) })
-  if (r?.life) return json({ ok: true, ...proStatus(r) })
-  if (!paymentsLive()) return json({ ok: true, ...proStatus(await givePro(email, plan, `free-${randomUUID()}`)) })
+  const c = await caller(req)
+  const email = c.email
+  // With the door, as ?action=pro: the app must not lose which project gives this account the full access.
+  const [r, door] = await Promise.all([readJson<ProRecord>(proPath(email)), fullDoor(c)])
+  if (PRO_ACCOUNTS.includes(email)) return json({ ok: true, ...proStatus(r, true), ...door })
+  if (r?.life) return json({ ok: true, ...proStatus(r), ...door })
+  if (!paymentsLive()) return json({ ok: true, ...proStatus(await givePro(email, plan, `free-${randomUUID()}`)), ...door })
   const back = `${new URL(req.url).origin}/?paypal=1&pro=${plan}`
   const amount = amountOf(PRO_PLANS[plan].price)
   const o = await paypal<PaypalOrder>('POST', '/v2/checkout/orders', {
@@ -699,10 +701,11 @@ async function buyPro(req: Request, plan: ProPlan) {
 }
 
 async function capturePro(req: Request, orderId: string | null) {
-  const email = await account(req)
+  const c = await caller(req)
+  const email = c.email
   if (!orderId || !/^[A-Z0-9]{5,40}$/.test(orderId)) throw new HttpError(400, 'bad order')
-  const done = await readJson<ProRecord>(proPath(email))
-  if (done?.purchases.some((p) => p.order === orderId)) return json({ ok: true, ...proStatus(done) })
+  const [done, door] = await Promise.all([readJson<ProRecord>(proPath(email)), fullDoor(c)])
+  if (done?.purchases.some((p) => p.order === orderId)) return json({ ok: true, ...proStatus(done), ...door })
   const order = await readJson<Order>(`orders/${orderId}.json`)
   if (!order || !order.model.startsWith('pro:') || order.email !== email) throw new HttpError(404, 'order not found')
   const plan = validPlan(order.model.slice(4))
@@ -717,7 +720,7 @@ async function capturePro(req: Request, orderId: string | null) {
   if (paid.amount?.value !== order.amount || paid.amount?.currency_code !== order.currency) throw new HttpError(402, 'wrong amount')
   const rec = await givePro(email, plan, orderId)
   await del([`orders/${orderId}.json`])
-  return json({ ok: true, ...proStatus(rec) })
+  return json({ ok: true, ...proStatus(rec), ...door })
 }
 
 async function handle(req: Request): Promise<Response> {
