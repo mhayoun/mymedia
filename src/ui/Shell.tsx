@@ -49,11 +49,13 @@ import { DuplicatesView } from './DuplicatesView'
 import { BlurryView } from './BlurryView'
 import { AlbumLinkDialog } from './LinkShare'
 import { MoveFolderDialog } from './MoveFolderDialog'
+import { OrganizeDialog } from './OrganizeDialog'
 import { usePeople, type People } from './usePeople'
 import { useProvenanceLabel } from './useProvenanceLabel'
 
 type DialogState =
   | { kind: 'newCategory' }
+  | { kind: 'organize' }
   | { kind: 'newAlbum'; parentId: string; parentName: string }
   | { kind: 'rename'; id: string; name: string }
   | { kind: 'move'; id: string; name: string; count: number }
@@ -186,7 +188,7 @@ export function Shell() {
       <TopBar />
       <Banners />
       <div className={`body ${sidebarHidden ? 'sidebar-hidden' : ''}`} style={sidebarWidth ? ({ '--sidebar-w': `${sidebarWidth}px` } as React.CSSProperties) : undefined}>
-        <Sidebar lib={lib} people={people} onNewCategory={() => setDialog({ kind: 'newCategory' })} />
+        <Sidebar lib={lib} people={people} onNewCategory={() => setDialog({ kind: 'newCategory' })} onOrganize={() => setDialog({ kind: 'organize' })} />
         {!sidebarHidden && <SidebarResizer onWidth={setSidebarWidth} />}
         <main className="main">
           <div className={`controls ${controlsHidden ? 'folded' : ''}`}>
@@ -234,6 +236,7 @@ export function Shell() {
       )}
       <Toast />
 
+      {dialog?.kind === 'organize' && <OrganizeDialog lib={lib} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'newCategory' && rootId && (
         <PromptDialog
           title={t('folders.newCategoryTitle')}

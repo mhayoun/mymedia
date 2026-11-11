@@ -663,3 +663,51 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .storage-main .bar { block-size: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
 .storage-main .bar > span { display: block; block-size: 100%; background: var(--accent); }
 .storage-main .detail { font-size: 0.8rem; color: var(--text-2); }
+
+/* Categories proposed from the folder names (import, "Sort into categories"). */
+.category-proposal {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-block: 8px;
+}
+.category-proposal section {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.category-proposal section.off ul {
+  opacity: 0.5;
+}
+.category-proposal .proposal-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.category-proposal .proposal-head input[type='text'] {
+  flex: 1 1 140px;
+  min-inline-size: 0;
+  font-weight: 600;
+}
+.category-proposal ul {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+}
+.category-proposal .proposal-album {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-block: 3px;
+  padding-inline-start: 22px;
+}
+.category-proposal .proposal-album .name {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+.category-proposal .proposal-album select {
+  flex: 0 0 auto;
+  max-inline-size: 45%;
+}

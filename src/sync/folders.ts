@@ -93,3 +93,44 @@ export async function deleteFolder(id: string): Promise<void> {
   await forgetFolder(id)
   await syncNow()
 }
+
+/**
+ * Puts albums of the root into categories (by name, created when missing), then loads once.
+ * An album whose name is already taken in its category is left where it is (counted as failed).
+ */
+export async function putIntoCategories(
+  moves: { id: string; category: string }[],
+  onProgress: (done: number, failed: number) => void,
+): Promise<{ moved: number; failed: number }> {
+  const rootId = app().rootId
+  if (!rootId) return { moved: 0, failed: moves.length }
+  const categories = new Map<string, string>()
+  const categoryId = async (name: string) => {
+    const key = cleanName(name).toLocaleLowerCase()
+    if (!categories.has(key)) categories.set(key, (await findFolderNamed(rootId, cleanName(name)))?.id ?? (await newFolder(name, rootId)).id)
+    return categories.get(key)!
+  }
+  let moved = 0
+  let failed = 0
+  for (const m of moves) {
+    try {
+      const to = await categoryId(m.category)
+      const f = await getFile(m.id, 'id,name')
+      if (to === m.id || (await findFolderNamed(to, cleanName(f.name), m.id))) throw new FolderExistsError(f)
+      await moveInto(m.id, to)
+      await db().folders.update(m.id, { parentId: to })
+      moved++
+    } catch (e) {
+      console.warn('[MyMedia] album not put into its category', m, e)
+      failed++
+    }
+    onProgress(moved, failed)
+  }
+  await syncNow()
+  // A load already running may have read the old places.
+  for (const m of moves) {
+    const to = categories.get(cleanName(m.category).toLocaleLowerCase())
+    if (to && to !== m.id) await db().folders.update(m.id, { parentId: to })
+  }
+  return { moved, failed }
+}

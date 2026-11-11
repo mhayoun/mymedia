@@ -1,16 +1,17 @@
 import { ChevronRight, FileText, Folder, Image, Loader2, Video } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DriveFile } from '../drive/api'
 import { useFormat } from '../i18n/format'
-import { cancelDriveImport, collect, importFromDrive, isFolder, listShared, markDuplicates, takenAtOf } from '../import/fromDrive'
+import { cancelDriveImport, collect, importFromDrive, isFolder, listShared, markDuplicates, takenAtOf, type DriveEntry } from '../import/fromDrive'
+import { CategoryProposal, useCategoryProposal, type ProposalAlbum } from './CategoryProposal'
 import { useApp } from '../store'
 import { Modal } from './Dialog'
 import { FolderTreePicker } from './FolderTreePicker'
 import { ProGate } from './ProDialog'
 import type { Library } from './useLibrary'
 
-type Phase = 'browse' | 'collect' | 'copy' | 'done'
+type Phase = 'browse' | 'collect' | 'propose' | 'copy' | 'done'
 
 /** Import → "From Google Drive": files other accounts shared with this one, copied by Google into MyMedia. */
 /** Files of other folders or accounts: only the full Drive access (Pro) sees them. */
@@ -49,6 +50,23 @@ function DriveImport({ lib, destId: initialDest, onClose }: { lib: Library; dest
   const [keepFolders, setKeepFolders] = useState<boolean | null>(null)
   const keep = keepFolders ?? !sorts
   const here = path[path.length - 1]?.id ?? null
+  // Into MyMedia itself, with the sub-folders kept: categories proposed from the folder names, checked before the copy.
+  const [wantCategories, setWantCategories] = useState(false)
+  const canCategorize = keep && destId === rootId
+  const [pending, setPending] = useState<{ todo: DriveEntry[]; dup: number } | null>(null)
+  const flat = useMemo(() => {
+    const todo = pending?.todo ?? []
+    // One folder chosen: its sub-folders are the albums (the folder itself is not created).
+    const top = todo[0]?.relDir[0]
+    const single = top !== undefined && todo.every((e) => e.relDir[0] === top)
+    return single ? todo.map((e) => ({ ...e, relDir: e.relDir.slice(1) })) : todo
+  }, [pending])
+  const proposalAlbums = useMemo<ProposalAlbum[]>(() => {
+    const counts = new Map<string, number>()
+    for (const e of flat) if (e.relDir.length) counts.set(e.relDir[0], (counts.get(e.relDir[0]) ?? 0) + 1)
+    return [...counts].map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name))
+  }, [flat])
+  const proposal = useCategoryProposal(proposalAlbums)
 
   useEffect(() => {
     let alive = true
@@ -80,15 +98,38 @@ function DriveImport({ lib, destId: initialDest, onClose }: { lib: Library; dest
       const entries = await collect(chosen, setFound)
       const dup = await markDuplicates(entries)
       const todo = entries.filter((e) => !dup.has(e.file.id))
-      setPhase('copy')
-      setProgress({ done: 0, failed: 0, total: todo.length })
+      if (canCategorize && wantCategories) {
+        setPending({ todo, dup: dup.size })
+        setPhase('propose')
+        return
+      }
+      await copy(todo, dup.size)
+    } catch (e) {
+      setError(t('errors.generic', { message: (e as Error).message }))
+      setPhase('browse')
+    }
+  }
+
+  async function copy(todo: DriveEntry[], dup: number) {
+    setPhase('copy')
+    setProgress({ done: 0, failed: 0, total: todo.length })
+    try {
       const r = await importFromDrive(todo, destId, keep, (done, failed) => setProgress({ done, failed, total: todo.length }))
-      setResult({ count: r.count, dup: dup.size, failed: r.failed, reason: r.reason })
+      setResult({ count: r.count, dup, failed: r.failed, reason: r.reason })
       setPhase('done')
     } catch (e) {
       setError(t('errors.generic', { message: (e as Error).message }))
       setPhase('browse')
     }
+  }
+
+  /** The albums put into the categories kept, then copied. */
+  function copyWithCategories() {
+    const todo = flat.map((e) => {
+      const category = e.relDir.length ? proposal.categoryOf(e.relDir[0]) : null
+      return category ? { ...e, relDir: [category, ...e.relDir] } : e
+    })
+    void copy(todo, pending?.dup ?? 0)
   }
 
   const busy = phase === 'collect' || phase === 'copy'
@@ -150,6 +191,12 @@ function DriveImport({ lib, destId: initialDest, onClose }: { lib: Library; dest
               </label>
             )}
             {anyFolder && !keep && sorts && <p className="hint">{t('driveImport.sortHint')}</p>}
+            {anyFolder && canCategorize && (
+              <label className="check-row">
+                <input type="checkbox" checked={wantCategories} onChange={(e) => setWantCategories(e.target.checked)} />
+                {t('autoCategories.driveChoice')}
+              </label>
+            )}
           </>
         )}
 
@@ -158,6 +205,12 @@ function DriveImport({ lib, destId: initialDest, onClose }: { lib: Library; dest
             <Loader2 size={16} className="spin" /> {t('driveImport.collecting', { count: found })}
           </p>
         )}
+        {phase === 'propose' &&
+          (proposalAlbums.length ? (
+            <CategoryProposal state={proposal} />
+          ) : (
+            <p className="hint">{t('autoCategories.noFolders')}</p>
+          ))}
         {(phase === 'copy' || phase === 'done') && (
           <div className="import-progress" aria-live="polite">
             <strong>{t('import.progress', { done: fmt.number(progress.done + progress.failed), total: fmt.number(progress.total) })}</strong>
@@ -185,6 +238,16 @@ function DriveImport({ lib, destId: initialDest, onClose }: { lib: Library; dest
             </button>
             <button className="btn primary" disabled={!chosen.length} onClick={() => void start()}>
               {t('driveImport.start', { count: chosen.length })}
+            </button>
+          </>
+        )}
+        {phase === 'propose' && (
+          <>
+            <button className="btn" onClick={() => setPhase('browse')}>
+              {t('common.back')}
+            </button>
+            <button className="btn primary" onClick={copyWithCategories}>
+              {t('autoCategories.copy', { count: flat.length })}
             </button>
           </>
         )}

@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronDown, ChevronRight, CircleHelp, Cloud, Copy, Crown, Download, Eye, Focus, Folder, FolderOpen, Gauge, Images, Inbox, MessagesSquare, MonitorDown, Plus, ScrollText, Send, Share2, Sparkles, Upload, Users, Wand2, Store } from 'lucide-react'
+import { CalendarDays, ChevronDown, ChevronRight, CircleHelp, Cloud, Copy, Crown, Download, Eye, Focus, Folder, FolderOpen, FolderTree, Gauge, Images, Inbox, MessagesSquare, MonitorDown, Plus, ScrollText, Send, Share2, Sparkles, Upload, Users, Wand2, Store } from 'lucide-react'
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -15,14 +15,17 @@ import type { ProvenanceEntry } from '../lib/provenance'
 import { AUTO, BLURRY, DUPLICATES, filterItems, PEOPLE, TO_CLASSIFY, UNFILED, type FolderInfo, type Library } from './useLibrary'
 import type { People } from './usePeople'
 import { useProvenanceLabel } from './useProvenanceLabel'
+import { loneFolders } from './OrganizeDialog'
 
 interface Props {
   lib: Library
   people: People
   onNewCategory: () => void
+  /** "Sort into categories" (shown when the root holds folders of photos only). */
+  onOrganize: () => void
 }
 
-export function Sidebar({ lib, people, onNewCategory }: Props) {
+export function Sidebar({ lib, people, onNewCategory, onOrganize }: Props) {
   const { t } = useTranslation()
   const filters = useApp((s) => s.filters)
   const setFilters = useApp((s) => s.setFilters)
@@ -125,6 +128,12 @@ export function Sidebar({ lib, people, onNewCategory }: Props) {
           <button className="nav-item" onClick={onNewCategory}>
             <Plus size={18} />
             <span className="label">{t('nav.newCategory')}</span>
+          </button>
+        )}
+        {!readOnly && loneFolders(lib).length >= 2 && (
+          <button className="nav-item" onClick={onOrganize} title={t('autoCategories.organizeHint')}>
+            <FolderTree size={18} />
+            <span className="label">{t('autoCategories.organizeMenu')}</span>
           </button>
         )}
         </>}

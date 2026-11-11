@@ -14,6 +14,7 @@ import { DOC_EXT_MIME } from '../lib/media'
 import { auth } from '../auth/google'
 import { useApp } from '../store'
 import { Modal } from './Dialog'
+import { CategoryProposal, useCategoryProposal, type ProposalAlbum } from './CategoryProposal'
 import { DriveImportDialog } from './DriveImportDialog'
 import { FolderTreePicker } from './FolderTreePicker'
 import type { Library } from './useLibrary'
@@ -135,7 +136,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
   const [compress, setCompress] = useState(true)
   const [originPath, setOriginPath] = useState('')
   // Where a chosen folder goes: as a new album, its photos straight into the destination, or sorted by MyMedia.
-  const [where, setWhere] = useState<'album' | 'direct' | 'sort' | null>(null)
+  const [where, setWhere] = useState<'album' | 'direct' | 'sort' | 'categories' | null>(null)
   const [outcomes, setOutcomes] = useState<Record<string, ImportOutcome>>({})
   const [result, setResult] = useState<{ count: number; before: number; after: number } | null>(null)
   const filesInput = useRef<HTMLInputElement>(null)
@@ -157,8 +158,25 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
   const canSort = destId === rootId || (lib.folders.get(destId)?.parentId === rootId && [...lib.folders.values()].some((f) => f.parentId === destId))
   const fallback = topFolder !== null ? 'album' : 'direct'
   // A choice no longer offered (another folder added, another destination): the default.
-  const place = (where === 'album' && topFolder === null) || (where === 'sort' && !canSort) ? fallback : (where ?? fallback)
-  const items = useMemo(() => insideDestination(picked, place === 'album'), [picked, place])
+  // Into MyMedia itself, the chosen folder's sub-folders can be put into categories proposed from their names.
+  const flat = useMemo(() => (fb || destId !== rootId ? [] : insideDestination(picked, false)), [fb, destId, rootId, picked])
+  const proposalAlbums = useMemo<ProposalAlbum[]>(() => {
+    const counts = new Map<string, number>()
+    for (const i of flat) if (i.relDir.length) counts.set(i.relDir[0], (counts.get(i.relDir[0]) ?? 0) + 1)
+    return [...counts].map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name))
+  }, [flat])
+  const canCategorize = proposalAlbums.length >= 2
+  const proposal = useCategoryProposal(proposalAlbums)
+  const place =
+    (where === 'album' && topFolder === null) || (where === 'sort' && !canSort) || (where === 'categories' && !canCategorize) ? fallback : (where ?? fallback)
+  const { categoryOf } = proposal
+  const items = useMemo(() => {
+    if (place !== 'categories') return insideDestination(picked, place === 'album')
+    return flat.map((i) => {
+      const category = i.relDir.length ? categoryOf(i.relDir[0]) : null
+      return category ? { ...i, relDir: [category, ...i.relDir] } : i
+    })
+  }, [picked, place, flat, categoryOf])
   const recent = recentDestinations().filter((id) => id !== destId && (id === rootId || lib.folders.has(id)))
 
   useEffect(() => {
@@ -568,7 +586,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
                 <input type="checkbox" checked={compress} onChange={(e) => setCompress(e.target.checked)} />
                 {t('import.compress')}
               </label>
-              {hasFolders && (topFolder !== null || canSort) && (
+              {hasFolders && (topFolder !== null || canSort || canCategorize) && (
                 <div className="folder-mode" role="radiogroup" aria-label={t('import.whereTitle', { count: selected.length })}>
                   <p>
                     <strong>{t('import.whereTitle', { count: selected.length })}</strong>
@@ -587,6 +605,13 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
                         : t(hasSubFolders ? 'import.whereDirectSub' : 'import.whereDirect', { dest: destName })}
                     </span>
                   </label>
+                  {canCategorize && (
+                    <label className="radio-row">
+                      <input type="radio" name="folder-mode" checked={place === 'categories'} onChange={() => setWhere('categories')} />
+                      <span>{t('autoCategories.importChoice', { count: proposalAlbums.length })}</span>
+                    </label>
+                  )}
+                  {place === 'categories' && <CategoryProposal state={proposal} />}
                   {canSort && (
                     <label className="radio-row">
                       <input type="radio" name="folder-mode" checked={place === 'sort'} onChange={() => setWhere('sort')} />
