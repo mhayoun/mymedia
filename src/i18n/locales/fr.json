@@ -1234,6 +1234,11 @@
     "showTree_one": "Voir l'arborescence lue ({{count}} dossier)",
     "showTree_other": "Voir l'arborescence lue ({{count}} dossiers)",
     "downloadTree": "Télécharger arbo.txt",
-    "preparing": "Préparation des fichiers… {{done}} / {{total}}"
+    "preparing": "Préparation des fichiers… {{done}} / {{total}}",
+    "warnTitle": "Chrome va vous demander l'autorisation de « voir et copier » ce dossier.",
+    "warnText": "C'est le message standard de Chrome pour tout site. MyMedia lit seulement les noms des dossiers et des fichiers, pour proposer des catégories. Aucune photo n'est ouverte ni envoyée. Rien ne quitte votre ordinateur tant que vous ne cliquez pas sur « Importer ». L'autorisation s'arrête quand vous fermez l'onglet.",
+    "warnTitleUpload": "Le navigateur va vous demander s'il faut « importer » les fichiers de ce dossier.",
+    "warnTextUpload": "C'est le message standard du navigateur pour tout site. MyMedia lit seulement les noms des dossiers et des fichiers, pour proposer des catégories. Aucune photo n'est ouverte ni envoyée. Rien ne quitte votre ordinateur tant que vous ne cliquez pas sur « Importer ».",
+    "warnContinue": "Continuer"
   }
 }

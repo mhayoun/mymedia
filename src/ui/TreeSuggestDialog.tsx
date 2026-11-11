@@ -59,6 +59,8 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
   const [source, setSource] = useState<Source | null>(null)
   const [folder, setFolder] = useState<ReadFolder | null>(null)
   const [reading, setReading] = useState<{ dirs: number; files: number } | null>(null)
+  // Before the browser's own window ("view and copy files", "upload files"): what MyMedia really does.
+  const [explain, setExplain] = useState(false)
   const [preparing, setPreparing] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ done: number; failed: number; total: number } | null>(null)
@@ -78,6 +80,7 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
   })
 
   async function readFolder() {
+    setExplain(false)
     if (!walks) return folderInput.current?.click()
     setError(null)
     setReading({ dirs: 0, files: 0 })
@@ -151,7 +154,7 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
 
             <div className="tree-suggest-sources">
               {canPickFolder && (
-                <button className={`btn ${source === 'computer' ? 'primary' : ''}`} disabled={busy} onClick={() => void readFolder()}>
+                <button className={`btn ${source === 'computer' ? 'primary' : ''}`} disabled={busy} onClick={() => setExplain(true)}>
                   <FolderOpen size={18} /> {t('treeSuggest.fromComputer')}
                 </button>
               )}
@@ -171,7 +174,23 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
                 e.target.value = ''
               }}
             />
-            {canPickFolder && !source && !reading && <p className="hint">{t(walks ? 'treeSuggest.computerHint' : 'treeSuggest.computerHintUpload')}</p>}
+            {explain && (
+              <div className="browser-warning" role="alertdialog" aria-labelledby="browser-warning-title">
+                <p id="browser-warning-title">
+                  <strong>{t(walks ? 'treeSuggest.warnTitle' : 'treeSuggest.warnTitleUpload')}</strong>
+                </p>
+                <p>{t(walks ? 'treeSuggest.warnText' : 'treeSuggest.warnTextUpload')}</p>
+                <div className="row">
+                  <button className="btn" onClick={() => setExplain(false)}>
+                    {t('common.cancel')}
+                  </button>
+                  <button className="btn primary" autoFocus onClick={() => void readFolder()}>
+                    {t('treeSuggest.warnContinue')}
+                  </button>
+                </div>
+              </div>
+            )}
+            {canPickFolder && !source && !reading && !explain && <p className="hint">{t(walks ? 'treeSuggest.computerHint' : 'treeSuggest.computerHintUpload')}</p>}
             {!canPickFolder && !source && <p className="hint">{t('treeSuggest.computerOnly')}</p>}
 
             {reading && (

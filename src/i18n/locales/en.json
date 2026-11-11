@@ -1236,6 +1236,11 @@
     "showTree_one": "Show the tree read ({{count}} folder)",
     "showTree_other": "Show the tree read ({{count}} folders)",
     "downloadTree": "Download arbo.txt",
-    "preparing": "Preparing the files… {{done}} / {{total}}"
+    "preparing": "Preparing the files… {{done}} / {{total}}",
+    "warnTitle": "Chrome will ask you to allow this site to “view and copy” this folder.",
+    "warnText": "This is Chrome's standard message for any site. MyMedia reads only the names of the folders and files, to propose categories. No photo is opened or sent. Nothing leaves your computer until you click “Import”. The permission ends when you close the tab.",
+    "warnTitleUpload": "The browser will ask whether to “upload” the files of this folder.",
+    "warnTextUpload": "This is the browser's standard message for any site. MyMedia reads only the names of the folders and files, to propose categories. No photo is opened or sent. Nothing leaves your computer until you click “Import”.",
+    "warnContinue": "Continue"
   }
 }
