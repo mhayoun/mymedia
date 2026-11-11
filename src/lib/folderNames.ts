@@ -1,7 +1,7 @@
 // The albums a chosen folder gives, from the names of its folders and sub-folders only (no photo opened):
-// from the files of a folder chosen on the computer, or from a pasted list (one folder per line, or what
-// the "tree" command prints). Camera folders (DCIM, 100NIKON…) left out, like at import. Pure, tested.
-import { albumNameOf, albumPath } from './cameraFolders'
+// from the files of a folder chosen on the computer, and the tree as text (like what
+// the "tree" command prints, for the tree shown). Camera folders (DCIM, 100NIKON…) left out, like at import. Pure, tested.
+import { albumPath } from './cameraFolders'
 
 export interface FolderName {
   name: string
@@ -26,34 +26,26 @@ export function foldersOfFiles(paths: string[]): FolderName[] {
   return sorted(counts)
 }
 
-/** From a pasted list: the first-level folders, with how many sub-folders each has. */
-export function foldersOfText(text: string): FolderName[] {
-  const lines = text.split(/\r?\n/).map((l) => l.replace(/\s+$/, '')).filter((l) => l.trim() && l.trim() !== '.' && !/^\d+ director(y|ies)/.test(l.trim()))
-  const counts = new Map<string, number>()
-  const add = (name: string | undefined, sub: boolean) => {
-    const n = name ? albumNameOf(name) : null
-    if (n) counts.set(n, (counts.get(n) ?? 0) + (sub ? 1 : 0))
-  }
-  if (lines.some((l) => l.includes('── '))) {
-    // "tree": "├── name" at the first level, "│   ├── sub" below.
-    let current: string | undefined
-    for (const l of lines) {
-      const at = l.indexOf('── ')
-      if (at < 0) continue
-      const name = l.slice(at + 3).trim()
-      if ((at - 1) / 4 === 0) {
-        current = name
-        add(name, false)
-      } else add(current, true)
+/** The folders as the "tree" command prints them (what MyMedia read), with their number at the end. */
+export function treeText(rootName: string, dirs: string[][]): string {
+  type Node = Map<string, Node>
+  const root: Node = new Map()
+  for (const d of dirs) {
+    let n = root
+    for (const part of d) {
+      if (!n.has(part)) n.set(part, new Map())
+      n = n.get(part)!
     }
-    return sorted(counts)
   }
-  const paths = lines.map((l) => l.trim().replace(/^\.\//, '').split(/[\\/]/).filter(Boolean))
-  const top = paths[0]?.[0]
-  const single = paths.length > 1 && top !== undefined && paths.every((p) => p[0] === top)
-  for (const p of paths) {
-    const rest = single ? p.slice(1) : p
-    add(rest[0], rest.length > 1)
+  const lines = [rootName]
+  const draw = (n: Node, prefix: string) => {
+    const names = [...n.keys()].sort((a, b) => a.localeCompare(b))
+    names.forEach((name, i) => {
+      const last = i === names.length - 1
+      lines.push(`${prefix}${last ? '└── ' : '├── '}${name}`)
+      draw(n.get(name)!, prefix + (last ? '    ' : '│   '))
+    })
   }
-  return sorted(counts)
+  draw(root, '')
+  return `${lines.join('\n')}\n\n${dirs.length} directories\n`
 }

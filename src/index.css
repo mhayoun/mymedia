@@ -743,3 +743,13 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   inline-size: 100%;
   font-family: ui-monospace, monospace;
 }
+.tree-read pre {
+  max-block-size: 260px;
+  overflow: auto;
+  font-size: 0.8rem;
+  background: var(--surface-2, transparent);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+  margin-block: 6px;
+}
