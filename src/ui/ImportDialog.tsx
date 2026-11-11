@@ -14,7 +14,7 @@ import { DOC_EXT_MIME } from '../lib/media'
 import { auth } from '../auth/google'
 import { useApp } from '../store'
 import { Modal } from './Dialog'
-import { CategoryProposal, useCategoryProposal, type ProposalAlbum } from './CategoryProposal'
+import { CategoryProposal, useCategoryProposal, type CategoryChoice, type ProposalAlbum } from './CategoryProposal'
 import { DriveImportDialog } from './DriveImportDialog'
 import { FolderTreePicker } from './FolderTreePicker'
 import type { Library } from './useLibrary'
@@ -27,6 +27,8 @@ interface Props {
   initialFiles?: File[]
   /** Opened from the Share menu of another app: its destination is kept for the next share. */
   fromShare?: boolean
+  /** From "Tree suggestion": the folder goes into MyMedia with the categories checked there. */
+  categories?: CategoryChoice
   onClose: () => void
 }
 
@@ -119,7 +121,7 @@ function ReplacedThumb({ lib, id }: { lib: Library; id: string }) {
 }
 
 /** "Add photos/videos": choose files or a folder, check dates and sizes, upload. */
-export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare, onClose }: Props) {
+export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare, categories, onClose }: Props) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
@@ -136,7 +138,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
   const [compress, setCompress] = useState(true)
   const [originPath, setOriginPath] = useState('')
   // Where a chosen folder goes: as a new album, its photos straight into the destination, or sorted by MyMedia.
-  const [where, setWhere] = useState<'album' | 'direct' | 'sort' | 'categories' | null>(null)
+  const [where, setWhere] = useState<'album' | 'direct' | 'sort' | 'categories' | null>(categories ? 'categories' : null)
   const [outcomes, setOutcomes] = useState<Record<string, ImportOutcome>>({})
   const [result, setResult] = useState<{ count: number; before: number; after: number } | null>(null)
   const filesInput = useRef<HTMLInputElement>(null)
@@ -166,7 +168,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
     return [...counts].map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name))
   }, [flat])
   const canCategorize = proposalAlbums.length >= 2
-  const proposal = useCategoryProposal(proposalAlbums)
+  const proposal = useCategoryProposal(proposalAlbums, categories)
   const place =
     (where === 'album' && topFolder === null) || (where === 'sort' && !canSort) || (where === 'categories' && !canCategorize) ? fallback : (where ?? fallback)
   const { categoryOf } = proposal

@@ -9,7 +9,7 @@ export interface ProposalAlbum {
   count: number
 }
 
-interface Choice {
+export interface CategoryChoice {
   /** Albums moved by hand to another category (null: no category). */
   moved: Record<string, CategoryKey | null>
   /** Category names changed by hand. */
@@ -22,11 +22,11 @@ interface Choice {
  * Categories proposed from the folder names: the proposal, the changes made by hand, and the category
  * each album goes to (its name in the app's language, or as renamed; null when none).
  */
-export function useCategoryProposal(albums: ProposalAlbum[]) {
+export function useCategoryProposal(albums: ProposalAlbum[], initial?: CategoryChoice) {
   const { t } = useTranslation()
   const names = useMemo(() => albums.map((a) => a.name), [albums])
   const proposed = useMemo(() => proposeCategories(names), [names])
-  const [choice, setChoice] = useState<Choice>({ moved: {}, labels: {}, off: [] })
+  const [choice, setChoice] = useState<CategoryChoice>(() => initial ?? { moved: {}, labels: {}, off: [] })
   const keyOf = useCallback(
     (name: string): CategoryKey | null => (name in choice.moved ? choice.moved[name] : (proposed.get(name) ?? null)),
     [choice.moved, proposed],
@@ -56,7 +56,7 @@ export function CategoryProposal({ state }: { state: CategoryProposalState }) {
   const albumRow = (a: ProposalAlbum, key: CategoryKey | null) => (
     <li key={a.name} className="proposal-album">
       <span className="name">
-        <FolderOpen size={14} /> <bdi>{a.name}</bdi> <span className="hint">{a.count}</span>
+        <FolderOpen size={14} /> <bdi>{a.name}</bdi> {a.count > 0 && <span className="hint">{a.count}</span>}
       </span>
       <select value={key ?? ''} onChange={(e) => move(a.name, e.target.value)} aria-label={t('autoCategories.moveTo', { name: a.name })}>
         {CATEGORY_KEYS.map((k) => (

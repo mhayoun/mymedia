@@ -711,3 +711,35 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   flex: 0 0 auto;
   max-inline-size: 45%;
 }
+
+/* "Tree suggestion". */
+.tree-suggest-intro {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-block-end: 12px;
+}
+.tree-suggest-intro svg {
+  flex: 0 0 auto;
+  color: var(--accent, currentColor);
+}
+.tree-suggest-intro p {
+  margin: 0 0 4px;
+}
+.tree-suggest-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-end: 8px;
+}
+.nav-item .tag {
+  margin-inline-start: auto;
+  font-size: 0.7rem;
+}
+.field textarea {
+  inline-size: 100%;
+  font-family: ui-monospace, monospace;
+}

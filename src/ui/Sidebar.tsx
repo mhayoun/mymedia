@@ -15,17 +15,16 @@ import type { ProvenanceEntry } from '../lib/provenance'
 import { AUTO, BLURRY, DUPLICATES, filterItems, PEOPLE, TO_CLASSIFY, UNFILED, type FolderInfo, type Library } from './useLibrary'
 import type { People } from './usePeople'
 import { useProvenanceLabel } from './useProvenanceLabel'
-import { loneFolders } from './OrganizeDialog'
 
 interface Props {
   lib: Library
   people: People
   onNewCategory: () => void
-  /** "Sort into categories" (shown when the root holds folders of photos only). */
-  onOrganize: () => void
+  /** "Tree suggestion": categories proposed from folder names. */
+  onTreeSuggest: () => void
 }
 
-export function Sidebar({ lib, people, onNewCategory, onOrganize }: Props) {
+export function Sidebar({ lib, people, onNewCategory, onTreeSuggest }: Props) {
   const { t } = useTranslation()
   const filters = useApp((s) => s.filters)
   const setFilters = useApp((s) => s.setFilters)
@@ -130,12 +129,6 @@ export function Sidebar({ lib, people, onNewCategory, onOrganize }: Props) {
             <span className="label">{t('nav.newCategory')}</span>
           </button>
         )}
-        {!readOnly && loneFolders(lib).length >= 2 && (
-          <button className="nav-item" onClick={onOrganize} title={t('autoCategories.organizeHint')}>
-            <FolderTree size={18} />
-            <span className="label">{t('autoCategories.organizeMenu')}</span>
-          </button>
-        )}
         </>}
         {facesEnabled && (!readOnly || people.named.length > 0) && (
           <>
@@ -180,6 +173,13 @@ export function Sidebar({ lib, people, onNewCategory, onOrganize }: Props) {
         <DatesList lib={lib} />
         <ProvenanceList lib={lib} />
         <h2 />
+        {!readOnly && (
+          <button className="nav-item" onClick={() => { onTreeSuggest(); set({ sidebarOpen: false }) }} title={t('treeSuggest.menuHint')}>
+            <FolderTree size={18} />
+            <span className="label">{t('treeSuggest.menu')}</span>
+            <span className="tag auto">{t('treeSuggest.new')}</span>
+          </button>
+        )}
         {!shared && (
           <button className="nav-item" onClick={() => set({ shareOpen: 'share', sidebarOpen: false })}>
             <Share2 size={18} />
