@@ -1,5 +1,5 @@
 import { FolderOpen } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CATEGORY_KEYS, proposeCategories, type CategoryKey } from '../lib/proposeCategories'
 
@@ -46,9 +46,20 @@ export function useCategoryProposal(albums: ProposalAlbum[], initial?: CategoryC
 export type CategoryProposalState = ReturnType<typeof useCategoryProposal>
 
 /** The proposed categories, each with its albums: rename, untick, or move an album to another one. */
-export function CategoryProposal({ state }: { state: CategoryProposalState }) {
+export function CategoryProposal({
+  state,
+  show,
+  extra,
+}: {
+  state: CategoryProposalState
+  /** Only these albums (e.g. those not imported yet); all by default. */
+  show?: (name: string) => boolean
+  /** More on an album's line (size, Import button…). */
+  extra?: (a: ProposalAlbum) => ReactNode
+}) {
   const { t } = useTranslation()
-  const { albums, choice, setChoice, keyOf, labelOf } = state
+  const { choice, setChoice, keyOf, labelOf } = state
+  const albums = show ? state.albums.filter((a) => show(a.name)) : state.albums
   const groups = CATEGORY_KEYS.map((key) => ({ key, albums: albums.filter((a) => keyOf(a.name) === key) })).filter((g) => g.albums.length)
   const none = albums.filter((a) => keyOf(a.name) === null)
 
@@ -58,6 +69,7 @@ export function CategoryProposal({ state }: { state: CategoryProposalState }) {
       <span className="name">
         <FolderOpen size={14} /> <bdi>{a.name}</bdi> {a.count > 0 && <span className="hint">{a.count}</span>}
       </span>
+      {extra?.(a)}
       <select value={key ?? ''} onChange={(e) => move(a.name, e.target.value)} aria-label={t('autoCategories.moveTo', { name: a.name })}>
         {CATEGORY_KEYS.map((k) => (
           <option key={k} value={k}>

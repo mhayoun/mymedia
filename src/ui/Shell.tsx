@@ -50,6 +50,7 @@ import { BlurryView } from './BlurryView'
 import { AlbumLinkDialog } from './LinkShare'
 import { MoveFolderDialog } from './MoveFolderDialog'
 import { TreeSuggestDialog } from './TreeSuggestDialog'
+import { markAlbum } from '../import/importTrack'
 import type { CategoryChoice } from './CategoryProposal'
 import { usePeople, type People } from './usePeople'
 import { useProvenanceLabel } from './useProvenanceLabel'
@@ -63,7 +64,7 @@ type DialogState =
   | { kind: 'albumLink'; id: string; name: string }
   | { kind: 'delete'; id: string; name: string; count: number }
   | { kind: 'compress'; title: string; folderId: string | null }
-  | { kind: 'import'; destId: string; files?: File[]; fromShare?: boolean; categories?: CategoryChoice }
+  | { kind: 'import'; destId: string; files?: File[]; fromShare?: boolean; categories?: CategoryChoice; trackAlbum?: string; trackCategory?: string | null }
   | null
 
 export function Shell() {
@@ -241,6 +242,7 @@ export function Shell() {
         <TreeSuggestDialog
           lib={lib}
           onImport={(files, categories) => setDialog({ kind: 'import', destId: rootId, files, categories })}
+          onImportAlbum={(files, destId, album, category) => setDialog({ kind: 'import', destId, files, trackAlbum: album, trackCategory: category })}
           onClose={() => setDialog(null)}
         />
       )}
@@ -297,7 +299,10 @@ export function Shell() {
           initialFiles={dialog.files}
           fromShare={dialog.fromShare}
           categories={dialog.categories}
+          onFinished={dialog.trackAlbum ? (r) => void markAlbum(dialog.trackAlbum!, r.inMyMedia, r.failed, dialog.trackCategory ?? null) : undefined}
           onClose={() => {
+            // Back to the folder imported album by album.
+            if (dialog.trackAlbum) return setDialog({ kind: 'treeSuggest' })
             if (dialog.files && !dialog.categories) void clearSharedFiles()
             setDialog(null)
           }}

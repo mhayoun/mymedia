@@ -772,3 +772,50 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   margin-block-start: 4px;
   overflow-wrap: anywhere;
 }
+
+/* Size, Google Drive space and time of an import. */
+.import-estimate {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-block: 8px;
+}
+.import-estimate p {
+  margin: 0 0 4px;
+}
+.import-estimate ul {
+  margin: 0 0 4px;
+  padding-inline-start: 18px;
+}
+.btn.small {
+  padding: 3px 10px;
+  font-size: 0.85rem;
+}
+.category-proposal .proposal-album {
+  flex-wrap: wrap;
+}
+.category-proposal .album-extra {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+}
+.tree-followed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-block-end: 10px;
+}
+.tree-followed p {
+  margin: 0;
+}
+.tree-done ul {
+  list-style: none;
+  padding-inline-start: 18px;
+  margin: 4px 0;
+}

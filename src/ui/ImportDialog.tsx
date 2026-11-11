@@ -13,6 +13,7 @@ import { placementOf } from '../lib/tree'
 import { albumDirs } from '../lib/folderNames'
 import { DOC_EXT_MIME } from '../lib/media'
 import { auth } from '../auth/google'
+import { recordImport } from '../import/importTrack'
 import { useApp } from '../store'
 import { Modal } from './Dialog'
 import { CategoryProposal, useCategoryProposal, type CategoryChoice, type ProposalAlbum } from './CategoryProposal'
@@ -30,6 +31,8 @@ interface Props {
   fromShare?: boolean
   /** From "Tree suggestion": the folder goes into MyMedia with the categories checked there. */
   categories?: CategoryChoice
+  /** After each sending: files now in MyMedia (sent, or there already), files that failed. */
+  onFinished?: (r: { inMyMedia: number; failed: number }) => void
   onClose: () => void
 }
 
@@ -122,12 +125,13 @@ function ReplacedThumb({ lib, id }: { lib: Library; id: string }) {
 }
 
 /** "Add photos/videos": choose files or a folder, check dates and sizes, upload. */
-export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare, categories, onClose }: Props) {
+export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare, categories, onFinished, onClose }: Props) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
   // A destination since removed: the root instead.
-  const [destId, setDestId] = useState(() => (initialDest === rootId || lib.folders.has(initialDest) ? initialDest : rootId))
+  // A category just made for a followed import may not be loaded yet: kept.
+  const [destId, setDestId] = useState(() => (initialDest === rootId || lib.folders.has(initialDest) || onFinished ? initialDest : rootId))
   const [phase, setPhase] = useState<'pick' | 'zip' | 'groups' | 'analyze' | 'match' | 'choose' | 'upload' | 'done'>('pick')
   const [fb, setFb] = useState<FacebookExport | null>(null)
   const [fbGroups, setFbGroups] = useState<Set<string>>(new Set())
@@ -310,6 +314,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
   }
 
   const sendOpts = useRef<{ from: string; path?: string }>({ from: '' })
+  const sentTotal = useRef(0)
   async function send(list: ImportItem[]) {
     setPhase('upload')
     const toSend = fb
@@ -318,11 +323,15 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
           return species ? { ...i, relDir: [species], extra: { ...i.extra, species } } : i
         })
       : list
+    const started = performance.now()
     const r = await runImport(toSend, destId, {
       compress,
       keepFolders: !sortByModel,
       ...sendOpts.current,
     }, (key, o) => setOutcomes((prev) => ({ ...prev, [key]: o })))
+    recordImport(r.before, r.after, performance.now() - started)
+    sentTotal.current += r.count
+    onFinished?.({ inMyMedia: sentTotal.current + duplicates, failed: selected.length - sentTotal.current })
     // A retry adds to what was sent before.
     setResult((prev) => (prev ? { count: prev.count + r.count, before: prev.before + r.before, after: prev.after + r.after } : r))
     setPhase('done')

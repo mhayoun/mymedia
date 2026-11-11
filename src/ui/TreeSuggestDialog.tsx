@@ -1,33 +1,43 @@
-import { Download, FolderOpen, FolderTree, Library as LibraryIcon, Loader2 } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { Check, Download, FolderOpen, FolderTree, Library as LibraryIcon, Loader2, RefreshCw, Upload } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { canWalkFolders, filesOf, pickAndWalk, type WalkedFolder } from '../import/folderWalk'
+import { canRead, canWalkFolders, filesBelow, pickAndWalk, walkFolder, type FsDir, type WalkedFolder } from '../import/folderWalk'
 import { mediaFiles } from '../import/importer'
+import { keepAnalysis, keptAnalysis, saveTrack, useImportTrack, type ImportTrack } from '../import/importTrack'
 import { useFormat } from '../i18n/format'
-import { foldersOfFiles, treeText } from '../lib/folderNames'
-import { createCategories, putIntoCategories } from '../sync/folders'
+import { treeText } from '../lib/folderNames'
+import { planAlbums, sumSizes, type PlanAlbum, type WalkedFile } from '../lib/importPlan'
+import { mediaTypeOf } from '../lib/media'
+import { useApp } from '../store'
+import { createCategories, newFolder, putIntoCategories } from '../sync/folders'
 import { CategoryProposal, useCategoryProposal, type CategoryChoice, type ProposalAlbum } from './CategoryProposal'
 import { Modal } from './Dialog'
+import { ImportEstimate } from './ImportEstimate'
 import type { Library } from './useLibrary'
 
 type Source = 'computer' | 'library'
 const NONE: ProposalAlbum[] = []
+const NO_CHOICE: CategoryChoice = { moved: {}, labels: {}, off: [] }
 
 /** The categories without albums (folders of photos put in the root), as albums to sort. */
 export function loneFolders(lib: Library) {
   return lib.categories.filter((c) => c.children.length === 0 && c.count > 0)
 }
 
-/** A folder MyMedia read: its name, every folder below it, its photos and videos (paths), and how to get them. */
+/** A folder MyMedia read: its name, every folder below it, its photos and videos (names and sizes), and how to get them. */
 interface ReadFolder {
   name: string
   dirs: string[][]
-  paths: string[]
-  /** Walked by MyMedia (Chrome / Edge): the files are read only at import. */
-  walked?: WalkedFolder
+  files: WalkedFile[]
+  /** Walked by MyMedia (Chrome / Edge): the files are read only at import; kept to go on another day. */
+  handle?: FsDir
   /** Chosen with the browser's folder window (other browsers): the files themselves. */
-  files?: File[]
+  picked?: File[]
 }
+
+/** Above this (what is left to import), the folder is imported album by album, not at once. */
+const BIG_FILES = 2000
+const BIG_BYTES = 5e9
 
 /** Folders of the files' paths (a folder without photos is not seen this way). */
 function dirsOfPaths(paths: string[]): string[][] {
@@ -39,29 +49,46 @@ function dirsOfPaths(paths: string[]): string[][] {
   return [...seen.values()]
 }
 
+const same = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: 'base' }) === 0
+
 interface Props {
   lib: Library
   /** The chosen folder imported into MyMedia with the categories checked here. */
   onImport: (files: File[], categories: CategoryChoice) => void
+  /** One album of the folder imported into its category (or MyMedia itself); back here afterwards. */
+  onImportAlbum: (files: File[], destId: string, album: string, category: string | null) => void
   onClose: () => void
 }
 
 /**
  * "Tree suggestion": MyMedia reads only the names of the folders and sub-folders (of a folder of the
- * computer, or of MyMedia's albums without a category) and proposes categories.
+ * computer, or of MyMedia's albums without a category) and proposes categories. A folder read with
+ * Chrome / Edge is kept on this device: read again another day, it shows what is left to import (folders
+ * renamed meanwhile are sorted again), each album with its size and an Import button.
  */
-export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
+export function TreeSuggestDialog(props: Props) {
+  const track = useImportTrack()
+  // The corrections made by hand come back with the folder followed: wait for it.
+  if (track === undefined) return null
+  return <TreeSuggest {...props} track={track} />
+}
+
+function TreeSuggest({ lib, onImport, onImportAlbum, onClose, track }: Props & { track: ImportTrack | null }) {
   const { t } = useTranslation()
   const fmt = useFormat()
+  const rootId = useApp((s) => s.rootId)!
   const walks = canWalkFolders()
   const canPickFolder = walks || (typeof window !== 'undefined' && 'webkitdirectory' in document.createElement('input') && !/Android|iPhone|iPad/i.test(navigator.userAgent))
   const lone = useMemo(() => loneFolders(lib), [lib])
-  const [source, setSource] = useState<Source | null>(null)
-  const [folder, setFolder] = useState<ReadFolder | null>(null)
+  // Back from an album's import: the analysis is still there (reading the folder again takes minutes).
+  const [folder, setFolder] = useState<ReadFolder | null>(() => {
+    const kept = keptAnalysis<ReadFolder>()
+    return kept && track && kept.name === track.rootName ? kept : null
+  })
+  const [source, setSource] = useState<Source | null>(folder ? 'computer' : null)
   const [reading, setReading] = useState<{ dirs: number; files: number } | null>(null)
-  // Before the browser's own window ("view and copy files", "upload files"): what MyMedia really does.
   const [explain, setExplain] = useState(false)
-  const [preparing, setPreparing] = useState<number | null>(null)
+  const [preparing, setPreparing] = useState<{ album: string | null; files: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ done: number; failed: number; total: number } | null>(null)
   const [result, setResult] = useState<{ moved: number; failed: number } | null>(null)
@@ -69,17 +96,69 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
   const [creating, setCreating] = useState(false)
   const folderInput = useRef<HTMLInputElement>(null)
 
-  const fromComputer = useMemo(() => (folder ? foldersOfFiles(folder.paths) : NONE), [folder])
+  const plan = useMemo(() => (folder ? planAlbums(folder.files) : null), [folder])
+  const fromComputer = useMemo(() => plan?.albums.map((a) => ({ name: a.name, count: a.files })) ?? NONE, [plan])
   const fromLibrary = useMemo(() => lone.map((f) => ({ name: f.name, count: f.count })).sort((a, b) => a.name.localeCompare(b.name)), [lone])
   const albums = source === 'computer' ? fromComputer : source === 'library' ? fromLibrary : NONE
-  const proposal = useCategoryProposal(albums)
+  const followed = !!folder?.handle && !!track && track.rootName === folder.name
+  // The corrections made by hand on the folder followed (a folder read again finds them).
+  const proposal = useCategoryProposal(albums, track?.choice)
   const tree = useMemo(() => (folder ? treeText(folder.name, folder.dirs) : ''), [folder])
+
+  // The corrections made by hand, kept for the next analysis of the same folder.
+  const trackRef = useRef(track)
+  trackRef.current = track
+  useEffect(() => {
+    const tr = trackRef.current
+    if (followed && tr && tr.choice !== proposal.choice) void saveTrack({ ...tr, choice: proposal.choice })
+  }, [followed, proposal.choice])
+
+  /** Files of an album already in MyMedia: as its import said, or as MyMedia shows. */
+  const inMyMedia = (a: PlanAlbum) => {
+    const rec = followed ? track!.imported[a.name] : undefined
+    const category = rec ? rec.category : proposal.categoryOf(a.name)
+    const parent = category ? lib.categories.find((c) => same(c.name, category)) : null
+    const album = category ? parent?.children.find((c) => same(c.name, a.name)) : lib.categories.find((c) => same(c.name, a.name))
+    return { files: Math.max(rec?.files ?? 0, album?.count ?? 0), failed: rec?.failed ?? 0, category }
+  }
+  const status = new Map((plan?.albums ?? []).map((a) => [a.name, inMyMedia(a)]))
+  const isDone = (a: PlanAlbum) => (status.get(a.name)?.files ?? 0) >= a.files
+  const doneAlbums = (plan?.albums ?? []).filter(isDone)
+  const leftAlbums = (plan?.albums ?? []).filter((a) => !isDone(a))
+  const left = sumSizes(leftAlbums)
+  const big = left.files > BIG_FILES || left.bytes > BIG_BYTES
+  const doneNames = new Set(doneAlbums.map((a) => a.name))
 
   const moves = lone.flatMap((f) => {
     const category = proposal.categoryOf(f.name)
     // An album already named like its category stays: it is that category.
-    return category && category.trim().toLocaleLowerCase() !== f.name.trim().toLocaleLowerCase() ? [{ id: f.id, category }] : []
+    return category && !same(category.trim(), f.name.trim()) ? [{ id: f.id, category }] : []
   })
+  /** The categories kept for the albums left to import. */
+  const kept = [
+    ...new Set(
+      albums
+        .filter((a) => !doneNames.has(a.name))
+        .map((a) => proposal.categoryOf(a.name))
+        .filter((c): c is string => !!c),
+    ),
+  ]
+
+  /** A folder read: shown, and followed on this device (the same folder again keeps what was done). */
+  async function analysed(w: WalkedFolder) {
+    const f: ReadFolder = { name: w.name, dirs: w.dirs, files: w.files, handle: w.handle }
+    const count = planAlbums(w.files).albums.length
+    const sameFolder = !!track && ((await track.handle.isSameEntry?.(w.handle).catch(() => false)) ?? track.rootName === w.name)
+    const analysedAt = new Date().toISOString()
+    if (sameFolder && track) await saveTrack({ ...track, rootName: w.name, handle: w.handle, analysedAt, albums: count })
+    else {
+      proposal.setChoice(NO_CHOICE)
+      await saveTrack({ rootName: w.name, handle: w.handle, analysedAt, albums: count, choice: NO_CHOICE, imported: {} })
+    }
+    keepAnalysis(f)
+    setFolder(f)
+    setSource('computer')
+  }
 
   async function readFolder() {
     setExplain(false)
@@ -88,12 +167,23 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
     setReading({ dirs: 0, files: 0 })
     try {
       const w = await pickAndWalk((dirs, files) => setReading({ dirs, files }))
-      if (w) {
-        setFolder({ name: w.name, dirs: w.dirs, paths: w.files.map((f) => f.path), walked: w })
-        setSource('computer')
-      }
+      if (w) await analysed(w)
     } catch (e) {
       setError(t('errors.generic', { message: (e as Error).message }))
+    }
+    setReading(null)
+  }
+
+  /** The folder followed, read again (renamed folders sorted again, what was imported apart). */
+  async function readAgain() {
+    if (!track) return
+    setError(null)
+    setReading({ dirs: 0, files: 0 })
+    try {
+      if (!(await canRead(track.handle))) throw new Error(t('treeSuggest.noAccess', { name: track.rootName }))
+      await analysed(await walkFolder(track.handle, (dirs, files) => setReading({ dirs, files })))
+    } catch (e) {
+      setError((e as Error).name === 'NotFoundError' ? t('treeSuggest.notFound', { name: track.rootName }) : t('errors.generic', { message: (e as Error).message }))
     }
     setReading(null)
   }
@@ -101,40 +191,49 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
   function pickedFiles(list: FileList | null) {
     const all = [...(list ?? [])]
     if (!all.length) return
-    const files = mediaFiles(all)
+    const picked = mediaFiles(all)
     setFolder({
       name: all[0].webkitRelativePath.split('/')[0] ?? '',
       dirs: dirsOfPaths(all.map((f) => f.webkitRelativePath)),
-      paths: files.map((f) => f.webkitRelativePath),
-      files,
+      files: picked.map((f) => {
+        const parts = f.webkitRelativePath.split('/')
+        return { dirs: parts.slice(1, -1), name: f.name, size: f.size, type: mediaTypeOf(f.type, f.name) ?? 'document' }
+      }),
+      picked,
     })
     setSource('computer')
   }
 
   async function importFolder() {
     if (!folder) return
-    if (folder.files) return onImport(folder.files, proposal.choice)
-    if (!folder.walked) return
-    setPreparing(0)
+    if (folder.picked) return onImport(folder.picked, proposal.choice)
+    if (!folder.handle) return
+    setPreparing({ album: null, files: 0 })
     try {
-      onImport(await filesOf(folder.walked, setPreparing), proposal.choice)
+      onImport(await filesBelow(folder.handle, [[]], folder.name, (files) => setPreparing({ album: null, files })), proposal.choice)
     } catch (e) {
       setError(t('errors.generic', { message: (e as Error).message }))
       setPreparing(null)
     }
   }
 
-  function downloadTree() {
-    const url = URL.createObjectURL(new Blob([tree], { type: 'text/plain;charset=utf-8' }))
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'arbo.txt'
-    a.click()
-    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  /** One album: its files read, its category made if needed, then the usual import. */
+  async function importAlbum(a: PlanAlbum) {
+    if (!folder?.handle) return
+    setError(null)
+    setPreparing({ album: a.name, files: 0 })
+    try {
+      if (!(await canRead(folder.handle))) throw new Error(t('treeSuggest.noAccess', { name: folder.name }))
+      const files = await filesBelow(folder.handle, a.dirs, a.name, (n) => setPreparing({ album: a.name, files: n }))
+      const category = proposal.categoryOf(a.name)
+      const destId = category ? (lib.categories.find((c) => same(c.name, category))?.id ?? (await newFolder(category, rootId)).id) : rootId
+      onImportAlbum(files, destId, a.name, category)
+    } catch (e) {
+      setError((e as Error).name === 'NotFoundError' ? t('treeSuggest.notFound', { name: folder.name }) : t('errors.generic', { message: (e as Error).message }))
+      setPreparing(null)
+    }
   }
 
-  /** The categories kept, created empty in MyMedia (photos can be put in them later). */
-  const kept = [...new Set(albums.map((a) => proposal.categoryOf(a.name)).filter((c): c is string => !!c))]
   async function createOnly() {
     setCreating(true)
     setError(null)
@@ -146,12 +245,46 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
     setCreating(false)
   }
 
+  function downloadTree() {
+    const url = URL.createObjectURL(new Blob([tree], { type: 'text/plain;charset=utf-8' }))
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'arbo.txt'
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+
   async function sortLibrary() {
     setProgress({ done: 0, failed: 0, total: moves.length })
     setResult(await putIntoCategories(moves, (done, failed) => setProgress({ done, failed, total: moves.length })))
   }
 
-  const busy = (progress !== null && result === null) || reading !== null || preparing !== null
+  /** An album's line: its size, and what was imported of it or its Import button. */
+  const albumExtra = (p: ProposalAlbum) => {
+    const a = plan?.albums.find((x) => x.name === p.name)
+    if (!a) return null
+    const st = status.get(a.name)
+    return (
+      <span className="album-extra">
+        <span className="hint">{fmt.bytes(a.bytes)}</span>
+        {st && st.files > 0 && <span className="hint">{t('treeSuggest.partial', { done: fmt.number(st.files), total: fmt.number(a.files) })}</span>}
+        {st && st.failed > 0 && <span className="error-text">{t('treeSuggest.failed', { count: st.failed })}</span>}
+        {folder?.handle &&
+          (preparing?.album === a.name ? (
+            <span className="hint">
+              <Loader2 size={14} className="spin" /> {fmt.number(preparing.files)}
+            </span>
+          ) : (
+            <button className="btn small" disabled={busy} onClick={() => void importAlbum(a)}>
+              <Upload size={14} /> {t('treeSuggest.importAlbum')}
+            </button>
+          ))}
+      </span>
+    )
+  }
+
+  const busy = (progress !== null && result === null) || reading !== null || preparing !== null || creating
+  const importedCount = track ? Object.values(track.imported).filter((r) => r.files > 0 && r.failed === 0).length : 0
   return (
     <Modal wide title={t('treeSuggest.title')} onClose={() => !busy && onClose()}>
       <div className="modal-scroll">
@@ -167,10 +300,23 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
               </div>
             </div>
 
+            {track && walks && (
+              <div className="tree-followed">
+                <p>
+                  {t('treeSuggest.lastAnalysis', { name: track.rootName, date: fmt.date(track.analysedAt) })}
+                  {' — '}
+                  {t('treeSuggest.importedOf', { count: importedCount, total: track.albums })}
+                </p>
+                <button className="btn primary" disabled={busy} onClick={() => void readAgain()}>
+                  <RefreshCw size={16} /> {t('treeSuggest.readAgain')}
+                </button>
+              </div>
+            )}
+
             <div className="tree-suggest-sources">
               {canPickFolder && (
-                <button className={`btn ${source === 'computer' ? 'primary' : ''}`} disabled={busy} onClick={() => setExplain(true)}>
-                  <FolderOpen size={18} /> {t('treeSuggest.fromComputer')}
+                <button className={`btn ${source === 'computer' && !followed ? 'primary' : ''}`} disabled={busy} onClick={() => setExplain(true)}>
+                  <FolderOpen size={18} /> {t(track && walks ? 'treeSuggest.otherFolder' : 'treeSuggest.fromComputer')}
                 </button>
               )}
               {lone.length >= 2 && (
@@ -195,6 +341,7 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
                   <strong>{t(walks ? 'treeSuggest.warnTitle' : 'treeSuggest.warnTitleUpload')}</strong>
                 </p>
                 <p>{t(walks ? 'treeSuggest.warnText' : 'treeSuggest.warnTextUpload')}</p>
+                {track && walks && <p className="hint">{t('treeSuggest.otherFolderHint', { name: track.rootName })}</p>}
                 <div className="row">
                   <button className="btn" onClick={() => setExplain(false)}>
                     {t('common.cancel')}
@@ -205,7 +352,7 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
                 </div>
               </div>
             )}
-            {canPickFolder && !source && !reading && !explain && <p className="hint">{t(walks ? 'treeSuggest.computerHint' : 'treeSuggest.computerHintUpload')}</p>}
+            {canPickFolder && !source && !reading && !explain && !track && <p className="hint">{t(walks ? 'treeSuggest.computerHint' : 'treeSuggest.computerHintUpload')}</p>}
             {!canPickFolder && !source && <p className="hint">{t('treeSuggest.computerOnly')}</p>}
 
             {reading && (
@@ -215,14 +362,14 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
             )}
             {error && <p className="error-text">{error}</p>}
 
-            {source === 'computer' && folder && !reading && (
+            {source === 'computer' && folder && plan && !reading && (
               <>
                 <p>
                   <strong>
                     <bdi>{folder.name}</bdi>
                   </strong>
                   {' — '}
-                  {t('treeSuggest.readDone', { dirs: fmt.number(folder.dirs.length), files: fmt.number(folder.paths.length), count: fromComputer.length })}
+                  {t('treeSuggest.readDone', { dirs: fmt.number(folder.dirs.length), files: fmt.number(folder.files.length), count: plan.albums.length })}
                 </p>
                 <details className="tree-read">
                   <summary>{t('treeSuggest.showTree', { count: folder.dirs.length })}</summary>
@@ -231,10 +378,51 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
                     <Download size={16} /> {t('treeSuggest.downloadTree')}
                   </button>
                 </details>
+                {leftAlbums.length > 0 ? (
+                  <ImportEstimate
+                    sizes={left}
+                    label={
+                      doneAlbums.length
+                        ? t('treeSuggest.left', { count: leftAlbums.length, done: doneAlbums.length, files: fmt.number(left.files), size: fmt.bytes(left.bytes) })
+                        : undefined
+                    }
+                  />
+                ) : (
+                  <p className="ok-text">
+                    <Check size={16} /> {t('treeSuggest.allDone', { count: doneAlbums.length })}
+                  </p>
+                )}
+                {plan.loose.files > 0 && <p className="hint">{t('treeSuggest.loose', { count: plan.loose.files })}</p>}
+                {folder.handle && leftAlbums.length > 0 && <p className="hint">{t('treeSuggest.renameHint')}</p>}
+                {big && !folder.handle && <p className="hint">{t('treeSuggest.bigNoTrack')}</p>}
               </>
             )}
             {source === 'library' && <p>{t('treeSuggest.libraryIntro', { count: lone.length })}</p>}
-            {source && albums.length > 0 && !reading && <CategoryProposal state={proposal} />}
+            {source && albums.length > 0 && !reading && (source === 'library' || leftAlbums.length > 0) && (
+              <CategoryProposal
+                state={proposal}
+                show={source === 'computer' ? (name) => !doneNames.has(name) : undefined}
+                extra={source === 'computer' ? albumExtra : undefined}
+              />
+            )}
+            {source === 'computer' && doneAlbums.length > 0 && !reading && (
+              <details className="tree-done">
+                <summary className="ok-text">
+                  <Check size={14} /> {t('treeSuggest.doneAlbums', { count: doneAlbums.length })}
+                </summary>
+                <ul>
+                  {doneAlbums.map((a) => (
+                    <li key={a.name}>
+                      <bdi>{a.name}</bdi>
+                      <span className="hint">
+                        {' — '}
+                        <bdi>{status.get(a.name)?.category ?? t('autoCategories.none')}</bdi> · {t('treeSuggest.albumSize', { count: a.files, files: fmt.number(a.files), size: fmt.bytes(a.bytes) })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
             {source === 'computer' && folder && albums.length === 0 && !reading && <p className="hint">{t('autoCategories.noFolders')}</p>}
             {created && (
               <p className="ok-text" aria-live="polite">
@@ -242,9 +430,9 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
                 {created.existing > 0 && <> {t('treeSuggest.existing', { count: created.existing })}</>}
               </p>
             )}
-            {preparing !== null && (
+            {preparing && preparing.album === null && (
               <p aria-live="polite">
-                <Loader2 size={16} className="spin" /> {t('treeSuggest.preparing', { done: fmt.number(preparing), total: fmt.number(folder?.paths.length ?? 0) })}
+                <Loader2 size={16} className="spin" /> {t('treeSuggest.preparing', { done: fmt.number(preparing.files), total: fmt.number(folder?.files.length ?? 0) })}
               </p>
             )}
           </>
@@ -272,13 +460,13 @@ export function TreeSuggestDialog({ lib, onImport, onClose }: Props) {
               {t('common.close')}
             </button>
             {source === 'computer' && folder && kept.length > 0 && (
-              <button className="btn" disabled={busy || creating} onClick={() => void createOnly()}>
+              <button className="btn" disabled={busy} onClick={() => void createOnly()}>
                 {creating && <Loader2 size={16} className="spin" />} {t('treeSuggest.createOnly', { count: kept.length })}
               </button>
             )}
-            {source === 'computer' && folder && (
-              <button className="btn primary" disabled={busy || !folder.paths.length || !fromComputer.length} onClick={() => void importFolder()}>
-                {t('treeSuggest.import', { count: folder.paths.length })}
+            {source === 'computer' && folder && !big && leftAlbums.length > 0 && (
+              <button className="btn primary" disabled={busy || !folder.files.length} onClick={() => void importFolder()}>
+                {t('treeSuggest.import', { count: left.files })}
               </button>
             )}
             {source === 'library' && (
