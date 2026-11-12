@@ -352,8 +352,8 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
     return albums.map((a) => {
       const top = albumNameOf(a.name) ?? a.name
       const own = items.filter((i) => i.relDir[0] === top)
-      // A file's own date says nothing of the event.
-      const year = mostYear(own.filter((i) => i.dateSource !== 'file').map((i) => i.takenAt))
+      // A file's own date may be a copy's: only when nothing else gives one (videos without a recording date…).
+      const year = mostYear(own.filter((i) => i.dateSource !== 'file').map((i) => i.takenAt)) ?? mostYear(own.map((i) => i.takenAt))
       const dirs = [...new Map(own.map((i) => diskDirOf(i.file)).filter((d): d is string[] => !!d).map((d) => [d.join('/'), d])).values()]
       return { ...a, top, finalName: yearOn ? yearFirst(top, year) : top, dirs }
     })
@@ -799,7 +799,8 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
                   )}
                 </div>
               )}
-              {hasFolders && (
+              {/* Several albums: each one's category and name are in the list above. */}
+              {hasFolders && !albums && (
                 <div className="album-tree">
                   <p>{t('import.result')}</p>
                   <ul>
