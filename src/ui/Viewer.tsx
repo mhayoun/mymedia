@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Crown, ExternalLink, FileText, FolderPlus, Info, Loader2, Maximize2, Pencil, Play, RotateCcw, RotateCw, Share2, Trash2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ExternalLink, FileText, FolderPlus, Info, Loader2, Maximize2, Pencil, Play, RotateCcw, RotateCw, Share2, Trash2, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
@@ -23,7 +23,6 @@ import { ConfirmDialog, Modal } from './Dialog'
 import { FaceImg } from './FaceImg'
 import { NewAlbumDialog } from './NewAlbumDialog'
 import { useLibraryContext } from './libraryContext'
-import { useIsPro } from '../models/pro'
 import { useOpenPerson, usePeopleContext } from './peopleContext'
 import type { LibraryItem } from './useLibrary'
 import { useProvenanceLabel } from './useProvenanceLabel'
@@ -557,7 +556,6 @@ function InfoPanel({ item }: { item: LibraryItem }) {
   const [picking, setPicking] = useState<string | null>(null)
   const [newName, setNewName] = useState('')
   const [dating, setDating] = useState(false)
-  const isPro = useIsPro()
   const giveName = async (f: (typeof faces)[number]) => {
     const name = newName.trim()
     if (!name) return
@@ -578,11 +576,11 @@ function InfoPanel({ item }: { item: LibraryItem }) {
           {!readOnly && (
             <button
               className="icon-btn small"
-              onClick={() => (isPro ? setDating(true) : set({ proOpen: true }))}
+              onClick={() => setDating(true)}
               aria-label={t('dates.change')}
-              title={isPro ? t('dates.change') : `${t('dates.change')} (Pro)`}
+              title={t('dates.change')}
             >
-              {isPro ? <Pencil size={14} /> : <Crown size={14} />}
+              <Pencil size={14} />
             </button>
           )}
           {dating && <DateDialog recs={[rec]} onClose={() => setDating(false)} onDone={() => setDating(false)} />}

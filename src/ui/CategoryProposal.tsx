@@ -45,17 +45,26 @@ export function useCategoryProposal(albums: ProposalAlbum[], initial?: CategoryC
 
 export type CategoryProposalState = ReturnType<typeof useCategoryProposal>
 
+/** Albums ticked to be imported together. */
+export interface AlbumChecks {
+  isOn: (name: string) => boolean
+  set: (names: string[], on: boolean) => void
+}
+
 /** The proposed categories, each with its albums: rename, untick, or move an album to another one. */
 export function CategoryProposal({
   state,
   show,
   extra,
+  checks,
 }: {
   state: CategoryProposalState
   /** Only these albums (e.g. those not imported yet); all by default. */
   show?: (name: string) => boolean
   /** More on an album's line (size, Import button…). */
   extra?: (a: ProposalAlbum) => ReactNode
+  /** A box on each album (and "tick all" in each category), to import several at once. */
+  checks?: AlbumChecks
 }) {
   const { t } = useTranslation()
   const { choice, setChoice, keyOf, labelOf } = state
@@ -67,6 +76,14 @@ export function CategoryProposal({
   const albumRow = (a: ProposalAlbum, key: CategoryKey | null) => (
     <li key={a.name} className="proposal-album">
       <span className="name">
+        {checks && (
+          <input
+            type="checkbox"
+            checked={checks.isOn(a.name)}
+            onChange={(e) => checks.set([a.name], e.target.checked)}
+            aria-label={t('autoCategories.tick', { name: a.name })}
+          />
+        )}
         <FolderOpen size={14} /> <bdi>{a.name}</bdi> {a.count > 0 && <span className="hint">{a.count}</span>}
       </span>
       {extra?.(a)}
@@ -88,6 +105,18 @@ export function CategoryProposal({
       .map((a) => a.name)
       .join(', ') + (list.length > 3 ? '…' : '')
   const kept = groups.filter((g) => !choice.off.includes(g.key)).length
+  /** "Tick all" at the top of a category's albums. */
+  const tickAll = (list: ProposalAlbum[]) => {
+    if (!checks || list.length < 2) return null
+    const all = list.every((a) => checks.isOn(a.name))
+    return (
+      <li className="proposal-album tick-all">
+        <label className="name">
+          <input type="checkbox" checked={all} onChange={() => checks.set(list.map((a) => a.name), !all)} /> {t('autoCategories.tickAll', { count: list.length })}
+        </label>
+      </li>
+    )
+  }
 
   return (
     <div className="category-proposal">
@@ -118,7 +147,10 @@ export function CategoryProposal({
               <summary className="hint">
                 {t('autoCategories.albums', { count: list.length })} · <bdi>{examples(list)}</bdi>
               </summary>
-              <ul>{list.map((a) => albumRow(a, key))}</ul>
+              <ul>
+                {tickAll(list)}
+                {list.map((a) => albumRow(a, key))}
+              </ul>
             </details>
           </section>
         )
@@ -132,7 +164,10 @@ export function CategoryProposal({
             <summary className="hint">
               {t('autoCategories.albums', { count: none.length })} — {t('autoCategories.noneHint')}
             </summary>
-            <ul>{none.map((a) => albumRow(a, null))}</ul>
+            <ul>
+              {tickAll(none)}
+              {none.map((a) => albumRow(a, null))}
+            </ul>
           </details>
         </section>
       )}

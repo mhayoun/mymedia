@@ -454,7 +454,10 @@
     "albumNew": "new album",
     "addFolder": "Add another folder",
     "chosenFolders": "Folders chosen: {{names}}",
-    "zipNoMedia": "This ZIP has no photo or video."
+    "zipNoMedia": "This ZIP has no photo or video.",
+    "albumsDest_one": "{{count}} album, into its category",
+    "albumsDest_other": "{{count}} albums, each into its category",
+    "albumOf": "Album {{index}} / {{total}}:"
   },
   "faces": {
     "itIs": "It is…",
@@ -1132,8 +1135,7 @@
     "featureBlurry": "Blurry photos (sorting and clean-up)",
     "featureShare": "Sharing with chosen people (by Gmail address; they need Pro too)",
     "featureTransfer": "Sending to another Google account (transfer)",
-    "featureDates": "Changing the date of photos (one or many)",
-    "freeRest": "Everything else is free: gallery, albums, adding, search, faces, classification, compression, duplicates, blurry photos, models shop, and sharing by a link.",
+    "freeRest": "Everything else is free: gallery, albums, adding, search, faces, classification, compression, changing dates, duplicates, blurry photos, models shop, and sharing by a link.",
     "buyTitle": "Get Pro",
     "extendTitle": "Add time",
     "planYear": "1 year: {{perMonth}} / month",
@@ -1213,7 +1215,10 @@
     "failed_one": "{{count}} album could not be moved (an album with the same name may already be in the category).",
     "failed_other": "{{count}} albums could not be moved (an album with the same name may already be in the category).",
     "listTitle_one": "{{count}} category proposed",
-    "listTitle_other": "{{count}} categories proposed"
+    "listTitle_other": "{{count}} categories proposed",
+    "tick": "Tick \"{{name}}\"",
+    "tickAll_one": "Tick all ({{count}} album)",
+    "tickAll_other": "Tick all ({{count}} albums)"
   },
   "treeSuggest": {
     "menu": "Tree suggestion",
@@ -1277,7 +1282,16 @@
     "looseCamera_one": "{{count}} file · camera folder, to rename",
     "looseCamera_other": "{{count}} files · camera folder, to rename",
     "looseHere_one": "{{count}} file directly here, to put in a named folder",
-    "looseHere_other": "{{count}} files directly here, to put in a named folder"
+    "looseHere_other": "{{count}} files directly here, to put in a named folder",
+    "ticked_one": "{{count}} album ticked",
+    "ticked_other": "{{count}} albums ticked",
+    "tickedDrive": "Drive ≈ {{size}}",
+    "longImport": "More than an hour: keep the MyMedia tab open and the computer on. If the import stops, the finished albums stay imported and \"Read the tree again\" shows what is left.",
+    "putInto": "Put into:",
+    "ownCategory": "Each one's proposed category",
+    "untick": "Untick",
+    "importTicked_one": "Import {{count}} album",
+    "importTicked_other": "Import the {{count}} albums"
   },
   "importEstimate": {
     "files_one": "{{files}} photo or video · {{size}}",

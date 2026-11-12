@@ -90,7 +90,6 @@ export function ProDialog({ onClose }: { onClose: () => void }) {
           <li>{t('pro.featureShare', { count: FREE_SHARES })}</li>
           <li>{t('pro.featureTransfer')}</li>
           <li>{t('pro.featureDrive')}</li>
-          <li>{t('pro.featureDates')}</li>
         </ul>
         <p className="hint">{t('pro.freeRest')}</p>
         {pro?.pro && door === 'free' && !isNative && <FullAccessButton />}

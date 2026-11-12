@@ -452,7 +452,10 @@
     "albumNew": "nouvel album",
     "addFolder": "Ajouter un autre dossier",
     "chosenFolders": "Dossiers choisis : {{names}}",
-    "zipNoMedia": "Ce ZIP ne contient ni photo ni vidéo."
+    "zipNoMedia": "Ce ZIP ne contient ni photo ni vidéo.",
+    "albumsDest_one": "{{count}} album, dans sa catégorie",
+    "albumsDest_other": "{{count}} albums, chacun dans sa catégorie",
+    "albumOf": "Album {{index}} / {{total}} :"
   },
   "faces": {
     "itIs": "C'est…",
@@ -1130,8 +1133,7 @@
     "featureBlurry": "Les photos floues (tri et nettoyage)",
     "featureShare": "Le partage avec des personnes choisies (par adresse Gmail ; elles aussi doivent avoir Pro)",
     "featureTransfer": "L'envoi vers un autre compte Google (transfert)",
-    "featureDates": "Le changement de date des photos (une ou plusieurs)",
-    "freeRest": "Tout le reste est gratuit : galerie, albums, ajout, recherche, visages, classement, compression, doublons, photos floues, boutique de modèles, et le partage par lien.",
+    "freeRest": "Tout le reste est gratuit : galerie, albums, ajout, recherche, visages, classement, compression, changement de date, doublons, photos floues, boutique de modèles, et le partage par lien.",
     "buyTitle": "Passer à Pro",
     "extendTitle": "Ajouter du temps",
     "planYear": "1 an : {{perMonth}} / mois",
@@ -1211,7 +1213,10 @@
     "failed_one": "{{count}} album n'a pas pu être déplacé (un album du même nom est peut-être déjà dans la catégorie).",
     "failed_other": "{{count}} albums n'ont pas pu être déplacés (un album du même nom est peut-être déjà dans la catégorie).",
     "listTitle_one": "{{count}} catégorie proposée",
-    "listTitle_other": "{{count}} catégories proposées"
+    "listTitle_other": "{{count}} catégories proposées",
+    "tick": "Cocher « {{name}} »",
+    "tickAll_one": "Tout cocher ({{count}} album)",
+    "tickAll_other": "Tout cocher ({{count}} albums)"
   },
   "treeSuggest": {
     "menu": "Suggestion d'arborescence",
@@ -1275,7 +1280,16 @@
     "looseCamera_one": "{{count}} fichier · dossier d'appareil photo, à renommer",
     "looseCamera_other": "{{count}} fichiers · dossier d'appareil photo, à renommer",
     "looseHere_one": "{{count}} fichier posé directement ici, à mettre dans un dossier nommé",
-    "looseHere_other": "{{count}} fichiers posés directement ici, à mettre dans un dossier nommé"
+    "looseHere_other": "{{count}} fichiers posés directement ici, à mettre dans un dossier nommé",
+    "ticked_one": "{{count}} album coché",
+    "ticked_other": "{{count}} albums cochés",
+    "tickedDrive": "Drive ≈ {{size}}",
+    "longImport": "Plus d'une heure : gardez l'onglet MyMedia ouvert et l'ordinateur allumé. Si l'import s'arrête, les albums finis restent importés et « Relire l'arborescence » montre ce qui reste.",
+    "putInto": "Mettre dans :",
+    "ownCategory": "Catégorie proposée de chacun",
+    "untick": "Décocher",
+    "importTicked_one": "Importer {{count}} album",
+    "importTicked_other": "Importer les {{count}} albums"
   },
   "importEstimate": {
     "files_one": "{{files}} photo ou vidéo · {{size}}",

@@ -17,6 +17,7 @@ import { recordImport } from '../import/importTrack'
 import { useApp } from '../store'
 import { Modal } from './Dialog'
 import { CategoryProposal, useCategoryProposal, type CategoryChoice, type ProposalAlbum } from './CategoryProposal'
+import { albumNameOf } from '../lib/cameraFolders'
 import { DriveImportDialog } from './DriveImportDialog'
 import { FolderTreePicker } from './FolderTreePicker'
 import type { Library } from './useLibrary'
@@ -33,7 +34,21 @@ interface Props {
   categories?: CategoryChoice
   /** After each sending: files now in MyMedia (sent, or there already), files that failed. */
   onFinished?: (r: { inMyMedia: number; failed: number }) => void
+  /**
+   * From "Tree suggestion": several albums (each file's first folder is its album), sent one after the
+   * other, each into its own destination (its category, or MyMedia itself).
+   */
+  albums?: AlbumTarget[]
+  /** After each album of `albums` (and after a retry of its failed files). */
+  onAlbumFinished?: (album: string, r: { inMyMedia: number; failed: number }) => void
   onClose: () => void
+}
+
+export interface AlbumTarget {
+  name: string
+  /** Its category's folder, or the root. */
+  destId: string
+  category: string | null
 }
 
 const RECENT_KEY = 'mymedia.recentDestinations'
@@ -125,13 +140,16 @@ function ReplacedThumb({ lib, id }: { lib: Library; id: string }) {
 }
 
 /** "Add photos/videos": choose files or a folder, check dates and sizes, upload. */
-export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare, categories, onFinished, onClose }: Props) {
+export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare, categories, onFinished, albums, onAlbumFinished, onClose }: Props) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
   // A destination since removed: the root instead.
   // A category just made for a followed import may not be loaded yet: kept.
-  const [destId, setDestId] = useState(() => (initialDest === rootId || lib.folders.has(initialDest) || onFinished ? initialDest : rootId))
+  const [destId, setDestId] = useState(() => (initialDest === rootId || lib.folders.has(initialDest) || onFinished || albums ? initialDest : rootId))
+  // The album being sent (several albums from "Tree suggestion").
+  const [current, setCurrent] = useState<{ index: number; name: string } | null>(null)
+  const stopped = useRef(false)
   const [phase, setPhase] = useState<'pick' | 'zip' | 'groups' | 'analyze' | 'match' | 'choose' | 'upload' | 'done'>('pick')
   const [fb, setFb] = useState<FacebookExport | null>(null)
   const [fbGroups, setFbGroups] = useState<Set<string>>(new Set())
@@ -323,18 +341,55 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
           return species ? { ...i, relDir: [species], extra: { ...i.extra, species } } : i
         })
       : list
+    const onItem = (key: string, o: ImportOutcome) => setOutcomes((prev) => ({ ...prev, [key]: o }))
+    stopped.current = false
+    if (albums) {
+      const r = await sendAlbums(toSend, albums, onItem)
+      setResult((prev) => (prev ? { count: prev.count + r.count, before: prev.before + r.before, after: prev.after + r.after } : r))
+      setCurrent(null)
+      setPhase('done')
+      return
+    }
     const started = performance.now()
     const r = await runImport(toSend, destId, {
       compress,
       keepFolders: !sortByModel,
       ...sendOpts.current,
-    }, (key, o) => setOutcomes((prev) => ({ ...prev, [key]: o })))
+    }, onItem)
     recordImport(r.before, r.after, performance.now() - started)
     sentTotal.current += r.count
     onFinished?.({ inMyMedia: sentTotal.current + duplicates, failed: selected.length - sentTotal.current })
     // A retry adds to what was sent before.
     setResult((prev) => (prev ? { count: prev.count + r.count, before: prev.before + r.before, after: prev.after + r.after } : r))
     setPhase('done')
+  }
+
+  /** Album after album, each into its destination; each one marked as soon as it is done. */
+  const sentByAlbum = useRef(new Map<string, number>())
+  async function sendAlbums(list: ImportItem[], targets: AlbumTarget[], onItem: (key: string, o: ImportOutcome) => void) {
+    const total = { count: 0, before: 0, after: 0 }
+    for (const [index, target] of targets.entries()) {
+      // Its folder as the analysis named it ("442___02Pourim5773" → "Pourim5773").
+      const top = albumNameOf(target.name) ?? target.name
+      const ofAlbum = (i: ImportItem) => i.relDir[0] === top
+      const group = list.filter(ofAlbum)
+      if (!group.length) continue
+      if (stopped.current) break
+      setCurrent({ index, name: target.name })
+      const started = performance.now()
+      const r = await runImport(group, target.destId, { compress, keepFolders: true, ...sendOpts.current }, onItem)
+      recordImport(r.before, r.after, performance.now() - started)
+      total.count += r.count
+      total.before += r.before
+      total.after += r.after
+      const sent = (sentByAlbum.current.get(target.name) ?? 0) + r.count
+      sentByAlbum.current.set(target.name, sent)
+      onAlbumFinished?.(target.name, {
+        inMyMedia: sent + items.filter((i) => ofAlbum(i) && i.duplicate).length,
+        failed: selected.filter(ofAlbum).length - sent,
+      })
+    }
+    return total
   }
 
   const toggle = (key: string) =>
@@ -409,9 +464,9 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
       <div className="row" style={{ marginBlockEnd: 10 }}>
         <span>{t('import.to')}</span>
         <strong>
-          <bdi>{destName}</bdi>
+          <bdi>{albums ? t('import.albumsDest', { count: albums.length }) : destName}</bdi>
         </strong>
-        {(phase === 'pick' || phase === 'groups' || phase === 'choose') && (
+        {!albums && (phase === 'pick' || phase === 'groups' || phase === 'choose') && (
           <button className="btn ghost" aria-expanded={treeOpen} onClick={() => setTreeOpen((o) => !o)}>
             <FolderOpen size={16} /> {t('import.changeDest')}
           </button>
@@ -431,7 +486,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
         </div>
       )}
 
-      {(phase === 'pick' || phase === 'groups' || phase === 'choose') && recent.length > 0 && (
+      {!albums && (phase === 'pick' || phase === 'groups' || phase === 'choose') && recent.length > 0 && (
         <div className="chip-list">
           {recent.map((id) => (
             <button key={id} className="chip-btn" onClick={() => { setDestId(id); setTreeOpen(false) }}>
@@ -542,6 +597,11 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
 
       {(phase === 'upload' || phase === 'done') && (
         <div className="import-progress" aria-live="polite">
+          {albums && current && phase === 'upload' && (
+            <div>
+              {t('import.albumOf', { index: current.index + 1, total: albums.length })} <strong><bdi>{current.name}</bdi></strong>
+            </div>
+          )}
           <strong>{t('import.progress', { done: fmt.number(sent + failedCount), total: fmt.number(selected.length) })}</strong>
           {failedCount > 0 && <span className="error-text"> · {t('import.progressFailed', { count: failedCount })}</span>}
           <progress max={selected.length || 1} value={sent + failedCount} />
@@ -550,7 +610,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
 
       {(phase === 'choose' || phase === 'upload' || phase === 'done') && (
         <>
-          {phase === 'choose' && canPickFolder && !fb && picked.some((i) => i.relDir.length > 0) && (
+          {phase === 'choose' && !albums && canPickFolder && !fb && picked.some((i) => i.relDir.length > 0) && (
             <div className="row">
               <span className="hint">
                 {t('import.chosenFolders', { names: [...new Set(picked.map((i) => i.relDir[0]).filter(Boolean))].join(', ') })}
@@ -603,7 +663,16 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
                 <input type="checkbox" checked={compress} onChange={(e) => setCompress(e.target.checked)} />
                 {t('import.compress')}
               </label>
-              {hasFolders && (topFolder !== null || canSort || canCategorize) && (
+              {albums && (
+                <ul className="import-albums">
+                  {albums.map((a) => (
+                    <li key={a.name}>
+                      <bdi>{a.category ? `${a.category} / ${a.name}` : a.name}</bdi>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {!albums && hasFolders && (topFolder !== null || canSort || canCategorize) && (
                 <div className="folder-mode" role="radiogroup" aria-label={t('import.whereTitle', { count: selected.length })}>
                   <p>
                     <strong>{t('import.whereTitle', { count: selected.length })}</strong>
@@ -732,7 +801,14 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
           </>
         )}
         {phase === 'upload' && (
-          <button className="btn" onClick={cancelImport}>
+          <button
+            className="btn"
+            onClick={() => {
+              // The albums not started yet stay to do.
+              stopped.current = true
+              cancelImport()
+            }}
+          >
             {t('common.cancel')}
           </button>
         )}
@@ -742,7 +818,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
           </button>
         )}
         {(phase === 'done' || phase === 'pick') && (
-          <button className={`btn ${phase === 'done' ? 'primary' : ''}`} onClick={phase === 'done' && result?.count ? showDestination : onClose}>
+          <button className={`btn ${phase === 'done' ? 'primary' : ''}`} onClick={phase === 'done' && result?.count && !albums ? showDestination : onClose}>
             {phase === 'done' ? t('common.ok') : t('common.cancel')}
           </button>
         )}

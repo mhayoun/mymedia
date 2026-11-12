@@ -16,7 +16,7 @@ import { cancelSync, syncNow } from '../sync/engine'
 import { ActivityDialog } from './ActivityDialog'
 import { CompressDialog } from './CompressDialog'
 import { ConfirmDialog, PromptDialog } from './Dialog'
-import { ImportDialog, lastShareDestination } from './ImportDialog'
+import { ImportDialog, lastShareDestination, type AlbumTarget } from './ImportDialog'
 import { Gallery } from './Gallery'
 import { useAuthError, useAuthStatus, useAutoSync, useOnline } from './hooks'
 import { SettingsPanel } from './SettingsPanel'
@@ -64,7 +64,7 @@ type DialogState =
   | { kind: 'albumLink'; id: string; name: string }
   | { kind: 'delete'; id: string; name: string; count: number }
   | { kind: 'compress'; title: string; folderId: string | null }
-  | { kind: 'import'; destId: string; files?: File[]; fromShare?: boolean; categories?: CategoryChoice; trackAlbum?: string; trackCategory?: string | null }
+  | { kind: 'import'; destId: string; files?: File[]; fromShare?: boolean; categories?: CategoryChoice; trackAlbum?: string; trackCategory?: string | null; albums?: AlbumTarget[] }
   | null
 
 export function Shell() {
@@ -243,6 +243,7 @@ export function Shell() {
           lib={lib}
           onImport={(files, categories) => setDialog({ kind: 'import', destId: rootId, files, categories })}
           onImportAlbum={(files, destId, album, category) => setDialog({ kind: 'import', destId, files, trackAlbum: album, trackCategory: category })}
+          onImportAlbums={(files, albums) => setDialog({ kind: 'import', destId: rootId, files, albums })}
           onClose={() => setDialog(null)}
         />
       )}
@@ -300,9 +301,15 @@ export function Shell() {
           fromShare={dialog.fromShare}
           categories={dialog.categories}
           onFinished={dialog.trackAlbum ? (r) => void markAlbum(dialog.trackAlbum!, r.inMyMedia, r.failed, dialog.trackCategory ?? null) : undefined}
+          albums={dialog.albums}
+          onAlbumFinished={
+            dialog.albums
+              ? (name, r) => void markAlbum(name, r.inMyMedia, r.failed, dialog.albums!.find((a) => a.name === name)?.category ?? null)
+              : undefined
+          }
           onClose={() => {
             // Back to the folder imported album by album.
-            if (dialog.trackAlbum) return setDialog({ kind: 'treeSuggest' })
+            if (dialog.trackAlbum || dialog.albums) return setDialog({ kind: 'treeSuggest' })
             if (dialog.files && !dialog.categories) void clearSharedFiles()
             setDialog(null)
           }}

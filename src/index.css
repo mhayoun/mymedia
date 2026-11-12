@@ -709,7 +709,10 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 }
 .category-proposal .proposal-album select {
   flex: 0 0 auto;
-  max-inline-size: 45%;
+  /* A third of the 45% it took: enough for a category name ("טיולים ויציאות"). */
+  inline-size: 15%;
+  min-inline-size: 8em;
+  padding: 4px 6px;
 }
 
 /* "Tree suggestion". */
