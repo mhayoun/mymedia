@@ -24,16 +24,37 @@ export async function mp4CreationTime(read: ReadRange, size: number): Promise<Da
     } else if (boxSize === 0) boxSize = size - pos
     if (boxSize < header) return null
     if (type === 'moov') {
-      // mvhd is normally the first box inside moov.
-      const m = await read(pos + header, Math.min(size, pos + header + 40))
-      if (String.fromCharCode(m[4], m[5], m[6], m[7]) !== 'mvhd') return null
-      const version = m[8]
-      const seconds = version === 1 ? u32(m, 12) * 2 ** 32 + u32(m, 16) : u32(m, 12)
-      if (!seconds) return null
-      const date = new Date((seconds - MAC_EPOCH_OFFSET) * 1000)
-      return date.getUTCFullYear() >= 1990 && date.getTime() <= Date.now() + 86_400_000 ? date : null
+      // mvhd is usually the first box inside moov, but not always (Canon puts a 64 KB "udta" before it).
+      const end = Math.min(size, pos + boxSize)
+      let p = pos + header
+      for (let inner = 0; p + 8 <= end && inner < 100; inner++) {
+        const m = await read(p, Math.min(end, p + 40))
+        const childSize = u32(m, 0)
+        if (String.fromCharCode(m[4], m[5], m[6], m[7]) === 'mvhd') {
+          const version = m[8]
+          const seconds = version === 1 ? u32(m, 12) * 2 ** 32 + u32(m, 16) : u32(m, 12)
+          if (!seconds) return null
+          const date = new Date((seconds - MAC_EPOCH_OFFSET) * 1000)
+          return date.getUTCFullYear() >= 1990 && date.getTime() <= Date.now() + 86_400_000 ? date : null
+        }
+        if (childSize < 8) return null
+        p += childSize
+      }
+      return null
     }
     pos += boxSize
   }
   return null
+}
+
+/**
+ * Some cameras (Canon…) write the recording time in local time, where the format wants UTC: read as UTC
+ * it is off by the time zone (2 h in Israel). When the file's own time (kept by the copy) is the header's
+ * read as local time, and not the header's read as UTC, the header was local: the real time is returned.
+ */
+export function localHeaderFix(header: Date, fileTime: number | null | undefined): Date {
+  if (!fileTime) return header
+  const asLocal = header.getTime() + header.getTimezoneOffset() * 60_000
+  const near = (t: number) => Math.abs(t - fileTime) <= 10 * 60_000
+  return asLocal !== header.getTime() && near(asLocal) && !near(header.getTime()) ? new Date(asLocal) : header
 }

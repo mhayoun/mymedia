@@ -5,7 +5,7 @@
 import { db } from '../db/db'
 import { downloadRange, setAppProperties } from '../drive/api'
 import { canPlayVideo, localIso } from '../lib/media'
-import { mp4CreationTime } from '../lib/mp4'
+import { localHeaderFix, mp4CreationTime } from '../lib/mp4'
 import { markMetaDirty } from './metaStore'
 
 export async function fixVideoDates(): Promise<void> {
@@ -20,7 +20,8 @@ export async function fixVideoDates(): Promise<void> {
     try {
       const date = await mp4CreationTime((a, b) => downloadRange(v.id, a, b), v.size)
       if (date) {
-        const taken = localIso(date)
+        // Drive keeps the file's own time when the copy kept it (Drive for desktop…).
+        const taken = localIso(localHeaderFix(date, Date.parse(v.modifiedTime) || null))
         await setAppProperties(v.id, { mymedia_taken: taken })
         await d.media.update(v.id, { takenAt: taken, appProperties: { ...v.appProperties, mymedia_taken: taken } })
         const meta = await d.meta.get(v.id)

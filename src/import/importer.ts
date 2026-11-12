@@ -12,7 +12,7 @@ import { createMediaFile, DriveError, ensureFolderPath } from '../drive/api'
 import { isJpegMime, planCompression } from '../lib/compressPlan'
 import { exifDateTime, heicExif, jpegDimensions, jpegExif } from '../lib/jpeg'
 import { dateFromFileName, detectOrigin, DOC_EXT_MIME, localIso, mediaTypeOf, type MediaType } from '../lib/media'
-import { mp4CreationTime } from '../lib/mp4'
+import { localHeaderFix, mp4CreationTime } from '../lib/mp4'
 import { app } from '../store'
 import type { FacebookPost } from './facebook'
 import { replaceContent } from './replace'
@@ -121,7 +121,7 @@ export async function analyze(files: File[], onProgress: (done: number) => void)
     } else if (type === 'video') {
       const created = await mp4CreationTime(async (a, b) => new Uint8Array(await file.slice(a, b).arrayBuffer()), file.size).catch(() => null)
       if (created) {
-        taken = localIso(created)
+        taken = localIso(localHeaderFix(created, file.lastModified))
         dateSource = 'video'
       }
       if (videoOk) durationMs = await localVideoDuration(file)
