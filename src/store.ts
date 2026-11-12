@@ -134,6 +134,8 @@ interface AppState {
   error: string | null
   filters: Filters
   viewerId: string | null
+  /** Faces to frame in the viewer (opened from a face): media id → its box (0..1). */
+  viewerFaces: Record<string, [number, number, number, number]> | null
   /** Selected media in selection mode; null = not selecting. */
   selection: string[] | null
   sidebarOpen: boolean
@@ -186,6 +188,7 @@ export const useApp = create<AppState>((set, get) => ({
   error: null,
   filters: { categoryId: null, albumId: null, type: 'all' },
   viewerId: null,
+  viewerFaces: null,
   selection: null,
   sidebarOpen: false,
   settingsOpen: false,

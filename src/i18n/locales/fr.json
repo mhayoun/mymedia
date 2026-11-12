@@ -461,6 +461,7 @@
     "diskRootHint": "Le chemin complet de « {{name}} » sur l'ordinateur ou le disque externe (par exemple E:\\myBackup). Chaque album garde le chemin de son dossier d'origine, avec son nom sur le disque."
   },
   "faces": {
+    "showPhoto": "Voir la photo",
     "itIs": "C'est…",
     "itIsNew": "Nouveau nom…",
     "itIsNobody": "Inconnu, sans importance",

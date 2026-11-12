@@ -463,6 +463,7 @@
     "diskRootHint": "The full path of \"{{name}}\" on the computer or the external disk (for example E:\\myBackup). Each album keeps the path of its origin folder, with its name on the disk."
   },
   "faces": {
+    "showPhoto": "See the photo",
     "itIs": "It is…",
     "itIsNew": "New name…",
     "itIsNobody": "Unknown, doesn't matter",

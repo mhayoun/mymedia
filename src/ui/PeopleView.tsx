@@ -1,13 +1,15 @@
-import { Check, CheckSquare, ShieldCheck, X } from 'lucide-react'
-import { useState } from 'react'
+import { Check, CheckSquare, ShieldCheck, X, ZoomIn } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { FaceRecord } from '../db/db'
 import { assignFaces, namePerson, recheckNames, rejectSuggestions, splitFaces } from '../faces/engine'
 import { app, useApp } from '../store'
 import { ConfirmDialog } from './Dialog'
 import { FaceImg } from './FaceImg'
+import { useLibraryContext } from './libraryContext'
 import { useOpenPerson } from './peopleContext'
 import type { People, PersonInfo } from './usePeople'
+import { Viewer } from './Viewer'
 
 function PersonCard({ p }: { p: PersonInfo }) {
   const { t } = useTranslation()
@@ -37,6 +39,31 @@ function ConfirmGroup({ person, faces, people }: { person: PersonInfo; faces: Fa
   const [busy, setBusy] = useState(false)
   const sel = faces.filter((f) => !unticked.has(f.id)).map((f) => f.id)
   const others = people.named.filter((p) => p.id !== person.id)
+  // The magnifier on a face: its whole photo in the viewer, that face framed; the arrows go through this group's photos.
+  const lib = useLibraryContext()
+  const viewerId = useApp((s) => s.viewerId)
+  const [viewing, setViewing] = useState(false)
+  useEffect(() => {
+    if (!viewerId) setViewing(false)
+  }, [viewerId])
+  const photos = useMemo(() => {
+    if (!viewing || !lib) return []
+    const byId = new Map(lib.items.map((i) => [i.rec.id, i]))
+    const seen = new Set<string>()
+    return faces.flatMap((f) => {
+      const item = byId.get(f.mediaId)
+      if (!item || seen.has(f.mediaId)) return []
+      seen.add(f.mediaId)
+      return [item]
+    })
+  }, [viewing, lib, faces])
+  const showPhoto = (face: FaceRecord) => {
+    const boxes: Record<string, FaceRecord['box']> = {}
+    for (const f of faces) boxes[f.mediaId] ??= f.box
+    boxes[face.mediaId] = face.box
+    setViewing(true)
+    app().set({ viewerId: face.mediaId, viewerFaces: boxes })
+  }
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true)
     try {
@@ -71,6 +98,21 @@ function ConfirmGroup({ person, faces, people }: { person: PersonInfo; faces: Fa
           <label key={f.id} className={`face-pick ${unticked.has(f.id) ? '' : 'on'}`}>
             <input type="checkbox" checked={!unticked.has(f.id)} onChange={() => toggle(f.id)} />
             <FaceImg face={f} size={72} />
+            {lib?.items.some((i) => i.rec.id === f.mediaId) && (
+              <button
+                type="button"
+                className="face-zoom"
+                aria-label={t('faces.showPhoto')}
+                title={t('faces.showPhoto')}
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  showPhoto(f)
+                }}
+              >
+                <ZoomIn size={14} />
+              </button>
+            )}
           </label>
         ))}
       </div>
@@ -131,6 +173,7 @@ function ConfirmGroup({ person, faces, people }: { person: PersonInfo; faces: Fa
           </select>
         )}
       </div>
+      {viewing && viewerId && photos.length > 0 && <Viewer ids={photos.map((i) => i.rec.id)} items={photos} />}
     </section>
   )
 }

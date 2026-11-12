@@ -74,7 +74,7 @@ export function Viewer({ ids, items }: Props) {
     return () => clearTimeout(t)
   }, [byId, ids, index])
 
-  const close = useCallback(() => set({ viewerId: null }), [set])
+  const close = useCallback(() => set({ viewerId: null, viewerFaces: null }), [set])
   const go = useCallback(
     (delta: number) => {
       const next = ids[index + delta]
@@ -160,7 +160,7 @@ export function Viewer({ ids, items }: Props) {
           {item.rec.type === 'document' ? (
             <DocumentStage key={item.rec.id} item={item} />
           ) : item.rec.type === 'photo' ? (
-            <PhotoStage key={`${item.rec.id}:${thumbVersion(item.rec)}`} item={item} />
+            <PhotoStage key={`${item.rec.id}:${thumbVersion(item.rec)}`} item={item} turned={pendingTurns !== 0} />
           ) : (
             <VideoStage key={`${item.rec.id}:${thumbVersion(item.rec)}`} item={item} />
           )}
@@ -301,7 +301,36 @@ function DocumentStage({ item }: { item: LibraryItem }) {
   )
 }
 
-function PhotoStage({ item }: { item: LibraryItem }) {
+/** A frame around a face on the photo shown (its box is 0..1 of the picture). */
+function FaceFrame({ box, img }: { box: [number, number, number, number]; img: React.RefObject<HTMLImageElement | null> }) {
+  const [rect, setRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
+  useEffect(() => {
+    const el = img.current
+    if (!el) return
+    const measure = () => setRect({ x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight })
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [img])
+  if (!rect || !rect.w) return null
+  const [x, y, w, h] = box
+  // A little room around the face.
+  const pad = 0.15
+  const left = Math.max(0, x - w * pad)
+  const top = Math.max(0, y - h * pad)
+  const right = Math.min(1, x + w * (1 + pad))
+  const bottom = Math.min(1, y + h * (1 + pad))
+  return (
+    <div
+      className="face-frame"
+      aria-hidden="true"
+      style={{ left: rect.x + left * rect.w, top: rect.y + top * rect.h, width: (right - left) * rect.w, height: (bottom - top) * rect.h }}
+    />
+  )
+}
+
+function PhotoStage({ item, turned }: { item: LibraryItem; turned: boolean }) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const placeholder = cachedThumbUrl(item.rec.id)
@@ -312,6 +341,10 @@ function PhotoStage({ item }: { item: LibraryItem }) {
   const [progress, setProgress] = useState<number | null>(null)
   const [failed, setFailed] = useState(false)
   const abort = useRef<AbortController | null>(null)
+  const previewImg = useRef<HTMLImageElement>(null)
+  const originalImg = useRef<HTMLImageElement>(null)
+  // Opened from a face ("Is it X?"): that face is framed on the photo.
+  const faceBox = useApp((s) => s.viewerFaces?.[item.rec.id])
   // Small photos: the preview already is the original. HEIC: browsers cannot show it.
   const wantOriginal = showable(item.rec) && !previewIsOriginal(item.rec)
 
@@ -345,9 +378,10 @@ function PhotoStage({ item }: { item: LibraryItem }) {
     <>
       {placeholder && !loaded && <img className="placeholder" src={placeholder} alt="" referrerPolicy="no-referrer" />}
       {/* The preview stays until the full-quality photo is ready, then gives way to it. */}
-      {preview && !originalShown && <img src={preview} alt={alt} onLoad={() => setLoaded(true)} />}
+      {preview && !originalShown && <img ref={previewImg} src={preview} alt={alt} onLoad={() => setLoaded(true)} />}
       {original && !failed && (
         <img
+          ref={originalImg}
           src={original}
           alt={alt}
           className={originalShown ? '' : 'loading-original'}
@@ -358,6 +392,7 @@ function PhotoStage({ item }: { item: LibraryItem }) {
           onError={() => setFailed(true)}
         />
       )}
+      {faceBox && loaded && !turned && <FaceFrame box={faceBox} img={originalShown ? originalImg : previewImg} />}
       <div className="status">
         {progress !== null ? (
           <span>{t('viewer.loadingOriginal', { percent: fmt.percent(progress) })}</span>
@@ -671,7 +706,7 @@ function InfoPanel({ item }: { item: LibraryItem }) {
                       // Read-only: the person's photos (nothing to change about them).
                       if (!readOnly) return openPerson(p.id)
                       setFilters({ personId: p.id, categoryId: null, albumId: null, provenance: null })
-                      set({ viewerId: null })
+                      set({ viewerId: null, viewerFaces: null })
                     }}
                     disabled={!p || (readOnly && !p.name)}
                     title={p?.name ?? (readOnly ? undefined : t('faces.nameIt'))}
