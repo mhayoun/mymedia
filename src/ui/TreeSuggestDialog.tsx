@@ -68,6 +68,13 @@ function dirsOfPaths(paths: string[]): string[][] {
 
 const same = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: 'base' }) === 0
 
+/** Whether a MyMedia album is this folder's: its name, or its name with the year put first ("2016 mariageAvishai"). */
+function isAlbumOf(albumName: string, folder: string): boolean {
+  if (same(albumName, folder) || same(albumName, yearFirst(folder))) return true
+  const m = /^(\d{4}) (.+)$/.exec(albumName.trim())
+  return !!m && same(m[2], folder.trim())
+}
+
 interface Props {
   lib: Library
   /** The chosen folder imported into MyMedia with the categories checked here. */
@@ -133,13 +140,19 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
     if (followed && tr && tr.choice !== proposal.choice) void saveTrack({ ...tr, choice: proposal.choice })
   }, [followed, proposal.choice])
 
-  /** Files of an album already in MyMedia: as its import said, or as MyMedia shows. */
+  /**
+   * Files of an album already in MyMedia: as its import said, or as MyMedia shows. An album since removed
+   * from MyMedia is to import again, whatever its import said.
+   */
   const inMyMedia = (a: PlanAlbum) => {
     const rec = followed ? track!.imported[a.name] : undefined
     const category = rec ? rec.category : proposal.categoryOf(a.name)
     const parent = category ? lib.categories.find((c) => same(c.name, category)) : null
-    const album = category ? parent?.children.find((c) => same(c.name, a.name)) : lib.categories.find((c) => same(c.name, a.name))
-    return { files: Math.max(rec?.files ?? 0, album?.count ?? 0), failed: rec?.failed ?? 0, category }
+    const siblings = category ? (parent?.children ?? []) : lib.categories
+    const album = siblings.find((c) => isAlbumOf(c.name, a.name))
+    // While MyMedia's albums are not loaded yet, the import's word.
+    if (!album) return lib.ready ? { files: 0, failed: 0, category } : { files: rec?.files ?? 0, failed: rec?.failed ?? 0, category }
+    return { files: Math.max(rec?.files ?? 0, album.count), failed: rec?.failed ?? 0, category }
   }
   const status = new Map((plan?.albums ?? []).map((a) => [a.name, inMyMedia(a)]))
   const isDone = (a: PlanAlbum) => (status.get(a.name)?.files ?? 0) >= a.files
@@ -357,7 +370,8 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
   }
 
   const busy = (progress !== null && result === null) || reading !== null || preparing !== null || creating
-  const importedCount = track ? Object.values(track.imported).filter((r) => r.files > 0 && r.failed === 0).length : 0
+  // Once the folder is read, what is really in MyMedia (albums removed since are to do again).
+  const importedCount = plan && followed ? doneAlbums.length : track ? Object.values(track.imported).filter((r) => r.files > 0 && r.failed === 0).length : 0
   return (
     <Modal wide title={t('treeSuggest.title')} onClose={() => !busy && onClose()}>
       <div className="modal-scroll">
