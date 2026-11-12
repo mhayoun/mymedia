@@ -7,7 +7,7 @@ import { importStats, keepAnalysis, keptAnalysis, saveTrack, useImportTrack, typ
 import { useFormat } from '../i18n/format'
 import { treeText } from '../lib/folderNames'
 import { estimateImport, planAlbums, sumSizes, type PlanAlbum, type WalkedFile } from '../lib/importPlan'
-import { nameHasYear, yearFirst } from '../lib/albumYear'
+import { yearFirst } from '../lib/albumYear'
 import { CATEGORY_KEYS, type CategoryKey } from '../lib/proposeCategories'
 import { mediaTypeOf } from '../lib/media'
 import { useApp } from '../store'
@@ -346,12 +346,6 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
     const st = status.get(a.name)
     return (
       <span className="album-extra">
-        {yearOn && folder?.handle && yearFirst(a.name) !== a.name.trim() && (
-          <span className="hint" title={t('treeSuggest.newName')}>
-            → <bdi>{yearFirst(a.name)}</bdi>
-          </span>
-        )}
-        {yearOn && folder?.handle && !nameHasYear(a.name) && <span className="hint">{t('treeSuggest.photosYear')}</span>}
         <span className="hint">{fmt.bytes(a.bytes)}</span>
         {st && st.files > 0 && <span className="hint">{t('treeSuggest.partial', { done: fmt.number(st.files), total: fmt.number(a.files) })}</span>}
         {st && st.failed > 0 && <span className="error-text">{t('treeSuggest.failed', { count: st.failed })}</span>}

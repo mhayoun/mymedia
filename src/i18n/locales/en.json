@@ -1294,9 +1294,7 @@
     "ownCategory": "Each one's proposed category",
     "untick": "Untick",
     "importTicked_one": "Import {{count}} album",
-    "importTicked_other": "Import the {{count}} albums",
-    "newName": "Name in MyMedia",
-    "photosYear": "+ photos year"
+    "importTicked_other": "Import the {{count}} albums"
   },
   "importEstimate": {
     "files_one": "{{files}} photo or video · {{size}}",

@@ -1420,9 +1420,7 @@
     "untick": "ביטול הסימון",
     "importTicked_one": "ייבוא אלבום {{count}}",
     "importTicked_two": "ייבוא {{count}} האלבומים",
-    "importTicked_other": "ייבוא {{count}} האלבומים",
-    "newName": "השם ב-MyMedia",
-    "photosYear": "+ שנת התמונות"
+    "importTicked_other": "ייבוא {{count}} האלבומים"
   },
   "importEstimate": {
     "files_one": "תמונה או סרטון אחד · {{size}}",

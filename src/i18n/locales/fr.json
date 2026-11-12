@@ -1292,9 +1292,7 @@
     "ownCategory": "Catégorie proposée de chacun",
     "untick": "Décocher",
     "importTicked_one": "Importer {{count}} album",
-    "importTicked_other": "Importer les {{count}} albums",
-    "newName": "Nom dans MyMedia",
-    "photosYear": "+ année des photos"
+    "importTicked_other": "Importer les {{count}} albums"
   },
   "importEstimate": {
     "files_one": "{{files}} photo ou vidéo · {{size}}",
