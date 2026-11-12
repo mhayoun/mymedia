@@ -7,6 +7,7 @@ import { importStats, keepAnalysis, keptAnalysis, saveTrack, useImportTrack, typ
 import { useFormat } from '../i18n/format'
 import { treeText } from '../lib/folderNames'
 import { estimateImport, planAlbums, sumSizes, type PlanAlbum, type WalkedFile } from '../lib/importPlan'
+import { nameHasYear, yearFirst } from '../lib/albumYear'
 import { CATEGORY_KEYS, type CategoryKey } from '../lib/proposeCategories'
 import { mediaTypeOf } from '../lib/media'
 import { useApp } from '../store'
@@ -44,6 +45,16 @@ const BIG_BYTES = 5e9
 const LONG_MS = 3_600_000
 /** "Put the ticked albums into": no change (each keeps its proposed category). */
 const OWN = '__own'
+const YEAR_KEY = 'mymedia.yearFirst'
+
+/** "Year first in the albums' names", as chosen last time (on by default). */
+function savedYearFirst(): boolean {
+  try {
+    return localStorage.getItem(YEAR_KEY) !== '0'
+  } catch {
+    return true
+  }
+}
 
 /** Folders of the files' paths (a folder without photos is not seen this way). */
 function dirsOfPaths(paths: string[]): string[][] {
@@ -61,10 +72,8 @@ interface Props {
   lib: Library
   /** The chosen folder imported into MyMedia with the categories checked here. */
   onImport: (files: File[], categories: CategoryChoice) => void
-  /** One album of the folder imported into its category (or MyMedia itself); back here afterwards. */
-  onImportAlbum: (files: File[], destId: string, album: string, category: string | null) => void
-  /** Several albums ticked: sent one after the other, each into its category; back here afterwards. */
-  onImportAlbums: (files: File[], albums: AlbumTarget[]) => void
+  /** Albums of the folder (one, or several ticked): sent one after the other, each into its category; back here afterwards. */
+  onImportAlbums: (files: File[], albums: AlbumTarget[], opts: { diskRoot: string; yearFirst: boolean }) => void
   onClose: () => void
 }
 
@@ -81,11 +90,12 @@ export function TreeSuggestDialog(props: Props) {
   return <TreeSuggest {...props} track={track} />
 }
 
-function TreeSuggest({ lib, onImport, onImportAlbum, onImportAlbums, onClose, track }: Props & { track: ImportTrack | null }) {
+function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & { track: ImportTrack | null }) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const duration = useApproxDuration()
   const [ticked, setTicked] = useState<Set<string>>(new Set())
+  const [yearOn, setYearOn] = useState(savedYearFirst)
   const rootId = useApp((s) => s.rootId)!
   const walks = canWalkFolders()
   const canPickFolder = walks || (typeof window !== 'undefined' && 'webkitdirectory' in document.createElement('input') && !/Android|iPhone|iPad/i.test(navigator.userAgent))
@@ -252,37 +262,23 @@ function TreeSuggest({ lib, onImport, onImportAlbum, onImportAlbums, onClose, tr
     }
   }
 
-  /** One album: its files read, its category made if needed, then the usual import. */
-  async function importAlbum(a: PlanAlbum) {
-    if (!folder?.handle) return
-    setError(null)
-    setPreparing({ album: a.name, files: 0 })
-    try {
-      if (!(await canRead(folder.handle))) throw new Error(t('treeSuggest.noAccess', { name: folder.name }))
-      const files = await filesBelow(folder.handle, a.dirs, a.name, (n) => setPreparing({ album: a.name, files: n }))
-      const category = proposal.categoryOf(a.name)
-      const destId = category ? (lib.categories.find((c) => same(c.name, category))?.id ?? (await newFolder(category, rootId)).id) : rootId
-      onImportAlbum(files, destId, a.name, category)
-    } catch (e) {
-      setError((e as Error).name === 'NotFoundError' ? t('treeSuggest.notFound', { name: folder.name }) : t('errors.generic', { message: (e as Error).message }))
-      setPreparing(null)
-    }
-  }
+  /** One album: as several ticked (its files read, its category made if needed, then the import). */
+  const importAlbum = (a: PlanAlbum) => importAlbums([a], a.name)
 
-  /** The ticked albums: their files read, their categories made if needed, then one import, album after album. */
-  async function importTicked() {
-    if (!folder?.handle || !tickedAlbums.length) return
+  /** Albums: their files read, their categories made if needed, then one import, album after album. */
+  async function importAlbums(list: PlanAlbum[], one: string | null) {
+    if (!folder?.handle || !list.length) return
     setError(null)
-    const total = tickedSizes.files
-    setPreparing({ album: null, files: 0, total })
+    const total = sumSizes(list).files
+    setPreparing({ album: one, files: 0, total })
     try {
       if (!(await canRead(folder.handle))) throw new Error(t('treeSuggest.noAccess', { name: folder.name }))
       const files: File[] = []
       const targets: AlbumTarget[] = []
       const made = new Map<string, string>()
-      for (const a of tickedAlbums) {
+      for (const a of list) {
         const before = files.length
-        files.push(...(await filesBelow(folder.handle, a.dirs, a.name, (n) => setPreparing({ album: null, files: before + n, total }))))
+        files.push(...(await filesBelow(folder.handle, a.dirs, a.name, (n) => setPreparing({ album: one, files: before + n, total }))))
         const category = proposal.categoryOf(a.name)
         let destId = rootId
         if (category) {
@@ -292,8 +288,13 @@ function TreeSuggest({ lib, onImport, onImportAlbum, onImportAlbums, onClose, tr
         }
         targets.push({ name: a.name, destId, category })
       }
-      setTicked(new Set())
-      onImportAlbums(files, targets)
+      if (!one) setTicked(new Set())
+      try {
+        localStorage.setItem(YEAR_KEY, yearOn ? '1' : '0')
+      } catch {
+        // a convenience only
+      }
+      onImportAlbums(files, targets, { diskRoot: folder.name, yearFirst: yearOn })
     } catch (e) {
       setError((e as Error).name === 'NotFoundError' ? t('treeSuggest.notFound', { name: folder.name }) : t('errors.generic', { message: (e as Error).message }))
       setPreparing(null)
@@ -332,6 +333,12 @@ function TreeSuggest({ lib, onImport, onImportAlbum, onImportAlbums, onClose, tr
     const st = status.get(a.name)
     return (
       <span className="album-extra">
+        {yearOn && folder?.handle && yearFirst(a.name) !== a.name.trim() && (
+          <span className="hint" title={t('treeSuggest.newName')}>
+            → <bdi>{yearFirst(a.name)}</bdi>
+          </span>
+        )}
+        {yearOn && folder?.handle && !nameHasYear(a.name) && <span className="hint">{t('treeSuggest.photosYear')}</span>}
         <span className="hint">{fmt.bytes(a.bytes)}</span>
         {st && st.files > 0 && <span className="hint">{t('treeSuggest.partial', { done: fmt.number(st.files), total: fmt.number(a.files) })}</span>}
         {st && st.failed > 0 && <span className="error-text">{t('treeSuggest.failed', { count: st.failed })}</span>}
@@ -476,6 +483,12 @@ function TreeSuggest({ lib, onImport, onImportAlbum, onImportAlbums, onClose, tr
               </>
             )}
             {source === 'library' && <p>{t('treeSuggest.libraryIntro', { count: lone.length })}</p>}
+            {source === 'computer' && folder?.handle && leftAlbums.length > 0 && !reading && (
+              <label className="radio-row">
+                <input type="checkbox" checked={yearOn} onChange={(e) => setYearOn(e.target.checked)} />
+                {t('import.yearFirst')}
+              </label>
+            )}
             {source && albums.length > 0 && !reading && (source === 'library' || leftAlbums.length > 0) && (
               <CategoryProposal
                 state={proposal}
@@ -544,7 +557,7 @@ function TreeSuggest({ lib, onImport, onImportAlbum, onImportAlbums, onClose, tr
                   <button className="btn" disabled={busy} onClick={() => setTicked(new Set())}>
                     {t('treeSuggest.untick')}
                   </button>
-                  <button className="btn primary" disabled={busy} onClick={() => void importTicked()}>
+                  <button className="btn primary" disabled={busy} onClick={() => void importAlbums(tickedAlbums, null)}>
                     <Upload size={16} /> {t('treeSuggest.importTicked', { count: tickedAlbums.length })}
                   </button>
                 </div>

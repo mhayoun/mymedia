@@ -64,7 +64,7 @@ type DialogState =
   | { kind: 'albumLink'; id: string; name: string }
   | { kind: 'delete'; id: string; name: string; count: number }
   | { kind: 'compress'; title: string; folderId: string | null }
-  | { kind: 'import'; destId: string; files?: File[]; fromShare?: boolean; categories?: CategoryChoice; trackAlbum?: string; trackCategory?: string | null; albums?: AlbumTarget[] }
+  | { kind: 'import'; destId: string; files?: File[]; fromShare?: boolean; categories?: CategoryChoice; albums?: AlbumTarget[]; diskRoot?: string; yearFirst?: boolean }
   | null
 
 export function Shell() {
@@ -242,8 +242,7 @@ export function Shell() {
         <TreeSuggestDialog
           lib={lib}
           onImport={(files, categories) => setDialog({ kind: 'import', destId: rootId, files, categories })}
-          onImportAlbum={(files, destId, album, category) => setDialog({ kind: 'import', destId, files, trackAlbum: album, trackCategory: category })}
-          onImportAlbums={(files, albums) => setDialog({ kind: 'import', destId: rootId, files, albums })}
+          onImportAlbums={(files, albums, opts) => setDialog({ kind: 'import', destId: albums.length === 1 ? albums[0].destId : rootId, files, albums, ...opts })}
           onClose={() => setDialog(null)}
         />
       )}
@@ -300,8 +299,9 @@ export function Shell() {
           initialFiles={dialog.files}
           fromShare={dialog.fromShare}
           categories={dialog.categories}
-          onFinished={dialog.trackAlbum ? (r) => void markAlbum(dialog.trackAlbum!, r.inMyMedia, r.failed, dialog.trackCategory ?? null) : undefined}
           albums={dialog.albums}
+          diskRoot={dialog.diskRoot}
+          yearFirst={dialog.yearFirst}
           onAlbumFinished={
             dialog.albums
               ? (name, r) => void markAlbum(name, r.inMyMedia, r.failed, dialog.albums!.find((a) => a.name === name)?.category ?? null)
@@ -309,7 +309,7 @@ export function Shell() {
           }
           onClose={() => {
             // Back to the folder imported album by album.
-            if (dialog.trackAlbum || dialog.albums) return setDialog({ kind: 'treeSuggest' })
+            if (dialog.albums) return setDialog({ kind: 'treeSuggest' })
             if (dialog.files && !dialog.categories) void clearSharedFiles()
             setDialog(null)
           }}

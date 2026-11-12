@@ -17,7 +17,9 @@ import { recordImport } from '../import/importTrack'
 import { useApp } from '../store'
 import { Modal } from './Dialog'
 import { CategoryProposal, useCategoryProposal, type CategoryChoice, type ProposalAlbum } from './CategoryProposal'
+import { mostYear, yearFirst } from '../lib/albumYear'
 import { albumNameOf } from '../lib/cameraFolders'
+import { diskDirOf } from '../import/folderWalk'
 import { DriveImportDialog } from './DriveImportDialog'
 import { FolderTreePicker } from './FolderTreePicker'
 import type { Library } from './useLibrary'
@@ -41,6 +43,10 @@ interface Props {
   albums?: AlbumTarget[]
   /** After each album of `albums` (and after a retry of its failed files). */
   onAlbumFinished?: (album: string, r: { inMyMedia: number; failed: number }) => void
+  /** With `albums`: the name of the folder read on the disk (each album's origin is its folder below it). */
+  diskRoot?: string
+  /** With `albums`: the year first in the albums' names (from the name, or from the photos). */
+  yearFirst?: boolean
   onClose: () => void
 }
 
@@ -52,6 +58,31 @@ export interface AlbumTarget {
 }
 
 const RECENT_KEY = 'mymedia.recentDestinations'
+const DISK_ROOTS_KEY = 'mymedia.diskRoots'
+
+/** Where a folder read for "Tree suggestion" is on the computer ("E:\\myBackup"), as typed last time. */
+function diskRootPath(name: string): string {
+  try {
+    return (JSON.parse(localStorage.getItem(DISK_ROOTS_KEY) ?? '{}') as Record<string, string>)[name] ?? name
+  } catch {
+    return name
+  }
+}
+
+function rememberDiskRoot(name: string, path: string) {
+  try {
+    const all = JSON.parse(localStorage.getItem(DISK_ROOTS_KEY) ?? '{}') as Record<string, string>
+    localStorage.setItem(DISK_ROOTS_KEY, JSON.stringify({ ...all, [name]: path }))
+  } catch {
+    // a convenience only
+  }
+}
+
+/** "E:\\myBackup" + ["My Pictures", "Tyoul2015"]: with the separator the path typed uses. */
+function joinPath(root: string, dir: string[]): string {
+  const sep = root.includes('\\') ? '\\' : '/'
+  return [root.replace(/[\\/]+$/, ''), ...dir].join(sep)
+}
 
 function recentDestinations(): string[] {
   try {
@@ -140,7 +171,7 @@ function ReplacedThumb({ lib, id }: { lib: Library; id: string }) {
 }
 
 /** "Add photos/videos": choose files or a folder, check dates and sizes, upload. */
-export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare, categories, onFinished, albums, onAlbumFinished, onClose }: Props) {
+export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare, categories, onFinished, albums, onAlbumFinished, diskRoot, yearFirst: yearFirstAsked, onClose }: Props) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
@@ -150,6 +181,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
   // The album being sent (several albums from "Tree suggestion").
   const [current, setCurrent] = useState<{ index: number; name: string } | null>(null)
   const stopped = useRef(false)
+  const [yearOn, setYearOn] = useState(!!yearFirstAsked)
   const [phase, setPhase] = useState<'pick' | 'zip' | 'groups' | 'analyze' | 'match' | 'choose' | 'upload' | 'done'>('pick')
   const [fb, setFb] = useState<FacebookExport | null>(null)
   const [fbGroups, setFbGroups] = useState<Set<string>>(new Set())
@@ -229,7 +261,8 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
       result = await findReplacements(result, (done, total) => setAnalyzed({ done, total }))
     }
     setItems(result)
-    if (!posts) setOriginPath(suggestedPath(importSourceName({ relDirs: result.map((i) => i.relDir) })))
+    if (albums && diskRoot) setOriginPath(diskRootPath(diskRoot))
+    else if (!posts) setOriginPath(suggestedPath(importSourceName({ relDirs: result.map((i) => i.relDir) })))
     const before = new Set(picked.map((i) => i.key))
     setChecked((cur) => new Set([...(add ? [...cur] : []), ...result.filter((i) => !i.duplicate && !(add && before.has(i.key))).map((i) => i.key)]))
     setPhase('choose')
@@ -313,7 +346,26 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
   const duplicates = items.filter((i) => i.duplicate).length
   const replacements = items.filter((i) => i.replaces).length
 
+  /** Each album: its folder as analysed, its name in MyMedia (year first if asked), its folders on the disk. */
+  const albumPlan = useMemo(() => {
+    if (!albums) return []
+    return albums.map((a) => {
+      const top = albumNameOf(a.name) ?? a.name
+      const own = items.filter((i) => i.relDir[0] === top)
+      // A file's own date says nothing of the event.
+      const year = mostYear(own.filter((i) => i.dateSource !== 'file').map((i) => i.takenAt))
+      const dirs = [...new Map(own.map((i) => diskDirOf(i.file)).filter((d): d is string[] => !!d).map((d) => [d.join('/'), d])).values()]
+      return { ...a, top, finalName: yearOn ? yearFirst(top, year) : top, dirs }
+    })
+  }, [albums, items, yearOn])
+  const diskBase = originPath.trim() || diskRoot || ''
+
   async function start() {
+    if (albums) {
+      if (diskRoot && originPath.trim()) rememberDiskRoot(diskRoot, originPath.trim())
+      auth.renewBefore(Math.max(10, selected.length / 10) * 60_000)
+      return send(selected)
+    }
     rememberDestination(destId)
     if (fromShare) rememberShareDestination(destId)
     const from = importSourceName({ zipName: fb ? zipName : undefined, relDirs: picked.map((i) => i.relDir) })
@@ -370,19 +422,35 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
     const total = { count: 0, before: 0, after: 0 }
     for (const [index, target] of targets.entries()) {
       // Its folder as the analysis named it ("442___02Pourim5773" → "Pourim5773").
-      const top = albumNameOf(target.name) ?? target.name
+      const plan = albumPlan.find((a) => a.name === target.name)
+      const top = plan?.top ?? albumNameOf(target.name) ?? target.name
+      const finalName = plan?.finalName ?? top
       const ofAlbum = (i: ImportItem) => i.relDir[0] === top
-      const group = list.filter(ofAlbum)
+      const group = list.filter(ofAlbum).map((i) => ({ ...i, relDir: [finalName, ...i.relDir.slice(1)] }))
       if (!group.length) continue
       if (stopped.current) break
-      setCurrent({ index, name: target.name })
-      const started = performance.now()
-      const r = await runImport(group, target.destId, { compress, keepFolders: true, ...sendOpts.current }, onItem)
-      recordImport(r.before, r.after, performance.now() - started)
-      total.count += r.count
-      total.before += r.before
-      total.after += r.after
-      const sent = (sentByAlbum.current.get(target.name) ?? 0) + r.count
+      setCurrent({ index, name: finalName })
+      // By folder of the disk: each file keeps where its original is (and its folder's own name).
+      const byDir = new Map<string, { dir: string[] | null; items: ImportItem[] }>()
+      for (const i of group) {
+        const dir = diskDirOf(i.file) ?? null
+        const k = dir?.join('/') ?? ''
+        ;(byDir.get(k) ?? byDir.set(k, { dir, items: [] }).get(k)!).items.push(i)
+      }
+      let count = 0
+      for (const { dir, items: part } of byDir.values()) {
+        if (stopped.current) break
+        const from = dir?.[dir.length - 1] ?? target.name
+        const path = dir && diskBase ? joinPath(diskBase, dir) : undefined
+        const started = performance.now()
+        const r = await runImport(part, target.destId, { compress, keepFolders: true, from, path }, onItem)
+        recordImport(r.before, r.after, performance.now() - started)
+        count += r.count
+        total.before += r.before
+        total.after += r.after
+      }
+      total.count += count
+      const sent = (sentByAlbum.current.get(target.name) ?? 0) + count
       sentByAlbum.current.set(target.name, sent)
       onAlbumFinished?.(target.name, {
         inMyMedia: sent + items.filter((i) => ofAlbum(i) && i.duplicate).length,
@@ -664,13 +732,30 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
                 {t('import.compress')}
               </label>
               {albums && (
-                <ul className="import-albums">
-                  {albums.map((a) => (
-                    <li key={a.name}>
-                      <bdi>{a.category ? `${a.category} / ${a.name}` : a.name}</bdi>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <label className="radio-row">
+                    <input type="checkbox" checked={yearOn} onChange={(e) => setYearOn(e.target.checked)} />
+                    {t('import.yearFirst')}
+                  </label>
+                  <label className="field">
+                    <span>{t('import.diskRoot')}</span>
+                    <input type="text" dir="ltr" value={originPath} onChange={(e) => setOriginPath(e.target.value)} spellCheck={false} />
+                    <span className="hint">{t('import.diskRootHint', { name: diskRoot ?? '' })}</span>
+                  </label>
+                  <ul className="import-albums">
+                    {albumPlan.map((a) => (
+                      <li key={a.name}>
+                        <bdi>{a.category ? `${a.category} / ${a.finalName}` : a.finalName}</bdi>
+                        {a.dirs.map((d) => (
+                          <span key={d.join('/')} className="hint" dir="ltr">
+                            {' ← '}
+                            {joinPath(diskBase, d)}
+                          </span>
+                        ))}
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
               {!albums && hasFolders && (topFolder !== null || canSort || canCategorize) && (
                 <div className="folder-mode" role="radiogroup" aria-label={t('import.whereTitle', { count: selected.length })}>
@@ -743,7 +828,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
                   </ul>
                 </div>
               )}
-              {!fb && importSourceName({ relDirs: picked.map((i) => i.relDir) }) && (
+              {!albums && !fb && importSourceName({ relDirs: picked.map((i) => i.relDir) }) && (
                 <label className="field">
                   <span>{t('import.originPath')}</span>
                   <input type="text" dir="ltr" value={originPath} onChange={(e) => setOriginPath(e.target.value)} spellCheck={false} />

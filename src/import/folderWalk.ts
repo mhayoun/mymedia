@@ -87,8 +87,15 @@ export async function canRead(root: FsDir): Promise<boolean> {
  * The photos and videos below some folders of `root`, as files to import, each knowing its folder from
  * `top` down ("anniv papa/sub/a.jpg"), like a folder chosen for an import.
  */
+const DISK_DIR = 'mymediaDiskDir'
+/** The folder of the disk (from the folder read) a file of `filesBelow` comes from: its album's folder there. */
+export function diskDirOf(file: File): string[] | undefined {
+  return (file as File & { [DISK_DIR]?: string[] })[DISK_DIR]
+}
+
 export async function filesBelow(root: FsDir, dirs: string[][], top: string, onCount: (n: number) => void): Promise<File[]> {
   const files: File[] = []
+  let from: string[] = []
   const walk = async (dir: FsDir, rel: string[]) => {
     for await (const h of dir.values()) {
       if (SKIPPED.test(h.name)) continue
@@ -96,6 +103,7 @@ export async function filesBelow(root: FsDir, dirs: string[][], top: string, onC
       else if (mediaTypeOf('', h.name)) {
         const file = await h.getFile()
         Object.defineProperty(file, 'webkitRelativePath', { value: [top, ...rel, h.name].join('/') })
+        Object.defineProperty(file, DISK_DIR, { value: from })
         files.push(file)
         if (files.length % 100 === 0) onCount(files.length)
       }
@@ -104,6 +112,7 @@ export async function filesBelow(root: FsDir, dirs: string[][], top: string, onC
   for (const path of dirs) {
     let dir = root
     for (const name of path) dir = await dir.getDirectoryHandle(name)
+    from = path
     await walk(dir, [])
   }
   onCount(files.length)

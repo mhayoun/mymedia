@@ -485,7 +485,10 @@
     "albumsDest_one": "אלבום {{count}}, לקטגוריה שלו",
     "albumsDest_two": "{{count}} אלבומים, כל אחד לקטגוריה שלו",
     "albumsDest_other": "{{count}} אלבומים, כל אחד לקטגוריה שלו",
-    "albumOf": "אלבום {{index}} / {{total}}:"
+    "albumOf": "אלבום {{index}} / {{total}}:",
+    "yearFirst": "הוספת השנה בתחילת שם האלבומים (זו שבשם, אחרת שנת התמונות)",
+    "diskRoot": "תיקיית המקור (לא חובה)",
+    "diskRootHint": "הנתיב המלא של \"{{name}}\" במחשב או בדיסק החיצוני (למשל E:\\myBackup). כל אלבום שומר את הנתיב של תיקיית המקור שלו, עם השם שלה בדיסק."
   },
   "faces": {
     "itIs": "זה/זו…",
@@ -1417,7 +1420,9 @@
     "untick": "ביטול הסימון",
     "importTicked_one": "ייבוא אלבום {{count}}",
     "importTicked_two": "ייבוא {{count}} האלבומים",
-    "importTicked_other": "ייבוא {{count}} האלבומים"
+    "importTicked_other": "ייבוא {{count}} האלבומים",
+    "newName": "השם ב-MyMedia",
+    "photosYear": "+ שנת התמונות"
   },
   "importEstimate": {
     "files_one": "תמונה או סרטון אחד · {{size}}",

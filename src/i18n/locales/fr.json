@@ -455,7 +455,10 @@
     "zipNoMedia": "Ce ZIP ne contient ni photo ni vidéo.",
     "albumsDest_one": "{{count}} album, dans sa catégorie",
     "albumsDest_other": "{{count}} albums, chacun dans sa catégorie",
-    "albumOf": "Album {{index}} / {{total}} :"
+    "albumOf": "Album {{index}} / {{total}} :",
+    "yearFirst": "Mettre l'année au début du nom des albums (celle du nom, sinon celle des photos)",
+    "diskRoot": "Dossier d'origine (facultatif)",
+    "diskRootHint": "Le chemin complet de « {{name}} » sur l'ordinateur ou le disque externe (par exemple E:\\myBackup). Chaque album garde le chemin de son dossier d'origine, avec son nom sur le disque."
   },
   "faces": {
     "itIs": "C'est…",
@@ -1289,7 +1292,9 @@
     "ownCategory": "Catégorie proposée de chacun",
     "untick": "Décocher",
     "importTicked_one": "Importer {{count}} album",
-    "importTicked_other": "Importer les {{count}} albums"
+    "importTicked_other": "Importer les {{count}} albums",
+    "newName": "Nom dans MyMedia",
+    "photosYear": "+ année des photos"
   },
   "importEstimate": {
     "files_one": "{{files}} photo ou vidéo · {{size}}",
