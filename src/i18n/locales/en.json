@@ -963,6 +963,7 @@
     "personCount_other": "{{count}} confirmed photos and videos of {{name}}.",
     "personRecognizedOnly_one": "{{count}} more is only recognized by MyMedia: it will be shared once confirmed.",
     "personRecognizedOnly_other": "{{count}} more are only recognized by MyMedia: they will be shared once confirmed.",
+    "personWithAll": "Also include the {{count}} photos only recognized by MyMedia (a wrong face is possible)",
     "personNone": "No photo of {{name}} is confirmed yet: confirm their faces (“Is it {{name}}?”, or in the person's window) to share them.",
     "personProgress": "Sharing the photos… {{done}} of {{total}}",
     "personWarning": "Group photos are shared whole: the other people in them are seen too. To stop it: “Stop sharing by link”, the link stops working for everyone.",

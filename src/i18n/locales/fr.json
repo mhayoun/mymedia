@@ -961,6 +961,7 @@
     "personCount_other": "{{count}} photos et vidéos confirmées de {{name}}.",
     "personRecognizedOnly_one": "{{count}} autre est seulement reconnue par MyMedia : elle ne sera partagée qu'une fois confirmée.",
     "personRecognizedOnly_other": "{{count}} autres sont seulement reconnues par MyMedia : elles ne seront partagées qu'une fois confirmées.",
+    "personWithAll": "Inclure aussi les {{count}} photos seulement reconnues par MyMedia (une erreur de visage est possible)",
     "personNone": "Aucune photo de {{name}} n'est encore confirmée : confirmez ses visages (« Est-ce {{name}} ? », ou dans la fenêtre de la personne) pour pouvoir la partager.",
     "personProgress": "Partage des photos… {{done}} sur {{total}}",
     "personWarning": "Les photos de groupe sont partagées entières : les autres personnes dessus sont visibles aussi. Pour arrêter : « Arrêter le partage par lien », le lien ne marche plus pour personne.",

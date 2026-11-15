@@ -151,13 +151,16 @@ export function PersonLinkDialog({ personId, name, onClose }: { personId: string
   const [copied, setCopied] = useState(false)
   const [stopping, setStopping] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  /** Also the photos MyMedia only recognized (kept in the link once it exists). */
+  const [withAll, setWithAll] = useState(false)
   const fail = (e: unknown) => setError(t('errors.generic', { message: (e as Error).message }))
 
   const load = useCallback(async () => {
     try {
       const [s, c] = await Promise.all([personShare(personId), confirmedMedia(personId)])
       setShare(s)
-      setCounts({ confirmed: c.items.length, recognizedOnly: c.recognizedOnly })
+      if (s) setWithAll(!!s.data.all)
+      setCounts({ confirmed: c.confirmed, recognizedOnly: c.recognizedOnly })
     } catch (e) {
       setError(t('errors.generic', { message: (e as Error).message }))
     }
@@ -168,11 +171,11 @@ export function PersonLinkDialog({ personId, name, onClose }: { personId: string
   }, [load])
 
   /** Shares (or brings up to date) the person; the link is then shown. */
-  async function make(): Promise<string | null> {
+  async function make(all = withAll): Promise<string | null> {
     setBusy(true)
     setError(null)
     try {
-      const link = await sharePerson(personId, (done, total) => setProgress({ done, total }))
+      const link = await sharePerson(personId, (done, total) => setProgress({ done, total }), all)
       await load()
       return link
     } catch (e) {
@@ -203,8 +206,24 @@ export function PersonLinkDialog({ personId, name, onClose }: { personId: string
       {counts && (
         <p>
           {t('share.personCount', { count: counts.confirmed, name })}
-          {counts.recognizedOnly > 0 && <span className="hint"> {t('share.personRecognizedOnly', { count: counts.recognizedOnly })}</span>}
+          {counts.recognizedOnly > 0 && !withAll && <span className="hint"> {t('share.personRecognizedOnly', { count: counts.recognizedOnly })}</span>}
         </p>
+      )}
+      {counts && counts.recognizedOnly > 0 && (
+        <label className="row">
+          <input
+            type="checkbox"
+            checked={withAll}
+            disabled={busy}
+            onChange={(e) => {
+              const v = e.target.checked
+              setWithAll(v)
+              // A link already made follows at once (the photos join it, or stop being shared).
+              if (share) void make(v)
+            }}
+          />
+          <span>{t('share.personWithAll', { count: counts.recognizedOnly })}</span>
+        </label>
       )}
       {share === undefined && !error ? (
         <Loader2 size={16} className="spin" />
@@ -232,13 +251,13 @@ export function PersonLinkDialog({ personId, name, onClose }: { personId: string
       ) : (
         share === null && (
           <div className="actions">
-            <button className="btn primary" onClick={() => void make()} disabled={busy || !counts?.confirmed}>
+            <button className="btn primary" onClick={() => void make()} disabled={busy || !counts || !(counts.confirmed || (withAll && counts.recognizedOnly))}>
               {busy ? <Loader2 size={16} className="spin" /> : <Link2 size={16} />} {t('share.linkCreate')}
             </button>
           </div>
         )
       )}
-      {counts && !counts.confirmed && !share && <p className="hint">{t('share.personNone', { name })}</p>}
+      {counts && !counts.confirmed && !withAll && !share && <p className="hint">{t('share.personNone', { name })}</p>}
       {progress && progress.total > 0 && <p className="hint">{t('share.personProgress', { done: progress.done, total: progress.total })}</p>}
       {error && <p className="error-text">{error}</p>}
       <div className="actions">

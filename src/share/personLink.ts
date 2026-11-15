@@ -30,6 +30,8 @@ export interface PersonShareFile {
   owner: string
   updatedAt: string
   media: SharedItem[]
+  /** Also the photos MyMedia only recognized (not confirmed by the user). */
+  all?: boolean
 }
 
 export interface PersonShare {
@@ -49,8 +51,9 @@ function resolver(persons: PersonRecord[]) {
 /**
  * The photos and videos of this person whose face the user confirmed (put in the person by hand, said
  * "yes" to "Is it X?", merged…), newest first; and how many more MyMedia only recognized by itself.
+ * `withRecognized`: those are in `items` too.
  */
-export async function confirmedMedia(personId: string): Promise<{ items: SharedItem[]; recognizedOnly: number }> {
+export async function confirmedMedia(personId: string, withRecognized = false): Promise<{ items: SharedItem[]; confirmed: number; recognizedOnly: number }> {
   const d = db()
   const [faces, persons] = await Promise.all([d.faces.toArray(), d.persons.toArray()])
   const resolve = resolver(persons)
@@ -62,12 +65,13 @@ export async function confirmedMedia(personId: string): Promise<{ items: SharedI
     all.add(f.mediaId)
     if (f.by === 'manual') confirmed.add(f.mediaId)
   }
-  const media = (await d.media.bulkGet([...confirmed])).filter((m) => !!m && (m.type === 'photo' || m.type === 'video'))
-  const items = media
+  const usable = async (ids: string[]) => (await d.media.bulkGet(ids)).filter((m) => !!m && (m.type === 'photo' || m.type === 'video'))
+  const media = await usable([...confirmed])
+  const rest = await usable([...all].filter((id) => !confirmed.has(id)))
+  const items = (withRecognized ? [...media, ...rest] : media)
     .map((m) => ({ id: m!.id, name: m!.name, mimeType: m!.mimeType, takenAt: m!.takenAt }))
-    .sort((a, b) => (a.takenAt < b.takenAt ? 1 : -1))
-  const rest = (await d.media.bulkGet([...all].filter((id) => !confirmed.has(id)))).filter((m) => !!m && (m.type === 'photo' || m.type === 'video'))
-  return { items, recognizedOnly: rest.length }
+    .sort((a, b) => (a.takenAt < b.takenAt ? 1 : a.takenAt > b.takenAt ? -1 : a.id < b.id ? -1 : 1))
+  return { items, confirmed: media.length, recognizedOnly: rest.length }
 }
 
 /** Every person shared by a link from this library. */
@@ -142,16 +146,18 @@ function serial<T>(task: () => Promise<T>): Promise<T> {
 
 /**
  * Shares (or brings up to date) this person by a link: the new confirmed files are shared, those no
- * longer confirmed stop being, and the list is written. Returns the link.
+ * longer confirmed stop being, and the list is written. `withRecognized`: also the photos MyMedia only
+ * recognized (unset: as the link already does). Returns the link.
  */
-export function sharePerson(personId: string, onProgress?: (done: number, total: number) => void): Promise<string> {
+export function sharePerson(personId: string, onProgress?: (done: number, total: number) => void, withRecognized?: boolean): Promise<string> {
   return serial(async () => {
     const rootId = app().rootId
     if (!rootId) throw new Error('No library')
     const resolve = resolver(await db().persons.toArray())
     const person = resolve(personId)
-    const { items } = await confirmedMedia(personId)
     const existing = await personShare(personId)
+    const withAll = withRecognized ?? !!existing?.data.all
+    const { items } = await confirmedMedia(personId, withAll)
     const before = new Set(existing?.data.media.map((m) => m.id) ?? [])
     const now = new Set(items.map((m) => m.id))
     const user = app().user
@@ -163,6 +169,7 @@ export function sharePerson(personId: string, onProgress?: (done: number, total:
       owner: user?.name || user?.email || '',
       updatedAt: new Date().toISOString(),
       media: items,
+      ...(withAll ? { all: true } : {}),
     }
     // The files first: once the list is shared, everything it shows can be seen.
     const toAdd = existing ? items.filter((m) => !before.has(m.id)) : items
@@ -224,7 +231,7 @@ async function refreshOnce(): Promise<void> {
   if (!app().rootId || app().readOnly) return
   const shares = await personShares()
   for (const s of shares) {
-    const { items } = await confirmedMedia(s.data.personId)
+    const { items } = await confirmedMedia(s.data.personId, !!s.data.all)
     const resolve = resolver(await db().persons.toArray())
     const p = resolve(s.data.personId)
     const same =
