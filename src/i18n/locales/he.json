@@ -1298,7 +1298,12 @@
     "prev": "הקודם",
     "next": "הבא",
     "albums": "אלבומים משותפים",
-    "personBy": "תמונות ששיתף/ה {{owner}} · צפייה בלבד"
+    "personBy": "תמונות ששיתף/ה {{owner}} · צפייה בלבד",
+    "share": "שיתוף",
+    "shareReady": "שליחה",
+    "download": "הורדה",
+    "copyPhotoLink": "העתקת הקישור לתמונה הזו",
+    "downloadFailed": "לא ניתן היה להוריד את הקובץ."
   },
   "autoCategories": {
     "weddings": "חתונות",

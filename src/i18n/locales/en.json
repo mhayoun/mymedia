@@ -1199,7 +1199,12 @@
     "prev": "Previous",
     "next": "Next",
     "albums": "Shared albums",
-    "personBy": "Photos shared by {{owner}} · view only"
+    "personBy": "Photos shared by {{owner}} · view only",
+    "share": "Share",
+    "shareReady": "Send",
+    "download": "Download",
+    "copyPhotoLink": "Copy the link to this photo",
+    "downloadFailed": "The file could not be downloaded."
   },
   "autoCategories": {
     "weddings": "Weddings",

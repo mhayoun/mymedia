@@ -1197,7 +1197,12 @@
     "prev": "Précédente",
     "next": "Suivante",
     "albums": "Albums partagés",
-    "personBy": "Photos partagées par {{owner}} · lecture seule"
+    "personBy": "Photos partagées par {{owner}} · lecture seule",
+    "share": "Partager",
+    "shareReady": "Envoyer",
+    "download": "Télécharger",
+    "copyPhotoLink": "Copier le lien de cette photo",
+    "downloadFailed": "Le fichier n'a pas pu être téléchargé."
   },
   "autoCategories": {
     "weddings": "Mariages",

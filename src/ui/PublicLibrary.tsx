@@ -2,8 +2,8 @@
 // signing in. Drive gives the files of a folder set to "anyone with the link" to MyMedia Free's API key
 // (no account, so no place among the full door's 100). Read-only: albums, photos, videos, dates.
 
-import { ChevronLeft, ChevronRight, ExternalLink, FileText, Folder, Loader2, Play, X } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight, Copy, Download, ExternalLink, FileText, Folder, Loader2, MessageCircle, Play, Share2, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { loadConfig } from '../config'
 import { useFormat } from '../i18n/format'
@@ -65,6 +65,124 @@ function takenAt(f: PubFile): string {
 const sized = (f: PubFile, px: number) =>
   f.thumbnailLink ? f.thumbnailLink.replace(/=s\d+(-c)?$/, `=s${px}`) : `https://drive.google.com/thumbnail?id=${f.id}&sz=w${px}`
 
+/** The phone can send a file to another app (WhatsApp, mail…): Android, iPhone, some computers. */
+function canShareFiles(): boolean {
+  try {
+    return !!navigator.canShare?.({ files: [new File([''], 'x.jpg', { type: 'image/jpeg' })] })
+  } catch {
+    return false
+  }
+}
+
+/** This page's address, opening this photo (and the album it is in, when not the first page). */
+function photoLink(fileId: string, folderId: string | null): string {
+  const u = new URL(location.href)
+  u.searchParams.set('photo', fileId)
+  if (folderId) u.searchParams.set('in', folderId)
+  else u.searchParams.delete('in')
+  return u.toString()
+}
+
+/**
+ * "Share" on an open photo or video: the file itself to another app (the phone's share menu), else
+ * download it or send the link that opens it.
+ */
+function ShareMedia({ file, apiKey, folderId }: { file: PubFile; apiKey: string; folderId: string | null }) {
+  const { t } = useTranslation()
+  const [state, setState] = useState<'idle' | 'loading' | 'ready' | 'menu'>('idle')
+  const [copied, setCopied] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const got = useRef<{ id: string; file: File } | null>(null)
+  const link = photoLink(file.id, folderId)
+
+  useEffect(() => {
+    setState('idle')
+    setFailed(false)
+  }, [file.id])
+
+  /** The original, read once (the same photo shared again is not downloaded again). */
+  async function original(): Promise<File> {
+    if (got.current?.id === file.id) return got.current.file
+    const r = await fetch(`${API}/files/${file.id}?alt=media&key=${encodeURIComponent(apiKey)}`)
+    if (!r.ok) throw new Error(String(r.status))
+    const blob = await r.blob()
+    const f = new File([blob], file.name, { type: blob.type || file.mimeType })
+    got.current = { id: file.id, file: f }
+    return f
+  }
+
+  async function send(f: File) {
+    try {
+      await navigator.share({ files: [f], title: file.name })
+      setState('idle')
+    } catch (e) {
+      const name = (e as Error).name
+      // The download took too long for the browser: one more tap sends it at once.
+      if (name === 'NotAllowedError') setState('ready')
+      else if (name === 'AbortError') setState('idle')
+      else setState('menu')
+    }
+  }
+
+  async function tap() {
+    if (state === 'menu') return setState('idle')
+    if (!canShareFiles()) return setState('menu')
+    if (got.current?.id === file.id) return send(got.current.file)
+    setState('loading')
+    try {
+      await send(await original())
+    } catch {
+      setState('menu')
+    }
+  }
+
+  async function download() {
+    setFailed(false)
+    try {
+      const f = await original()
+      const url = URL.createObjectURL(f)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = file.name
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 60_000)
+    } catch {
+      setFailed(true)
+    }
+  }
+
+  return (
+    <>
+      <button className="pub-share btn" onClick={() => void tap()} disabled={state === 'loading'} aria-label={t('publicLib.share')} title={t('publicLib.share')}>
+        {state === 'loading' ? <Loader2 size={20} className="spin" /> : <Share2 size={20} />}
+        {state === 'ready' && <span>{t('publicLib.shareReady')}</span>}
+      </button>
+      {state === 'menu' && (
+        <div className="pub-share-menu">
+          <button className="btn" onClick={() => void download()}>
+            <Download size={16} /> {t('publicLib.download')}
+          </button>
+          <button
+            className="btn"
+            onClick={() =>
+              void navigator.clipboard.writeText(link).then(() => {
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
+              }, () => undefined)
+            }
+          >
+            <Copy size={16} /> {copied ? t('share.linkCopied') : t('publicLib.copyPhotoLink')}
+          </button>
+          <a className="btn" href={`https://wa.me/?text=${encodeURIComponent(link)}`} target="_blank" rel="noopener noreferrer">
+            <MessageCircle size={16} /> WhatsApp
+          </a>
+          {failed && <span className="error-text">{t('publicLib.downloadFailed')}</span>}
+        </div>
+      )}
+    </>
+  )
+}
+
 /** Several albums chosen together: the link's first page shows them side by side. */
 const CHOSEN = '*'
 
@@ -112,6 +230,9 @@ export function PublicLibrary({ rootIds, personListId }: { rootIds: string[]; pe
   const [open, setOpen] = useState<number | null>(null)
   const [person, setPerson] = useState<{ owner: string; files: PubFile[] } | null>(null)
   const here = path[path.length - 1]?.id ?? rootId
+  // A link to one photo (its "Share"): opens it, in its album when it is not on the first page.
+  const wanted = useRef(new URLSearchParams(location.search).get('photo'))
+  const wantedIn = useRef(new URLSearchParams(location.search).get('in'))
 
   useEffect(() => {
     loadConfig().then((c) => (c.googleApiKey ? setKey(c.googleApiKey) : setError('noKey')))
@@ -160,8 +281,29 @@ export function PublicLibrary({ rootIds, personListId }: { rootIds: string[]; pe
     }
   }, [key, here, path.length, ids, person])
 
+  // The album of a photo's link, once the first page is known.
+  useEffect(() => {
+    const inId = wantedIn.current
+    if (!key || path.length !== 1 || !inId) return
+    wantedIn.current = null
+    if (inId === path[0].id) return
+    read<{ name: string }>(`/files/${inId}?fields=name`, key).then(
+      (f) => setPath((p) => (p.length === 1 ? [...p, { id: inId, name: f.name }] : p)),
+      () => undefined,
+    )
+  }, [key, path])
+
   const folders = (files ?? []).filter(isFolder).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
   const media = (files ?? []).filter(isMedia).sort((a, b) => takenAt(b).localeCompare(takenAt(a)))
+
+  useEffect(() => {
+    const id = wanted.current
+    if (!id || !files || wantedIn.current) return
+    const i = media.findIndex((f) => f.id === id)
+    if (i < 0) return
+    wanted.current = null
+    setOpen(i)
+  }, [files, media])
 
   const step = useCallback((d: number) => setOpen((i) => (i === null ? null : Math.min(Math.max(i + d, 0), media.length - 1))), [media.length])
   useEffect(() => {
@@ -263,6 +405,7 @@ export function PublicLibrary({ rootIds, personListId }: { rootIds: string[]; pe
           <button className="pub-close btn" onClick={() => setOpen(null)} aria-label={t('common.close')}>
             <X size={20} />
           </button>
+          {!isDocument(shown) && <ShareMedia file={shown} apiKey={key} folderId={path.length > 1 ? here : null} />}
           {open! > 0 && (
             <button className="pub-nav pub-prev btn" onClick={() => step(-1)} aria-label={t('publicLib.prev')}>
               <ChevronLeft size={24} />

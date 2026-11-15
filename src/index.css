@@ -634,6 +634,9 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .pub-viewer { position: fixed; inset: 0; z-index: 50; background: rgb(0 0 0 / 0.94); display: grid; place-items: center; }
 .pub-viewer img, .pub-viewer video { max-inline-size: 100vw; max-block-size: calc(100vh - 60px); object-fit: contain; }
 .pub-close { position: absolute; inset-block-start: 12px; inset-inline-end: 12px; }
+.pub-share { position: absolute; inset-block-start: 12px; inset-inline-end: 64px; display: inline-flex; align-items: center; gap: 6px; }
+.pub-share-menu { position: absolute; inset-block-start: 60px; inset-inline-end: 12px; z-index: 1; display: grid; gap: 6px; padding: 8px; border-radius: 10px; background: var(--surface); box-shadow: 0 4px 16px rgb(0 0 0 / 0.4); }
+.pub-share-menu a.btn { text-decoration: none; }
 .pub-nav { position: absolute; inset-block-start: 50%; transform: translateY(-50%); }
 .pub-prev { inset-inline-start: 8px; }
 .pub-next { inset-inline-end: 8px; }
