@@ -47,7 +47,7 @@ import { PersonDialog } from './PersonDialog'
 import { MisfiledView } from './MisfiledView'
 import { DuplicatesView } from './DuplicatesView'
 import { BlurryView } from './BlurryView'
-import { AlbumLinkDialog } from './LinkShare'
+import { AlbumLinkDialog, PersonLinkDialog } from './LinkShare'
 import { MoveFolderDialog } from './MoveFolderDialog'
 import { TreeSuggestDialog } from './TreeSuggestDialog'
 import { markAlbum } from '../import/importTrack'
@@ -62,6 +62,7 @@ type DialogState =
   | { kind: 'rename'; id: string; name: string }
   | { kind: 'move'; id: string; name: string; count: number }
   | { kind: 'albumLink'; id: string; name: string }
+  | { kind: 'personLink'; id: string; name: string }
   | { kind: 'delete'; id: string; name: string; count: number }
   | { kind: 'compress'; title: string; folderId: string | null }
   | { kind: 'import'; destId: string; files?: File[]; fromShare?: boolean; categories?: CategoryChoice; albums?: AlbumTarget[]; diskRoot?: string; yearFirst?: boolean }
@@ -277,6 +278,7 @@ export function Shell() {
         />
       )}
       {dialog?.kind === 'albumLink' && <AlbumLinkDialog id={dialog.id} name={dialog.name} onClose={() => setDialog(null)} />}
+      {dialog?.kind === 'personLink' && <PersonLinkDialog personId={dialog.id} name={dialog.name} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'move' && <MoveFolderDialog lib={lib} id={dialog.id} name={dialog.name} count={dialog.count} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'compress' && (
         <CompressDialog
@@ -820,6 +822,18 @@ function Toolbar({ lib, people, count, size, onDialog, actions }: ToolbarProps) 
             onClick={() => onDialog({ kind: 'delete', id: folder.id, name: folder.name, count: folderCount })}
           >
             <Trash2 size={18} />
+          </button>
+        </span>
+      )}
+      {person?.name && !readOnly && (
+        <span className="row">
+          <button
+            className="icon-btn small"
+            title={t('share.personButton')}
+            aria-label={t('share.personButton')}
+            onClick={() => onDialog({ kind: 'personLink', id: person.id, name: person.name! })}
+          >
+            <Link2 size={18} />
           </button>
         </span>
       )}

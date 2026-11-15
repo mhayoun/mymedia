@@ -83,8 +83,25 @@ async function chosenAlbums(ids: string[], key: string): Promise<PubFile[]> {
   return albums
 }
 
-export function PublicLibrary({ rootIds }: { rootIds: string[] }) {
-  const rootId = rootIds.length > 1 ? CHOSEN : rootIds[0]
+/** One person's photos (a link made from the person's window): their list, read from its file. */
+const PERSON = '@'
+
+/** The list of a person shared by a link (share/personLink), as the page's files. */
+async function personList(id: string, key: string): Promise<{ name: string; owner: string; files: PubFile[] }> {
+  const data = await read<{ format?: string; name?: string; owner?: string; media?: { id: string; name: string; mimeType: string; takenAt: string }[] }>(
+    `/files/${id}?alt=media`,
+    key,
+  )
+  if (data.format !== 'mymedia-person') throw new Gone('format')
+  return {
+    name: data.name ?? '',
+    owner: data.owner ?? '',
+    files: (data.media ?? []).map((m) => ({ id: m.id, name: m.name, mimeType: m.mimeType, properties: { mymedia_taken: m.takenAt } })),
+  }
+}
+
+export function PublicLibrary({ rootIds, personListId }: { rootIds: string[]; personListId?: string }) {
+  const rootId = personListId ? PERSON : rootIds.length > 1 ? CHOSEN : rootIds[0]
   const ids = rootIds.join(',')
   const { t } = useTranslation()
   const fmt = useFormat()
@@ -93,6 +110,7 @@ export function PublicLibrary({ rootIds }: { rootIds: string[] }) {
   const [files, setFiles] = useState<PubFile[] | null>(null)
   const [error, setError] = useState<'gone' | 'failed' | 'noKey' | null>(null)
   const [open, setOpen] = useState<number | null>(null)
+  const [person, setPerson] = useState<{ owner: string; files: PubFile[] } | null>(null)
   const here = path[path.length - 1]?.id ?? rootId
 
   useEffect(() => {
@@ -102,6 +120,17 @@ export function PublicLibrary({ rootIds }: { rootIds: string[] }) {
   // The library's name (its root folder).
   useEffect(() => {
     if (!key) return
+    if (personListId) {
+      personList(personListId, key).then(
+        (p) => {
+          setPerson(p)
+          setPath([{ id: PERSON, name: p.name }])
+          document.title = `${p.name} · MyMedia`
+        },
+        (e) => setError(e instanceof Gone ? 'gone' : 'failed'),
+      )
+      return
+    }
     if (rootId === CHOSEN) {
       setPath([{ id: CHOSEN, name: t('publicLib.albums') }])
       document.title = `${t('publicLib.albums')} · MyMedia`
@@ -114,14 +143,14 @@ export function PublicLibrary({ rootIds }: { rootIds: string[] }) {
       },
       (e) => setError(e instanceof Gone ? 'gone' : 'failed'),
     )
-  }, [key, rootId, t])
+  }, [key, rootId, personListId, t])
 
   useEffect(() => {
     if (!key || !path.length) return
     let alive = true
     setFiles(null)
     setOpen(null)
-    const listed = here === CHOSEN ? chosenAlbums(ids.split(','), key) : children(here, key)
+    const listed = here === PERSON ? Promise.resolve(person?.files ?? []) : here === CHOSEN ? chosenAlbums(ids.split(','), key) : children(here, key)
     listed.then(
       (f) => alive && setFiles(f),
       (e) => alive && setError(e instanceof Gone ? 'gone' : 'failed'),
@@ -129,7 +158,7 @@ export function PublicLibrary({ rootIds }: { rootIds: string[] }) {
     return () => {
       alive = false
     }
-  }, [key, here, path.length, ids])
+  }, [key, here, path.length, ids, person])
 
   const folders = (files ?? []).filter(isFolder).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
   const media = (files ?? []).filter(isMedia).sort((a, b) => takenAt(b).localeCompare(takenAt(a)))
@@ -172,7 +201,7 @@ export function PublicLibrary({ rootIds }: { rootIds: string[] }) {
         <img className="pub-logo" src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" />
         <div className="pub-title">
           <strong>{path[0]?.name ?? t('app.name')}</strong>
-          <span className="hint">{t('publicLib.readOnly')}</span>
+          <span className="hint">{person?.owner ? t('publicLib.personBy', { owner: person.owner }) : t('publicLib.readOnly')}</span>
         </div>
         <a className="btn" href="/">
           {t('publicLib.makeYours')}

@@ -14,3 +14,12 @@ export function publicLibraryIds(search = location.search): string[] | null {
   const ids = (new URLSearchParams(search).get('view') ?? '').split(',').filter(Boolean)
   return ids.length && ids.length <= MAX_LINK_FOLDERS && ids.every((id) => ID.test(id)) ? [...new Set(ids)] : null
 }
+
+/** The address that shows one person's confirmed photos (the list file shared by ui/LinkShare's PersonLinkDialog). */
+export const personShareLink = (listFileId: string, origin = location.origin) => `${origin}/?person=${encodeURIComponent(listFileId)}`
+
+/** The person's list this page shows by a link, or null. */
+export function publicPersonId(search = location.search): string | null {
+  const id = new URLSearchParams(search).get('person') ?? ''
+  return ID.test(id) ? id : null
+}

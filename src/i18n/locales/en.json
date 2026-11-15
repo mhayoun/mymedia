@@ -955,7 +955,20 @@
     "expandAll": "Expand all",
     "collapseAll": "Collapse all",
     "pickNone": "Tick the library or at least one album.",
-    "peopleTitle": "Show all my MyMedia to chosen people"
+    "peopleTitle": "Show all my MyMedia to chosen people",
+    "personButton": "Share this person by a link",
+    "personTitle": "Share “{{name}}” by a link",
+    "personIntro": "Anyone with the link sees the photos and videos where you confirmed {{name}}'s face, without signing in. They see nothing else of your MyMedia. A photo confirmed later joins the link by itself.",
+    "personCount_one": "{{count}} confirmed photo or video of {{name}}.",
+    "personCount_other": "{{count}} confirmed photos and videos of {{name}}.",
+    "personRecognizedOnly_one": "{{count}} more is only recognized by MyMedia: it will be shared once confirmed.",
+    "personRecognizedOnly_other": "{{count}} more are only recognized by MyMedia: they will be shared once confirmed.",
+    "personNone": "No photo of {{name}} is confirmed yet: confirm their faces (“Is it {{name}}?”, or in the person's window) to share them.",
+    "personProgress": "Sharing the photos… {{done}} of {{total}}",
+    "personWarning": "Group photos are shared whole: the other people in them are seen too. To stop it: “Stop sharing by link”, the link stops working for everyone.",
+    "personWhatsappText": "Hi! {{owner}} is sharing the photos of {{name}} with you on MyMedia. Tap here to see them (no account needed):\n{{link}}",
+    "personStopText": "The link to the photos of {{name}} will stop working for everyone, and each photo stops being shared. Nothing is deleted. You can create a new link later.",
+    "personSentTitle": "People shared by a link"
   },
   "install": {
     "menu": "Install the app",
@@ -1184,7 +1197,8 @@
     "failed": "The library could not be read. Check the connection and try again.",
     "prev": "Previous",
     "next": "Next",
-    "albums": "Shared albums"
+    "albums": "Shared albums",
+    "personBy": "Photos shared by {{owner}} · view only"
   },
   "autoCategories": {
     "weddings": "Weddings",

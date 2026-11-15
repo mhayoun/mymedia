@@ -5,7 +5,7 @@ import { listPermissions, removePermission, shareAsReader, type Permission } fro
 import { FREE_SHARES, useIsPro } from '../models/pro'
 import { app, useApp } from '../store'
 import { ConfirmDialog, Modal } from './Dialog'
-import { LinkPicker, SentLinks } from './LinkShare'
+import { LinkPicker, SentLinks, SentPersonLinks } from './LinkShare'
 import { SharedLibraries } from './SharedLibraries'
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -90,6 +90,7 @@ export function ShareDialog({ mode, onClose }: { mode: 'share' | 'view'; onClose
         <section>
           <LinkPicker />
           <SentLinks />
+          <SentPersonLinks />
         </section>
       )}
       {mode === 'share' && !shared && tab === 'people' && (

@@ -7,7 +7,8 @@ import { useTranslation } from 'react-i18next'
 import { db } from '../db/db'
 import { useFormat } from '../i18n/format'
 import { linkPermission, listPermissions, removePermission, shareWithLink, type Permission } from '../drive/api'
-import { MAX_LINK_FOLDERS, publicLink } from '../lib/publicLink'
+import { MAX_LINK_FOLDERS, personShareLink, publicLink } from '../lib/publicLink'
+import { confirmedMedia, personShare, personShares, sharePerson, stopPersonShare, type PersonShare } from '../share/personLink'
 import { useApp } from '../store'
 import { ConfirmDialog, Modal } from './Dialog'
 import { FolderChecklist } from './FolderChecklist'
@@ -133,6 +134,199 @@ export function AlbumLinkDialog({ id, name, onClose }: { id: string; name: strin
         </button>
       </div>
     </Modal>
+  )
+}
+
+/**
+ * From a person's title bar (the same 🔗 as an album's): the photos and videos where the user confirmed
+ * this person, shared by a link. The link follows the person: confirmed later, a photo joins it.
+ */
+export function PersonLinkDialog({ personId, name, onClose }: { personId: string; name: string; onClose: () => void }) {
+  const { t } = useTranslation()
+  const user = useApp((s) => s.user)
+  const [share, setShare] = useState<PersonShare | null | undefined>(undefined)
+  const [counts, setCounts] = useState<{ confirmed: number; recognizedOnly: number } | null>(null)
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [stopping, setStopping] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const fail = (e: unknown) => setError(t('errors.generic', { message: (e as Error).message }))
+
+  const load = useCallback(async () => {
+    try {
+      const [s, c] = await Promise.all([personShare(personId), confirmedMedia(personId)])
+      setShare(s)
+      setCounts({ confirmed: c.items.length, recognizedOnly: c.recognizedOnly })
+    } catch (e) {
+      setError(t('errors.generic', { message: (e as Error).message }))
+    }
+  }, [personId, t])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  /** Shares (or brings up to date) the person; the link is then shown. */
+  async function make(): Promise<string | null> {
+    setBusy(true)
+    setError(null)
+    try {
+      const link = await sharePerson(personId, (done, total) => setProgress({ done, total }))
+      await load()
+      return link
+    } catch (e) {
+      fail(e)
+      return null
+    } finally {
+      setBusy(false)
+      setProgress(null)
+    }
+  }
+
+  const link = share ? personShareLink(share.fileId) : ''
+  const owner = user?.name || user?.email || ''
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard refused: the link stays shown, to copy by hand.
+    }
+  }
+
+  return (
+    <Modal title={t('share.personTitle', { name })} onClose={onClose}>
+      <p className="hint">{t('share.personIntro', { name })}</p>
+      {counts && (
+        <p>
+          {t('share.personCount', { count: counts.confirmed, name })}
+          {counts.recognizedOnly > 0 && <span className="hint"> {t('share.personRecognizedOnly', { count: counts.recognizedOnly })}</span>}
+        </p>
+      )}
+      {share === undefined && !error ? (
+        <Loader2 size={16} className="spin" />
+      ) : share ? (
+        <>
+          <input className="share-link" type="text" dir="ltr" readOnly value={link} onFocus={(e) => e.target.select()} />
+          <div className="actions">
+            <button className="btn primary" onClick={() => void copy()} disabled={busy}>
+              <Copy size={16} /> {copied ? t('share.linkCopied') : t('share.linkCopy')}
+            </button>
+            <a
+              className="btn"
+              href={`https://wa.me/?text=${encodeURIComponent(t('share.personWhatsappText', { owner, name, link }))}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <MessageCircle size={16} /> {t('share.whatsapp')}
+            </a>
+            <button className="btn" onClick={() => setStopping(true)} disabled={busy}>
+              {t('share.linkStop')}
+            </button>
+          </div>
+          <p className="hint">{t('share.personWarning', { name })}</p>
+        </>
+      ) : (
+        share === null && (
+          <div className="actions">
+            <button className="btn primary" onClick={() => void make()} disabled={busy || !counts?.confirmed}>
+              {busy ? <Loader2 size={16} className="spin" /> : <Link2 size={16} />} {t('share.linkCreate')}
+            </button>
+          </div>
+        )
+      )}
+      {counts && !counts.confirmed && !share && <p className="hint">{t('share.personNone', { name })}</p>}
+      {progress && progress.total > 0 && <p className="hint">{t('share.personProgress', { done: progress.done, total: progress.total })}</p>}
+      {error && <p className="error-text">{error}</p>}
+      <div className="actions">
+        <button className="btn" onClick={onClose}>
+          {t('common.close')}
+        </button>
+      </div>
+      {stopping && (
+        <ConfirmDialog
+          title={t('share.linkStopTitle')}
+          text={t('share.personStopText', { name })}
+          confirmLabel={t('share.linkStop')}
+          danger
+          onConfirm={async () => {
+            await stopPersonShare(personId)
+            await load()
+          }}
+          onClose={() => setStopping(false)}
+        />
+      )}
+    </Modal>
+  )
+}
+
+/** The people shared by a link from this library (Share window), each to copy, send again or stop. */
+export function SentPersonLinks() {
+  const { t } = useTranslation()
+  const user = useApp((s) => s.user)
+  const [list, setList] = useState<PersonShare[]>([])
+  const [copied, setCopied] = useState<string | null>(null)
+  const [stopping, setStopping] = useState<PersonShare | null>(null)
+
+  const load = useCallback(() => personShares().then(setList, (e) => console.warn('[MyMedia] person links', e)), [])
+  useEffect(() => void load(), [load])
+
+  if (!list.length) return null
+  const owner = user?.name || user?.email || ''
+  return (
+    <>
+      <h3>{t('share.personSentTitle')}</h3>
+      {list.map((s) => {
+        const link = personShareLink(s.fileId)
+        return (
+          <div key={s.fileId} className="sent-link">
+            <div>
+              <Link2 size={14} /> <bdi>{s.data.name}</bdi> <span className="hint">· {t('publicLib.count', { count: s.data.media.length })}</span>
+            </div>
+            <div className="actions">
+              <button
+                className="btn"
+                onClick={() =>
+                  void navigator.clipboard.writeText(link).then(() => {
+                    setCopied(s.fileId)
+                    setTimeout(() => setCopied(null), 2000)
+                  }, () => undefined)
+                }
+              >
+                <Copy size={16} /> {copied === s.fileId ? t('share.linkCopied') : t('share.linkCopy')}
+              </button>
+              <a
+                className="btn"
+                href={`https://wa.me/?text=${encodeURIComponent(t('share.personWhatsappText', { owner, name: s.data.name, link }))}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MessageCircle size={16} /> {t('share.whatsapp')}
+              </a>
+              <button className="btn" onClick={() => setStopping(s)}>
+                {t('share.linkStop')}
+              </button>
+            </div>
+          </div>
+        )
+      })}
+      {stopping && (
+        <ConfirmDialog
+          title={t('share.linkStopTitle')}
+          text={t('share.personStopText', { name: stopping.data.name })}
+          confirmLabel={t('share.linkStop')}
+          danger
+          onConfirm={async () => {
+            await stopPersonShare(stopping.data.personId)
+            await load()
+          }}
+          onClose={() => setStopping(null)}
+        />
+      )}
+    </>
   )
 }
 

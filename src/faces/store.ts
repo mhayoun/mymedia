@@ -111,6 +111,8 @@ export function saveFaces(): Promise<void> {
     if (fileId) await updateTextFile(fileId, text)
     else await createTextFile(FILE_NAME, rootId, text)
     await d.setKv('facesDirty', false)
+    // The people shared by a link follow their confirmed photos (in the background).
+    void import('../share/personLink').then((m) => m.refreshPersonShares()).catch((e) => console.warn('[MyMedia] person links', e))
   })
 }
 

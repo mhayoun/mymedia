@@ -953,7 +953,20 @@
     "expandAll": "Tout déplier",
     "collapseAll": "Tout replier",
     "pickNone": "Cochez la bibliothèque ou au moins un album.",
-    "peopleTitle": "Montrer tout mon MyMedia à des personnes choisies"
+    "peopleTitle": "Montrer tout mon MyMedia à des personnes choisies",
+    "personButton": "Partager cette personne par un lien",
+    "personTitle": "Partager « {{name}} » par un lien",
+    "personIntro": "Toute personne qui a le lien voit les photos et vidéos où vous avez confirmé le visage de {{name}}, sans se connecter. Elle ne voit rien d'autre de votre MyMedia. Une photo confirmée plus tard s'ajoute toute seule.",
+    "personCount_one": "{{count}} photo ou vidéo confirmée de {{name}}.",
+    "personCount_other": "{{count}} photos et vidéos confirmées de {{name}}.",
+    "personRecognizedOnly_one": "{{count}} autre est seulement reconnue par MyMedia : elle ne sera partagée qu'une fois confirmée.",
+    "personRecognizedOnly_other": "{{count}} autres sont seulement reconnues par MyMedia : elles ne seront partagées qu'une fois confirmées.",
+    "personNone": "Aucune photo de {{name}} n'est encore confirmée : confirmez ses visages (« Est-ce {{name}} ? », ou dans la fenêtre de la personne) pour pouvoir la partager.",
+    "personProgress": "Partage des photos… {{done}} sur {{total}}",
+    "personWarning": "Les photos de groupe sont partagées entières : les autres personnes dessus sont visibles aussi. Pour arrêter : « Arrêter le partage par lien », le lien ne marche plus pour personne.",
+    "personWhatsappText": "Bonjour ! {{owner}} vous partage les photos de {{name}} sur MyMedia. Touchez ici pour les voir (sans compte) :\n{{link}}",
+    "personStopText": "Le lien des photos de {{name}} ne marchera plus pour personne, et chaque photo cesse d'être partagée. Rien n'est supprimé. Vous pourrez créer un nouveau lien plus tard.",
+    "personSentTitle": "Personnes partagées par un lien"
   },
   "install": {
     "menu": "Installer l'application",
@@ -1182,7 +1195,8 @@
     "failed": "La bibliothèque n'a pas pu être lue. Vérifiez la connexion et réessayez.",
     "prev": "Précédente",
     "next": "Suivante",
-    "albums": "Albums partagés"
+    "albums": "Albums partagés",
+    "personBy": "Photos partagées par {{owner}} · lecture seule"
   },
   "autoCategories": {
     "weddings": "Mariages",
