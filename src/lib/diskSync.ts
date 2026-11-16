@@ -21,6 +21,8 @@ export interface SyncMedia {
   imported: boolean
   /** Where its folder was on the computer, when known ("E:\\Photos\\EinGuedi2015"). */
   importedPath?: string
+  /** The folder it was imported from (its name), as shown by "Imported". */
+  importedFrom?: string
 }
 
 export interface SyncInput {
@@ -70,11 +72,20 @@ export interface SyncMissing {
   where: string
 }
 
+/** The folder of the computer a file comes from, where it is now (its "Original folder"). */
+export interface SyncPath {
+  mediaId: string
+  path: string
+  from: string
+}
+
 export interface SyncPlan {
   albums: SyncAlbum[]
   moves: SyncMove[]
   /** In MyMedia, imported from this disk, no longer on it. */
   missing: SyncMissing[]
+  /** Files whose folder on the computer changed (moved or renamed on the disk). */
+  paths: SyncPath[]
   /** Files of the disk found in MyMedia. */
   matched: number
   /** Files of the disk's albums not found in MyMedia (not imported yet, or a copy of another one). */
@@ -85,11 +96,36 @@ const base = (name: string) => name.replace(/\.[^.]+$/, '').trim().toLocaleLower
 const same = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: 'base' }) === 0
 const norm = (p: string) => p.replace(/\\/g, '/').replace(/\/+$/, '').toLocaleLowerCase()
 
-/** Whether a MyMedia album is this disk folder's: its name, or its name with the year put first. */
+/** A name without case, spaces and separators ("2015_Esty anniv" = "2015 Esty-anniv"). */
+const loose = (name: string) => name.toLocaleLowerCase().replace(/[\s_\-.,]+/g, '')
+const LEADING_YEAR = /^(19\d\d|20\d\d)(?!\d)[\s_\-.,]*/
+
+/**
+ * Whether a MyMedia album is this disk folder's: its name (separators aside), or with the year put first,
+ * or one of them without the year the other has first ("EstyAnniv" and "2015_EstyAnniv").
+ */
 export function isAlbumOf(albumName: string, folder: string): boolean {
-  if (same(albumName.trim(), folder.trim()) || same(albumName.trim(), yearFirst(folder))) return true
-  const m = /^(\d{4}) (.+)$/.exec(albumName.trim())
-  return !!m && same(m[2], folder.trim())
+  const a = loose(albumName)
+  const f = loose(folder)
+  if (a === f || a === loose(yearFirst(folder))) return true
+  const aYear = LEADING_YEAR.test(albumName.trim())
+  const fYear = LEADING_YEAR.test(folder.trim())
+  if (aYear && !fYear) return loose(albumName.trim().replace(LEADING_YEAR, '')) === f
+  if (fYear && !aYear) return loose(folder.trim().replace(LEADING_YEAR, '')) === a
+  return false
+}
+
+/** A folder of the disk as a path of the computer, written like the file's former one (\\ or /). */
+function diskPathOf(dir: string[], diskName: string, diskPath: string, former: string | undefined): string {
+  let base = diskPath || diskName
+  // The former path knows where the folder read is on the computer ("E:\\myBackup"): kept.
+  if (!diskPath && former) {
+    const parts = former.split(/[\\/]/)
+    const k = parts.findIndex((p) => same(p, diskName))
+    if (k >= 0) base = parts.slice(0, k + 1).join(former.includes('\\') ? '\\' : '/')
+  }
+  const sep = base.includes('\\') || former?.includes('\\') ? '\\' : '/'
+  return [base.replace(/[\\/]+$/, ''), ...dir].join(sep)
 }
 
 /** A media's album (the folder below its category; a folder alone in the root) and the folders below it. */
@@ -115,7 +151,7 @@ export function planDiskSync(input: SyncInput): SyncPlan {
     if (m.originalSize && m.originalSize !== m.size) add(`${base(m.name)}|${m.originalSize}`, m)
   }
   const used = new Set<string>()
-  const groups = new Map<string, { files: { disk: WalkedFile; media: SyncMedia; sub: string[] }[]; unmatched: number }>()
+  const groups = new Map<string, { files: { disk: WalkedFile; media: SyncMedia; sub: string[]; dir: string[] }[]; unmatched: number }>()
   for (const f of input.disk) {
     const a = albumOf(f.dirs)
     if (!a) continue
@@ -132,7 +168,7 @@ export function planDiskSync(input: SyncInput): SyncPlan {
       continue
     }
     used.add(m.id)
-    g.files.push({ disk: f, media: m, sub: f.dirs.slice(a.dir.length) })
+    g.files.push({ disk: f, media: m, sub: f.dirs.slice(a.dir.length), dir: a.dir })
   }
 
   // Each album of the disk: the MyMedia album of its name, else the one most of its files are in
@@ -241,10 +277,21 @@ export function planDiskSync(input: SyncInput): SyncPlan {
       : !!p && synced.has(p.album.id)
     if (fromDisk) missing.push({ mediaId: m.id, name: m.name, where: pathText(m.folderId, folders, rootId) })
   }
+  // The "Original folder" of each file imported, where its album's folder is now on the disk.
+  const paths: SyncPath[] = []
+  for (const g of groups.values())
+    for (const { media, dir } of g.files) {
+      if (!media.imported) continue
+      const path = diskPathOf(dir, input.diskName, input.diskPath, media.importedPath)
+      if (media.importedPath && norm(media.importedPath) === norm(path)) continue
+      paths.push({ mediaId: media.id, path, from: dir[dir.length - 1] })
+    }
+
   return {
     albums,
     moves,
     missing,
+    paths,
     matched: used.size,
     notInMyMedia: [...groups.values()].reduce((n, g) => n + g.unmatched, 0),
   }

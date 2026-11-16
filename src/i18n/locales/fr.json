@@ -1363,8 +1363,13 @@
     "stepTrash": "Mise à la corbeille…",
     "stepFolders": "Dossiers vides…",
     "nameTaken": "« {{from}} » n'a pas été renommé : « {{name}} » existe déjà dans la même catégorie.",
-    "done": "Terminé : {{renamed}} album(s) renommé(s), {{moved}} fichier(s) déplacé(s), {{trashed}} fichier(s) et {{folders}} dossier(s) à la corbeille.",
+    "done": "Terminé : {{renamed}} album(s) renommé(s), {{moved}} fichier(s) déplacé(s), {{paths}} dossier(s) d'origine mis à jour, {{trashed}} fichier(s) et {{folders}} dossier(s) à la corbeille.",
     "errors_one": "{{count}} erreur",
-    "errors_other": "{{count}} erreurs"
+    "errors_other": "{{count}} erreurs",
+    "paths_one": "Dossier d'origine changé pour {{count}} fichier",
+    "paths_other": "Dossier d'origine changé pour {{count}} fichiers",
+    "pathsHint": "Leur dossier a été déplacé ou renommé sur le disque : « Dossier d'origine » (dans les infos de la photo) prend le nouveau chemin.",
+    "fixPaths": "Mettre à jour le dossier d'origine",
+    "stepPaths": "Mise à jour des dossiers d'origine…"
   }
 }

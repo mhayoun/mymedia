@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { emptiedFolders, planDiskSync, type SyncInput, type SyncMedia } from './diskSync'
+import { emptiedFolders, isAlbumOf, planDiskSync, type SyncInput, type SyncMedia } from './diskSync'
 import type { WalkedFile } from './importPlan'
 import type { FolderNode } from './tree'
 
@@ -112,5 +112,37 @@ describe('planDiskSync', () => {
     expect(emptiedFolders(m, folders, R, new Set(['a']), new Set())).toEqual(['eg'])
     expect(emptiedFolders(m, folders, R, new Set(['a']), new Set(['eg']))).toEqual(['eg-nik'])
     expect(emptiedFolders(m, folders, R, new Set(['b', 'c']), new Set())).toEqual(['par', 'anniv'])
+  })
+
+  it('a folder moved and renamed with the year: same album, its original folder follows the disk', () => {
+    const f = new Map(folders)
+    f.set('esty', { id: 'esty', name: '2015 EstyAnniversaire13ans', parentId: 'fam' })
+    const p = planDiskSync({
+      ...input(
+        [disk(['My Pictures2015', '2015_EstyAnniversaire13ans'], 'e1.jpg', 10), disk(['My Pictures2015', '2015_EstyAnniversaire13ans'], 'e2.jpg', 20)],
+        [
+          media('e1', 'e1.jpg', 10, 'esty', { importedPath: 'myBackup/My Pictures/EstyAnniversaire13ans' }),
+          media('e2', 'e2.jpg', 20, 'esty', { importedPath: 'E:\\myBackup\\My Pictures\\EstyAnniversaire13ans' }),
+        ],
+      ),
+      folders: f,
+      diskName: 'myBackup',
+      diskPath: '',
+    })
+    expect(p.moves).toEqual([])
+    expect(p.albums[0]).toMatchObject({ albumId: 'esty', name: '2015 EstyAnniversaire13ans' })
+    expect(p.albums[0].renamedFrom).toBeUndefined()
+    expect(p.paths).toEqual([
+      { mediaId: 'e1', path: 'myBackup/My Pictures2015/2015_EstyAnniversaire13ans', from: '2015_EstyAnniversaire13ans' },
+      { mediaId: 'e2', path: 'E:\\myBackup\\My Pictures2015\\2015_EstyAnniversaire13ans', from: '2015_EstyAnniversaire13ans' },
+    ])
+  })
+
+  it('album names: separators and a missing year', () => {
+    expect(isAlbumOf('2015 EstyAnniv', '2015_EstyAnniv')).toBe(true)
+    expect(isAlbumOf('EstyAnniv', '2015_EstyAnniv')).toBe(true)
+    expect(isAlbumOf('2015 EstyAnniv', 'EstyAnniv2015')).toBe(true)
+    expect(isAlbumOf('2014 EstyAnniv', '2015_EstyAnniv')).toBe(false)
+    expect(isAlbumOf('Paris', 'Louvre')).toBe(false)
   })
 })

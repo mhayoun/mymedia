@@ -1365,8 +1365,13 @@
     "stepTrash": "Putting in the trash…",
     "stepFolders": "Empty folders…",
     "nameTaken": "“{{from}}” was not renamed: “{{name}}” already exists in the same category.",
-    "done": "Done: {{renamed}} album(s) renamed, {{moved}} file(s) moved, {{trashed}} file(s) and {{folders}} folder(s) in the trash.",
+    "done": "Done: {{renamed}} album(s) renamed, {{moved}} file(s) moved, {{paths}} original folder(s) updated, {{trashed}} file(s) and {{folders}} folder(s) in the trash.",
     "errors_one": "{{count}} error",
-    "errors_other": "{{count}} errors"
+    "errors_other": "{{count}} errors",
+    "paths_one": "Original folder changed for {{count}} file",
+    "paths_other": "Original folder changed for {{count}} files",
+    "pathsHint": "Their folder was moved or renamed on the disk: “Original folder” (in the photo's info) takes the new path.",
+    "fixPaths": "Update the original folder",
+    "stepPaths": "Updating the original folders…"
   }
 }

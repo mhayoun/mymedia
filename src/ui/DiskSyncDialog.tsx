@@ -17,6 +17,7 @@ import { useApp } from '../store'
 import { syncNow } from '../sync/engine'
 import { deleteFolder, renameFolder } from '../sync/folders'
 import { trashMedia } from '../sync/media'
+import { markMetaDirty } from '../sync/metaStore'
 import { flushMoves } from '../sync/moveQueue'
 import { Modal } from './Dialog'
 
@@ -62,8 +63,9 @@ export function DiskSyncDialog({ diskName, diskPath, files, categoryOf, yearFirs
   const [moves, setMoves] = useState<Set<number>>(new Set())
   const [trashMissing, setTrashMissing] = useState(false)
   const [trashEmpty, setTrashEmpty] = useState(true)
+  const [fixPaths, setFixPaths] = useState(true)
   const [step, setStep] = useState<{ label: string; done?: number; total?: number } | null>(null)
-  const [result, setResult] = useState<{ renamed: number; moved: number; trashed: number; folders: number; errors: string[] } | null>(null)
+  const [result, setResult] = useState<{ renamed: number; moved: number; trashed: number; folders: number; paths: number; errors: string[] } | null>(null)
   const [error, setError] = useState<string | null>(null)
   // Compared once, as the dialog opens (the proposal's function changes at each display of the window below).
   const [args] = useState(() => ({ files, categoryOf, diskName, diskPath, yearFirst }))
@@ -86,6 +88,7 @@ export function DiskSyncDialog({ diskName, diskPath, files, categoryOf, yearFirs
           takenAt: r.takenAt,
           imported: !!imported,
           ...(imported?.path ? { importedPath: imported.path } : {}),
+          ...(imported?.from ? { importedFrom: imported.from } : {}),
         }
       })
       const folders = new Map(folderList.map((f) => [f.id, f]))
@@ -126,14 +129,14 @@ export function DiskSyncDialog({ diskName, diskPath, files, categoryOf, yearFirs
   }
   const renamed = plan?.albums.map((a, i) => ({ a, i })).filter(({ a }) => a.renamedFrom) ?? []
   const moving = [...byAlbum.entries()].sort((x, y) => plan!.albums[x[0]].name.localeCompare(plan!.albums[y[0]].name))
-  const nothing = !!plan && !renamed.length && !moving.length && !plan.missing.length && !emptied.length
-  const anything = renames.size > 0 || [...byAlbum.keys()].some((i) => moves.has(i)) || (trashMissing && !!plan?.missing.length) || (trashEmpty && emptied.length > 0)
+  const nothing = !!plan && !renamed.length && !moving.length && !plan.missing.length && !emptied.length && !plan.paths.length
+  const anything = (fixPaths && !!plan?.paths.length) || renames.size > 0 || [...byAlbum.keys()].some((i) => moves.has(i)) || (trashMissing && !!plan?.missing.length) || (trashEmpty && emptied.length > 0)
 
   async function apply() {
     if (!data || !plan) return
     setError(null)
     const errors: string[] = []
-    const done = { renamed: 0, moved: 0, trashed: 0, folders: 0 }
+    const done = { renamed: 0, moved: 0, trashed: 0, folders: 0, paths: 0 }
     try {
       // 1. The albums renamed on the disk.
       for (const { a, i } of renamed) {
@@ -183,6 +186,20 @@ export function DiskSyncDialog({ diskName, diskPath, files, categoryOf, yearFirs
       if (list.length) {
         setStep({ label: t('diskSync.stepDrive') })
         await flushMoves()
+      }
+      // The "Original folder" of the files: where they are now on the disk.
+      if (fixPaths && plan.paths.length) {
+        setStep({ label: t('diskSync.stepPaths') })
+        const now = Date.now()
+        await d.transaction('rw', d.meta, async () => {
+          for (const p of plan.paths) {
+            const cur = await d.meta.get(p.mediaId)
+            if (!cur?.imported) continue
+            await d.meta.put({ ...cur, imported: { ...cur.imported, path: p.path, from: p.from }, updatedAt: now })
+            done.paths++
+          }
+        })
+        await markMetaDirty()
       }
       // 3. The files no longer on the disk (asked).
       if (trashMissing) {
@@ -270,6 +287,25 @@ export function DiskSyncDialog({ diskName, diskPath, files, categoryOf, yearFirs
             </section>
           )}
 
+          {plan.paths.length > 0 && (
+            <section className="disk-sync-part">
+              <h3>{t('diskSync.paths', { count: plan.paths.length })}</h3>
+              <p className="hint">{t('diskSync.pathsHint')}</p>
+              <details>
+                <summary>{t('diskSync.showList')}</summary>
+                <ul className="disk-sync-list" dir="ltr">
+                  {[...new Set(plan.paths.map((p) => p.path))].slice(0, 200).map((path) => (
+                    <li key={path}>{path}</li>
+                  ))}
+                </ul>
+              </details>
+              <label className="row">
+                <input type="checkbox" checked={fixPaths} disabled={!!step} onChange={(e) => setFixPaths(e.target.checked)} />
+                {t('diskSync.fixPaths')}
+              </label>
+            </section>
+          )}
+
           {plan.missing.length > 0 && (
             <section className="disk-sync-part">
               <h3>{t('diskSync.missing', { count: plan.missing.length })}</h3>
@@ -319,7 +355,7 @@ export function DiskSyncDialog({ diskName, diskPath, files, categoryOf, yearFirs
 
       {result && (
         <>
-          <p className="ok-text">{t('diskSync.done', { renamed: result.renamed, moved: result.moved, trashed: result.trashed, folders: result.folders })}</p>
+          <p className="ok-text">{t('diskSync.done', { renamed: result.renamed, moved: result.moved, trashed: result.trashed, folders: result.folders, paths: result.paths })}</p>
           {result.errors.length > 0 && (
             <details open>
               <summary className="error-text">{t('diskSync.errors', { count: result.errors.length })}</summary>
