@@ -93,6 +93,19 @@ export interface SyncPlan {
 }
 
 const base = (name: string) => name.replace(/\.[^.]+$/, '').trim().toLocaleLowerCase()
+
+/** A file of the disk, as it is found again in MyMedia: its name without extension, and its size. */
+export const fileKey = (name: string, size: number) => `${base(name)}|${size}`
+
+/** The keys of MyMedia's files (their size now, and before compression). */
+export function mediaKeys(media: Pick<SyncMedia, 'name' | 'size' | 'originalSize'>[]): Set<string> {
+  const keys = new Set<string>()
+  for (const m of media) {
+    keys.add(fileKey(m.name, m.size))
+    if (m.originalSize) keys.add(fileKey(m.name, m.originalSize))
+  }
+  return keys
+}
 const same = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: 'base' }) === 0
 const norm = (p: string) => p.replace(/\\/g, '/').replace(/\/+$/, '').toLocaleLowerCase()
 

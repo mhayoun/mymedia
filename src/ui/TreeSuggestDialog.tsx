@@ -7,7 +7,9 @@ import { importStats, keepAnalysis, keptAnalysis, saveTrack, useImportTrack, typ
 import { useFormat } from '../i18n/format'
 import { treeText } from '../lib/folderNames'
 import { estimateImport, planAlbums, sumSizes, type PlanAlbum, type WalkedFile } from '../lib/importPlan'
-import { isAlbumOf } from '../lib/diskSync'
+import { fileKey, isAlbumOf, mediaKeys } from '../lib/diskSync'
+import { albumOf } from '../lib/importPlan'
+import { db } from '../db/db'
 import { CATEGORY_KEYS, type CategoryKey } from '../lib/proposeCategories'
 import { mediaTypeOf } from '../lib/media'
 import { useApp } from '../store'
@@ -121,6 +123,31 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
   const readOnly = useApp((s) => s.readOnly)
 
   const plan = useMemo(() => (folder ? planAlbums(folder.files) : null), [folder])
+  // MyMedia's files, to know which files of the disk are already in it (wherever they are).
+  const [inLibrary, setInLibrary] = useState<Set<string> | null>(null)
+  useEffect(() => {
+    if (!folder) return
+    let alive = true
+    db()
+      .media.toArray()
+      .then((all) => {
+        if (!alive) return
+        setInLibrary(mediaKeys(all.map((r) => ({ name: r.name, size: r.size, originalSize: Number(r.appProperties?.mymedia_original_size) || undefined }))))
+      }, () => undefined)
+    return () => {
+      alive = false
+    }
+  }, [folder, lib])
+  /** Files of each album of the disk already in MyMedia, in any album. */
+  const alreadyIn = useMemo(() => {
+    const n = new Map<string, number>()
+    if (!folder || !inLibrary) return n
+    for (const f of folder.files) {
+      const a = albumOf(f.dirs)
+      if (a && inLibrary.has(fileKey(f.name, f.size))) n.set(a.name, (n.get(a.name) ?? 0) + 1)
+    }
+    return n
+  }, [folder, inLibrary])
   const fromComputer = useMemo(() => plan?.albums.map((a) => ({ name: a.name, count: a.files })) ?? NONE, [plan])
   const fromLibrary = useMemo(() => lone.map((f) => ({ name: f.name, count: f.count })).sort((a, b) => a.name.localeCompare(b.name)), [lone])
   const albums = source === 'computer' ? fromComputer : source === 'library' ? fromLibrary : NONE
@@ -151,8 +178,10 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
       siblings.find((c) => isAlbumOf(c.name, a.name)) ??
       lib.categories.flatMap((c) => (c.children.length ? c.children : [c])).find((c) => isAlbumOf(c.name, a.name))
     // While MyMedia's albums are not loaded yet, the import's word.
-    if (!album) return lib.ready ? { files: 0, failed: 0, category } : { files: rec?.files ?? 0, failed: rec?.failed ?? 0, category }
-    return { files: Math.max(rec?.files ?? 0, album.count), failed: rec?.failed ?? 0, category }
+    // Its files already in MyMedia, wherever they are (an album of another name, another category…).
+    const found = alreadyIn.get(a.name) ?? 0
+    if (!album) return lib.ready ? { files: found, failed: 0, category } : { files: Math.max(found, rec?.files ?? 0), failed: rec?.failed ?? 0, category }
+    return { files: Math.max(rec?.files ?? 0, album.count, found), failed: rec?.failed ?? 0, category }
   }
   const status = new Map((plan?.albums ?? []).map((a) => [a.name, inMyMedia(a)]))
   const isDone = (a: PlanAlbum) => (status.get(a.name)?.files ?? 0) >= a.files
