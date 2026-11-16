@@ -61,7 +61,7 @@ const RECENT_KEY = 'mymedia.recentDestinations'
 const DISK_ROOTS_KEY = 'mymedia.diskRoots'
 
 /** Where a folder read for "Tree suggestion" is on the computer ("E:\\myBackup"), as typed last time. */
-function diskRootPath(name: string): string {
+export function diskRootPath(name: string): string {
   try {
     return (JSON.parse(localStorage.getItem(DISK_ROOTS_KEY) ?? '{}') as Record<string, string>)[name] ?? name
   } catch {

@@ -835,3 +835,10 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
   max-block-size: 200px;
   overflow: auto;
 }
+
+/* Sync with the disk (from Tree suggestion). */
+.disk-sync-part { margin-block: 12px; padding-block-start: 8px; border-block-start: 1px solid var(--border); }
+.disk-sync-part h3 { margin: 0 0 6px; font-size: 15px; }
+.disk-sync-part label.row { align-items: flex-start; gap: 8px; margin-block: 4px; flex-wrap: wrap; }
+.disk-sync-album input { margin-block-start: 3px; }
+.disk-sync-list { max-block-size: 180px; overflow: auto; margin: 4px 0; padding-inline-start: 20px; font-size: 13px; }

@@ -1,4 +1,4 @@
-import { Check, Download, FolderOpen, FolderTree, Library as LibraryIcon, Loader2, RefreshCw, Upload } from 'lucide-react'
+import { Check, Download, FolderOpen, FolderSync, FolderTree, Library as LibraryIcon, Loader2, RefreshCw, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { canRead, canWalkFolders, filesBelow, pickAndWalk, walkFolder, type FsDir, type WalkedFolder } from '../import/folderWalk'
@@ -14,7 +14,8 @@ import { useApp } from '../store'
 import { createCategories, newFolder, putIntoCategories } from '../sync/folders'
 import { CategoryProposal, useCategoryProposal, type AlbumChecks, type CategoryChoice, type ProposalAlbum } from './CategoryProposal'
 import { Modal } from './Dialog'
-import type { AlbumTarget } from './ImportDialog'
+import { diskRootPath, type AlbumTarget } from './ImportDialog'
+import { DiskSyncDialog } from './DiskSyncDialog'
 import { ImportEstimate, useApproxDuration } from './ImportEstimate'
 import type { Library } from './useLibrary'
 
@@ -122,6 +123,8 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
   const [created, setCreated] = useState<{ count: number; existing: number } | null>(null)
   const [creating, setCreating] = useState(false)
   const folderInput = useRef<HTMLInputElement>(null)
+  const [syncing, setSyncing] = useState(false)
+  const readOnly = useApp((s) => s.readOnly)
 
   const plan = useMemo(() => (folder ? planAlbums(folder.files) : null), [folder])
   const fromComputer = useMemo(() => plan?.albums.map((a) => ({ name: a.name, count: a.files })) ?? NONE, [plan])
@@ -459,6 +462,24 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
                     <Download size={16} /> {t('treeSuggest.downloadTree')}
                   </button>
                 </details>
+                {!readOnly && (
+                  <div className="tree-followed">
+                    <p className="hint">{t('diskSync.offer')}</p>
+                    <button className="btn" disabled={busy} onClick={() => setSyncing(true)}>
+                      <FolderSync size={16} /> {t('diskSync.button')}
+                    </button>
+                  </div>
+                )}
+                {syncing && (
+                  <DiskSyncDialog
+                    diskName={folder.name}
+                    diskPath={diskRootPath(folder.name) === folder.name ? '' : diskRootPath(folder.name)}
+                    files={folder.files}
+                    categoryOf={proposal.categoryOf}
+                    yearFirst={yearOn}
+                    onClose={() => setSyncing(false)}
+                  />
+                )}
                 {leftAlbums.length > 0 ? (
                   <ImportEstimate
                     sizes={left}
