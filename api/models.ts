@@ -49,6 +49,8 @@ const MYMEDIA_CLIENT_IDS = [CLIENT_ID, ...ANDROID_CLIENT_IDS.split(',').map((s) 
 const FULL_CLIENT_IDS = [...MYMEDIA_CLIENT_IDS, PRO_CLIENT_ID].filter(Boolean)
 /** Accounts sent from the "MyMedia" project to MyMedia Pro (they reconnect once; never back). */
 const MOVE_TO_PRO = (process.env.MYMEDIA_MOVE_TO_PRO ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean)
+/** Accounts that always keep the "MyMedia" project (never MyMedia Pro, even moved there before: brought back). */
+const KEEP_MYMEDIA = (process.env.MYMEDIA_KEEP_MYMEDIA ?? '').toLowerCase().split(/[\s,]+/).filter(Boolean)
 const CLIENT_IDS = [...FULL_CLIENT_IDS, FREE_CLIENT_ID].filter(Boolean)
 const FULL_SCOPE = 'https://www.googleapis.com/auth/drive'
 /**
@@ -636,13 +638,21 @@ interface FullRecord {
  */
 async function fullDoor(c: Caller): Promise<{ full: boolean; fullProject: FullProject }> {
   let rec = await readJson<FullRecord>(fullPath(c.email))
-  if (c.fullToken && (!rec || (c.project === 'pro' && rec.project !== 'pro'))) {
+  const keep = KEEP_MYMEDIA.includes(c.email)
+  if (keep && rec?.project === 'pro') {
+    // Brought back to "MyMedia" (its next connection goes through it again).
+    rec = { since: rec.since, project: 'mymedia' }
+    await writeJson(fullPath(c.email), rec)
+  } else if (c.fullToken && !keep && (!rec || (c.project === 'pro' && rec.project !== 'pro'))) {
     rec = { since: rec?.since ?? new Date().toISOString(), project: c.project ?? 'mymedia' }
+    await writeJson(fullPath(c.email), rec)
+  } else if (c.fullToken && keep && !rec) {
+    rec = { since: new Date().toISOString(), project: 'mymedia' }
     await writeJson(fullPath(c.email), rec)
   }
   const full = !!rec || FULL_BEFORE_FREE.has(hashOf(c.email))
   let fullProject: FullProject = 'pro'
-  if (!PRO_CLIENT_ID) fullProject = 'mymedia'
+  if (!PRO_CLIENT_ID || keep) fullProject = 'mymedia'
   else if (rec?.project === 'pro' || MOVE_TO_PRO.includes(c.email)) fullProject = 'pro'
   else if (full) fullProject = 'mymedia'
   return { full, fullProject }
