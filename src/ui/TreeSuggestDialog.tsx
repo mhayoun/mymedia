@@ -7,7 +7,7 @@ import { importStats, keepAnalysis, keptAnalysis, saveTrack, useImportTrack, typ
 import { useFormat } from '../i18n/format'
 import { treeText } from '../lib/folderNames'
 import { estimateImport, planAlbums, sumSizes, type PlanAlbum, type WalkedFile } from '../lib/importPlan'
-import { yearFirst } from '../lib/albumYear'
+import { isAlbumOf } from '../lib/diskSync'
 import { CATEGORY_KEYS, type CategoryKey } from '../lib/proposeCategories'
 import { mediaTypeOf } from '../lib/media'
 import { useApp } from '../store'
@@ -69,12 +69,6 @@ function dirsOfPaths(paths: string[]): string[][] {
 
 const same = (a: string, b: string) => a.localeCompare(b, undefined, { sensitivity: 'base' }) === 0
 
-/** Whether a MyMedia album is this folder's: its name, or its name with the year put first ("2016 mariageAvishai"). */
-function isAlbumOf(albumName: string, folder: string): boolean {
-  if (same(albumName, folder) || same(albumName, yearFirst(folder))) return true
-  const m = /^(\d{4}) (.+)$/.exec(albumName.trim())
-  return !!m && same(m[2], folder.trim())
-}
 
 interface Props {
   lib: Library
@@ -152,7 +146,10 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
     const category = rec ? rec.category : proposal.categoryOf(a.name)
     const parent = category ? lib.categories.find((c) => same(c.name, category)) : null
     const siblings = category ? (parent?.children ?? []) : lib.categories
-    const album = siblings.find((c) => isAlbumOf(c.name, a.name))
+    // In its category; else anywhere (put in another category, or its folder renamed on the disk since).
+    const album =
+      siblings.find((c) => isAlbumOf(c.name, a.name)) ??
+      lib.categories.flatMap((c) => (c.children.length ? c.children : [c])).find((c) => isAlbumOf(c.name, a.name))
     // While MyMedia's albums are not loaded yet, the import's word.
     if (!album) return lib.ready ? { files: 0, failed: 0, category } : { files: rec?.files ?? 0, failed: rec?.failed ?? 0, category }
     return { files: Math.max(rec?.files ?? 0, album.count), failed: rec?.failed ?? 0, category }
