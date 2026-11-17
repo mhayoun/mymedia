@@ -95,6 +95,69 @@ export async function deleteFolder(id: string): Promise<void> {
 }
 
 /**
+ * Moves several albums (with all they hold) into one folder, then loads once. An album whose name is
+ * already taken there stays where it is: its name is in `taken`; another failure in `failed`.
+ */
+export async function moveFolders(
+  ids: string[],
+  toId: string,
+  onProgress?: (done: number, total: number) => void,
+): Promise<{ moved: number; taken: string[]; failed: string[] }> {
+  const taken: string[] = []
+  const failed: string[] = []
+  const moved: string[] = []
+  onProgress?.(0, ids.length)
+  for (const [i, id] of ids.entries()) {
+    let name = id
+    try {
+      const f = await getFile(id, 'id,name')
+      name = f.name
+      if (await findFolderNamed(toId, cleanName(f.name), id)) taken.push(f.name)
+      else {
+        await moveInto(id, toId)
+        await db().folders.update(id, { parentId: toId })
+        moved.push(id)
+      }
+    } catch {
+      failed.push(name)
+    }
+    onProgress?.(i + 1, ids.length)
+  }
+  // A load already running may have read the old places.
+  const placed = () => Promise.all(moved.map((id) => db().folders.update(id, { parentId: toId })))
+  if (isSyncing()) {
+    await syncNow()
+    await placed()
+  }
+  await syncNow()
+  return { moved: moved.length, taken, failed }
+}
+
+/** Moves several folders and their content to Drive's trash (recoverable for 30 days), then loads once. */
+export async function deleteFolders(ids: string[], onProgress?: (done: number, total: number) => void): Promise<{ deleted: number; failed: string[] }> {
+  const failed: string[] = []
+  const gone: string[] = []
+  onProgress?.(0, ids.length)
+  for (const [i, id] of ids.entries()) {
+    try {
+      await trashFile(id)
+      gone.push(id)
+    } catch {
+      failed.push((await db().folders.get(id))?.name ?? id)
+    }
+    onProgress?.(i + 1, ids.length)
+  }
+  const f = app().filters
+  if (gone.includes(f.categoryId ?? '') || gone.includes(f.albumId ?? '')) app().setFilters({ categoryId: null, albumId: null })
+  const forget = () => Promise.all(gone.map((id) => forgetFolder(id)))
+  await forget()
+  if (isSyncing()) await syncNow()
+  await forget()
+  await syncNow()
+  return { deleted: gone.length, failed }
+}
+
+/**
  * Puts albums of the root into categories (by name, created when missing), then loads once.
  * An album whose name is already taken in its category is left where it is (counted as failed).
  */

@@ -1,4 +1,4 @@
-import { Brain, Check, ChevronDown, ChevronUp, CircleHelp, Search, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, Link2, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Settings as SettingsIcon, Store, Trash2, UserPlus, UserRound, X } from 'lucide-react'
+import { Brain, Check, ListChecks, ChevronDown, ChevronUp, CircleHelp, Search, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, Link2, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Settings as SettingsIcon, Store, Trash2, UserPlus, UserRound, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -49,6 +49,7 @@ import { DuplicatesView } from './DuplicatesView'
 import { BlurryView } from './BlurryView'
 import { AlbumLinkDialog, PersonLinkDialog } from './LinkShare'
 import { MoveFolderDialog } from './MoveFolderDialog'
+import { AlbumsSelectDialog } from './AlbumsSelectDialog'
 import { TreeSuggestDialog } from './TreeSuggestDialog'
 import { markAlbum } from '../import/importTrack'
 import type { CategoryChoice } from './CategoryProposal'
@@ -61,6 +62,7 @@ type DialogState =
   | { kind: 'newAlbum'; parentId: string; parentName: string }
   | { kind: 'rename'; id: string; name: string }
   | { kind: 'move'; id: string; name: string; count: number }
+  | { kind: 'albumsSelect'; id: string }
   | { kind: 'albumLink'; id: string; name: string }
   | { kind: 'personLink'; id: string; name: string }
   | { kind: 'delete'; id: string; name: string; count: number }
@@ -280,6 +282,18 @@ export function Shell() {
       {dialog?.kind === 'albumLink' && <AlbumLinkDialog id={dialog.id} name={dialog.name} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'personLink' && <PersonLinkDialog personId={dialog.id} name={dialog.name} onClose={() => setDialog(null)} />}
       {dialog?.kind === 'move' && <MoveFolderDialog lib={lib} id={dialog.id} name={dialog.name} count={dialog.count} onClose={() => setDialog(null)} />}
+      {dialog?.kind === 'albumsSelect' &&
+        (() => {
+          const find = (list: typeof lib.categories): (typeof lib.categories)[number] | undefined => {
+            for (const f of list) {
+              if (f.id === dialog.id) return f
+              const sub = find(f.children)
+              if (sub) return sub
+            }
+          }
+          const parent = find(lib.categories)
+          return parent ? <AlbumsSelectDialog lib={lib} parent={parent} onClose={() => setDialog(null)} /> : null
+        })()}
       {dialog?.kind === 'compress' && (
         <CompressDialog
           mode="manual"
@@ -715,17 +729,18 @@ function Toolbar({ lib, people, count, size, onDialog, actions }: ToolbarProps) 
     filters.categoryId === UNFILED || filters.categoryId === TO_CLASSIFY || filters.categoryId === AUTO || filters.categoryId === PEOPLE || filters.categoryId === MISFILED || filters.categoryId === DUPLICATES || filters.categoryId === BLURRY || !!filters.personId || !!filters.provenance
   const folderId = filters.albumId ?? (!special ? filters.categoryId : null)
   const folder = folderId ? lib.folders.get(folderId) : undefined
-  const folderCount = useMemo(() => {
-    if (!folder) return 0
-    const find = (list: typeof lib.categories): number | undefined => {
+  const folderInfo = useMemo(() => {
+    if (!folder) return undefined
+    const find = (list: typeof lib.categories): (typeof lib.categories)[number] | undefined => {
       for (const f of list) {
-        if (f.id === folder.id) return f.count
+        if (f.id === folder.id) return f
         const sub = find(f.children)
-        if (sub !== undefined) return sub
+        if (sub) return sub
       }
     }
-    return find(lib.categories) ?? 0
+    return find(lib.categories)
   }, [folder, lib])
+  const folderCount = folderInfo?.count ?? 0
 
   const person = filters.personId ? people.byId.get(filters.personId) : undefined
   const title = person
@@ -815,6 +830,16 @@ function Toolbar({ lib, people, count, size, onDialog, actions }: ToolbarProps) 
           >
             <FolderInput size={18} />
           </button>
+          {!!folderInfo?.children.length && (
+            <button
+              className="icon-btn small"
+              title={t('albumsSelect.button')}
+              aria-label={t('albumsSelect.button')}
+              onClick={() => onDialog({ kind: 'albumsSelect', id: folder.id })}
+            >
+              <ListChecks size={18} />
+            </button>
+          )}
           <button
             className="icon-btn small"
             title={t('common.delete')}
