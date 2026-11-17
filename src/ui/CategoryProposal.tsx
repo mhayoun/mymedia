@@ -5,6 +5,8 @@ import { CATEGORY_KEYS, proposeCategories, type CategoryKey } from '../lib/propo
 import { useLibraryContext } from './libraryContext'
 
 const LANGUAGES = ['fr', 'en', 'he'] as const
+/** Former names of a category, still recognised in MyMedia. */
+const FORMER: Partial<Record<CategoryKey, string[]>> = { school: ['בית ספר וגן'] }
 const loose = (s: string) => s.trim().replace(/\s+/g, ' ').toLocaleLowerCase()
 
 export interface ProposalAlbum {
@@ -35,7 +37,7 @@ export function useCategoryProposal(albums: ProposalAlbum[], initial?: CategoryC
     const out: Partial<Record<CategoryKey, string>> = {}
     const categories = lib?.categories ?? []
     for (const key of CATEGORY_KEYS) {
-      const names = new Set(LANGUAGES.map((lng) => loose(i18n.getFixedT(lng)(`autoCategories.${key}`))))
+      const names = new Set([...LANGUAGES.map((lng) => i18n.getFixedT(lng)(`autoCategories.${key}`)), ...(FORMER[key] ?? [])].map(loose))
       const found = categories.find((c) => names.has(loose(c.name)))
       if (found) out[key] = found.name
     }
