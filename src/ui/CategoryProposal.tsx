@@ -2,6 +2,10 @@ import { FolderOpen } from 'lucide-react'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CATEGORY_KEYS, proposeCategories, type CategoryKey } from '../lib/proposeCategories'
+import { useLibraryContext } from './libraryContext'
+
+const LANGUAGES = ['fr', 'en', 'he'] as const
+const loose = (s: string) => s.trim().replace(/\s+/g, ' ').toLocaleLowerCase()
 
 export interface ProposalAlbum {
   name: string
@@ -23,7 +27,20 @@ export interface CategoryChoice {
  * each album goes to (its name in the app's language, or as renamed; null when none).
  */
 export function useCategoryProposal(albums: ProposalAlbum[], initial?: CategoryChoice) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const lib = useLibraryContext()
+  // A category already in MyMedia under its name in another language ("טיולים ויציאות" while the app is
+  // in French): that one is used, not a second one made.
+  const existing = useMemo(() => {
+    const out: Partial<Record<CategoryKey, string>> = {}
+    const categories = lib?.categories ?? []
+    for (const key of CATEGORY_KEYS) {
+      const names = new Set(LANGUAGES.map((lng) => loose(i18n.getFixedT(lng)(`autoCategories.${key}`))))
+      const found = categories.find((c) => names.has(loose(c.name)))
+      if (found) out[key] = found.name
+    }
+    return out
+  }, [lib?.categories, i18n])
   const names = useMemo(() => albums.map((a) => a.name), [albums])
   const proposed = useMemo(() => proposeCategories(names), [names])
   const [choice, setChoice] = useState<CategoryChoice>(() => initial ?? { moved: {}, labels: {}, off: [] })
@@ -31,14 +48,14 @@ export function useCategoryProposal(albums: ProposalAlbum[], initial?: CategoryC
     (name: string): CategoryKey | null => (name in choice.moved ? choice.moved[name] : (proposed.get(name) ?? null)),
     [choice.moved, proposed],
   )
-  const labelOf = useCallback((key: CategoryKey) => choice.labels[key] ?? t(`autoCategories.${key}`), [choice.labels, t])
+  const labelOf = useCallback((key: CategoryKey) => choice.labels[key] ?? existing[key] ?? t(`autoCategories.${key}`), [choice.labels, existing, t])
   const categoryOf = useCallback(
     (name: string): string | null => {
       const key = keyOf(name)
       if (!key || choice.off.includes(key)) return null
-      return labelOf(key).trim() || t(`autoCategories.${key}`)
+      return labelOf(key).trim() || existing[key] || t(`autoCategories.${key}`)
     },
-    [keyOf, labelOf, choice.off, t],
+    [keyOf, labelOf, choice.off, existing, t],
   )
   return { albums, choice, setChoice, keyOf, labelOf, categoryOf }
 }
