@@ -195,7 +195,9 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .segmented button[aria-pressed='true'] { background: var(--accent); color: var(--accent-text); }
 
 /* ---------- Gallery ---------- */
-.gallery-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; }
+/* The scrollbar's place is always kept: otherwise, at some widths, its appearing narrows the grid,
+   which changes the number of columns and the height, which removes it, and so on (the screen shakes). */
+.gallery-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; scrollbar-gutter: stable; }
 .gallery-row { position: absolute; inset-inline: 0; display: grid; gap: 3px; padding-inline: 3px; }
 .group-header {
   position: absolute; inset-inline: 0; display: flex; align-items: flex-end; gap: 8px;
