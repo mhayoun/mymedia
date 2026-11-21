@@ -17,8 +17,10 @@ export interface FsDir extends FsHandle {
   kind: 'directory'
   values(): AsyncIterable<FsFile | FsDir>
   getDirectoryHandle(name: string): Promise<FsDir>
-  queryPermission?(o: { mode: 'read' }): Promise<PermissionState>
-  requestPermission?(o: { mode: 'read' }): Promise<PermissionState>
+  getFileHandle(name: string): Promise<FsFile>
+  removeEntry(name: string): Promise<void>
+  queryPermission?(o: { mode: 'read' | 'readwrite' }): Promise<PermissionState>
+  requestPermission?(o: { mode: 'read' | 'readwrite' }): Promise<PermissionState>
   isSameEntry?(other: FsDir): Promise<boolean>
 }
 
@@ -81,6 +83,30 @@ export async function walkFolder(root: FsDir, onCount: (dirs: number, files: num
 export async function canRead(root: FsDir): Promise<boolean> {
   if ((await root.queryPermission?.({ mode: 'read' })) === 'granted') return true
   return (await root.requestPermission?.({ mode: 'read' })) === 'granted'
+}
+
+/**
+ * The right to change the folder (Chrome asks "Allow editing?"), for "Disk duplicates": asked from a click,
+ * before anything else is awaited (Chrome refuses the question otherwise).
+ */
+export function canWrite(root: FsDir): Promise<boolean> {
+  return (root.requestPermission?.({ mode: 'readwrite' }) ?? Promise.resolve('denied' as PermissionState)).then((p) => p === 'granted')
+}
+
+async function dirAt(root: FsDir, dirs: string[]): Promise<FsDir> {
+  let dir = root
+  for (const name of dirs) dir = await dir.getDirectoryHandle(name)
+  return dir
+}
+
+/** A file of the folder read, by its place in it (to compare its content). */
+export async function fileAt(root: FsDir, dirs: string[], name: string): Promise<File> {
+  return (await (await dirAt(root, dirs)).getFileHandle(name)).getFile()
+}
+
+/** A file of the folder read deleted from the disk, for good (a web page cannot put it in the Recycle Bin). */
+export async function removeAt(root: FsDir, dirs: string[], name: string): Promise<void> {
+  await (await dirAt(root, dirs)).removeEntry(name)
 }
 
 /**

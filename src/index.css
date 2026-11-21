@@ -844,3 +844,11 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .disk-sync-part label.row { align-items: flex-start; gap: 8px; margin-block: 4px; flex-wrap: wrap; }
 .disk-sync-album input { margin-block-start: 3px; }
 .disk-sync-list { max-block-size: 180px; overflow: auto; margin: 4px 0; padding-inline-start: 20px; font-size: 13px; }
+
+/* ---------- Disk duplicates ---------- */
+.dup-disk-group { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; }
+.dup-disk-group p { margin: 0 0 4px; }
+.dup-disk-group label.row bdi { overflow-wrap: anywhere; }
+.dup-disk-thumb { inline-size: 64px; block-size: 64px; display: grid; place-items: center; color: var(--text-2); }
+.dup-disk-thumb img { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+.dup-disk-gone { text-decoration: line-through; color: var(--text-2); }

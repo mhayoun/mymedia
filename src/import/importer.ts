@@ -62,7 +62,7 @@ function mimeOf(file: File): string {
   return file.type || MIME_BY_EXT[ext] || 'application/octet-stream'
 }
 
-async function md5Of(file: Blob): Promise<string> {
+export async function md5Of(file: Blob): Promise<string> {
   const spark = new SparkMD5.ArrayBuffer()
   const CHUNK = 8 * 1024 * 1024
   for (let pos = 0; pos < file.size; pos += CHUNK) spark.append(await file.slice(pos, pos + CHUNK).arrayBuffer())

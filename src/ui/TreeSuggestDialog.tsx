@@ -1,4 +1,4 @@
-import { Check, Download, FolderOpen, FolderSync, FolderTree, Library as LibraryIcon, Loader2, RefreshCw, Upload } from 'lucide-react'
+import { Check, Copy, Download, FolderOpen, FolderSync, FolderTree, Library as LibraryIcon, Loader2, RefreshCw, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { canRead, canWalkFolders, filesBelow, pickAndWalk, walkFolder, type FsDir, type WalkedFolder } from '../import/folderWalk'
@@ -17,6 +17,7 @@ import { createCategories, newFolder, putIntoCategories } from '../sync/folders'
 import { CategoryProposal, useCategoryProposal, type AlbumChecks, type CategoryChoice, type ProposalAlbum } from './CategoryProposal'
 import { Modal } from './Dialog'
 import { diskRootPath, type AlbumTarget } from './ImportDialog'
+import { DiskDuplicatesDialog } from './DiskDuplicatesDialog'
 import { DiskSyncDialog } from './DiskSyncDialog'
 import { ImportEstimate, useApproxDuration } from './ImportEstimate'
 import type { Library } from './useLibrary'
@@ -120,6 +121,7 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
   const [creating, setCreating] = useState(false)
   const folderInput = useRef<HTMLInputElement>(null)
   const [syncing, setSyncing] = useState(false)
+  const [duplicates, setDuplicates] = useState(false)
   const readOnly = useApp((s) => s.readOnly)
 
   const plan = useMemo(() => (folder ? planAlbums(folder.files) : null), [folder])
@@ -495,6 +497,29 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
                       <FolderSync size={16} /> {t('diskSync.button')}
                     </button>
                   </div>
+                )}
+                {folder.handle && (
+                  <div className="tree-followed">
+                    <p className="hint">{t('diskDuplicates.offer')}</p>
+                    <button className="btn" disabled={busy} onClick={() => setDuplicates(true)}>
+                      <Copy size={16} /> {t('diskDuplicates.button')}
+                    </button>
+                  </div>
+                )}
+                {duplicates && folder.handle && (
+                  <DiskDuplicatesDialog
+                    root={folder.handle}
+                    diskName={folder.name}
+                    files={folder.files}
+                    onDeleted={(removed) => {
+                      // The folder read, without the copies deleted (its albums' counts follow).
+                      const gone = new Set(removed)
+                      const f = { ...folder, files: folder.files.filter((x) => !gone.has(x)) }
+                      keepAnalysis(f)
+                      setFolder(f)
+                    }}
+                    onClose={() => setDuplicates(false)}
+                  />
                 )}
                 {syncing && (
                   <DiskSyncDialog
