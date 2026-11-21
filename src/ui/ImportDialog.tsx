@@ -265,6 +265,13 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
     else if (!posts) setOriginPath(suggestedPath(importSourceName({ relDirs: result.map((i) => i.relDir) })))
     const before = new Set(picked.map((i) => i.key))
     setChecked((cur) => new Set([...(add ? [...cur] : []), ...result.filter((i) => !i.duplicate && !(add && before.has(i.key))).map((i) => i.key)]))
+    // An album the analysis finds wholly in MyMedia (same content, even under another name or a copy of
+    // the disk itself) is marked done: "Tree suggestion", which compares only names and sizes, no longer offers it.
+    for (const a of albums ?? []) {
+      const top = albumNameOf(a.name) ?? a.name
+      const own = result.filter((i) => i.relDir[0] === top)
+      if (own.length && own.every((i) => i.duplicate)) onAlbumFinished?.(a.name, { inMyMedia: own.length, failed: 0 })
+    }
     setPhase('choose')
   }
 
