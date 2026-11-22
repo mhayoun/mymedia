@@ -10,11 +10,10 @@ import { estimateImport, planAlbums, sumSizes, type PlanAlbum, type WalkedFile }
 import { fileKey, isAlbumOf, mediaKeys } from '../lib/diskSync'
 import { albumOf } from '../lib/importPlan'
 import { db } from '../db/db'
-import { CATEGORY_KEYS, type CategoryKey } from '../lib/proposeCategories'
 import { mediaTypeOf } from '../lib/media'
 import { useApp } from '../store'
 import { createCategories, newFolder, putIntoCategories } from '../sync/folders'
-import { CategoryProposal, useCategoryProposal, type AlbumChecks, type CategoryChoice, type ProposalAlbum } from './CategoryProposal'
+import { CategoryProposal, useCategoryProposal, type AlbumChecks, type CategoryChoice, type ChoiceKey, type ProposalAlbum } from './CategoryProposal'
 import { Modal } from './Dialog'
 import { diskRootPath, type AlbumTarget } from './ImportDialog'
 import { DiskDuplicatesDialog } from './DiskDuplicatesDialog'
@@ -209,7 +208,7 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
   /** The ticked albums into one category (or none): as if each one's list were changed by hand. */
   function putTicked(value: string) {
     if (value === OWN) return
-    const key = value ? (value as CategoryKey) : null
+    const key = value ? (value as ChoiceKey) : null
     proposal.setChoice((c) => ({
       ...c,
       moved: { ...c.moved, ...Object.fromEntries(tickedAlbums.map((a) => [a.name, key])) },
@@ -626,7 +625,7 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
                     {t('treeSuggest.putInto')}
                     <select value={OWN} disabled={busy} onChange={(e) => putTicked(e.target.value)}>
                       <option value={OWN}>{t('treeSuggest.ownCategory')}</option>
-                      {CATEGORY_KEYS.map((k) => (
+                      {proposal.keys.map((k) => (
                         <option key={k} value={k}>
                           {proposal.labelOf(k)}
                         </option>

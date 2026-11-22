@@ -15,13 +15,18 @@ export interface ProposalAlbum {
   count: number
 }
 
+/** A proposed category, or one made in MyMedia by the user ("own:בית"), by its name. */
+export type ChoiceKey = CategoryKey | `own:${string}`
+const OWN = 'own:'
+const isOwn = (key: ChoiceKey): key is `own:${string}` => key.startsWith(OWN)
+
 export interface CategoryChoice {
   /** Albums moved by hand to another category (null: no category). */
-  moved: Record<string, CategoryKey | null>
+  moved: Record<string, ChoiceKey | null>
   /** Category names changed by hand. */
   labels: Partial<Record<CategoryKey, string>>
   /** Categories unticked: their albums stay without a category. */
-  off: CategoryKey[]
+  off: ChoiceKey[]
 }
 
 /**
@@ -43,23 +48,38 @@ export function useCategoryProposal(albums: ProposalAlbum[], initial?: CategoryC
     }
     return out
   }, [lib?.categories, i18n])
+  // The categories made in MyMedia by the user ("בית"), offered too: a folder with albums in it, or still empty
+  // (a folder with photos only is an album without a category).
+  const own = useMemo(() => {
+    const known = new Set(Object.values(existing).map(loose))
+    return (lib?.categories ?? [])
+      .filter((c) => (c.children.length > 0 || c.count === 0) && !known.has(loose(c.name)))
+      .map((c) => `${OWN}${c.name}` as const)
+      .sort((a, b) => a.localeCompare(b))
+  }, [lib?.categories, existing])
+  /** Every category an album can go to: the proposed ones, then the user's. */
+  const keys = useMemo<ChoiceKey[]>(() => [...CATEGORY_KEYS, ...own], [own])
   const names = useMemo(() => albums.map((a) => a.name), [albums])
   const proposed = useMemo(() => proposeCategories(names), [names])
   const [choice, setChoice] = useState<CategoryChoice>(() => initial ?? { moved: {}, labels: {}, off: [] })
   const keyOf = useCallback(
-    (name: string): CategoryKey | null => (name in choice.moved ? choice.moved[name] : (proposed.get(name) ?? null)),
+    (name: string): ChoiceKey | null => (name in choice.moved ? choice.moved[name] : (proposed.get(name) ?? null)),
     [choice.moved, proposed],
   )
-  const labelOf = useCallback((key: CategoryKey) => choice.labels[key] ?? existing[key] ?? t(`autoCategories.${key}`), [choice.labels, existing, t])
+  const labelOf = useCallback(
+    (key: ChoiceKey) => (isOwn(key) ? key.slice(OWN.length) : (choice.labels[key] ?? existing[key] ?? t(`autoCategories.${key}`))),
+    [choice.labels, existing, t],
+  )
   const categoryOf = useCallback(
     (name: string): string | null => {
       const key = keyOf(name)
       if (!key || choice.off.includes(key)) return null
+      if (isOwn(key)) return labelOf(key)
       return labelOf(key).trim() || existing[key] || t(`autoCategories.${key}`)
     },
     [keyOf, labelOf, choice.off, existing, t],
   )
-  return { albums, choice, setChoice, keyOf, labelOf, categoryOf }
+  return { albums, choice, setChoice, keyOf, labelOf, categoryOf, keys }
 }
 
 export type CategoryProposalState = ReturnType<typeof useCategoryProposal>
@@ -86,13 +106,13 @@ export function CategoryProposal({
   checks?: AlbumChecks
 }) {
   const { t } = useTranslation()
-  const { choice, setChoice, keyOf, labelOf } = state
+  const { choice, setChoice, keyOf, labelOf, keys } = state
   const albums = show ? state.albums.filter((a) => show(a.name)) : state.albums
-  const groups = CATEGORY_KEYS.map((key) => ({ key, albums: albums.filter((a) => keyOf(a.name) === key) })).filter((g) => g.albums.length)
+  const groups = keys.map((key) => ({ key, albums: albums.filter((a) => keyOf(a.name) === key) })).filter((g) => g.albums.length)
   const none = albums.filter((a) => keyOf(a.name) === null)
 
-  const move = (name: string, value: string) => setChoice((c) => ({ ...c, moved: { ...c.moved, [name]: value ? (value as CategoryKey) : null } }))
-  const albumRow = (a: ProposalAlbum, key: CategoryKey | null) => (
+  const move = (name: string, value: string) => setChoice((c) => ({ ...c, moved: { ...c.moved, [name]: value ? (value as ChoiceKey) : null } }))
+  const albumRow = (a: ProposalAlbum, key: ChoiceKey | null) => (
     <li key={a.name} className="proposal-album">
       <span className="name">
         {checks && (
@@ -107,7 +127,7 @@ export function CategoryProposal({
       </span>
       {extra?.(a)}
       <select value={key ?? ''} onChange={(e) => move(a.name, e.target.value)} aria-label={t('autoCategories.moveTo', { name: a.name })}>
-        {CATEGORY_KEYS.map((k) => (
+        {keys.map((k) => (
           <option key={k} value={k}>
             {labelOf(k)}
           </option>
@@ -157,8 +177,9 @@ export function CategoryProposal({
               <input
                 type="text"
                 value={labelOf(key)}
-                disabled={!on}
-                onChange={(e) => setChoice((c) => ({ ...c, labels: { ...c.labels, [key]: e.target.value } }))}
+                // A category of MyMedia keeps its name here (it is renamed in MyMedia itself).
+                disabled={!on || isOwn(key)}
+                onChange={(e) => !isOwn(key) && setChoice((c) => ({ ...c, labels: { ...c.labels, [key]: e.target.value } }))}
                 aria-label={t('autoCategories.rename')}
               />
             </div>
