@@ -23,21 +23,29 @@ export interface DuplicateGroup {
   size: number
   /** The copy kept by default first, then the others. */
   copies: DiskCopy[]
-  /** Copies in different albums: none is ticked to delete by default (a photo may be in two albums on purpose). */
+  /** Copies in different albums (shown, as a photo may be in two albums on purpose). */
   acrossAlbums: boolean
 }
 
 /** A name a copy got ("IMG_0147 (1).jpg", "photo - Copie.jpg", "photo copy 2.jpg"). */
 const COPY_NAME = /(\(\d+\)|[\s_-]+(copie|copy|kopie|copia)(\s*\(?\d+\)?)?)\s*$/i
+/** The name a camera or a phone gives ("IMG_0093", "MVI_0236", "DSC01234", "PXL_20230101_…", "20130225_154846"), not one made again ("Picture 131"). */
+const CAMERA_NAME = /^(_?(IMG|MVI|DSC[NF]?|PICT|CIMG|IMGP|SAM|GOPR|G[HX]\d\d|PXL|VID|WP|DJI|P\d{3}|MOV|HPIM|SDC|DCP|PANA)[_-]?\d|\d{8}[_-]\d{6})/i
 const stem = (name: string) => name.replace(/\.[^.]+$/, '')
 
-/** Which copy stays by default: the one MyMedia knows, then the oldest, then a name without "(1)"/"Copie", then the shortest path. */
+/**
+ * Which copy stays by default: the one MyMedia already has; else the original, that is not a name of a copy
+ * ("(1)", "Copie"), then the camera's name ("MVI_0236" rather than "Picture 131"), then the first on the disk.
+ */
 function keepFirst(a: DiskCopy, b: DiskCopy): number {
   if (a.inMyMedia !== b.inMyMedia) return a.inMyMedia ? -1 : 1
-  if (a.modified !== b.modified) return a.modified - b.modified
   const ca = COPY_NAME.test(stem(a.file.name))
   const cb = COPY_NAME.test(stem(b.file.name))
   if (ca !== cb) return ca ? 1 : -1
+  const ka = CAMERA_NAME.test(a.file.name)
+  const kb = CAMERA_NAME.test(b.file.name)
+  if (ka !== kb) return ka ? -1 : 1
+  if (a.modified !== b.modified) return a.modified - b.modified
   const pa = [...a.file.dirs, a.file.name].join('/')
   const pb = [...b.file.dirs, b.file.name].join('/')
   return pa.length - pb.length || pa.localeCompare(pb)
@@ -58,13 +66,13 @@ export function duplicateGroups(copies: (DiskCopy & { hash: string })[]): Duplic
       acrossAlbums: albums.size > 1,
     })
   }
-  return out.sort((x, y) => Number(x.acrossAlbums) - Number(y.acrossAlbums) || y.size * (y.copies.length - 1) - x.size * (x.copies.length - 1))
+  return out.sort((x, y) => y.size * (y.copies.length - 1) - x.size * (x.copies.length - 1))
 }
 
 /** A file's place in the folder read, as a key ("2013/neige/IMG_0093.jpg"). */
 export const pathKey = (f: Pick<WalkedFile, 'dirs' | 'name'>) => [...f.dirs, f.name].join('/')
 
-/** The copies ticked to delete by default: every copy but the first, in the groups of one album. */
+/** The copies ticked to delete by default: every copy but the one kept (MyMedia's, else the original). */
 export function defaultTicks(groups: DuplicateGroup[]): Set<string> {
-  return new Set(groups.filter((g) => !g.acrossAlbums).flatMap((g) => g.copies.slice(1).map((c) => pathKey(c.file))))
+  return new Set(groups.flatMap((g) => g.copies.slice(1).map((c) => pathKey(c.file))))
 }

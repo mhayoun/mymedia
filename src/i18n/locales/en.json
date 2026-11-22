@@ -1406,7 +1406,7 @@
     "none": "No duplicates: each photo and video is in this folder only once.",
     "found_one": "{{count}} photo or video twice: {{extra}} extra copy, {{size}}",
     "found_other": "{{count}} photos or videos duplicated: {{extra}} extra copies, {{size}}",
-    "keepHint": "The ticked copies will be deleted. One copy of each photo always stays: by default the one MyMedia knows, otherwise the oldest. Duplicates across different albums are not ticked by default.",
+    "keepHint": "The ticked copies will be deleted. The original is kept (the camera's name, “MVI_0236” rather than “Picture 131”, else the first put on the disk), unless a copy is already in MyMedia: that one stays then. One copy of each photo always stays. “different albums”: check whether the copy in the other album is wanted.",
     "tickAll": "Tick all extra copies",
     "untickAll": "Untick all",
     "copies_one": "{{count}} copy · {{size}}",

@@ -1404,7 +1404,7 @@
     "none": "Aucun doublon : chaque photo et chaque vidéo n'est qu'une fois dans ce dossier.",
     "found_one": "{{count}} photo ou vidéo en double : {{extra}} copie(s) en trop, {{size}}",
     "found_other": "{{count}} photos ou vidéos en double : {{extra}} copies en trop, {{size}}",
-    "keepHint": "Les copies cochées seront supprimées. Une copie de chaque photo reste toujours : par défaut celle que MyMedia connaît, sinon la plus ancienne. Les doublons entre albums différents ne sont pas cochés d'office.",
+    "keepHint": "Les copies cochées seront supprimées. On garde l'original (le nom donné par l'appareil, « MVI_0236 » plutôt que « Picture 131 », sinon le premier mis sur le disque), sauf si une copie est déjà dans MyMedia : c'est alors celle-là qui reste. Une copie de chaque photo reste toujours. « albums différents » : vérifiez si la copie dans l'autre album est voulue.",
     "tickAll": "Cocher toutes les copies en trop",
     "untickAll": "Tout décocher",
     "copies_one": "{{count}} copie · {{size}}",
