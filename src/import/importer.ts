@@ -53,7 +53,7 @@ export type ImportOutcome =
 
 const MIME_BY_EXT: Record<string, string> = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', heic: 'image/heic', heif: 'image/heif',
-  mp4: 'video/mp4', mov: 'video/quicktime', avi: 'video/x-msvideo',
+  mp4: 'video/mp4', mov: 'video/quicktime', avi: 'video/x-msvideo', '3gp': 'video/3gpp', '3g2': 'video/3gpp2',
   ...DOC_EXT_MIME,
 }
 

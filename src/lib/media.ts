@@ -5,13 +5,18 @@ export type Origin = 'web' | 'whatsapp' | 'camera' | 'import' | 'unknown'
 
 export const ORIGINS: Origin[] = ['camera', 'whatsapp', 'web', 'import', 'unknown']
 
-/** AVI: shown and filed like any video, but no browser plays it (Google Drive does). */
+/**
+ * AVI, and 3GP / 3G2 (the videos of phones before 2011: H.263 or MPEG-4 Part 2 with AMR sound): shown and
+ * filed like any video, but no browser plays them (Google Drive does).
+ */
 const AVI_MIME = ['video/x-msvideo', 'video/avi', 'video/msvideo']
+const PHONE_MIME = ['video/3gpp', 'video/3gpp2']
+const UNPLAYABLE_EXT = new Set(['avi', '3gp', '3g2'])
 
 const PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp'])
-const VIDEO_MIME = new Set(['video/mp4', 'video/quicktime', ...AVI_MIME])
+const VIDEO_MIME = new Set(['video/mp4', 'video/quicktime', ...AVI_MIME, ...PHONE_MIME])
 const PHOTO_EXT = new Set(['jpg', 'jpeg', 'png', 'heic', 'heif', 'webp'])
-const VIDEO_EXT = new Set(['mp4', 'mov', 'avi'])
+const VIDEO_EXT = new Set(['mp4', 'mov', 'avi', '3gp', '3g2'])
 /** Documents (scanned papers, letters, invoices): kept and shown, never analysed, compressed or turned. */
 export const DOC_EXT_MIME: Record<string, string> = {
   pdf: 'application/pdf',
@@ -40,9 +45,9 @@ export function baseName(name: string): string {
   return i <= 0 ? name : name.slice(0, i)
 }
 
-/** False for the videos browsers cannot read (AVI): not played, compressed or analysed here. */
+/** False for the videos browsers cannot read (AVI, 3GP): not played, compressed or analysed here. */
 export function canPlayVideo(mimeType: string, name: string): boolean {
-  return !AVI_MIME.includes(mimeType) && extension(name) !== 'avi'
+  return !AVI_MIME.includes(mimeType) && !PHONE_MIME.includes(mimeType) && !UNPLAYABLE_EXT.has(extension(name))
 }
 
 /** Returns the media type of a supported file, or null for anything else. */

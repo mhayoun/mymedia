@@ -26,6 +26,16 @@ describe('media', () => {
     expect(canPlayVideo('video/mp4', 'a.mp4')).toBe(true)
   })
 
+  it('3GP (old phones) is a video the browser does not play', () => {
+    expect(mediaTypeOf('', 'Video0000.3gp')).toBe('video')
+    expect(mediaTypeOf('video/3gpp', 'a.3GP')).toBe('video')
+    expect(mediaTypeOf('application/octet-stream', 'a.3g2')).toBe('video')
+    // A phone's sound alone saved as .3gp is filed as a video too (Drive reports audio/3gpp).
+    expect(mediaTypeOf('audio/3gpp', 'clip.3gp')).toBe('video')
+    expect(canPlayVideo('video/3gpp', 'Video0000.3gp')).toBe(false)
+    expect(canPlayVideo('application/octet-stream', 'clip.3G2')).toBe(false)
+  })
+
   it('parses EXIF and file-name dates', () => {
     expect(parseExifDate('2026:01:05 14:30:22')).toBe('2026-01-05T14:30:22')
     expect(parseExifDate('0000:00:00 00:00:00')).toBeUndefined()

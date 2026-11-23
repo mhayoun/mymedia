@@ -594,7 +594,7 @@ export function ImportDialog({ lib, destId: initialDest, initialFiles, fromShare
           <p className="hint">{t('import.dateHint')}</p>
           <p className="hint">{t('facebook.hint')}</p>
           <input ref={zipInput} type="file" multiple hidden accept=".zip,application/zip" onChange={(e) => void onZip(e.target.files ? [...e.target.files] : [])} />
-          <input ref={filesInput} type="file" multiple hidden accept={`image/*,video/*,.heic,.heif,.mov,.avi,${Object.keys(DOC_EXT_MIME).map((e) => `.${e}`).join(',')}`} onChange={(e) => onFiles(e.target.files)} />
+          <input ref={filesInput} type="file" multiple hidden accept={`image/*,video/*,.heic,.heif,.mov,.avi,.3gp,.3g2,${Object.keys(DOC_EXT_MIME).map((e) => `.${e}`).join(',')}`} onChange={(e) => onFiles(e.target.files)} />
           <input
             ref={folderInput}
             type="file"
