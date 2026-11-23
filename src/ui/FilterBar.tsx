@@ -105,7 +105,7 @@ export function FilterBar({ people, lib, actions }: { people: People; lib: Libra
                 let f = lib.folders.get(id)
                 while (f && lib.folders.get(f.parentId)) f = lib.folders.get(f.parentId)
                 const categoryId = f?.id ?? id
-                setFilters({ categoryId, albumId: categoryId === id ? null : id, personId: null, provenance: null })
+                setFilters({ categoryId, albumId: categoryId === id ? null : id, provenance: null })
               }}
             >
               <option value="">{t('common.all')}</option>
@@ -150,7 +150,11 @@ export function FilterBar({ people, lib, actions }: { people: People; lib: Libra
               {t('faces.people')}
               <select
                 value={filters.personId ?? ''}
-                onChange={(e) => setFilters({ personId: e.target.value || null, ...(e.target.value ? { categoryId: null, albumId: null, provenance: null } : {}) })}
+                onChange={(e) => setFilters({
+                    personId: e.target.value || null,
+                    // The album chosen stays (the person in it); a screen of its own (To classify…) does not.
+                    ...(e.target.value ? { provenance: null, ...(filters.categoryId && !lib.folders.has(filters.categoryId) ? { categoryId: null, albumId: null } : {}) } : {}),
+                  })}
               >
                 <option value="">{t('common.all')}</option>
                 {people.named.map((p) => (

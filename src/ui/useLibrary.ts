@@ -165,7 +165,16 @@ function applyExtraFilters(items: LibraryItem[], f: Filters, lib: Library): Libr
 
 function placeFilter(lib: Library, filters: Filters, rootId: string, personMedia?: Set<string>): LibraryItem[] {
   let items = lib.items
-  if (filters.personId && personMedia) return items.filter((i) => personMedia.has(i.rec.id))
+  if (filters.personId && personMedia) {
+    // A person, in an album or a category too when one is chosen ("אפרת" in "ימי הולדת").
+    items = items.filter((i) => personMedia.has(i.rec.id))
+    if (filters.albumId) {
+      const ids = subtreeIds(filters.albumId, lib.folders.values())
+      return items.filter((i) => ids.has(i.rec.folderId))
+    }
+    if (filters.categoryId && lib.folders.has(filters.categoryId)) return items.filter((i) => i.place.categoryId === filters.categoryId)
+    return items
+  }
   if (filters.provenance) return items.filter((i) => provenanceKeys(i.meta).includes(filters.provenance!))
   if (filters.categoryId === TO_CLASSIFY) items = lib.toClassify
   else if (filters.categoryId === AUTO) items = lib.autoItems
