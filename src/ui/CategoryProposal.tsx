@@ -1,4 +1,4 @@
-import { FolderOpen } from 'lucide-react'
+import { FolderOpen, RotateCcw } from 'lucide-react'
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CATEGORY_KEYS, proposeCategories, type CategoryKey } from '../lib/proposeCategories'
@@ -60,15 +60,24 @@ export function useCategoryProposal(albums: ProposalAlbum[], initial?: CategoryC
   /** Every category an album can go to: the proposed ones, then the user's. */
   const keys = useMemo<ChoiceKey[]>(() => [...CATEGORY_KEYS, ...own], [own])
   const names = useMemo(() => albums.map((a) => a.name), [albums])
+  // A category's name typed as one of the albums ("2011_gp" in "Divers", meant to put the album in it): not
+  // a name for the category, which keeps its own (the album is put in it with its list).
+  const albumNames = useMemo(() => new Set(names.map(loose)), [names])
   const proposed = useMemo(() => proposeCategories(names), [names])
   const [choice, setChoice] = useState<CategoryChoice>(() => initial ?? { moved: {}, labels: {}, off: [] })
   const keyOf = useCallback(
     (name: string): ChoiceKey | null => (name in choice.moved ? choice.moved[name] : (proposed.get(name) ?? null)),
     [choice.moved, proposed],
   )
+  /** The name a proposed category has without a change by hand (MyMedia's, else in the app's language). */
+  const defaultLabel = useCallback((key: CategoryKey) => existing[key] ?? t(`autoCategories.${key}`), [existing, t])
   const labelOf = useCallback(
-    (key: ChoiceKey) => (isOwn(key) ? key.slice(OWN.length) : (choice.labels[key] ?? existing[key] ?? t(`autoCategories.${key}`))),
-    [choice.labels, existing, t],
+    (key: ChoiceKey) => {
+      if (isOwn(key)) return key.slice(OWN.length)
+      const v = choice.labels[key]
+      return v !== undefined && !albumNames.has(loose(v)) ? v : defaultLabel(key)
+    },
+    [choice.labels, albumNames, defaultLabel],
   )
   const categoryOf = useCallback(
     (name: string): string | null => {
@@ -79,7 +88,7 @@ export function useCategoryProposal(albums: ProposalAlbum[], initial?: CategoryC
     },
     [keyOf, labelOf, choice.off, existing, t],
   )
-  return { albums, choice, setChoice, keyOf, labelOf, categoryOf, keys }
+  return { albums, choice, setChoice, keyOf, labelOf, defaultLabel, categoryOf, keys }
 }
 
 export type CategoryProposalState = ReturnType<typeof useCategoryProposal>
@@ -106,7 +115,7 @@ export function CategoryProposal({
   checks?: AlbumChecks
 }) {
   const { t } = useTranslation()
-  const { choice, setChoice, keyOf, labelOf, keys } = state
+  const { choice, setChoice, keyOf, labelOf, defaultLabel, keys } = state
   const albums = show ? state.albums.filter((a) => show(a.name)) : state.albums
   const groups = keys.map((key) => ({ key, albums: albums.filter((a) => keyOf(a.name) === key) })).filter((g) => g.albums.length)
   const none = albums.filter((a) => keyOf(a.name) === null)
@@ -182,6 +191,23 @@ export function CategoryProposal({
                 onChange={(e) => !isOwn(key) && setChoice((c) => ({ ...c, labels: { ...c.labels, [key]: e.target.value } }))}
                 aria-label={t('autoCategories.rename')}
               />
+              {!isOwn(key) && labelOf(key) !== defaultLabel(key) && (
+                <button
+                  type="button"
+                  className="btn icon small"
+                  title={t('autoCategories.resetName', { name: defaultLabel(key) })}
+                  aria-label={t('autoCategories.resetName', { name: defaultLabel(key) })}
+                  onClick={() =>
+                    setChoice((c) => {
+                      const labels = { ...c.labels }
+                      delete labels[key]
+                      return { ...c, labels }
+                    })
+                  }
+                >
+                  <RotateCcw size={14} />
+                </button>
+              )}
             </div>
             <details>
               <summary className="hint">

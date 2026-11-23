@@ -1345,6 +1345,7 @@
     "noneHint": "כל אחד מהאלבומים האלה נשאר לבד ב-MyMedia, כקטגוריה",
     "create": "ליצור את הקטגוריה \"{{name}}\"",
     "rename": "שם הקטגוריה",
+    "resetName": "חזרה לשם \"{{name}}\"",
     "albums_one": "אלבום אחד",
     "albums_two": "{{count}} אלבומים",
     "albums_other": "{{count}} אלבומים",

@@ -1244,6 +1244,7 @@
     "noneHint": "chacun de ces albums reste seul dans MyMedia, comme une catégorie",
     "create": "Créer la catégorie « {{name}} »",
     "rename": "Nom de la catégorie",
+    "resetName": "Revenir au nom « {{name}} »",
     "albums_one": "{{count}} album",
     "albums_other": "{{count}} albums",
     "importChoice_one": "Dans MyMedia, avec des catégories proposées d'après le nom de son dossier (Anniversaires, Voyages…)",
