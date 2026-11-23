@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, ExternalLink, FileText, FolderPlus, Info, Loader2, Maximize2, Pencil, Play, RotateCcw, RotateCw, Share2, Trash2, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { downloadBlob } from '../drive/api'
@@ -513,6 +513,17 @@ function VideoStage({ item }: { item: LibraryItem }) {
     }
   }
 
+  // An MP4 whose picture no browser decodes (MPEG-4 Part 2 of old cameras): only its sound would play, on a black
+  // screen. Its preview and Google Drive's player instead, like an AVI.
+  function undecodable(e: SyntheticEvent<HTMLVideoElement>) {
+    const v = e.currentTarget
+    if (v.videoWidth === 0 && v.videoHeight === 0) {
+      v.pause()
+      setStream(null)
+      setFailed(true)
+    }
+  }
+
   async function play() {
     // Streaming plays at once; downloading everything first is the fallback.
     const url = await streamUrl(item.rec)
@@ -531,6 +542,7 @@ function VideoStage({ item }: { item: LibraryItem }) {
           autoPlay={!buffered}
           preload="auto"
           playsInline
+          onLoadedMetadata={undecodable}
           onError={() => {
             // Streaming refused (e.g. token being renewed): download instead.
             setStream(null)
@@ -544,7 +556,8 @@ function VideoStage({ item }: { item: LibraryItem }) {
         )}
       </>
     )
-  if (src && !failed) return <video src={src} controls autoPlay playsInline onError={() => setFailed(true)} />
+  if (src && !failed)
+    return <video src={src} controls autoPlay playsInline onLoadedMetadata={undecodable} onError={() => setFailed(true)} />
   return (
     <>
       {poster && <img className="placeholder" src={poster} alt="" style={{ filter: 'none', opacity: 1 }} />}

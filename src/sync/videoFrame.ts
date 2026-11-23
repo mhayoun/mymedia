@@ -51,11 +51,31 @@ export async function videoFrames(rec: MediaRecord, times: Times, size: number):
   }
 }
 
+/** True when the video track exists but this browser cannot decode it (read from the file's index only). */
+async function undecodableVideo(rec: MediaRecord): Promise<boolean> {
+  if (typeof VideoDecoder === 'undefined' || rec.size <= 0) return false
+  const { ALL_FORMATS, CustomSource, Input } = await import('mediabunny')
+  const input = new Input({
+    formats: ALL_FORMATS,
+    source: new CustomSource({ getSize: () => rec.size, read: (start, end) => downloadRange(rec.id, start, end), prefetchProfile: 'network' }),
+  })
+  try {
+    const track = await input.getPrimaryVideoTrack()
+    return !!track && !(await track.canDecode())
+  } catch {
+    return false
+  } finally {
+    input.dispose()
+  }
+}
+
 export async function videoFrameThumbnail(rec: MediaRecord, size: number): Promise<Blob | null> {
   // A video no browser decodes (3GP, AVI): made with ffmpeg.wasm, on a computer.
   if (!canPlayVideo(rec.mimeType, rec.name)) return legacyVideoThumbnail(rec, size)
   const [blob] = await videoFrames(rec, (first, duration) => [first + Math.min(THUMB_AT, Math.max(0, (duration - first) / 2))], size)
-  return blob ?? null
+  if (blob) return blob
+  // An MP4 / MOV whose picture the browser cannot decode (MPEG-4 Part 2 of old cameras): ffmpeg.wasm too.
+  return (await undecodableVideo(rec)) ? legacyVideoThumbnail(rec, size) : null
 }
 
 /** Start, middle and end frames, used to recognise what a video shows. */
