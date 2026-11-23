@@ -13,6 +13,8 @@ export default defineConfig({
   base,
   define: { __APP_VERSION__: JSON.stringify(version) },
   worker: { format: 'es' },
+  // ffmpeg.wasm starts its own worker (new URL('./worker.js', import.meta.url)): not pre-bundled in dev.
+  optimizeDeps: { exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'] },
   plugins: [
     react(),
     VitePWA({
@@ -24,7 +26,7 @@ export default defineConfig({
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
         // HEIC decoder (3 MB): downloaded only when an iPhone photo is compressed.
-        globIgnores: ['**/heic-to-*.js', '**/mediabunny-aac-encoder-*.js'],
+        globIgnores: ['**/heic-to-*.js', '**/mediabunny-aac-encoder-*.js', '**/ffmpeg/**'],
       },
       manifest: {
         name: 'MyMedia',

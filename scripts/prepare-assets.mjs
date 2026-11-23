@@ -17,6 +17,12 @@ copyFileSync(
   join(ortDir, 'ort-wasm-simd-threaded.wasm'),
 )
 
+// ffmpeg.wasm (LGPL-2.1+, single-thread build): thumbnails of the videos no browser decodes (3GP, most AVI).
+// Downloaded by a computer only when such a video has no thumbnail yet.
+const ffmpegDir = join(root, 'public/ffmpeg')
+mkdirSync(ffmpegDir, { recursive: true })
+for (const f of ['ffmpeg-core.js', 'ffmpeg-core.wasm']) copyFileSync(join(root, 'node_modules/@ffmpeg/core/dist/esm', f), join(ffmpegDir, f))
+
 const MODELS = [
   {
     // DINOv2-small (Meta, Apache-2.0), int8 ONNX export by onnx-community: image fingerprints.

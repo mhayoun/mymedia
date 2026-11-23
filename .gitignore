@@ -26,3 +26,4 @@ dev-dist
 .vercel
 public/ort
 public/models
+public/ffmpeg

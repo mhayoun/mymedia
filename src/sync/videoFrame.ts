@@ -4,6 +4,7 @@
 import type { MediaRecord } from '../db/db'
 import { downloadRange } from '../drive/api'
 import { canPlayVideo } from '../lib/media'
+import { legacyVideoThumbnail } from './legacyVideoFrame'
 
 /** Seconds into the video for its thumbnail: just after the start, to avoid a black fade-in frame. */
 const THUMB_AT = 1
@@ -51,6 +52,8 @@ export async function videoFrames(rec: MediaRecord, times: Times, size: number):
 }
 
 export async function videoFrameThumbnail(rec: MediaRecord, size: number): Promise<Blob | null> {
+  // A video no browser decodes (3GP, AVI): made with ffmpeg.wasm, on a computer.
+  if (!canPlayVideo(rec.mimeType, rec.name)) return legacyVideoThumbnail(rec, size)
   const [blob] = await videoFrames(rec, (first, duration) => [first + Math.min(THUMB_AT, Math.max(0, (duration - first) / 2))], size)
   return blob ?? null
 }
