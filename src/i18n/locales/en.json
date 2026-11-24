@@ -1355,6 +1355,10 @@
     "days": "{{d}} d {{h}} h"
   },
   "diskSync": {
+    "toolbarButton": "Sync",
+    "toolbarTitle": "Sync MyMedia with the disk",
+    "toolbarLead": "MyMedia reads the computer's folder again and puts itself back like it: albums renamed, photos moved, folders made or removed.",
+    "toolbarHint": "The disk is never changed. Every change is shown first, each with its box; nothing is done before “Apply”.",
     "button": "Sync MyMedia with this folder",
     "offer": "Did you tidy this folder since the import (folders renamed, photos moved, folders made or removed)? MyMedia can put itself back like the disk. The disk is never changed.",
     "title": "Sync with “{{name}}”",

@@ -50,7 +50,7 @@ import { BlurryView } from './BlurryView'
 import { AlbumLinkDialog, PersonLinkDialog } from './LinkShare'
 import { MoveFolderDialog } from './MoveFolderDialog'
 import { AlbumsSelectDialog } from './AlbumsSelectDialog'
-import { TreeSuggestDialog } from './TreeSuggestDialog'
+import { canReadComputerFolder, TreeSuggestDialog } from './TreeSuggestDialog'
 import { markAlbum } from '../import/importTrack'
 import type { CategoryChoice } from './CategoryProposal'
 import { usePeople, type People } from './usePeople'
@@ -58,7 +58,7 @@ import { useProvenanceLabel } from './useProvenanceLabel'
 
 type DialogState =
   | { kind: 'newCategory' }
-  | { kind: 'treeSuggest' }
+  | { kind: 'treeSuggest'; sync?: boolean }
   | { kind: 'newAlbum'; parentId: string; parentName: string }
   | { kind: 'rename'; id: string; name: string }
   | { kind: 'move'; id: string; name: string; count: number }
@@ -172,6 +172,12 @@ export function Shell() {
         <Minimize2 size={16} />
         <span className="only-desktop">{t('compress.button')}</span>
       </button>
+      {canReadComputerFolder() && (
+        <button className="btn" onClick={() => setDialog({ kind: 'treeSuggest', sync: true })} title={t('diskSync.toolbarTitle')}>
+          <FolderSync size={16} />
+          <span className="only-desktop">{t('diskSync.toolbarButton')}</span>
+        </button>
+      )}
     </>
   )
   const items = useMemo(
@@ -244,6 +250,7 @@ export function Shell() {
       {dialog?.kind === 'treeSuggest' && rootId && (
         <TreeSuggestDialog
           lib={lib}
+          syncOnly={dialog.sync}
           onImport={(files, categories) => setDialog({ kind: 'import', destId: rootId, files, categories })}
           onImportAlbums={(files, albums, opts) => setDialog({ kind: 'import', destId: albums.length === 1 ? albums[0].destId : rootId, files, albums, ...opts })}
           onClose={() => setDialog(null)}

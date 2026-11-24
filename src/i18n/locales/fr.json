@@ -1353,6 +1353,10 @@
     "days": "{{d}} j {{h}} h"
   },
   "diskSync": {
+    "toolbarButton": "Synchro",
+    "toolbarTitle": "Synchroniser MyMedia avec le disque",
+    "toolbarLead": "MyMedia relit le dossier de l'ordinateur et se remet comme lui : albums renommés, photos déplacées, dossiers créés ou supprimés.",
+    "toolbarHint": "Le disque n'est jamais modifié. Chaque changement est montré avant, avec sa case ; rien n'est fait avant « Appliquer ».",
     "button": "Synchroniser MyMedia avec ce dossier",
     "offer": "Vous avez rangé ce dossier depuis l'import (dossiers renommés, photos déplacées, dossiers créés ou supprimés) ? MyMedia peut se remettre comme le disque. Le disque n'est jamais modifié.",
     "title": "Synchroniser avec « {{name}} »",

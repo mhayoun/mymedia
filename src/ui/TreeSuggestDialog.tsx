@@ -78,7 +78,14 @@ interface Props {
   onImport: (files: File[], categories: CategoryChoice) => void
   /** Albums of the folder (one, or several ticked): sent one after the other, each into its category; back here afterwards. */
   onImportAlbums: (files: File[], albums: AlbumTarget[], opts: { diskRoot: string; yearFirst: boolean }) => void
+  /** Opened from the "Sync" button of the top bar: a folder read (again) goes straight to "Sync with the disk". */
+  syncOnly?: boolean
   onClose: () => void
+}
+
+/** Whether this browser can read a folder of the computer (Chrome / Edge, or a computer's folder upload). */
+export function canReadComputerFolder(): boolean {
+  return canWalkFolders() || (typeof window !== 'undefined' && 'webkitdirectory' in document.createElement('input') && !/Android|iPhone|iPad/i.test(navigator.userAgent))
 }
 
 /**
@@ -94,7 +101,7 @@ export function TreeSuggestDialog(props: Props) {
   return <TreeSuggest {...props} track={track} />
 }
 
-function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & { track: ImportTrack | null }) {
+function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track, syncOnly }: Props & { track: ImportTrack | null }) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const duration = useApproxDuration()
@@ -102,10 +109,12 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
   const [yearOn, setYearOn] = useState(savedYearFirst)
   const rootId = useApp((s) => s.rootId)!
   const walks = canWalkFolders()
-  const canPickFolder = walks || (typeof window !== 'undefined' && 'webkitdirectory' in document.createElement('input') && !/Android|iPhone|iPad/i.test(navigator.userAgent))
+  const canPickFolder = canReadComputerFolder()
   const lone = useMemo(() => loneFolders(lib), [lib])
   // Back from an album's import: the analysis is still there (reading the folder again takes minutes).
+  // For a sync the disk is always read again (it may have changed since).
   const [folder, setFolder] = useState<ReadFolder | null>(() => {
+    if (syncOnly) return null
     const kept = keptAnalysis<ReadFolder>()
     return kept && track && kept.name === track.rootName ? kept : null
   })
@@ -246,6 +255,7 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
     keepAnalysis(f)
     setFolder(f)
     setSource('computer')
+    if (syncOnly) setSyncing(true)
   }
 
   async function readFolder() {
@@ -261,6 +271,16 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
     }
     setReading(null)
   }
+
+  // Sync: the folder followed is read again at once when Chrome still allows it (else its button asks).
+  const autoRead = useRef(false)
+  useEffect(() => {
+    if (!syncOnly || !track || !walks || autoRead.current) return
+    autoRead.current = true
+    void Promise.resolve(track.handle.queryPermission?.({ mode: 'read' })).then((p) => {
+      if (p === 'granted') void readAgain()
+    }, () => undefined)
+  }, [syncOnly, track, walks])
 
   /** The folder followed, read again (renamed folders sorted again, what was imported apart). */
   async function readAgain() {
@@ -290,6 +310,7 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
       picked,
     })
     setSource('computer')
+    if (syncOnly) setSyncing(true)
   }
 
   async function importFolder() {
@@ -397,10 +418,21 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
   // Once the folder is read, what is really in MyMedia (albums removed since are to do again).
   const importedCount = plan && followed ? doneAlbums.length : track ? Object.values(track.imported).filter((r) => r.files > 0 && r.failed === 0).length : 0
   return (
-    <Modal wide title={t('treeSuggest.title')} onClose={() => !busy && onClose()}>
+    <Modal wide title={t(syncOnly ? 'diskSync.toolbarTitle' : 'treeSuggest.title')} onClose={() => !busy && onClose()}>
       <div className="modal-scroll">
         {!progress && (
           <>
+            {syncOnly ? (
+              <div className="tree-suggest-intro">
+                <FolderSync size={28} />
+                <div>
+                  <p>
+                    <strong>{t('diskSync.toolbarLead')}</strong>
+                  </p>
+                  <p className="hint">{t('diskSync.toolbarHint')}</p>
+                </div>
+              </div>
+            ) : (
             <div className="tree-suggest-intro">
               <FolderTree size={28} />
               <div>
@@ -410,6 +442,7 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
                 <p className="hint">{t('treeSuggest.privacy')}</p>
               </div>
             </div>
+            )}
 
             {track && walks && (
               <div className="tree-followed">
@@ -430,7 +463,7 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
                   <FolderOpen size={18} /> {t(track && walks ? 'treeSuggest.otherFolder' : 'treeSuggest.fromComputer')}
                 </button>
               )}
-              {lone.length >= 2 && (
+              {!syncOnly && lone.length >= 2 && (
                 <button className={`btn ${source === 'library' ? 'primary' : ''}`} disabled={busy} onClick={() => setSource('library')}>
                   <LibraryIcon size={18} /> {t('treeSuggest.fromLibrary', { count: lone.length })}
                 </button>
@@ -527,7 +560,7 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track }: Props & 
                     files={folder.files}
                     categoryOf={proposal.categoryOf}
                     yearFirst={yearOn}
-                    onClose={() => setSyncing(false)}
+                    onClose={() => (syncOnly ? onClose() : setSyncing(false))}
                   />
                 )}
                 {leftAlbums.length > 0 ? (
