@@ -24,7 +24,7 @@ interface Props {
 }
 
 /** One picture for a group (its copies are the same): the file of the disk itself, shown on this device only. */
-function LocalThumb({ file, video }: { file: File | undefined; video: boolean }) {
+export function LocalThumb({ file, video }: { file: File | undefined; video: boolean }) {
   const [url, setUrl] = useState<string | null>(null)
   const [broken, setBroken] = useState(false)
   useEffect(() => {

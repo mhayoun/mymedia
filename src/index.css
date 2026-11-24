@@ -851,4 +851,8 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .dup-disk-group label.row bdi { overflow-wrap: anywhere; }
 .dup-disk-thumb { inline-size: 64px; block-size: 64px; display: grid; place-items: center; color: var(--text-2); }
 .dup-disk-thumb img { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+.year-disk-list { list-style: none; margin: 6px 0 0; padding: 0; }
+.year-disk-row { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; margin-block: 4px; }
+.year-disk-row bdi { overflow-wrap: anywhere; }
+.year-disk-row .dup-disk-thumb { inline-size: 44px; block-size: 44px; }
 .dup-disk-gone { text-decoration: line-through; color: var(--text-2); }

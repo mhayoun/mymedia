@@ -92,6 +92,27 @@ export function knownFiles(records: Pick<MediaRecord, 'md5' | 'appProperties'>[]
 }
 
 /** Reads date, MD5 and estimated compression of each file. */
+/**
+ * The date a photo or video of the computer was taken, as the import gives it: EXIF of a photo, header of a
+ * video, else its name ("IMG_20150612_…"), else the file's modification date ('file': often the day it was
+ * copied, not taken). `head`: the first bytes of a photo, read for it.
+ */
+export async function fileDate(file: File, type: MediaType, mimeType = mimeOf(file)): Promise<{ takenAt: string; source: DateSource; head?: Uint8Array }> {
+  let head: Uint8Array | undefined
+  if (type === 'photo') {
+    head = new Uint8Array(await file.slice(0, Math.min(file.size, 4 * 1024 * 1024)).arrayBuffer())
+    const tiff = isJpegMime(mimeType, file.name) ? jpegExif(head) : /hei[cf]/i.test(mimeType + file.name) ? heicExif(head) : null
+    const taken = tiff ? exifDateTime(tiff) : null
+    if (taken) return { takenAt: taken, source: 'exif', head }
+  } else if (type === 'video') {
+    const created = await mp4CreationTime(async (a, b) => new Uint8Array(await file.slice(a, b).arrayBuffer()), file.size).catch(() => null)
+    if (created) return { takenAt: localIso(localHeaderFix(created, file.lastModified)), source: 'video' }
+  }
+  const named = dateFromFileName(file.name)
+  if (named) return { takenAt: named, source: 'name', head }
+  return { takenAt: localIso(new Date(file.lastModified || Date.now())), source: 'file', head }
+}
+
 export async function analyze(files: File[], onProgress: (done: number) => void): Promise<ImportItem[]> {
   const known = knownFiles(await db().media.toArray())
   const seen = new Set<string>()
@@ -104,33 +125,15 @@ export async function analyze(files: File[], onProgress: (done: number) => void)
     const path = (file as File & { webkitRelativePath?: string }).webkitRelativePath ?? ''
     // Camera folders (DCIM, 873NIKON, 876___10…) are left out: their photos go into the album above.
     const relDir = path ? albumPath(path.split('/').slice(0, -1)) : []
-    let taken: string | null = null
-    let dateSource: DateSource = 'file'
+    const { takenAt: taken, source: dateSource, head } = await fileDate(file, type, mimeType)
     let width: number | undefined
     let height: number | undefined
     let durationMs: number | undefined
-
-    if (type === 'photo') {
-      const head = new Uint8Array(await file.slice(0, Math.min(file.size, 4 * 1024 * 1024)).arrayBuffer())
-      const tiff = isJpegMime(mimeType, file.name) ? jpegExif(head) : /hei[cf]/i.test(mimeType + file.name) ? heicExif(head) : null
-      taken = tiff ? exifDateTime(tiff) : null
-      if (taken) dateSource = 'exif'
+    if (head) {
       const dims = jpegDimensions(head)
       width = dims?.width
       height = dims?.height
-    } else if (type === 'video') {
-      const created = await mp4CreationTime(async (a, b) => new Uint8Array(await file.slice(a, b).arrayBuffer()), file.size).catch(() => null)
-      if (created) {
-        taken = localIso(localHeaderFix(created, file.lastModified))
-        dateSource = 'video'
-      }
-      if (videoOk) durationMs = await localVideoDuration(file)
-    }
-    if (!taken) {
-      taken = dateFromFileName(file.name) ?? null
-      if (taken) dateSource = 'name'
-    }
-    if (!taken) taken = localIso(new Date(file.lastModified || Date.now()))
+    } else if (type === 'video' && videoOk) durationMs = await localVideoDuration(file)
 
     const md5 = await md5Of(file)
     const duplicate = known.md5.has(md5) || known.sizeDate.has(`${file.size}|${taken}`) || seen.has(md5)

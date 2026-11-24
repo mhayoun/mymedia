@@ -1402,6 +1402,29 @@
     "fixPaths": "Update the original folder",
     "stepPaths": "Updating the original folders…"
   },
+  "diskYears": {
+    "offer": "Photos or videos that are not of the right year? In the folders whose name starts with the year (“2015_Ski”), MyMedia reads each file's date and shows those of another year.",
+    "button": "Disk dates",
+    "title": "Years in “{{name}}”",
+    "intro": "Only the folders whose name starts with a year (“2015_Ski”, “2015 Ski”) are checked. The date is the photo's (EXIF), the video's, or its name's (“IMG_20150612”). The files are read on this computer; nothing is sent or changed.",
+    "checking": "Reading the dates… {{done}} / {{total}}",
+    "noFolders": "No folder in this folder starts with a year (“2015_Ski”): nothing to check.",
+    "none_one": "Everything is of the right year: {{count}} file checked in {{folders}} folder(s).",
+    "none_other": "Everything is of the right year: {{count}} files checked in {{folders}} folder(s).",
+    "found_one": "{{count}} file is not of its folder's year ({{folders}} folder(s), {{checked}} files checked).",
+    "found_other": "{{count}} files are not of their folder's year ({{folders}} folder(s), {{checked}} files checked).",
+    "undated_one": "{{count}} file without a date of its own (only the day it was copied to the disk) is not counted.",
+    "undated_other": "{{count}} files without a date of their own (only the day they were copied to the disk) are not counted.",
+    "folderWrong_one": "{{count}} of {{checked}} is not of {{year}}",
+    "folderWrong_other": "{{count}} of {{checked}} are not of {{year}}",
+    "likely": "The folder's name should perhaps say {{year}}",
+    "showAll": "Show all {{count}}",
+    "source": {
+      "exif": "(EXIF)",
+      "video": "(video)",
+      "name": "(file name)"
+    }
+  },
   "diskDuplicates": {
     "offer": "Photos or videos twice in this folder, under other names (“IMG_0093.jpg” = “Picture 053.jpg”)? MyMedia finds them by their content and can delete the copies from the disk.",
     "button": "Disk duplicates",

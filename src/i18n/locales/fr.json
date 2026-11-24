@@ -1400,6 +1400,29 @@
     "fixPaths": "Mettre à jour le dossier d'origine",
     "stepPaths": "Mise à jour des dossiers d'origine…"
   },
+  "diskYears": {
+    "offer": "Des photos ou des vidéos qui ne sont pas de la bonne année ? Dans les dossiers dont le nom commence par l'année (« 2015_Ski »), MyMedia lit la date de chaque fichier et montre ceux d'une autre année.",
+    "button": "Dates du disque",
+    "title": "Années dans « {{name}} »",
+    "intro": "Seuls les dossiers dont le nom commence par une année (« 2015_Ski », « 2015 Ski ») sont vérifiés. La date est celle de la photo (EXIF), de la vidéo, ou de son nom (« IMG_20150612 »). Les fichiers sont lus sur cet ordinateur ; rien n'est envoyé ni modifié.",
+    "checking": "Lecture des dates… {{done}} / {{total}}",
+    "noFolders": "Aucun dossier de ce dossier ne commence par une année (« 2015_Ski ») : rien à vérifier.",
+    "none_one": "Tout est à la bonne année : {{count}} fichier vérifié dans {{folders}} dossier(s).",
+    "none_other": "Tout est à la bonne année : {{count}} fichiers vérifiés dans {{folders}} dossier(s).",
+    "found_one": "{{count}} fichier n'est pas de l'année de son dossier ({{folders}} dossier(s), {{checked}} fichiers vérifiés).",
+    "found_other": "{{count}} fichiers ne sont pas de l'année de leur dossier ({{folders}} dossier(s), {{checked}} fichiers vérifiés).",
+    "undated_one": "{{count}} fichier sans date propre (seulement la date de copie sur le disque) n'est pas compté.",
+    "undated_other": "{{count}} fichiers sans date propre (seulement la date de copie sur le disque) ne sont pas comptés.",
+    "folderWrong_one": "{{count}} sur {{checked}} n'est pas de {{year}}",
+    "folderWrong_other": "{{count}} sur {{checked}} ne sont pas de {{year}}",
+    "likely": "Le nom du dossier devrait peut-être dire {{year}}",
+    "showAll": "Voir les {{count}}",
+    "source": {
+      "exif": "(EXIF)",
+      "video": "(vidéo)",
+      "name": "(nom du fichier)"
+    }
+  },
   "diskDuplicates": {
     "offer": "Des photos ou des vidéos en double dans ce dossier, sous d'autres noms (« IMG_0093.jpg » = « Picture 053.jpg ») ? MyMedia les retrouve à leur contenu et peut supprimer les copies du disque.",
     "button": "Doublons du disque",

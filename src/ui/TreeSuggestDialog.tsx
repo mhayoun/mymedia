@@ -1,4 +1,4 @@
-import { Check, Copy, Download, FolderOpen, FolderSync, FolderTree, Library as LibraryIcon, Loader2, RefreshCw, Upload } from 'lucide-react'
+import { CalendarCheck, Check, Copy, Download, FolderOpen, FolderSync, FolderTree, Library as LibraryIcon, Loader2, RefreshCw, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { canRead, canWalkFolders, filesBelow, pickAndWalk, walkFolder, type FsDir, type WalkedFolder } from '../import/folderWalk'
@@ -18,6 +18,7 @@ import { Modal } from './Dialog'
 import { diskRootPath, type AlbumTarget } from './ImportDialog'
 import { DiskDuplicatesDialog } from './DiskDuplicatesDialog'
 import { DiskSyncDialog } from './DiskSyncDialog'
+import { DiskYearsDialog } from './DiskYearsDialog'
 import { ImportEstimate, useApproxDuration } from './ImportEstimate'
 import type { Library } from './useLibrary'
 
@@ -130,6 +131,7 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track, syncOnly }
   const folderInput = useRef<HTMLInputElement>(null)
   const [syncing, setSyncing] = useState(false)
   const [duplicates, setDuplicates] = useState(false)
+  const [years, setYears] = useState(false)
   const readOnly = useApp((s) => s.readOnly)
 
   const plan = useMemo(() => (folder ? planAlbums(folder.files) : null), [folder])
@@ -538,6 +540,15 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track, syncOnly }
                     </button>
                   </div>
                 )}
+                {folder.handle && (
+                  <div className="tree-followed">
+                    <p className="hint">{t('diskYears.offer')}</p>
+                    <button className="btn" disabled={busy} onClick={() => setYears(true)}>
+                      <CalendarCheck size={16} /> {t('diskYears.button')}
+                    </button>
+                  </div>
+                )}
+                {years && folder.handle && <DiskYearsDialog root={folder.handle} diskName={folder.name} files={folder.files} onClose={() => setYears(false)} />}
                 {duplicates && folder.handle && (
                   <DiskDuplicatesDialog
                     root={folder.handle}
