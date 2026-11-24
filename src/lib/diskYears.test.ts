@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { filesWithYear, folderYearOf, leadingYear, likelyYear, yearFolders } from './diskYears'
+import { clockAhead, clockWrong, filesWithYear, folderYearOf, leadingYear, likelyYear, yearFolders, yearsTo } from './diskYears'
 import type { WalkedFile } from './importPlan'
 
 const f = (dirs: string[], name: string, type: WalkedFile['type'] = 'photo'): WalkedFile => ({ dirs, name, size: 1, type })
@@ -60,5 +60,33 @@ describe('yearFolders', () => {
     const other = ['2010_Mariage']
     const list = yearFolders([item('a.jpg', '2015-01-01T10:00:00'), item('b.jpg', '2011-01-01T10:00:00', 'exif', other, 2010)])
     expect(list.map((g) => g.dirs[0])).toEqual(['2010_Mariage', '2015_Ski'])
+  })
+})
+
+describe('camera clock wrong', () => {
+  // 153_0053.JPG: EXIF 2009-07-08, copied from the card on 2008-08-29.
+  const copied = new Date(2008, 7, 29, 15, 33, 42).getTime()
+  const item = (name: string, takenAt: string, source = 'exif', modified = copied) => ({
+    file: f(['2008_Nofesh'], name), takenAt, source, modified, folder: ['2008_Nofesh'], year: 2008,
+  })
+
+  it('tells a camera date later than the copy on the disk', () => {
+    expect(clockAhead(item('a.jpg', '2009-07-08T00:57:35'))).toBe(true)
+    expect(clockAhead(item('a.jpg', '2008-08-29T20:00:00'))).toBe(false)
+    expect(clockAhead(item('a.jpg', '2009-07-08T00:57:35', 'name'))).toBe(false)
+    expect(clockAhead({ ...item('a.jpg', '2009-07-08T00:57:35'), modified: undefined })).toBe(false)
+  })
+
+  it('keeps the folder name right when the clock was wrong', () => {
+    const [g] = yearFolders([item('a.jpg', '2009-07-08T00:57:35'), item('b.jpg', '2009-07-24T01:20:20', 'exif', copied + 38000)])
+    expect(g.ahead).toBe(2)
+    expect(g.copiedOn).toBe(copied)
+    expect(clockWrong(g)).toBe(true)
+    expect(likelyYear(g)).toBeNull()
+  })
+
+  it('gives the years to shift to the folder year', () => {
+    expect(yearsTo('2009-07-08T00:57:35', 2008)).toBe(-1)
+    expect(yearsTo('2000-01-01T00:00:00', 2008)).toBe(8)
   })
 })
