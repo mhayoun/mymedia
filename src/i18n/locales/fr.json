@@ -1511,6 +1511,10 @@
     "fixed_other": "{{count}} dates corrigées dans MyMedia (le disque n'a pas changé)."
   },
   "diskDuplicates": {
+    "folderCount_one": "{{count}} photo ou vidéo",
+    "folderCount_other": "{{count}} photos et vidéos",
+    "folderLeft_one": "il en restera {{count}} sur {{total}}",
+    "folderLeft_other": "il en restera {{count}} sur {{total}}",
     "pairsTitle": "Dans deux dossiers",
     "pairText_one": "{{count}} photo ou vidéo est à la fois dans ces deux dossiers ({{size}} en trop).",
     "pairText_other": "{{count}} photos et vidéos sont à la fois dans ces deux dossiers ({{size}} en trop).",

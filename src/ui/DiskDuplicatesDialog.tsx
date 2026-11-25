@@ -103,6 +103,13 @@ export function DiskDuplicatesDialog({ root, diskName, files, onDeleted, onClose
   }, [args, t])
 
   const pairs = useMemo(() => pairsOf(groups ?? []), [groups])
+  // Photos and videos directly in each folder of the folder read (to choose which of two folders to keep).
+  const inFolder = useMemo(() => {
+    const n = new Map<string, number>()
+    for (const f of files) if (f.type !== 'document') n.set(f.dirs.join('/'), (n.get(f.dirs.join('/')) ?? 0) + 1)
+    return n
+  }, [files])
+  const countIn = (dirs: string[]) => inFolder.get(dirs.join('/')) ?? 0
   // The duplicates of a pair whose folder is chosen are not listed one by one.
   const inPairs = useMemo(() => new Set(pairs.filter((p) => keep.get(p.key) !== 'each').flatMap((p) => p.groups.map((g) => g.key))), [pairs, keep])
   const listed = (groups ?? []).filter((g) => !inPairs.has(g.key))
@@ -249,10 +256,12 @@ export function DiskDuplicatesDialog({ root, diskName, files, onDeleted, onClose
                           <label key={side} className="row">
                             <input type="radio" name={p.key} checked={mode === side} disabled={busy} onChange={() => choose(p, side)} />
                             <span>
-                              <FolderClosed size={14} /> {t('diskDuplicates.keepIn')} <bdi dir="auto"><strong>{name(side === 'a' ? p.a : p.b)}</strong></bdi>
+                              <FolderClosed size={14} /> {t('diskDuplicates.keepIn')} <bdi dir="auto"><strong>{name(side === 'a' ? p.a : p.b)}</strong></bdi>{' '}
+                              <span className="hint">({t('diskDuplicates.folderCount', { count: countIn(side === 'a' ? p.a : p.b) })})</span>
                               <span className="hint">
                                 {' — '}
-                                {t('diskDuplicates.keepInHint', { count: p.groups.length })} <bdi dir="auto">{name(other)}</bdi>
+                                {t('diskDuplicates.keepInHint', { count: p.groups.length })} <bdi dir="auto">{name(other)}</bdi>{' '}
+                                ({t('diskDuplicates.folderLeft', { count: Math.max(0, countIn(other) - p.groups.length), total: countIn(other) })})
                                 {lost > 0 && <> · {t('diskDuplicates.pairKnown', { count: lost })}</>}
                               </span>
                             </span>

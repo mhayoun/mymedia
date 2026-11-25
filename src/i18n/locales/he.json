@@ -1640,6 +1640,10 @@
     "fixed_other": "{{count}} תאריכים תוקנו ב-MyMedia (הדיסק לא השתנה)."
   },
   "diskDuplicates": {
+    "folderCount_one": "תמונה או סרטון {{count}}",
+    "folderCount_other": "{{count}} תמונות וסרטונים",
+    "folderLeft_one": "יישאר {{count}} מתוך {{total}}",
+    "folderLeft_other": "יישארו {{count}} מתוך {{total}}",
     "pairsTitle": "בשתי תיקיות",
     "pairText_one": "תמונה או סרטון {{count}} נמצאים בשתי התיקיות האלה ({{size}} מיותרים).",
     "pairText_other": "{{count}} תמונות וסרטונים נמצאים בשתי התיקיות האלה ({{size}} מיותרים).",
