@@ -14,8 +14,8 @@ function sorted(counts: Map<string, number>): FolderName[] {
   return [...counts].map(([name, count]) => ({ name, count })).sort((a, b) => a.name.localeCompare(b.name))
 }
 
-/** Folders that only hold others ("My Pictures2004", "photos", "myBackup", "2015"): MyMedia looks inside them. */
-const CONTAINER = /^(?:(?:my|mes|mon) )?(?:pictures?|photos?|images?|videos?|vid[eé]os|backups?|sauvegardes?|dropbox|onedrive|takeout|google photos|camera roll|pellicule|תמונות|גיבוי)(?: \d{1,4})?$/
+/** Folders that only hold others ("My Pictures2004", "2004_MyPictures", "photos", "myBackup", "2015"): MyMedia looks inside them. */
+const CONTAINER = /^(?:\d{4} )?(?:(?:my|mes|mon) )?(?:pictures?|photos?|images?|videos?|vid[eé]os|backups?|sauvegardes?|dropbox|onedrive|takeout|google photos|camera roll|pellicule|תמונות|גיבוי)(?: \d{1,4})?$/
 
 export function isContainer(name: string): boolean {
   const w = wordsOf(name)

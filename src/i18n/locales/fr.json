@@ -1268,6 +1268,38 @@
   },
   "treeSuggest": {
     "guide": {
+      "methodTitle": "Méthode conseillée pour importer vos médias",
+      "methodIntro": "Le plus sûr est de ranger d'abord le disque, puis d'importer. Chaque étape se vérifie avant la suivante.",
+      "method": [
+        {
+          "title": "1. Un dossier par année",
+          "text": "Sur le disque, mettez d'abord les photos et vidéos dans un dossier par année, l'année au début : « 2010_MyPictures », « 2011_MyPictures »… (« My Pictures2010 » ou « 2010 » conviennent aussi). MyMedia regarde à l'intérieur de ces dossiers d'année."
+        },
+        {
+          "title": "2. Les doublons de chaque année",
+          "text": "Lisez le dossier d'une année, puis « Doublons du disque » : gardez une seule copie de chaque photo. Quand les copies sont dans deux dossiers, choisissez en un clic le dossier à garder."
+        },
+        {
+          "title": "3. Les dates de chaque année",
+          "text": "« Dates du disque » montre les fichiers rangés dans la mauvaise année : déplacez-les sur le disque dans le bon dossier. Si l'horloge de l'appareil était fausse, laissez-les : leur date se corrigera dans MyMedia après l'import."
+        },
+        {
+          "title": "4. Un dossier par événement",
+          "text": "Dans chaque année, renommez les dossiers sans nom parlant (« 100CANON », « DCIM », « 2012_06_12 ») d'après l'événement, l'année au début : « 2010_anniversaire_tom », « 2010_naissance_tim », « 2010_ballade_golan ». Mettez dans un dossier nommé les photos posées en vrac. Chaque dossier d'événement deviendra un album."
+        },
+        {
+          "title": "5. Les catégories",
+          "text": "Choisissez le dossier qui contient toutes les années (par exemple « My Pictures »). MyMedia propose des catégories d'après les noms des dossiers (anniversaire → Anniversaires, ballade → Voyages et sorties, naissance → Famille…). Vérifiez-les, changez de catégorie les albums mal placés, puis « Créer ces N catégories dans MyMedia »."
+        },
+        {
+          "title": "6. L'import",
+          "text": "Importez album par album, ou plusieurs albums cochés. Commencez par une seule année pour vérifier le résultat dans MyMedia, puis continuez. Gardez l'onglet ouvert pendant un long import."
+        },
+        {
+          "title": "7. Après l'import",
+          "text": "« Relire l'arborescence » montre ce qui reste à importer. Après l'import d'une année, lancez « Dates du disque » pour corriger dans MyMedia les dates d'un appareil à l'horloge fausse. Si vous rangez encore le disque après l'import (dossiers renommés ou déplacés), « Synchro » remet MyMedia comme le disque."
+        }
+      ],
       "button": "Aide : tout ce qui permet de ranger vos médias",
       "title": "Ranger vos photos et vidéos",
       "intro": "Tout se fait depuis cette fenêtre, sur un ordinateur (Chrome ou Edge de préférence). Rien n'est envoyé ni changé sans votre clic.",

@@ -18,7 +18,7 @@ const RULES: [CategoryKey, RegExp][] = [
   [
     'trips',
     new RegExp(
-      `\\bt[iy]{1,2}o?u?l|voyage|vacances|\\btrip|travel|safari|\\bparis|london|londres|\\bfrance|\\bgolan|\\bgalil|hermon|eilat|ein ?gu?edi|jerusalem|yerou?chala|tiberiade|tveria|mit[sz]pe|\\bramon|\\bkotel|mass?ada|mer morte|dead sea|negev|camping|\\bplage|beach|\\bparc\\b|\\bpark|\\bzoo\\b|\\bmangal|\\bavion|טיול|נסיעה|חופשה|ירושלים|גולן|גליל|אילת|כנרת`,
+      `\\bt[iy]{1,2}o?u?l|voyage|vacances|\\bball?ade|promenade|randonn[eé]e|\\brando\\b|\\bwalk|\\bhik(?:e|ing)|\\btrip|travel|safari|\\bparis|london|londres|\\bfrance|\\bgolan|\\bgalil|hermon|eilat|ein ?gu?edi|jerusalem|yerou?chala|tiberiade|tveria|mit[sz]pe|\\bramon|\\bkotel|mass?ada|mer morte|dead sea|negev|camping|\\bplage|beach|\\bparc\\b|\\bpark|\\bzoo\\b|\\bmangal|\\bavion|טיול|נסיעה|חופשה|ירושלים|גולן|גליל|אילת|כנרת`,
     ),
   ],
   [
@@ -33,7 +33,7 @@ const RULES: [CategoryKey, RegExp][] = [
       `\\bgan\\b|\\bkita|\\bclasse?\\b|[eé]cole|school|ye[sc]h?iva|midra[cs]h|\\bou?lpan|\\bsiou?m|\\bsiyum|\\bsi?dou?r\\b|sidour|kindergarten|${he('גן')}|כיתה|כתה|ישיבה|אולפנ|מדרשה|סיום|בית ספר`,
     ),
   ],
-  ['family', new RegExp(`famil|\\bmamie?\\b|\\bpapie?\\b|grand[- ]?(?:p[eè]re|m[eè]re|parents?)|\\bsa?ba\\b|\\bsavta|cousin|משפחה|סבא|סבתא|${he('סבים|נכדים')}`)],
+  ['family', new RegExp(`famil|naissance|\\bbirth\\b|\\bbrit+h?\\b|\\bbrit mila|לידה|ברית|\\bmamie?\\b|\\bpapie?\\b|grand[- ]?(?:p[eè]re|m[eè]re|parents?)|\\bsa?ba\\b|\\bsavta|cousin|משפחה|סבא|סבתא|${he('סבים|נכדים')}`)],
 ]
 
 /** Words of folder names that are no person ("photos", "copy of"…). */

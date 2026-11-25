@@ -854,6 +854,8 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .modal h2 > .icon-btn { vertical-align: middle; margin-inline-start: 6px; }
 .tree-guide { margin-block-end: 14px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2, transparent); }
 .tree-guide h3 { margin: 0 0 4px; font-size: 15px; }
+.tree-guide h3 + .hint { margin-block-start: 0; }
+.tree-guide ol + h3 { margin-block-start: 14px; }
 .tree-guide ol { margin: 8px 0; padding-inline-start: 20px; }
 .tree-guide li { margin-block: 6px; line-height: 1.45; }
 .dup-pairs-title { margin: 14px 0 4px; font-size: 15px; }

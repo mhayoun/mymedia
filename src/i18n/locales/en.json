@@ -1270,6 +1270,38 @@
   },
   "treeSuggest": {
     "guide": {
+      "methodTitle": "Recommended method to import your media",
+      "methodIntro": "The safest is to tidy the disk first, then import. Each step is checked before the next one.",
+      "method": [
+        {
+          "title": "1. One folder per year",
+          "text": "On the disk, first put the photos and videos in one folder per year, the year first: “2010_MyPictures”, “2011_MyPictures”… (“My Pictures2010” or “2010” work too). MyMedia looks inside these year folders."
+        },
+        {
+          "title": "2. Each year's duplicates",
+          "text": "Read a year's folder, then “Disk duplicates”: keep a single copy of each photo. When the copies are in two folders, choose in one click the folder to keep."
+        },
+        {
+          "title": "3. Each year's dates",
+          "text": "“Disk dates” shows the files put in the wrong year: move them on the disk to the right folder. If the camera's clock was wrong, leave them: their date will be corrected in MyMedia after the import."
+        },
+        {
+          "title": "4. One folder per event",
+          "text": "In each year, rename the folders without a meaningful name (“100CANON”, “DCIM”, “2012_06_12”) after the event, the year first: “2010_birthday_tom”, “2010_birth_tim”, “2010_walk_golan”. Put the loose photos in a named folder. Each event folder will become an album."
+        },
+        {
+          "title": "5. The categories",
+          "text": "Choose the folder that holds all the years (for example “My Pictures”). MyMedia proposes categories from the folders' names (birthday → Birthdays, walk → Trips and outings, birth → Family…). Check them, move the albums put in the wrong category, then “Create these N categories in MyMedia”."
+        },
+        {
+          "title": "6. The import",
+          "text": "Import album by album, or several ticked albums. Start with a single year to check the result in MyMedia, then go on. Keep the tab open during a long import."
+        },
+        {
+          "title": "7. After the import",
+          "text": "“Read the tree again” shows what is left to import. After a year's import, run “Disk dates” to correct in MyMedia the dates of a camera whose clock was wrong. If you tidy the disk again after the import (folders renamed or moved), “Sync” puts MyMedia back like the disk."
+        }
+      ],
       "button": "Help: everything that puts your media in order",
       "title": "Putting your photos and videos in order",
       "intro": "Everything is done from this window, on a computer (Chrome or Edge preferably). Nothing is sent or changed without your click.",

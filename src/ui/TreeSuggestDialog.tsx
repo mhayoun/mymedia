@@ -738,18 +738,27 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track, syncOnly }
 /** What Tree suggestion offers to put the photos and videos in order, from the help button by the title. */
 function TreeGuide({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
-  const items = t('treeSuggest.guide.items', { returnObjects: true }) as unknown as { title: string; text: string }[]
+  const list = (key: string) => {
+    const v = t(key, { returnObjects: true }) as unknown
+    return Array.isArray(v) ? (v as { title: string; text: string }[]) : []
+  }
+  const steps = (key: string) => (
+    <ol>
+      {list(key).map((it) => (
+        <li key={it.title}>
+          <strong>{it.title}</strong> — {it.text}
+        </li>
+      ))}
+    </ol>
+  )
   return (
     <section className="tree-guide" aria-labelledby="tree-guide-title">
-      <h3 id="tree-guide-title">{t('treeSuggest.guide.title')}</h3>
+      <h3 id="tree-guide-title">{t('treeSuggest.guide.methodTitle')}</h3>
+      <p className="hint">{t('treeSuggest.guide.methodIntro')}</p>
+      {steps('treeSuggest.guide.method')}
+      <h3>{t('treeSuggest.guide.title')}</h3>
       <p className="hint">{t('treeSuggest.guide.intro')}</p>
-      <ol>
-        {(Array.isArray(items) ? items : []).map((it) => (
-          <li key={it.title}>
-            <strong>{it.title}</strong> — {it.text}
-          </li>
-        ))}
-      </ol>
+      {steps('treeSuggest.guide.items')}
       <button className="btn small" onClick={onClose}>
         {t('common.close')}
       </button>

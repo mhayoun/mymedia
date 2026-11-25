@@ -21,8 +21,8 @@ describe('treeText', () => {
 
 describe('containers', () => {
   it('looks inside the folders that only hold others', () => {
-    expect(['My Pictures', 'My Pictures2004', 'myBackup', 'photos', '2015', 'תמונות'].every(isContainer)).toBe(true)
-    expect(['anniv papa', 'mariageAvishai', 'תמונות אשר', '2012_06_12'].some(isContainer)).toBe(false)
+    expect(['My Pictures', 'My Pictures2004', 'myBackup', 'photos', '2015', 'תמונות', '2010_MyPictures', '2010 Photos', '2010-Mes photos'].every(isContainer)).toBe(true)
+    expect(['anniv papa', 'mariageAvishai', 'תמונות אשר', '2012_06_12', '2010_anniversaire_tom', '2010 photos golan'].some(isContainer)).toBe(false)
     expect(
       foldersOfFiles([
         'myBackup/My Pictures/anniv papa/a.jpg',
