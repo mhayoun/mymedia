@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clockAhead, clockWrong, filesWithYear, folderYearOf, leadingYear, likelyYear, yearFolders, yearsTo } from './diskYears'
+import { clockAhead, clockUnset, clockWrong, filesWithYear, folderYearOf, leadingYear, likelyYear, yearFolders, yearsTo } from './diskYears'
 import type { WalkedFile } from './importPlan'
 
 const f = (dirs: string[], name: string, type: WalkedFile['type'] = 'photo'): WalkedFile => ({ dirs, name, size: 1, type })
@@ -88,5 +88,41 @@ describe('camera clock wrong', () => {
   it('gives the years to shift to the folder year', () => {
     expect(yearsTo('2009-07-08T00:57:35', 2008)).toBe(-1)
     expect(yearsTo('2000-01-01T00:00:00', 2008)).toBe(8)
+  })
+})
+
+describe('camera clock never set', () => {
+  // 2011_bayit / IMG_0004.jpg (Canon A2200): EXIF 1980-01-01 00:00:20; Image0041.jpg (Nokia): EXIF 2010-01-08, file the same day.
+  const bayit = ['2011_bayit']
+  const item = (name: string, takenAt: string, source = 'exif', modified?: number) => ({
+    file: f(bayit, name), takenAt, source, modified, folder: bayit, year: 2011,
+  })
+
+  it('tells the 1st of January at midnight of an earlier year', () => {
+    expect(clockUnset(item('a.jpg', '1980-01-01T00:00:20'), 2011)).toBe(true)
+    expect(clockUnset(item('a.jpg', '2000-01-01T02:10:00', 'video'), 2011)).toBe(true)
+    expect(clockUnset(item('a.jpg', '2010-01-08T10:00:00'), 2011)).toBe(false)
+    expect(clockUnset(item('a.jpg', '2010-01-01T20:00:00'), 2011)).toBe(false)
+    expect(clockUnset(item('a.jpg', '2012-01-01T00:10:00'), 2011)).toBe(false)
+    expect(clockUnset(item('a.jpg', '1980-01-01T00:00:20', 'name'), 2011)).toBe(false)
+  })
+
+  it('sorts the camera mistakes from the true dates', () => {
+    const nokia = new Date(2010, 0, 8, 9, 0, 0).getTime()
+    const [g] = yearFolders([
+      item('IMG_0004.jpg', '1980-01-01T00:00:20', 'exif', new Date(1979, 11, 31, 23, 0, 20).getTime()),
+      item('IMG_0009.jpg', '1980-01-01T00:01:00'),
+      item('Image0041.jpg', '2010-01-08T10:00:00', 'exif', nokia),
+      item('IMG_0100.jpg', '2011-08-01T10:00:00'),
+    ])
+    expect(g.wrong.map((w) => [w.file.name, w.why])).toEqual([
+      ['IMG_0004.jpg', 'unset'],
+      ['IMG_0009.jpg', 'unset'],
+      ['Image0041.jpg', 'other'],
+    ])
+    expect(g.unset).toBe(2)
+    expect(g.ahead).toBe(0)
+    // 1 true date of another year out of 2: not enough to say the folder's name is wrong.
+    expect(likelyYear(g)).toBeNull()
   })
 })

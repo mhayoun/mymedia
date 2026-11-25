@@ -1,8 +1,9 @@
 // "Disk years" (from Tree suggestion, once a folder of the computer is read with Chrome / Edge): in the folders
 // named with their year first ("2015_Ski"), the photos and videos whose own date (EXIF, video header, name) is
-// of another year. A camera whose clock was wrong (its date later than the copy of the file on the disk) is told,
-// and the dates of those files already in MyMedia can be put in the folder's year (same day and time; the
-// date MyMedia keeps, as "Change the date" does). The disk is never touched.
+// of another year, in three parts: a camera whose clock was never set (1st of January 1980…), a camera whose
+// clock was ahead (its date later than the copy of the file on the disk), and true dates of another year (to be
+// moved on the disk). The dates of the camera's mistakes already in MyMedia can be put in the folder's year (same
+// day and time; the date MyMedia keeps, as "Change the date" does). The disk is never touched.
 
 import { CalendarCheck, CalendarX, Loader2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -15,7 +16,7 @@ import { useApp } from '../store'
 import { changeDate, datesChanged } from '../sync/dates'
 import { fileKey } from '../lib/diskSync'
 import { pathKey } from '../lib/diskDuplicates'
-import { clockWrong, filesWithYear, likelyYear, yearFolders, yearsTo, type YearFolder } from '../lib/diskYears'
+import { clockMistake, filesWithYear, likelyYear, yearFolders, yearsTo, type WrongFile, type WrongWhy, type YearFolder } from '../lib/diskYears'
 import type { WalkedFile } from '../lib/importPlan'
 import { LocalThumb } from './DiskDuplicatesDialog'
 import { Modal } from './Dialog'
@@ -27,8 +28,10 @@ interface Props {
   onClose: () => void
 }
 
-/** Files shown at first in a folder (all of them on a click). */
+/** Files shown at first in each part of a folder (all of them on a click). */
 const SHOWN = 40
+/** The parts of a folder: the camera's mistakes first (corrected), then the true dates (to move on the disk). */
+const WHYS: WrongWhy[] = ['unset', 'ahead', 'other']
 
 export function DiskYearsDialog({ root, diskName, files, onClose }: Props) {
   const { t } = useTranslation()
@@ -81,8 +84,8 @@ export function DiskYearsDialog({ root, diskName, files, onClose }: Props) {
         if (!alive) return
         setLibrary(lib)
         setFolders(found)
-        // A wrong camera clock: its folder's correction is proposed ticked.
-        setFix(new Set(found.filter(clockWrong).map((f) => f.dirs.join('/'))))
+        // The camera's mistakes: their folder's correction is proposed ticked (the true dates are never changed).
+        setFix(new Set(found.filter((f) => f.wrong.some(clockMistake)).map((f) => f.dirs.join('/'))))
       } catch (e) {
         if (alive) setError(t('errors.generic', { message: (e as Error).message }))
       }
@@ -99,13 +102,13 @@ export function DiskYearsDialog({ root, diskName, files, onClose }: Props) {
   const undated = (folders ?? []).reduce((n, f) => n + f.undated.length, 0)
   const source = (s: string) => t(`diskYears.source.${s}`, { defaultValue: s })
 
-  /** By folder: its files of another year already in MyMedia, and not yet in the folder's year there. */
+  /** By folder: its files dated by the camera's mistake already in MyMedia, and not yet in the folder's year there. */
   const toFix = useMemo(() => {
     const m = new Map<string, MediaRecord[]>()
     if (!library) return m
     for (const f of withWrong) {
       const recs = new Map<string, MediaRecord>()
-      for (const w of f.wrong)
+      for (const w of f.wrong.filter(clockMistake))
         for (const r of library.get(fileKey(w.file.name, w.file.size)) ?? []) if (r.type !== 'document' && yearsTo(r.takenAt, f.year) !== 0) recs.set(r.id, r)
       if (recs.size) m.set(f.dirs.join('/'), [...recs.values()])
     }
@@ -115,6 +118,18 @@ export function DiskYearsDialog({ root, diskName, files, onClose }: Props) {
   const planned = [...toFix].filter(([k]) => fix.has(k))
   const plannedCount = planned.reduce((n, [, recs]) => n + recs.length, 0)
   const busy = !!checking || !!fixing
+
+  /** One file of another year: its picture, its path under the folder, its date and where it comes from. */
+  const row = (w: WrongFile, base: number) => (
+      <li key={pathKey(w.file)} className="year-disk-row">
+        <LocalThumb file={opened.get(pathKey(w.file))} video={w.file.type === 'video'} />
+        <bdi dir="auto">{[...w.file.dirs.slice(base), w.file.name].join(' / ')}</bdi>
+        <span>
+          <strong>{fmt.date(w.takenAt)}</strong> <span className="hint">{source(w.source)}</span>
+          {inMyMedia(w) && <span className="tag auto">{t('diskDuplicates.inMyMedia')}</span>}
+        </span>
+      </li>
+  )
 
   async function applyFix() {
     const jobs = planned.flatMap(([k, recs]) => {
@@ -167,9 +182,8 @@ export function DiskYearsDialog({ root, diskName, files, onClose }: Props) {
             {withWrong.map((f) => {
               const key = f.dirs.join('/')
               const likely = likelyYear(f)
-              const shown = all.has(key) ? f.wrong : f.wrong.slice(0, SHOWN)
-              const clock = clockWrong(f)
               const recs = toFix.get(key)
+              const parts = WHYS.map((why) => ({ why, list: f.wrong.filter((w) => w.why === why) })).filter((p) => p.list.length)
               return (
                 <section key={key} className="disk-sync-part">
                   <h3>
@@ -179,12 +193,6 @@ export function DiskYearsDialog({ root, diskName, files, onClose }: Props) {
                     {t('diskYears.folderWrong', { count: f.wrong.length, checked: fmt.number(f.checked), year: f.year })}
                     {likely !== null && <span className="tag warn">{t('diskYears.likely', { year: likely })}</span>}
                   </p>
-                  {clock && (
-                    <p className="hint">
-                      <span className="tag warn">{t('diskYears.clockTag')}</span>{' '}
-                      {t('diskYears.clockText', { count: f.ahead, copied: fmt.date(new Date(f.copiedOn!).toISOString()), year: f.year })}
-                    </p>
-                  )}
                   {recs && !readOnly && (
                     <label className="row">
                       <input
@@ -203,26 +211,28 @@ export function DiskYearsDialog({ root, diskName, files, onClose }: Props) {
                       <span>{t('diskYears.fixFolder', { count: recs.length, year: f.year })}</span>
                     </label>
                   )}
-                  <ul className="year-disk-list">
-                    {shown.map((w) => {
-                      const k = pathKey(w.file)
-                      return (
-                        <li key={k} className="year-disk-row">
-                          <LocalThumb file={opened.get(k)} video={w.file.type === 'video'} />
-                          <bdi dir="auto">{[...w.file.dirs.slice(f.dirs.length), w.file.name].join(' / ')}</bdi>
-                          <span>
-                            <strong>{fmt.date(w.takenAt)}</strong> <span className="hint">{source(w.source)}</span>
-                            {inMyMedia(w) && <span className="tag auto">{t('diskDuplicates.inMyMedia')}</span>}
-                          </span>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                  {shown.length < f.wrong.length && (
-                    <button className="btn small" onClick={() => setAll((cur) => new Set(cur).add(key))}>
-                      {t('diskYears.showAll', { count: f.wrong.length })}
-                    </button>
-                  )}
+                  {parts.map(({ why, list }) => {
+                    const partKey = `${key}|${why}`
+                    const shown = all.has(partKey) ? list : list.slice(0, SHOWN)
+                    return (
+                      <div key={why} className="year-disk-part">
+                        <p className="hint">
+                          <span className={`tag ${why === 'other' ? 'auto' : 'warn'}`}>{t(`diskYears.why.${why}`, { count: list.length })}</span>{' '}
+                          {why === 'unset' && t('diskYears.unsetText', { count: list.length, year: f.year })}
+                          {why === 'ahead' && t('diskYears.clockText', { count: list.length, copied: fmt.date(new Date(f.copiedOn!).toISOString()), year: f.year })}
+                          {why === 'other' && t('diskYears.otherText', { count: list.length })}
+                        </p>
+                        <ul className="year-disk-list">
+                          {shown.map((w) => row(w, f.dirs.length))}
+                        </ul>
+                        {shown.length < list.length && (
+                          <button className="btn small" onClick={() => setAll((cur) => new Set(cur).add(partKey))}>
+                            {t('diskYears.showAll', { count: list.length })}
+                          </button>
+                        )}
+                      </div>
+                    )
+                  })}
                 </section>
               )
             })}

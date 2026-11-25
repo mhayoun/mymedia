@@ -868,3 +868,9 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .year-disk-row bdi { overflow-wrap: anywhere; }
 .year-disk-row .dup-disk-thumb { inline-size: 44px; block-size: 44px; }
 .dup-disk-gone { text-decoration: line-through; color: var(--text-2); }
+.year-disk-part {
+  margin-top: 0.6rem;
+}
+.year-disk-part > .hint .tag {
+  margin-inline-start: 0;
+}

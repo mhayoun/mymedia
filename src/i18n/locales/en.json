@@ -1348,7 +1348,7 @@
         },
         {
           "title": "Disk dates",
-          "text": "In the folders whose name starts with the year (“2015_Ski”), shows the files dated of another year. Tells a wrong camera clock (photo dated after its copy to the disk) and can correct their date in MyMedia (same day, same time). The disk is never changed."
+          "text": "In the folders whose name starts with the year (“2015_Ski”), shows the files dated of another year. Sets apart the camera's mistakes (clock never set: 1st of January 1980…; clock ahead: photo dated after its copy to the disk), whose date can be corrected in MyMedia (same day, same time). The disk is never changed."
         }
       ]
     },
@@ -1501,16 +1501,27 @@
       "video": "(video)",
       "name": "(file name)"
     },
-    "clockTag": "Camera clock wrong",
     "clockText_one": "{{count}} photo is dated after its copy to the disk (on {{copied}}): impossible, the camera's clock was set wrong. The folder's name ({{year}}) is likely right.",
     "clockText_other": "{{count}} photos are dated after their copy to the disk (on {{copied}}): impossible, the camera's clock was set wrong. The folder's name ({{year}}) is likely right.",
-    "fixFolder_one": "Put this file's date in MyMedia in {{year}} (same day, same time)",
-    "fixFolder_other": "Put these {{count}} files' dates in MyMedia in {{year}} (same day, same time)",
+    "fixFolder_one": "Put the date in MyMedia of this file with a wrong clock in {{year}} (same day, same time)",
+    "fixFolder_other": "Put the dates in MyMedia of these {{count}} files with a wrong clock in {{year}} (same day, same time)",
     "fix_one": "Correct {{count}} date in MyMedia",
     "fix_other": "Correct {{count}} dates in MyMedia",
     "fixing": "Correcting the dates… {{done}} / {{total}}",
     "fixed_one": "{{count}} date corrected in MyMedia (the disk did not change).",
-    "fixed_other": "{{count}} dates corrected in MyMedia (the disk did not change)."
+    "fixed_other": "{{count}} dates corrected in MyMedia (the disk did not change).",
+    "why": {
+      "unset_one": "Clock never set",
+      "unset_other": "Clock never set ({{count}})",
+      "ahead_one": "Clock ahead",
+      "ahead_other": "Clock ahead ({{count}})",
+      "other_one": "True date of another year",
+      "other_other": "True dates of another year ({{count}})"
+    },
+    "unsetText_one": "Dated a 1st of January around midnight of an old year: the starting date of a camera whose clock was never set (new, or after a battery change). Its true day is known nowhere: corrected, it will be on the same day in {{year}}.",
+    "unsetText_other": "Dated a 1st of January around midnight of an old year: the starting date of a camera whose clock was never set (new, or after a battery change). Their true day is known nowhere: corrected, they will be on the same day in {{year}}.",
+    "otherText_one": "Its date is right: it was put in the folder of another year. Nothing to correct in MyMedia; move it on the disk to its year's folder, then run “Sync”.",
+    "otherText_other": "Their date is right: they were put in the folder of another year. Nothing to correct in MyMedia; move them on the disk to their year's folder, then run “Sync”."
   },
   "diskDuplicates": {
     "folderCount_one": "{{count}} photo or video",

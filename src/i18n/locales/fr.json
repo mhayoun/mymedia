@@ -1346,7 +1346,7 @@
         },
         {
           "title": "Dates du disque",
-          "text": "Dans les dossiers dont le nom commence par l'année (« 2015_Ski »), montre les fichiers datés d'une autre année. Signale une horloge d'appareil fausse (photo datée après sa copie sur le disque) et peut corriger leur date dans MyMedia (même jour, même heure). Le disque n'est jamais modifié."
+          "text": "Dans les dossiers dont le nom commence par l'année (« 2015_Ski »), montre les fichiers datés d'une autre année. Sépare les erreurs de l'appareil (horloge jamais réglée : 1er janvier 1980… ; horloge en avance : photo datée après sa copie sur le disque), dont la date peut être corrigée dans MyMedia (même jour, même heure). Le disque n'est jamais modifié."
         }
       ]
     },
@@ -1499,16 +1499,27 @@
       "video": "(vidéo)",
       "name": "(nom du fichier)"
     },
-    "clockTag": "Horloge de l'appareil fausse",
     "clockText_one": "{{count}} photo est datée après sa copie sur le disque (le {{copied}}) : c'est impossible, l'horloge de l'appareil était mal réglée. Le nom du dossier ({{year}}) est sans doute juste.",
     "clockText_other": "{{count}} photos sont datées après leur copie sur le disque (le {{copied}}) : c'est impossible, l'horloge de l'appareil était mal réglée. Le nom du dossier ({{year}}) est sans doute juste.",
-    "fixFolder_one": "Mettre en {{year}} la date de ce fichier dans MyMedia (même jour, même heure)",
-    "fixFolder_other": "Mettre en {{year}} la date de ces {{count}} fichiers dans MyMedia (même jour, même heure)",
+    "fixFolder_one": "Mettre en {{year}} la date de ce fichier à l'horloge fausse dans MyMedia (même jour, même heure)",
+    "fixFolder_other": "Mettre en {{year}} la date de ces {{count}} fichiers à l'horloge fausse dans MyMedia (même jour, même heure)",
     "fix_one": "Corriger {{count}} date dans MyMedia",
     "fix_other": "Corriger {{count}} dates dans MyMedia",
     "fixing": "Correction des dates… {{done}} / {{total}}",
     "fixed_one": "{{count}} date corrigée dans MyMedia (le disque n'a pas changé).",
-    "fixed_other": "{{count}} dates corrigées dans MyMedia (le disque n'a pas changé)."
+    "fixed_other": "{{count}} dates corrigées dans MyMedia (le disque n'a pas changé).",
+    "why": {
+      "unset_one": "Horloge non réglée",
+      "unset_other": "Horloge non réglée ({{count}})",
+      "ahead_one": "Horloge en avance",
+      "ahead_other": "Horloge en avance ({{count}})",
+      "other_one": "Vraie date d'une autre année",
+      "other_other": "Vraies dates d'une autre année ({{count}})"
+    },
+    "unsetText_one": "Daté d'un 1er janvier vers minuit d'une année ancienne : c'est la date de départ d'un appareil dont l'horloge n'a jamais été réglée (neuf, ou après un changement de pile). Son vrai jour n'est connu nulle part : corrigé, il sera au même jour en {{year}}.",
+    "unsetText_other": "Datés d'un 1er janvier vers minuit d'une année ancienne : c'est la date de départ d'un appareil dont l'horloge n'a jamais été réglée (neuf, ou après un changement de pile). Leur vrai jour n'est connu nulle part : corrigés, ils seront au même jour en {{year}}.",
+    "otherText_one": "Sa date est juste : il a été rangé dans le dossier d'une autre année. Rien à corriger dans MyMedia ; déplacez-le sur le disque dans le dossier de son année, puis lancez « Synchro ».",
+    "otherText_other": "Leur date est juste : ils ont été rangés dans le dossier d'une autre année. Rien à corriger dans MyMedia ; déplacez-les sur le disque dans le dossier de leur année, puis lancez « Synchro »."
   },
   "diskDuplicates": {
     "folderCount_one": "{{count}} photo ou vidéo",
