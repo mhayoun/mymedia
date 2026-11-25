@@ -1481,6 +1481,16 @@
     "fixed_other": "{{count}} dates corrected in MyMedia (the disk did not change)."
   },
   "diskDuplicates": {
+    "pairsTitle": "In two folders",
+    "pairText_one": "{{count}} photo or video is in both these folders ({{size}} too many).",
+    "pairText_other": "{{count}} photos and videos are in both these folders ({{size}} too many).",
+    "keepIn": "Keep them in",
+    "keepInHint_one": "{{count}} copy deleted from",
+    "keepInHint_other": "{{count}} copies deleted from",
+    "pairKnown_one": "{{count}} of them is the file MyMedia knows",
+    "pairKnown_other": "{{count}} of them are the files MyMedia knows",
+    "each": "Choose one by one",
+    "othersTitle": "Other duplicates",
     "offer": "Photos or videos twice in this folder, under other names (“IMG_0093.jpg” = “Picture 053.jpg”)? MyMedia finds them by their content and can delete the copies from the disk.",
     "button": "Disk duplicates",
     "title": "Duplicates in “{{name}}”",

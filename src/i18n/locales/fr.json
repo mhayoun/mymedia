@@ -1479,6 +1479,16 @@
     "fixed_other": "{{count}} dates corrigées dans MyMedia (le disque n'a pas changé)."
   },
   "diskDuplicates": {
+    "pairsTitle": "Dans deux dossiers",
+    "pairText_one": "{{count}} photo ou vidéo est à la fois dans ces deux dossiers ({{size}} en trop).",
+    "pairText_other": "{{count}} photos et vidéos sont à la fois dans ces deux dossiers ({{size}} en trop).",
+    "keepIn": "Les garder dans",
+    "keepInHint_one": "{{count}} copie supprimée de",
+    "keepInHint_other": "{{count}} copies supprimées de",
+    "pairKnown_one": "dont {{count}} est le fichier que MyMedia connaît",
+    "pairKnown_other": "dont {{count}} sont les fichiers que MyMedia connaît",
+    "each": "Choisir une par une",
+    "othersTitle": "Autres doublons",
     "offer": "Des photos ou des vidéos en double dans ce dossier, sous d'autres noms (« IMG_0093.jpg » = « Picture 053.jpg ») ? MyMedia les retrouve à leur contenu et peut supprimer les copies du disque.",
     "button": "Doublons du disque",
     "title": "Doublons dans « {{name}} »",

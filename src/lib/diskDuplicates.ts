@@ -76,3 +76,51 @@ export const pathKey = (f: Pick<WalkedFile, 'dirs' | 'name'>) => [...f.dirs, f.n
 export function defaultTicks(groups: DuplicateGroup[]): Set<string> {
   return new Set(groups.flatMap((g) => g.copies.slice(1).map((c) => pathKey(c.file))))
 }
+
+export interface FolderPair {
+  key: string
+  /** The two folders (from the folder read, not included), in the order of their paths. */
+  a: string[]
+  b: string[]
+  /** Its duplicates: each one copy in `a` and one in `b`. */
+  groups: DuplicateGroup[]
+  /** The bytes deleted by keeping one folder. */
+  bytes: number
+  /** The folder holding most of the copies kept by default (MyMedia's, else the originals). */
+  usual: 'a' | 'b'
+}
+
+const dirKey = (dirs: string[]) => dirs.join('/')
+
+/**
+ * The duplicates that are exactly once in each of two folders, gathered by those two folders ("2010/Ski" and
+ * "2010/Ski copie"): for them, choosing the folder to keep is enough. The others are not in it. Most bytes first.
+ */
+export function folderPairs(groups: DuplicateGroup[]): FolderPair[] {
+  const pairs = new Map<string, FolderPair & { keptInA: number }>()
+  for (const g of groups) {
+    if (g.copies.length !== 2) continue
+    const [x, y] = g.copies.map((c) => dirKey(c.file.dirs))
+    if (x === y) continue
+    const [ka, kb] = x < y ? [x, y] : [y, x]
+    const key = `${ka}\n${kb}`
+    let p = pairs.get(key)
+    if (!p) {
+      const a = g.copies.find((c) => dirKey(c.file.dirs) === ka)!.file.dirs
+      const b = g.copies.find((c) => dirKey(c.file.dirs) === kb)!.file.dirs
+      pairs.set(key, (p = { key, a, b, groups: [], bytes: 0, usual: 'a', keptInA: 0 }))
+    }
+    p.groups.push(g)
+    p.bytes += g.size
+    if (dirKey(g.copies[0].file.dirs) === ka) p.keptInA++
+  }
+  return [...pairs.values()]
+    .map(({ keptInA, ...p }) => ({ ...p, usual: keptInA * 2 >= p.groups.length ? ('a' as const) : ('b' as const) }))
+    .sort((x, y) => y.bytes - x.bytes || x.key.localeCompare(y.key))
+}
+
+/** The copies to delete to keep a pair's photos in one of its folders (those in the other one). */
+export function pairTicks(pair: FolderPair, keep: 'a' | 'b'): string[] {
+  const gone = dirKey(keep === 'a' ? pair.b : pair.a)
+  return pair.groups.flatMap((g) => g.copies.filter((c) => dirKey(c.file.dirs) === gone).map((c) => pathKey(c.file)))
+}

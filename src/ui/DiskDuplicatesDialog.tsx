@@ -2,14 +2,14 @@
 // and videos that are in the folder twice or more, under other names, shown together; the copies ticked are
 // deleted from the disk, for good, after a confirmation. MyMedia and Google Drive are not touched.
 
-import { Copy, Film, Loader2, Trash2 } from 'lucide-react'
+import { Copy, Film, FolderClosed, Loader2, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { db } from '../db/db'
 import { canWrite, fileAt, removeAt, type FsDir } from '../import/folderWalk'
 import { md5Of } from '../import/importer'
 import { useFormat } from '../i18n/format'
-import { defaultTicks, duplicateGroups, pathKey, sameSizeFiles, type DiskCopy, type DuplicateGroup } from '../lib/diskDuplicates'
+import { defaultTicks, duplicateGroups, folderPairs, pairTicks, pathKey, sameSizeFiles, type DiskCopy, type DuplicateGroup, type FolderPair } from '../lib/diskDuplicates'
 import { fileKey, mediaKeys } from '../lib/diskSync'
 import type { WalkedFile } from '../lib/importPlan'
 import { Modal } from './Dialog'
@@ -51,6 +51,8 @@ export function DiskDuplicatesDialog({ root, diskName, files, onDeleted, onClose
   const [deleting, setDeleting] = useState<{ done: number; total: number } | null>(null)
   const [result, setResult] = useState<{ count: number; bytes: number; errors: string[] } | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // Duplicates once in each of two folders: the folder kept ('a', 'b'), or chosen one by one ('each'), by pair.
+  const [keep, setKeep] = useState<Map<string, 'a' | 'b' | 'each'>>(new Map())
   // Compared once, as the window opens.
   const [args] = useState(() => ({ root, files }))
 
@@ -80,7 +82,16 @@ export function DiskDuplicatesDialog({ root, diskName, files, onDeleted, onClose
         const found = duplicateGroups(copies)
         setOpened(files)
         setGroups(found)
-        setTicks(defaultTicks(found))
+        // A pair of folders keeps all its photos in the same one: where most of the copies kept are.
+        const ticked = defaultTicks(found)
+        const modes = new Map<string, 'a' | 'b' | 'each'>()
+        for (const p of pairsOf(found)) {
+          for (const g of p.groups) for (const c of g.copies) ticked.delete(pathKey(c.file))
+          for (const k of pairTicks(p, p.usual)) ticked.add(k)
+          modes.set(p.key, p.usual)
+        }
+        setKeep(modes)
+        setTicks(ticked)
       } catch (e) {
         if (alive) setError(t('errors.generic', { message: (e as Error).message }))
       }
@@ -90,6 +101,23 @@ export function DiskDuplicatesDialog({ root, diskName, files, onDeleted, onClose
       alive = false
     }
   }, [args, t])
+
+  const pairs = useMemo(() => pairsOf(groups ?? []), [groups])
+  // The duplicates of a pair whose folder is chosen are not listed one by one.
+  const inPairs = useMemo(() => new Set(pairs.filter((p) => keep.get(p.key) !== 'each').flatMap((p) => p.groups.map((g) => g.key))), [pairs, keep])
+  const listed = (groups ?? []).filter((g) => !inPairs.has(g.key))
+
+  /** A pair's photos kept in one of its folders (the copies of the other one ticked), or chosen one by one. */
+  function choose(p: FolderPair, mode: 'a' | 'b' | 'each') {
+    setKeep((cur) => new Map(cur).set(p.key, mode))
+    if (mode === 'each') return
+    setTicks((cur) => {
+      const n = new Set(cur)
+      for (const g of p.groups) for (const c of g.copies) n.delete(pathKey(c.file))
+      for (const k of pairTicks(p, mode)) n.add(k)
+      return n
+    })
+  }
 
   const extra = useMemo(() => (groups ?? []).reduce((n, g) => n + g.copies.length - 1, 0), [groups])
   const extraBytes = useMemo(() => (groups ?? []).reduce((n, g) => n + g.size * (g.copies.length - 1), 0), [groups])
@@ -105,7 +133,19 @@ export function DiskDuplicatesDialog({ root, diskName, files, onDeleted, onClose
       return n
     })
   /** Every copy but the one kept, in every group (also those of several albums). */
-  const tickAll = () => setTicks(new Set((groups ?? []).flatMap((g) => g.copies.slice(1).map((c) => pathKey(c.file)))))
+  const tickAll = () => {
+    const n = new Set((groups ?? []).filter((g) => !inPairs.has(g.key)).flatMap((g) => g.copies.slice(1).map((c) => pathKey(c.file))))
+    for (const p of pairs) {
+      const mode = keep.get(p.key)
+      if (mode === 'a' || mode === 'b') for (const k of pairTicks(p, mode)) n.add(k)
+    }
+    setTicks(n)
+  }
+  /** Nothing ticked: the pairs are then shown one by one, unticked. */
+  const untickAll = () => {
+    setKeep(new Map(pairs.map((p) => [p.key, 'each' as const])))
+    setTicks(new Set())
+  }
 
   async function remove() {
     setConfirming(false)
@@ -182,11 +222,52 @@ export function DiskDuplicatesDialog({ root, diskName, files, onDeleted, onClose
                   <button className="btn small" disabled={busy} onClick={tickAll}>
                     {t('diskDuplicates.tickAll')}
                   </button>
-                  <button className="btn small" disabled={busy || !ticks.size} onClick={() => setTicks(new Set())}>
+                  <button className="btn small" disabled={busy || !ticks.size} onClick={untickAll}>
                     {t('diskDuplicates.untickAll')}
                   </button>
                 </div>
-                {groups.map((g) => {
+                {pairs.length > 0 && <h3 className="dup-pairs-title">{t('diskDuplicates.pairsTitle')}</h3>}
+                {pairs.map((p) => {
+                  const mode = keep.get(p.key) ?? 'each'
+                  const name = (dirs: string[]) => [diskName, ...dirs].join(' / ')
+                  /** Of the copies deleted from `dirs`, those MyMedia knows by their name and size. */
+                  const known = (dirs: string[]) => p.groups.filter((g) => g.copies.some((c) => c.inMyMedia && c.file.dirs.join('/') === dirs.join('/'))).length
+                  return (
+                    <section key={p.key} className="disk-sync-part dup-pair">
+                      <div className="dup-pair-thumbs">
+                        {p.groups.slice(0, 6).map((g) => (
+                          <LocalThumb key={g.key} file={opened.get(pathKey(g.copies[0].file))} video={g.copies[0].file.type === 'video'} />
+                        ))}
+                      </div>
+                      <p>
+                        <strong>{t('diskDuplicates.pairText', { count: p.groups.length, size: fmt.bytes(p.bytes) })}</strong>
+                      </p>
+                      {(['a', 'b'] as const).map((side) => {
+                        const other = side === 'a' ? p.b : p.a
+                        const lost = known(other)
+                        return (
+                          <label key={side} className="row">
+                            <input type="radio" name={p.key} checked={mode === side} disabled={busy} onChange={() => choose(p, side)} />
+                            <span>
+                              <FolderClosed size={14} /> {t('diskDuplicates.keepIn')} <bdi dir="auto"><strong>{name(side === 'a' ? p.a : p.b)}</strong></bdi>
+                              <span className="hint">
+                                {' — '}
+                                {t('diskDuplicates.keepInHint', { count: p.groups.length })} <bdi dir="auto">{name(other)}</bdi>
+                                {lost > 0 && <> · {t('diskDuplicates.pairKnown', { count: lost })}</>}
+                              </span>
+                            </span>
+                          </label>
+                        )
+                      })}
+                      <label className="row">
+                        <input type="radio" name={p.key} checked={mode === 'each'} disabled={busy} onChange={() => choose(p, 'each')} />
+                        <span>{t('diskDuplicates.each')}</span>
+                      </label>
+                    </section>
+                  )
+                })}
+                {pairs.length > 0 && listed.length > 0 && <h3 className="dup-pairs-title">{t('diskDuplicates.othersTitle')}</h3>}
+                {listed.map((g) => {
                   const left = g.copies.filter((c) => !ticks.has(pathKey(c.file))).length
                   return (
                     <section key={g.key} className="disk-sync-part dup-disk-group">
@@ -257,3 +338,6 @@ export function DiskDuplicatesDialog({ root, diskName, files, onDeleted, onClose
     </Modal>
   )
 }
+
+/** Only the pairs of folders with two duplicates or more (a single one is as quick to choose in the list). */
+const pairsOf = (groups: DuplicateGroup[]) => folderPairs(groups).filter((p) => p.groups.length > 1)

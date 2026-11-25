@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { defaultTicks, duplicateGroups, pathKey, sameSizeFiles, type DiskCopy } from './diskDuplicates'
+import { defaultTicks, duplicateGroups, folderPairs, pairTicks, pathKey, sameSizeFiles, type DiskCopy } from './diskDuplicates'
 import type { WalkedFile } from './importPlan'
 
 const f = (path: string, size: number): WalkedFile => {
@@ -41,5 +41,39 @@ describe('disk duplicates', () => {
     expect(groups).toHaveLength(2)
     expect(groups.map((g) => g.acrossAlbums)).toEqual([true, false])
     expect([...defaultTicks(groups)].sort()).toEqual([pathKey(f('2013_neige/b.jpg', 5)), pathKey(f('Paris/x.jpg', 7))].sort())
+  })
+})
+
+describe('duplicates in two folders', () => {
+  const groups = duplicateGroups([
+    // Three photos once in "2010/Ski" and once in "2010/Ski copie" (two kept in Ski by default).
+    c(f('2010/Ski/IMG_1.jpg', 5), '1', 1),
+    c(f('2010/Ski copie/Picture 1.jpg', 5), '1', 2),
+    c(f('2010/Ski/IMG_2.jpg', 6), '2', 1),
+    c(f('2010/Ski copie/Picture 2.jpg', 6), '2', 2),
+    c(f('2010/Ski/Picture 3.jpg', 7), '3', 2),
+    c(f('2010/Ski copie/IMG_3.jpg', 7), '3', 1),
+    // Twice in the same folder, and three times: not a pair.
+    c(f('2010/Ski/a.jpg', 8), 's', 1),
+    c(f('2010/Ski/a (1).jpg', 8), 's', 2),
+    c(f('A/t.jpg', 9), 't', 1),
+    c(f('B/t.jpg', 9), 't', 2),
+    c(f('C/t.jpg', 9), 't', 3),
+  ])
+
+  it('gathers the photos once in each of two folders', () => {
+    const pairs = folderPairs(groups)
+    expect(pairs).toHaveLength(1)
+    expect(pairs[0].a).toEqual(['2010', 'Ski'])
+    expect(pairs[0].b).toEqual(['2010', 'Ski copie'])
+    expect(pairs[0].groups).toHaveLength(3)
+    expect(pairs[0].bytes).toBe(18)
+    expect(pairs[0].usual).toBe('a')
+  })
+
+  it('deletes the copies of the folder not kept', () => {
+    const [p] = folderPairs(groups)
+    expect(pairTicks(p, 'a').sort()).toEqual(['2010/Ski copie/IMG_3.jpg', '2010/Ski copie/Picture 1.jpg', '2010/Ski copie/Picture 2.jpg'])
+    expect(pairTicks(p, 'b').sort()).toEqual(['2010/Ski/IMG_1.jpg', '2010/Ski/IMG_2.jpg', '2010/Ski/Picture 3.jpg'])
   })
 })

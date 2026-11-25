@@ -1608,6 +1608,16 @@
     "fixed_other": "{{count}} תאריכים תוקנו ב-MyMedia (הדיסק לא השתנה)."
   },
   "diskDuplicates": {
+    "pairsTitle": "בשתי תיקיות",
+    "pairText_one": "תמונה או סרטון {{count}} נמצאים בשתי התיקיות האלה ({{size}} מיותרים).",
+    "pairText_other": "{{count}} תמונות וסרטונים נמצאים בשתי התיקיות האלה ({{size}} מיותרים).",
+    "keepIn": "לשמור אותם ב",
+    "keepInHint_one": "עותק {{count}} יימחק מ",
+    "keepInHint_other": "{{count}} עותקים יימחקו מ",
+    "pairKnown_one": "מתוכם {{count}} הוא הקובץ ש-MyMedia מכיר",
+    "pairKnown_other": "מתוכם {{count}} הם הקבצים ש-MyMedia מכיר",
+    "each": "בחירה אחד אחד",
+    "othersTitle": "כפילויות אחרות",
     "offer": "תמונות או סרטונים כפולים בתיקייה הזו, בשמות אחרים (\"IMG_0093.jpg\" = \"Picture 053.jpg\")? MyMedia מוצא אותם לפי התוכן ויכול למחוק את העותקים מהדיסק.",
     "button": "כפילויות בדיסק",
     "title": "כפילויות ב\"{{name}}\"",
