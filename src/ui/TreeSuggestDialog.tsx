@@ -1,4 +1,4 @@
-import { CalendarCheck, Check, Copy, Download, FolderOpen, FolderSync, FolderTree, Library as LibraryIcon, Loader2, RefreshCw, Upload } from 'lucide-react'
+import { CalendarCheck, Check, CircleHelp, Copy, Download, FolderOpen, FolderSync, FolderTree, Library as LibraryIcon, Loader2, RefreshCw, Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { canRead, canWalkFolders, filesBelow, pickAndWalk, walkFolder, type FsDir, type WalkedFolder } from '../import/folderWalk'
@@ -121,7 +121,6 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track, syncOnly }
   })
   const [source, setSource] = useState<Source | null>(folder ? 'computer' : null)
   const [reading, setReading] = useState<{ dirs: number; files: number } | null>(null)
-  const [explain, setExplain] = useState(false)
   const [preparing, setPreparing] = useState<{ album: string | null; files: number; total?: number } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [progress, setProgress] = useState<{ done: number; failed: number; total: number } | null>(null)
@@ -132,6 +131,7 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track, syncOnly }
   const [syncing, setSyncing] = useState(false)
   const [duplicates, setDuplicates] = useState(false)
   const [years, setYears] = useState(false)
+  const [guide, setGuide] = useState(false)
   const readOnly = useApp((s) => s.readOnly)
 
   const plan = useMemo(() => (folder ? planAlbums(folder.files) : null), [folder])
@@ -261,7 +261,6 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track, syncOnly }
   }
 
   async function readFolder() {
-    setExplain(false)
     if (!walks) return folderInput.current?.click()
     setError(null)
     setReading({ dirs: 0, files: 0 })
@@ -420,8 +419,24 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track, syncOnly }
   // Once the folder is read, what is really in MyMedia (albums removed since are to do again).
   const importedCount = plan && followed ? doneAlbums.length : track ? Object.values(track.imported).filter((r) => r.files > 0 && r.failed === 0).length : 0
   return (
-    <Modal wide title={t(syncOnly ? 'diskSync.toolbarTitle' : 'treeSuggest.title')} onClose={() => !busy && onClose()}>
+    <Modal
+      wide
+      title={t(syncOnly ? 'diskSync.toolbarTitle' : 'treeSuggest.title')}
+      onClose={() => !busy && onClose()}
+      titleExtra={
+        <button
+          className={`icon-btn small ${guide ? 'active' : ''}`}
+          onClick={() => setGuide((v) => !v)}
+          aria-expanded={guide}
+          title={t('treeSuggest.guide.button')}
+          aria-label={t('treeSuggest.guide.button')}
+        >
+          <CircleHelp size={18} />
+        </button>
+      }
+    >
       <div className="modal-scroll">
+        {guide && <TreeGuide onClose={() => setGuide(false)} />}
         {!progress && (
           <>
             {syncOnly ? (
@@ -461,7 +476,7 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track, syncOnly }
 
             <div className="tree-suggest-sources">
               {canPickFolder && (
-                <button className={`btn ${source === 'computer' && !followed ? 'primary' : ''}`} disabled={busy} onClick={() => setExplain(true)}>
+                <button className={`btn ${source === 'computer' && !followed ? 'primary' : ''}`} disabled={busy} onClick={() => void readFolder()}>
                   <FolderOpen size={18} /> {t(track && walks ? 'treeSuggest.otherFolder' : 'treeSuggest.fromComputer')}
                 </button>
               )}
@@ -481,24 +496,7 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track, syncOnly }
                 e.target.value = ''
               }}
             />
-            {explain && (
-              <div className="browser-warning" role="alertdialog" aria-labelledby="browser-warning-title">
-                <p id="browser-warning-title">
-                  <strong>{t(walks ? 'treeSuggest.warnTitle' : 'treeSuggest.warnTitleUpload')}</strong>
-                </p>
-                <p>{t(walks ? 'treeSuggest.warnText' : 'treeSuggest.warnTextUpload')}</p>
-                {track && walks && <p className="hint">{t('treeSuggest.otherFolderHint', { name: track.rootName })}</p>}
-                <div className="row">
-                  <button className="btn" onClick={() => setExplain(false)}>
-                    {t('common.cancel')}
-                  </button>
-                  <button className="btn primary" autoFocus onClick={() => void readFolder()}>
-                    {t('treeSuggest.warnContinue')}
-                  </button>
-                </div>
-              </div>
-            )}
-            {canPickFolder && !source && !reading && !explain && !track && <p className="hint">{t(walks ? 'treeSuggest.computerHint' : 'treeSuggest.computerHintUpload')}</p>}
+            {canPickFolder && !source && !reading && !track && <p className="hint">{t(walks ? 'treeSuggest.computerHint' : 'treeSuggest.computerHintUpload')}</p>}
             {!canPickFolder && !source && <p className="hint">{t('treeSuggest.computerOnly')}</p>}
 
             {reading && (
@@ -734,5 +732,27 @@ function TreeSuggest({ lib, onImport, onImportAlbums, onClose, track, syncOnly }
         )}
       </div>
     </Modal>
+  )
+}
+
+/** What Tree suggestion offers to put the photos and videos in order, from the help button by the title. */
+function TreeGuide({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation()
+  const items = t('treeSuggest.guide.items', { returnObjects: true }) as unknown as { title: string; text: string }[]
+  return (
+    <section className="tree-guide" aria-labelledby="tree-guide-title">
+      <h3 id="tree-guide-title">{t('treeSuggest.guide.title')}</h3>
+      <p className="hint">{t('treeSuggest.guide.intro')}</p>
+      <ol>
+        {(Array.isArray(items) ? items : []).map((it) => (
+          <li key={it.title}>
+            <strong>{it.title}</strong> — {it.text}
+          </li>
+        ))}
+      </ol>
+      <button className="btn small" onClick={onClose}>
+        {t('common.close')}
+      </button>
+    </section>
   )
 }

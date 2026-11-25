@@ -1269,6 +1269,57 @@
     "tickAll_other": "Tick all ({{count}} albums)"
   },
   "treeSuggest": {
+    "guide": {
+      "button": "Help: everything that puts your media in order",
+      "title": "Putting your photos and videos in order",
+      "intro": "Everything is done from this window, on a computer (Chrome or Edge preferably). Nothing is sent or changed without your click.",
+      "items": [
+        {
+          "title": "Read a folder of the computer",
+          "text": "Choose the folder that holds all the others (for example “My Pictures” on the external disk). MyMedia reads only the names of the folders and files. With Chrome or Edge, it then follows this folder on this device."
+        },
+        {
+          "title": "Proposed categories",
+          "text": "From the folders' names, MyMedia proposes categories (Weddings, Birthdays, Trips, Kids, Miscellaneous…). Untick those you don't want, rename them, open one to move an album to another category or leave it “No category”."
+        },
+        {
+          "title": "MyMedia's albums without a category",
+          "text": "Albums already in MyMedia but alone, without a category, can be sorted the same way: nothing is moved before you confirm."
+        },
+        {
+          "title": "Create the categories only",
+          "text": "Creates the kept categories in MyMedia, without importing anything."
+        },
+        {
+          "title": "Import album by album",
+          "text": "Each album has its “Import” button, with its size. Or tick several albums, choose “Put into” a category, then “Import the N albums”. The Google Drive space needed and the time are estimated first."
+        },
+        {
+          "title": "The year at the start of the name",
+          "text": "The option “Put the year at the start of the albums' names” keeps a category's albums in the order of the years (“Ski 2015” becomes “2015 Ski”)."
+        },
+        {
+          "title": "Follow what is left to import",
+          "text": "“Read the tree again” shows the albums already imported apart from what is left. Rename on the disk the folders not yet imported (“2012_06_12” → “2012_06_12 Aharon wedding”) and read again: they are sorted again. Photos outside any album (camera DCIM folders) are to be put in a named folder."
+        },
+        {
+          "title": "See the tree",
+          "text": "“Show the tree read” shows every folder read; “Download arbo.txt” keeps them in a file."
+        },
+        {
+          "title": "Sync with the disk",
+          "text": "Did you tidy the disk after the import (folders renamed, photos moved, folders made or removed)? MyMedia puts itself back like the disk, every change shown first. Also with the “Sync” button of the top bar. The disk is never changed."
+        },
+        {
+          "title": "Disk duplicates",
+          "text": "Finds by their content the photos and videos that are in the folder several times, under other names, and deletes the ticked copies from the disk, after a confirmation."
+        },
+        {
+          "title": "Disk dates",
+          "text": "In the folders whose name starts with the year (“2015_Ski”), shows the files dated of another year. Tells a wrong camera clock (photo dated after its copy to the disk) and can correct their date in MyMedia (same day, same time). The disk is never changed."
+        }
+      ]
+    },
     "menu": "Tree suggestion",
     "new": "New",
     "menuHint": "MyMedia reads the names of your folders and sub-folders and proposes categories",
@@ -1292,11 +1343,6 @@
     "showTree_other": "Show the tree read ({{count}} folders)",
     "downloadTree": "Download arbo.txt",
     "preparing": "Preparing the files… {{done}} / {{total}}",
-    "warnTitle": "Chrome will ask you to allow this site to “view and copy” this folder.",
-    "warnText": "This is Chrome's standard message for any site. MyMedia reads only the names of the folders and files, to propose categories. No photo is opened or sent. Nothing leaves your computer until you click “Import”. The permission ends when you close the tab.",
-    "warnTitleUpload": "The browser will ask whether to “upload” the files of this folder.",
-    "warnTextUpload": "This is the browser's standard message for any site. MyMedia reads only the names of the folders and files, to propose categories. No photo is opened or sent. Nothing leaves your computer until you click “Import”.",
-    "warnContinue": "Continue",
     "createOnly_one": "Create {{count}} category in MyMedia",
     "createOnly_other": "Create these {{count}} categories in MyMedia",
     "created_one": "{{count}} category created in MyMedia.",
@@ -1311,7 +1357,6 @@
     "importedOf_other": "{{count}} albums imported out of {{total}}",
     "readAgain": "Read the tree again",
     "otherFolder": "Choose another folder",
-    "otherFolderHint": "Another folder replaces “{{name}}”: MyMedia will no longer follow what is left to import from “{{name}}”.",
     "left_one": "{{count}} album left to import ({{done}} already imported): {{files}} files · {{size}}",
     "left_other": "{{count}} albums left to import ({{done}} already imported): {{files}} files · {{size}}",
     "allDone_one": "Everything is imported ({{count}} album).",

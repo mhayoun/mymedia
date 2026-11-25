@@ -10,9 +10,11 @@ interface ModalProps {
   wide?: boolean
   /** An X at the end of the title (long windows, whose own buttons may be far down). */
   closeButton?: boolean
+  /** Shown just after the title (a help button). */
+  titleExtra?: ReactNode
 }
 
-export function Modal({ title, onClose, children, wide, closeButton }: ModalProps) {
+export function Modal({ title, onClose, children, wide, closeButton, titleExtra }: ModalProps) {
   const { t } = useTranslation()
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -24,6 +26,7 @@ export function Modal({ title, onClose, children, wide, closeButton }: ModalProp
       <div className={`modal${wide ? ' wide' : ''}`} role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <h2 className={closeButton ? 'with-close' : undefined}>
           <bdi>{title}</bdi>
+          {titleExtra}
           {closeButton && (
             <button className="icon-btn small" onClick={onClose} aria-label={t('common.close')} title={t('common.close')}>
               <X size={18} />

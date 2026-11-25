@@ -851,6 +851,11 @@ label.field { display: grid; gap: 4px; margin-block-end: 12px; }
 .dup-disk-group label.row bdi { overflow-wrap: anywhere; }
 .dup-disk-thumb { inline-size: 64px; block-size: 64px; display: grid; place-items: center; color: var(--text-2); }
 .dup-disk-thumb img { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+.modal h2 > .icon-btn { vertical-align: middle; margin-inline-start: 6px; }
+.tree-guide { margin-block-end: 14px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2, transparent); }
+.tree-guide h3 { margin: 0 0 4px; font-size: 15px; }
+.tree-guide ol { margin: 8px 0; padding-inline-start: 20px; }
+.tree-guide li { margin-block: 6px; line-height: 1.45; }
 .year-disk-list { list-style: none; margin: 6px 0 0; padding: 0; }
 .year-disk-row { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; margin-block: 4px; }
 .year-disk-row bdi { overflow-wrap: anywhere; }

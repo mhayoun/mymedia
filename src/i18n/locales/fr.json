@@ -1267,6 +1267,57 @@
     "tickAll_other": "Tout cocher ({{count}} albums)"
   },
   "treeSuggest": {
+    "guide": {
+      "button": "Aide : tout ce qui permet de ranger vos médias",
+      "title": "Ranger vos photos et vidéos",
+      "intro": "Tout se fait depuis cette fenêtre, sur un ordinateur (Chrome ou Edge de préférence). Rien n'est envoyé ni changé sans votre clic.",
+      "items": [
+        {
+          "title": "Lire un dossier de l'ordinateur",
+          "text": "Choisissez le dossier qui contient tous les autres (par exemple « My Pictures » sur le disque externe). MyMedia lit seulement les noms des dossiers et des fichiers. Avec Chrome ou Edge, il suit ensuite ce dossier sur cet appareil."
+        },
+        {
+          "title": "Catégories proposées",
+          "text": "D'après les noms des dossiers, MyMedia propose des catégories (Mariages, Anniversaires, Voyages, Enfants, Divers…). Décochez celles qui ne vous intéressent pas, renommez-les, ouvrez-en une pour changer un album de catégorie ou le laisser « Sans catégorie »."
+        },
+        {
+          "title": "Albums sans catégorie de MyMedia",
+          "text": "Les albums déjà dans MyMedia mais seuls, sans catégorie, peuvent être rangés de la même façon : rien n'est déplacé avant votre validation."
+        },
+        {
+          "title": "Créer seulement les catégories",
+          "text": "Crée les catégories gardées dans MyMedia, sans rien importer."
+        },
+        {
+          "title": "Importer album par album",
+          "text": "Chaque album a son bouton « Importer », avec sa taille. Ou cochez plusieurs albums, choisissez « Mettre dans » une catégorie, puis « Importer les N albums ». La place nécessaire sur Google Drive et la durée sont estimées avant."
+        },
+        {
+          "title": "L'année au début du nom",
+          "text": "L'option « Mettre l'année au début du nom des albums » range les albums d'une catégorie dans l'ordre des années (« Ski 2015 » devient « 2015 Ski »)."
+        },
+        {
+          "title": "Suivre ce qui reste à importer",
+          "text": "« Relire l'arborescence » montre à part les albums déjà importés et ce qui reste. Renommez sur le disque les dossiers pas encore importés (« 2012_06_12 » → « 2012_06_12 mariage Aharon ») puis relisez : ils sont reclassés. Les photos hors album (dossiers DCIM d'appareil photo) sont à mettre dans un dossier nommé."
+        },
+        {
+          "title": "Voir l'arborescence",
+          "text": "« Voir l'arborescence lue » affiche tous les dossiers lus ; « Télécharger arbo.txt » les garde dans un fichier."
+        },
+        {
+          "title": "Synchroniser avec le disque",
+          "text": "Vous avez rangé le disque après l'import (dossiers renommés, photos déplacées, dossiers créés ou supprimés) ? MyMedia se remet comme le disque, chaque changement montré avant. Aussi avec le bouton « Synchro » de la barre du haut. Le disque n'est jamais modifié."
+        },
+        {
+          "title": "Doublons du disque",
+          "text": "Retrouve à leur contenu les photos et vidéos présentes plusieurs fois dans le dossier, sous d'autres noms, et supprime du disque les copies cochées, après confirmation."
+        },
+        {
+          "title": "Dates du disque",
+          "text": "Dans les dossiers dont le nom commence par l'année (« 2015_Ski »), montre les fichiers datés d'une autre année. Signale une horloge d'appareil fausse (photo datée après sa copie sur le disque) et peut corriger leur date dans MyMedia (même jour, même heure). Le disque n'est jamais modifié."
+        }
+      ]
+    },
     "menu": "Suggestion d'arborescence",
     "new": "Nouveau",
     "menuHint": "MyMedia lit les noms de vos dossiers et sous-dossiers et propose des catégories",
@@ -1290,11 +1341,6 @@
     "showTree_other": "Voir l'arborescence lue ({{count}} dossiers)",
     "downloadTree": "Télécharger arbo.txt",
     "preparing": "Préparation des fichiers… {{done}} / {{total}}",
-    "warnTitle": "Chrome va vous demander l'autorisation de « voir et copier » ce dossier.",
-    "warnText": "C'est le message standard de Chrome pour tout site. MyMedia lit seulement les noms des dossiers et des fichiers, pour proposer des catégories. Aucune photo n'est ouverte ni envoyée. Rien ne quitte votre ordinateur tant que vous ne cliquez pas sur « Importer ». L'autorisation s'arrête quand vous fermez l'onglet.",
-    "warnTitleUpload": "Le navigateur va vous demander s'il faut « importer » les fichiers de ce dossier.",
-    "warnTextUpload": "C'est le message standard du navigateur pour tout site. MyMedia lit seulement les noms des dossiers et des fichiers, pour proposer des catégories. Aucune photo n'est ouverte ni envoyée. Rien ne quitte votre ordinateur tant que vous ne cliquez pas sur « Importer ».",
-    "warnContinue": "Continuer",
     "createOnly_one": "Créer {{count}} catégorie dans MyMedia",
     "createOnly_other": "Créer ces {{count}} catégories dans MyMedia",
     "created_one": "{{count}} catégorie créée dans MyMedia.",
@@ -1309,7 +1355,6 @@
     "importedOf_other": "{{count}} albums importés sur {{total}}",
     "readAgain": "Relire l'arborescence",
     "otherFolder": "Choisir un autre dossier",
-    "otherFolderHint": "Un autre dossier remplace « {{name}} » : MyMedia ne suivra plus ce qui reste à importer de « {{name}} ».",
     "left_one": "Reste {{count}} album à importer ({{done}} déjà importés) : {{files}} fichiers · {{size}}",
     "left_other": "Reste {{count}} albums à importer ({{done}} déjà importés) : {{files}} fichiers · {{size}}",
     "allDone_one": "Tout est importé ({{count}} album).",
