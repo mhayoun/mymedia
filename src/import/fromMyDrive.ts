@@ -194,5 +194,18 @@ export async function moveIntoMyMedia(
   return { moved, failed, reason, albums: albums.filter((a) => a.count) }
 }
 
+/**
+ * A name for an album from its photos' dates, when the folder's is unknown: "2025_08" (one month), "2025"
+ * (one year), "2014-2016" (more years); empty without any file.
+ */
+export function nameFromDates(dates: string[]): string {
+  const ok = dates.filter((d) => /^\d{4}-\d\d/.test(d))
+  if (!ok.length) return ''
+  const months = new Set(ok.map((d) => d.slice(0, 7)))
+  if (months.size === 1) return ok[0].slice(0, 7).replace('-', '_')
+  const years = [...new Set(ok.map((d) => d.slice(0, 4)))].sort()
+  return years.length === 1 ? years[0] : `${years[0]}-${years[years.length - 1]}`
+}
+
 /** The groups as entries, to find those already in MyMedia (same fingerprint). */
 export const entriesOf = (groups: PickedGroup[]): DriveEntry[] => groups.flatMap((g) => g.files.map((file) => ({ file, relDir: [], path: [] })))

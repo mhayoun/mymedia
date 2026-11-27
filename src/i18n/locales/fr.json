@@ -1568,7 +1568,6 @@
   },
   "myDrive": {
     "tab": "Mes photos de Google Drive",
-    "intro": "Choisissez des photos et vidéos de votre Google Drive dans la fenêtre de Google : ouvrez un dossier, sélectionnez tout (Ctrl+A), puis « Sélectionner ». Recommencez pour d'autres dossiers.\nElles sont déplacées dans MyMedia avec leur date : c'est le même fichier, qui change seulement de dossier (aucune place en plus) ; il n'est plus dans son ancien dossier de Google Drive. Choisir un dossier ne suffit pas : il faut choisir les photos elles-mêmes.\nLa fenêtre de Google montre la liste des fichiers (nom, date, taille) : elle ne peut pas afficher les images à l'intérieur de MyMedia. Pour les voir, ouvrez le dossier dans Google Drive à côté.",
     "pick": "Choisir des photos dans Google Drive",
     "pickMore": "Choisir d'autres photos",
     "pickerTitle": "Ouvrez un dossier, sélectionnez les photos (Ctrl+A), puis « Sélectionner »",
@@ -1590,8 +1589,6 @@
     "diskChoose": "Choisir le dossier de sauvegarde",
     "diskChange": "Changer de dossier",
     "diskChosen": "Dans « {{name}} », un dossier par album",
-    "backupHint": "Chaque original est enregistré sur le disque, puis relu et comparé à celui de Google (empreinte MD5). Rien ne change dans Google Drive avant que vous ayez vu le résultat ; seules les photos vérifiées sont ensuite déplacées. Une fois compressées, Drive ne garde pas leur ancienne version : la place est libérée tout de suite.",
-    "noBackupHint": "Sans sauvegarde, l'original d'une photo compressée est gardé selon votre réglage de compression (par défaut : ancienne version récupérable environ 30 jours, la place n'est libérée qu'ensuite).",
     "noDisk": "La sauvegarde sur le disque n'est possible que sur un ordinateur (Chrome ou Edge).",
     "compress": "Compresser après le déplacement (libère de la place sur Google Drive)",
     "quota": "Espace Google utilisé : {{used}} sur {{total}}",
@@ -1629,6 +1626,40 @@
     "goesTo": "→ {{path}}",
     "movedTo_one": "{{count}} dans {{path}}",
     "movedTo_other": "{{count}} dans {{path}}",
-    "openAlbum": "Ouvrir l'album"
+    "openAlbum": "Ouvrir l'album",
+    "step1": "1. Les photos",
+    "step2": "2. Sauvegarde des originaux",
+    "short": "Ouvrez un dossier dans la fenêtre de Google, sélectionnez tout (Ctrl+A), puis « Sélectionner ».",
+    "nameFromDates": "Nom proposé d'après les dates des photos (Google ne donne pas le nom du dossier).",
+    "readFolderName": "Prendre le nom du dossier",
+    "folderPickerTitle": "Choisissez le dossier de ces photos, puis « Sélectionner »",
+    "helpButton": "Aide : importer mes photos de Google Drive",
+    "helpTitle": "Importer mes photos de Google Drive",
+    "help": [
+      {
+        "title": "Choisir les photos",
+        "text": "Dans la fenêtre de Google, ouvrez un dossier, sélectionnez tout (Ctrl+A ou Maj+clic), puis « Sélectionner ». Recommencez pour d'autres dossiers. Choisir le dossier lui-même ne suffit pas : il faut choisir les photos. La fenêtre montre une liste (nom, date, taille), sans les images : pour les voir, ouvrez le dossier dans Google Drive à côté. Les photos déjà dans MyMedia sont laissées de côté."
+      },
+      {
+        "title": "Sauvegarder les originaux (conseillé)",
+        "text": "Sur un ordinateur, chaque original est d'abord enregistré dans le dossier choisi sur le disque (un sous-dossier par album), puis relu et comparé à celui de Google (empreinte MD5). La fenêtre s'arrête alors pour que vous regardiez : rien n'a encore changé dans Google Drive. Seules les photos vérifiées sont ensuite déplacées, et une fois compressées, Drive ne garde pas leur ancienne version : la place est libérée tout de suite."
+      },
+      {
+        "title": "Sans sauvegarde",
+        "text": "L'original d'une photo compressée est gardé selon votre réglage de compression : par défaut, comme ancienne version récupérable environ 30 jours (la place n'est libérée qu'ensuite)."
+      },
+      {
+        "title": "Où les mettre",
+        "text": "Choisissez la destination, puis le nom de l'album de chaque dossier. Google ne donne pas le nom du dossier d'origine : MyMedia propose un nom d'après les dates des photos (« 2025_08 »). « Prendre le nom du dossier » ouvre la fenêtre de Google sur vos dossiers : choisissez celui des photos, MyMedia prend son nom."
+      },
+      {
+        "title": "Déplacer",
+        "text": "Les photos sont déplacées dans MyMedia avec leur date : c'est le même fichier, qui change seulement de dossier (aucune place en plus). Il n'est plus dans son ancien dossier de Google Drive."
+      },
+      {
+        "title": "Compresser",
+        "text": "Après le déplacement, les photos et vidéos sont compressées pour libérer de la place sur Google Drive. Celles qui sont déjà petites ou déjà compressées ne changent pas."
+      }
+    ]
   }
 }

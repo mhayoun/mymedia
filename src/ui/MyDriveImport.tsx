@@ -9,12 +9,12 @@ import { auth } from '../auth/google'
 import { cancelCompression, compressNow, planMany } from '../compress/engine'
 import { loadConfig } from '../config'
 import { db, type MediaRecord } from '../db/db'
-import { storageQuota, type DriveFile, type DriveQuota } from '../drive/api'
-import { loadPicker, pickMyDriveMedia } from '../drive/picker'
+import { getFile, storageQuota, type DriveFile, type DriveQuota } from '../drive/api'
+import { loadPicker, pickMyDriveFolder, pickMyDriveMedia } from '../drive/picker'
 import { useFormat } from '../i18n/format'
 import { canWalkFolders, type FsDir } from '../import/folderWalk'
-import { markDuplicates } from '../import/fromDrive'
-import { describePicked, entriesOf, moveIntoMyMedia, saveOriginal, type PickedGroup, type SaveOutcome } from '../import/fromMyDrive'
+import { markDuplicates, takenAtOf } from '../import/fromDrive'
+import { describePicked, entriesOf, moveIntoMyMedia, nameFromDates, saveOriginal, type PickedGroup, type SaveOutcome } from '../import/fromMyDrive'
 import { placementOf } from '../lib/tree'
 import { useApp } from '../store'
 import { FolderTreePicker } from './FolderTreePicker'
@@ -24,6 +24,9 @@ type Phase = 'choose' | 'reading' | 'saving' | 'checked' | 'moving' | 'compressi
 type Group = PickedGroup & { album: string }
 
 interface Props {
+  /** The help (the "?" by the window's title) is open. */
+  showHelp: boolean
+  onHelpClose: () => void
   lib: Library
   destId: string
   onDestChange: (id: string) => void
@@ -34,7 +37,7 @@ interface Props {
 
 const sizeOf = (files: DriveFile[]) => files.reduce((n, f) => n + Number(f.size ?? 0), 0)
 
-export function MyDriveImport({ lib, destId, onDestChange, onBusy, onClose }: Props) {
+export function MyDriveImport({ showHelp, onHelpClose, lib, destId, onDestChange, onBusy, onClose }: Props) {
   const { t, i18n } = useTranslation()
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
@@ -100,7 +103,7 @@ export function MyDriveImport({ lib, destId, onDestChange, onBusy, onClose }: Pr
       for (const g of more) {
         const same = merged.find((m) => m.key === g.key)
         if (same) same.files = [...same.files, ...g.files]
-        else merged.push({ ...g, album: g.folderName ?? '' })
+        else merged.push({ ...g, album: g.folderName ?? nameFromDates(g.files.map(takenAtOf)) })
       }
       setGroups(merged)
       setDup(await markDuplicates(entriesOf(merged)))
@@ -108,6 +111,23 @@ export function MyDriveImport({ lib, destId, onDestChange, onBusy, onClose }: Pr
       setError(t('errors.generic', { message: (e as Error).message }))
     }
     setPhase('choose')
+  }
+
+  /**
+   * The folder of a group chosen in Google's window: MyMedia may then read its name (Google does not give it
+   * with the photos). Another folder chosen: its name is used all the same (the user's choice).
+   */
+  async function readFolderName(key: string) {
+    setError(null)
+    if (!apiKey) return setError(t('myDrive.noKey'))
+    try {
+      const f = await pickMyDriveFolder(apiKey, { locale: i18n.language, title: t('myDrive.folderPickerTitle') })
+      if (!f) return
+      const name = f.name || (await getFile(f.id, 'id,name')).name
+      setGroups((cur) => cur.map((g) => (g.key === key || g.key === f.id ? { ...g, album: name, ...(g.key === f.id ? { folderName: name } : {}) } : g)))
+    } catch (e) {
+      setError(t('errors.generic', { message: (e as Error).message }))
+    }
   }
 
   async function chooseDisk() {
@@ -220,19 +240,46 @@ export function MyDriveImport({ lib, destId, onDestChange, onBusy, onClose }: Pr
   return (
     <>
       <div className="modal-scroll">
+        {showHelp && <MyDriveHelp onClose={onHelpClose} />}
         {phase === 'choose' && (
           <>
-            <p className="hint" style={{ whiteSpace: 'pre-line' }}>{t('myDrive.intro')}</p>
-            <button className="btn" onClick={() => void pick()} disabled={apiKey === null}>
-              <ImagePlus size={16} /> {groups.length ? t('myDrive.pickMore') : t('myDrive.pick')}
-            </button>
-            {unreadable > 0 && <p className="error-text">{t('myDrive.unreadable', { count: unreadable })}</p>}
-            {groups.length > 0 && (
-              <>
+            <section className="disk-sync-part">
+              <h3>{t('myDrive.step1')}</h3>
+              <p className="hint">{t('myDrive.short')}</p>
+              <button className="btn" onClick={() => void pick()} disabled={apiKey === null}>
+                <ImagePlus size={16} /> {groups.length ? t('myDrive.pickMore') : t('myDrive.pick')}
+              </button>
+              {unreadable > 0 && <p className="error-text">{t('myDrive.unreadable', { count: unreadable })}</p>}
+              {groups.length > 0 && (
                 <p>
                   <strong>{t('myDrive.chosen', { count: todoFiles.length, size: fmt.bytes(sizeOf(todoFiles)) })}</strong>
                 </p>
-                {dup.size > 0 && <p className="hint">{t('myDrive.dups', { count: dup.size })}</p>}
+              )}
+              {dup.size > 0 && <p className="hint">{t('myDrive.dups', { count: dup.size })}</p>}
+            </section>
+            {groups.length > 0 && (
+              <>
+                <section className="disk-sync-part">
+                  <h3>{t('myDrive.step2')}</h3>
+                  {onDisk ? (
+                    <>
+                      <label className="check-row">
+                        <input type="checkbox" checked={backup} onChange={(e) => setBackup(e.target.checked)} />
+                        {t('myDrive.backup')}
+                      </label>
+                      {backup && (
+                        <p className="row">
+                          <button className="btn small" onClick={() => void chooseDisk()}>
+                            <HardDrive size={14} /> {disk ? t('myDrive.diskChange') : t('myDrive.diskChoose')}
+                          </button>
+                          {disk && <span className="hint">{t('myDrive.diskChosen', { name: disk.name })}</span>}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="hint">{t('myDrive.noDisk')}</p>
+                  )}
+                </section>
                 <section className="disk-sync-part">
                   <h3>{t('myDrive.whereTitle')}</h3>
                   <div className="field">
@@ -253,39 +300,23 @@ export function MyDriveImport({ lib, destId, onDestChange, onBusy, onClose }: Pr
                         aria-invalid={!g.album.trim()}
                         onChange={(e) => setGroups((cur) => cur.map((x) => (x.key === g.key ? { ...x, album: e.target.value } : x)))}
                       />
+                      {!g.folderName && (
+                        <span className="row">
+                          <span className="hint">{t('myDrive.nameFromDates')}</span>
+                          <button className="btn small" onClick={() => void readFolderName(g.key)}>
+                            {t('myDrive.readFolderName')}
+                          </button>
+                        </span>
+                      )}
                       {!g.album.trim() && <span className="hint">{t('myDrive.albumNeeded')}</span>}
                       {g.album.trim() && <span className="hint">{t('myDrive.goesTo', { path: pathOf(destId, g.album.trim()) })}</span>}
                     </div>
                   ))}
+                  <label className="check-row">
+                    <input type="checkbox" checked={compress} onChange={(e) => setCompress(e.target.checked)} />
+                    {t('myDrive.compress')}
+                  </label>
                 </section>
-                {onDisk ? (
-                  <>
-                    <label className="check-row">
-                      <input type="checkbox" checked={backup} onChange={(e) => setBackup(e.target.checked)} />
-                      {t('myDrive.backup')}
-                    </label>
-                    {backup && (
-                      <p className="row">
-                        <button className="btn small" onClick={() => void chooseDisk()}>
-                          <HardDrive size={14} /> {disk ? t('myDrive.diskChange') : t('myDrive.diskChoose')}
-                        </button>
-                        {disk && (
-                          <span className="hint">
-                            {t('myDrive.diskChosen', { name: disk.name })}
-                          </span>
-                        )}
-                      </p>
-                    )}
-                    {backup && <p className="hint">{t('myDrive.backupHint')}</p>}
-                    {!backup && <p className="hint">{t('myDrive.noBackupHint')}</p>}
-                  </>
-                ) : (
-                  <p className="hint">{t('myDrive.noDisk')}</p>
-                )}
-                <label className="check-row">
-                  <input type="checkbox" checked={compress} onChange={(e) => setCompress(e.target.checked)} />
-                  {t('myDrive.compress')}
-                </label>
               </>
             )}
             {quota.before?.limit && (
@@ -408,5 +439,27 @@ export function MyDriveImport({ lib, destId, onDestChange, onBusy, onClose }: Pr
         )}
       </div>
     </>
+  )
+}
+
+/** The "?" by the title: how this import works, step by step. */
+function MyDriveHelp({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation()
+  const v = t('myDrive.help', { returnObjects: true }) as unknown
+  const items = Array.isArray(v) ? (v as { title: string; text: string }[]) : []
+  return (
+    <section className="tree-guide" aria-labelledby="my-drive-help">
+      <h3 id="my-drive-help">{t('myDrive.helpTitle')}</h3>
+      <ol>
+        {items.map((it) => (
+          <li key={it.title}>
+            <strong>{it.title}</strong> — {it.text}
+          </li>
+        ))}
+      </ol>
+      <button className="btn small" onClick={onClose}>
+        {t('common.close')}
+      </button>
+    </section>
   )
 }

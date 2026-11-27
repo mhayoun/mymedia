@@ -21,6 +21,7 @@ interface PickerView {
   setOwnedByMe(on: boolean): PickerView
   setIncludeFolders(on: boolean): PickerView
   setMode(mode: string): PickerView
+  setSelectFolderEnabled(on: boolean): PickerView
 }
 interface PickerBuilder {
   addView(v: PickerView): PickerBuilder
@@ -37,7 +38,7 @@ interface PickerBuilder {
 interface PickerApi {
   PickerBuilder: new () => PickerBuilder
   DocsView: new (viewId: string) => PickerView
-  ViewId: { DOCS_IMAGES_AND_VIDEOS: string }
+  ViewId: { DOCS_IMAGES_AND_VIDEOS: string; FOLDERS: string }
   DocsViewMode: { GRID: string; LIST: string }
   Feature: { MULTISELECT_ENABLED: string }
   Action: { PICKED: string; CANCEL: string }
@@ -78,20 +79,11 @@ export interface Picked {
   parentId?: string
 }
 
-/**
- * Opens Google's window on the photos and videos of the user's own Drive; null when it is closed. As a list
- * (name, date, size): inside MyMedia, Google's window often cannot show its pictures (empty squares).
- */
-export async function pickMyDriveMedia(apiKey: string, opts: { locale: string; title: string }): Promise<Picked[] | null> {
-  await loadPicker()
-  const token = await auth.getToken()
-  const p = pickerApi()!
-  const view = new p.DocsView(p.ViewId.DOCS_IMAGES_AND_VIDEOS).setOwnedByMe(true).setIncludeFolders(true).setMode(p.DocsViewMode.LIST)
+function open(apiKey: string, view: PickerView, multi: boolean, opts: { locale: string; title: string }, token: string, p: PickerApi): Promise<Picked[] | null> {
   return new Promise((resolve) => {
-    let b = new p.PickerBuilder()
-      .addView(view)
-      .enableFeature(p.Feature.MULTISELECT_ENABLED)
-      .setMaxItems(10000)
+    let b = new p.PickerBuilder().addView(view)
+    if (multi) b = b.enableFeature(p.Feature.MULTISELECT_ENABLED).setMaxItems(10000)
+    b = b
       .setOAuthToken(token)
       .setDeveloperKey(apiKey)
       .setLocale(opts.locale)
@@ -106,4 +98,28 @@ export async function pickMyDriveMedia(apiKey: string, opts: { locale: string; t
     if (appId) b = b.setAppId(appId)
     b.build().setVisible(true)
   })
+}
+
+/**
+ * Opens Google's window on the photos and videos of the user's own Drive; null when it is closed. As a list
+ * (name, date, size): inside MyMedia, Google's window often cannot show its pictures (empty squares).
+ */
+export async function pickMyDriveMedia(apiKey: string, opts: { locale: string; title: string }): Promise<Picked[] | null> {
+  await loadPicker()
+  const token = await auth.getToken()
+  const p = pickerApi()!
+  const view = new p.DocsView(p.ViewId.DOCS_IMAGES_AND_VIDEOS).setOwnedByMe(true).setIncludeFolders(true).setMode(p.DocsViewMode.LIST)
+  return open(apiKey, view, true, opts, token, p)
+}
+
+/**
+ * Opens Google's window on the folders of the user's own Drive, to choose one: MyMedia may then read its name
+ * (with MyMedia Free, Google gives the photos chosen, not their folder). Null when it is closed.
+ */
+export async function pickMyDriveFolder(apiKey: string, opts: { locale: string; title: string }): Promise<Picked | null> {
+  await loadPicker()
+  const token = await auth.getToken()
+  const p = pickerApi()!
+  const view = new p.DocsView(p.ViewId.FOLDERS).setOwnedByMe(true).setIncludeFolders(true).setSelectFolderEnabled(true).setMode(p.DocsViewMode.LIST)
+  return (await open(apiKey, view, false, opts, token, p))?.[0] ?? null
 }

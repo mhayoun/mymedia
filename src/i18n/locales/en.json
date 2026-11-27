@@ -1570,7 +1570,6 @@
   },
   "myDrive": {
     "tab": "My photos in Google Drive",
-    "intro": "Choose photos and videos of your Google Drive in Google's window: open a folder, select all (Ctrl+A), then “Select”. Do it again for other folders.\nThey are moved into MyMedia with their date: the same file, only its folder changes (no extra space); it is no longer in its old Google Drive folder. Choosing a folder is not enough: choose the photos themselves.\nGoogle's window shows the list of files (name, date, size): it cannot show the pictures inside MyMedia. To see them, open the folder in Google Drive alongside.",
     "pick": "Choose photos in Google Drive",
     "pickMore": "Choose more photos",
     "pickerTitle": "Open a folder, select the photos (Ctrl+A), then “Select”",
@@ -1592,8 +1591,6 @@
     "diskChoose": "Choose the backup folder",
     "diskChange": "Change folder",
     "diskChosen": "In “{{name}}”, one folder per album",
-    "backupHint": "Each original is written to the disk, then read again and compared with Google's (MD5 fingerprint). Nothing changes in Google Drive before you see the result; only the checked photos are then moved. Once compressed, Drive does not keep their old version: the space is freed at once.",
-    "noBackupHint": "Without a backup, the original of a compressed photo is kept as your compression setting says (by default: old version recoverable for about 30 days; the space is freed only then).",
     "noDisk": "Saving to the disk is only possible on a computer (Chrome or Edge).",
     "compress": "Compress after the move (frees space on Google Drive)",
     "quota": "Google space used: {{used}} of {{total}}",
@@ -1631,6 +1628,40 @@
     "goesTo": "→ {{path}}",
     "movedTo_one": "{{count}} in {{path}}",
     "movedTo_other": "{{count}} in {{path}}",
-    "openAlbum": "Open the album"
+    "openAlbum": "Open the album",
+    "step1": "1. The photos",
+    "step2": "2. Backup of the originals",
+    "short": "Open a folder in Google's window, select all (Ctrl+A), then “Select”.",
+    "nameFromDates": "Name proposed from the photos' dates (Google does not give the folder's name).",
+    "readFolderName": "Use the folder's name",
+    "folderPickerTitle": "Choose the folder of these photos, then “Select”",
+    "helpButton": "Help: import my photos from Google Drive",
+    "helpTitle": "Import my photos from Google Drive",
+    "help": [
+      {
+        "title": "Choose the photos",
+        "text": "In Google's window, open a folder, select all (Ctrl+A or Shift+click), then “Select”. Do it again for other folders. Choosing the folder itself is not enough: choose the photos. The window shows a list (name, date, size), without the pictures: to see them, open the folder in Google Drive alongside. Photos already in MyMedia are left out."
+      },
+      {
+        "title": "Save the originals (advised)",
+        "text": "On a computer, each original is first written to the folder chosen on the disk (one sub-folder per album), then read again and compared with Google's (MD5 fingerprint). The window then stops so you can look: nothing has changed in Google Drive yet. Only the checked photos are then moved, and once compressed, Drive does not keep their old version: the space is freed at once."
+      },
+      {
+        "title": "Without a backup",
+        "text": "The original of a compressed photo is kept as your compression setting says: by default, as an old version recoverable for about 30 days (the space is freed only then)."
+      },
+      {
+        "title": "Where to put them",
+        "text": "Choose the destination, then each folder's album name. Google does not give the original folder's name: MyMedia proposes one from the photos' dates (“2025_08”). “Use the folder's name” opens Google's window on your folders: choose the photos' folder, MyMedia takes its name."
+      },
+      {
+        "title": "Move",
+        "text": "The photos are moved into MyMedia with their date: the same file, only its folder changes (no extra space). It is no longer in its old Google Drive folder."
+      },
+      {
+        "title": "Compress",
+        "text": "After the move, photos and videos are compressed to free space on Google Drive. Those already small or already compressed do not change."
+      }
+    ]
   }
 }

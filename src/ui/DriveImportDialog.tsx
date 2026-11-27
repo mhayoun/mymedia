@@ -1,4 +1,4 @@
-import { ChevronRight, FileText, Folder, Image, ImagePlus, Loader2, Users, Video } from 'lucide-react'
+import { ChevronRight, CircleHelp, FileText, Folder, Image, ImagePlus, Loader2, Users, Video } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DriveFile } from '../drive/api'
@@ -26,10 +26,28 @@ export function DriveImportDialog(props: { lib: Library; destId: string; onClose
   const [source, setSource] = useState<'mine' | 'shared'>('mine')
   const [destId, setDestId] = useState(props.destId)
   const [busy, setBusy] = useState(false)
+  const [help, setHelp] = useState(false)
   const onBusy = useCallback((b: boolean) => setBusy(b), [])
   if (source === 'shared' && door === 'full') return <DriveImport {...props} onMine={() => setSource('mine')} />
   return (
-    <Modal wide title={t('driveImport.title')} onClose={() => !busy && props.onClose()}>
+    <Modal
+      wide
+      title={t('driveImport.title')}
+      onClose={() => !busy && props.onClose()}
+      titleExtra={
+        source === 'mine' ? (
+          <button
+            className={`icon-btn small ${help ? 'active' : ''}`}
+            onClick={() => setHelp((v) => !v)}
+            aria-expanded={help}
+            title={t('myDrive.helpButton')}
+            aria-label={t('myDrive.helpButton')}
+          >
+            <CircleHelp size={18} />
+          </button>
+        ) : undefined
+      }
+    >
       {!busy && (
         <div className="row" role="tablist">
           <button className={`btn ${source === 'mine' ? 'primary' : 'ghost'} small`} role="tab" aria-selected={source === 'mine'} onClick={() => setSource('mine')}>
@@ -41,7 +59,7 @@ export function DriveImportDialog(props: { lib: Library; destId: string; onClose
         </div>
       )}
       {source === 'mine' ? (
-        <MyDriveImport lib={props.lib} destId={destId} onDestChange={setDestId} onBusy={onBusy} onClose={props.onClose} />
+        <MyDriveImport showHelp={help} onHelpClose={() => setHelp(false)} lib={props.lib} destId={destId} onDestChange={setDestId} onBusy={onBusy} onClose={props.onClose} />
       ) : (
         <>
           <ProGate feature={t('driveImport.title')} needsFull />
