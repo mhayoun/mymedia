@@ -137,17 +137,20 @@ export async function moveIntoMyMedia(
   destId: string,
   onProgress: (done: number, failed: number) => void,
   signal: AbortSignal,
-): Promise<{ moved: string[]; failed: number; reason?: string }> {
+): Promise<{ moved: string[]; failed: number; reason?: string; albums: { name: string; id: string; count: number }[] }> {
   const d = db()
   const on = localIso(new Date()).slice(0, 10)
   const moved: string[] = []
   let failed = 0
   let reason: string | undefined
+  const albums: { name: string; id: string; count: number }[] = []
   try {
     for (const g of groups) {
       if (signal.aborted) break
       const album = g.album.trim()
       const to = album ? await ensureFolderPath(destId, [album]) : destId
+      const place = { name: album, id: to, count: 0 }
+      albums.push(place)
       for (const file of g.files) {
         if (signal.aborted) break
         try {
@@ -173,6 +176,7 @@ export async function moveIntoMyMedia(
             })
           }
           moved.push(file.id)
+          place.count++
         } catch (e) {
           console.error('[MyMedia] move into MyMedia failed', file.name, e)
           failed++
@@ -187,7 +191,7 @@ export async function moveIntoMyMedia(
       void syncNow()
     }
   }
-  return { moved, failed, reason }
+  return { moved, failed, reason, albums: albums.filter((a) => a.count) }
 }
 
 /** The groups as entries, to find those already in MyMedia (same fingerprint). */

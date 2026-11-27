@@ -2,7 +2,7 @@
 // Google's window; their originals saved on the computer's disk and checked (optional, ticked by default);
 // then moved into MyMedia (no copy) and compressed (optional, ticked by default).
 
-import { CheckCircle2, FolderDown, HardDrive, ImagePlus, Loader2, XCircle } from 'lucide-react'
+import { CheckCircle2, FolderDown, FolderOpen, HardDrive, ImagePlus, Loader2, XCircle } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -15,6 +15,7 @@ import { useFormat } from '../i18n/format'
 import { canWalkFolders, type FsDir } from '../import/folderWalk'
 import { markDuplicates } from '../import/fromDrive'
 import { describePicked, entriesOf, moveIntoMyMedia, saveOriginal, type PickedGroup, type SaveOutcome } from '../import/fromMyDrive'
+import { placementOf } from '../lib/tree'
 import { useApp } from '../store'
 import { FolderTreePicker } from './FolderTreePicker'
 import type { Library } from './useLibrary'
@@ -52,7 +53,15 @@ export function MyDriveImport({ lib, destId, onDestChange, onBusy, onClose }: Pr
   const [compress, setCompress] = useState(true)
   const [saves, setSaves] = useState<Map<string, SaveOutcome>>(new Map())
   const [progress, setProgress] = useState({ done: 0, total: 0 })
-  const [result, setResult] = useState<{ moved: number; failed: number; reason?: string; compressed?: number; saved?: number; oldKept?: number } | null>(null)
+  const [result, setResult] = useState<{
+    moved: number
+    failed: number
+    reason?: string
+    albums: { name: string; id: string; count: number }[]
+    compressed?: number
+    saved?: number
+    oldKept?: number
+  } | null>(null)
   const [quota, setQuota] = useState<{ before?: DriveQuota; after?: DriveQuota }>({})
   const abort = useRef<AbortController | null>(null)
 
@@ -163,7 +172,7 @@ export function MyDriveImport({ lib, destId, onDestChange, onBusy, onClose }: Pr
         const c = await compressNow(await planMany(recs, 'manual'), saved)
         extra = { compressed: c.count, saved: c.saved, oldKept: c.oldKept }
       }
-      setResult({ moved: r.moved.length, failed: r.failed, reason: r.reason, ...extra })
+      setResult({ moved: r.moved.length, failed: r.failed, reason: r.reason, albums: r.albums, ...extra })
       storageQuota().then((q) => setQuota((cur) => ({ ...cur, after: q })), () => undefined)
     } catch (e) {
       setError(t('errors.generic', { message: (e as Error).message }))
@@ -185,7 +194,24 @@ export function MyDriveImport({ lib, destId, onDestChange, onBusy, onClose }: Pr
     if (phase === 'compressing') cancelCompression()
   }
 
-  const canStart = todoFiles.length > 0 && (!backup || !!disk)
+  /** Every group needs its album's name (Google often does not give its folder's). */
+  const unnamed = todo.filter((g) => !g.album.trim()).length
+  const canStart = todoFiles.length > 0 && !unnamed && (!backup || !!disk)
+
+  /** "MyMedia / Birds / testBirds": where a folder of MyMedia is. */
+  function pathOf(id: string, album = ''): string {
+    const names: string[] = []
+    for (let cur = lib.folders.get(id); cur && cur.id !== rootId; cur = cur.parentId ? lib.folders.get(cur.parentId) : undefined) names.unshift(cur.name)
+    return [rootName, ...names, ...(album ? [album] : [])].join(' / ')
+  }
+
+  /** The album the files went to, shown (the window closes). */
+  function openAlbum(id: string) {
+    const target = lib.folders.has(id) ? id : destId
+    const { categoryId, albumId } = target === rootId ? { categoryId: null, albumId: null } : placementOf(target, lib.folders, rootId)
+    useApp.getState().setFilters({ categoryId, albumId, personId: null, provenance: null })
+    onClose()
+  }
   const failedSaves = todoFiles.filter((f) => {
     const s = saves.get(f.id)?.status
     return s === 'mismatch' || s === 'error'
@@ -207,24 +233,31 @@ export function MyDriveImport({ lib, destId, onDestChange, onBusy, onClose }: Pr
                   <strong>{t('myDrive.chosen', { count: todoFiles.length, size: fmt.bytes(sizeOf(todoFiles)) })}</strong>
                 </p>
                 {dup.size > 0 && <p className="hint">{t('myDrive.dups', { count: dup.size })}</p>}
-                {todo.map((g) => (
-                  <div key={g.key} className="field">
-                    <span>
-                      {g.folderName ? t('myDrive.fromFolder', { name: g.folderName }) : t('myDrive.fromUnknown')} ·{' '}
-                      {t('myDrive.files', { count: g.files.length, size: fmt.bytes(sizeOf(g.files)) })}
-                    </span>
-                    <input
-                      value={g.album}
-                      placeholder={t('myDrive.albumPlaceholder')}
-                      aria-label={t('myDrive.album')}
-                      onChange={(e) => setGroups((cur) => cur.map((x) => (x.key === g.key ? { ...x, album: e.target.value } : x)))}
-                    />
+                <section className="disk-sync-part">
+                  <h3>{t('myDrive.whereTitle')}</h3>
+                  <div className="field">
+                    {t('driveImport.dest')}
+                    <FolderTreePicker categories={lib.categories} value={destId} onChange={onDestChange} root={{ id: rootId, label: <bdi>{rootName}</bdi> }} />
                   </div>
-                ))}
-                <div className="field">
-                  {t('driveImport.dest')}
-                  <FolderTreePicker categories={lib.categories} value={destId} onChange={onDestChange} root={{ id: rootId, label: <bdi>{rootName}</bdi> }} />
-                </div>
+                  {todo.map((g) => (
+                    <div key={g.key} className="field">
+                      <span>
+                        {g.folderName ? t('myDrive.fromFolder', { name: g.folderName }) : t('myDrive.fromUnknown')} ·{' '}
+                        {t('myDrive.files', { count: g.files.length, size: fmt.bytes(sizeOf(g.files)) })}
+                      </span>
+                      <input
+                        value={g.album}
+                        required
+                        placeholder={t('myDrive.albumPlaceholder')}
+                        aria-label={t('myDrive.album')}
+                        aria-invalid={!g.album.trim()}
+                        onChange={(e) => setGroups((cur) => cur.map((x) => (x.key === g.key ? { ...x, album: e.target.value } : x)))}
+                      />
+                      {!g.album.trim() && <span className="hint">{t('myDrive.albumNeeded')}</span>}
+                      {g.album.trim() && <span className="hint">{t('myDrive.goesTo', { path: pathOf(destId, g.album.trim()) })}</span>}
+                    </div>
+                  ))}
+                </section>
                 {onDisk ? (
                   <>
                     <label className="check-row">
@@ -317,6 +350,14 @@ export function MyDriveImport({ lib, destId, onDestChange, onBusy, onClose }: Pr
             <p className="ok-text">
               <CheckCircle2 size={16} /> {t('myDrive.moved', { count: result.moved })}
             </p>
+            {result.albums.map((a) => (
+              <p key={a.id} className="row">
+                <span>{t('myDrive.movedTo', { count: a.count, path: pathOf(destId, a.name) })}</span>
+                <button className="btn small" onClick={() => openAlbum(a.id)}>
+                  <FolderOpen size={14} /> {t('myDrive.openAlbum')}
+                </button>
+              </p>
+            ))}
             {result.failed > 0 && <p className="error-text">{t('myDrive.moveFailed', { count: result.failed, reason: result.reason ?? '?' })}</p>}
             {result.compressed !== undefined && (
               <p className="ok-text">{t('myDrive.compressed', { count: result.compressed, saved: fmt.bytes(result.saved ?? 0) })}</p>

@@ -951,7 +951,7 @@
   },
   "driveImport": {
     "button": "מ-Google Drive",
-    "buttonHint": "התמונות שלכם ב-Google Drive (מועברות ל-MyMedia, בלי העתקה), או קבצים שחשבון Google אחר שיתף איתכם.",
+    "buttonHint": "התמונות שלכם ב-Google Drive (מועברות ל-MyMedia: אותו קובץ עובר תיקייה), או קבצים שחשבון Google אחר שיתף איתכם.",
     "title": "ייבוא מ-Google Drive",
     "hint": "קבצים ותיקיות שחשבונות Google אחרים שיתפו עם החשבון הזה. Google מעתיק אותם ישירות ל-MyMedia: שום דבר לא עובר דרך המכשיר, והמקור נשאר בחשבון השני.\nלא ברשימה? ב-Google Drive של החשבון השני: לחיצה ימנית ← שיתוף, והוספת הכתובת של החשבון הזה.",
     "where": "מיקום",
@@ -1697,7 +1697,7 @@
   },
   "myDrive": {
     "tab": "התמונות שלי ב-Google Drive",
-    "intro": "בחרו תמונות וסרטונים מה-Google Drive שלכם בחלון של Google: פתחו תיקייה, בחרו הכול (Ctrl+A) ואז „בחירה“. חזרו על זה לתיקיות נוספות.\nהם מועברים ל-MyMedia (אותו קובץ, בלי העתקה: בלי מקום נוסף), עם התאריך שלהם. בחירת תיקייה לא מספיקה: צריך לבחור את התמונות עצמן.\nהחלון של Google מציג את רשימת הקבצים (שם, תאריך, גודל): הוא לא יכול להציג את התמונות בתוך MyMedia. כדי לראות אותן, פתחו את התיקייה ב-Google Drive במקביל.",
+    "intro": "בחרו תמונות וסרטונים מה-Google Drive שלכם בחלון של Google: פתחו תיקייה, בחרו הכול (Ctrl+A) ואז „בחירה“. חזרו על זה לתיקיות נוספות.\nהם מועברים ל-MyMedia עם התאריך שלהם: אותו קובץ, רק התיקייה שלו משתנה (בלי מקום נוסף); הוא כבר לא בתיקייה הקודמת שלו ב-Google Drive. בחירת תיקייה לא מספיקה: צריך לבחור את התמונות עצמן.\nהחלון של Google מציג את רשימת הקבצים (שם, תאריך, גודל): הוא לא יכול להציג את התמונות בתוך MyMedia. כדי לראות אותן, פתחו את התיקייה ב-Google Drive במקביל.",
     "pick": "בחירת תמונות ב-Google Drive",
     "pickMore": "בחירת תמונות נוספות",
     "pickerTitle": "פתחו תיקייה, בחרו את התמונות (Ctrl+A) ואז „בחירה“",
@@ -1714,7 +1714,7 @@
     "files_one": "קובץ {{count}}, {{size}}",
     "files_other": "{{count}} קבצים, {{size}}",
     "album": "אלבום",
-    "albumPlaceholder": "שם האלבום (ריק: ישירות ביעד)",
+    "albumPlaceholder": "שם האלבום",
     "backup": "קודם לשמור את המקוריים בדיסק של המחשב הזה",
     "diskChoose": "בחירת תיקיית הגיבוי",
     "diskChange": "החלפת תיקייה",
@@ -1744,14 +1744,20 @@
     "transferCompress_other": "העברה ודחיסה של {{count}} קבצים שנבדקו",
     "moving": "העברה ל-MyMedia… {{done}} / {{total}}",
     "compressing": "דחיסה… {{done}} / {{total}} (נחסכו {{saved}})",
-    "moved_one": "קובץ {{count}} הועבר ל-MyMedia (בלי העתקה).",
-    "moved_other": "{{count}} קבצים הועברו ל-MyMedia (בלי העתקה).",
+    "moved_one": "קובץ {{count}} הועבר ל-MyMedia (הוא כבר לא בתיקייה הקודמת שלו ב-Google Drive).",
+    "moved_other": "{{count}} קבצים הועברו ל-MyMedia (הם כבר לא בתיקייה הקודמת שלהם ב-Google Drive).",
     "moveFailed_one": "לא ניתן היה להעביר קובץ {{count}}. פירוט מ-Google: {{reason}}",
     "moveFailed_other": "לא ניתן היה להעביר {{count}} קבצים. פירוט מ-Google: {{reason}}",
     "compressed_one": "קובץ {{count}} נדחס: התפנו {{saved}} ב-Google Drive.",
     "compressed_other": "{{count}} קבצים נדחסו: התפנו {{saved}} ב-Google Drive.",
     "oldKept_one": "Google שמר את הגרסה הישנה של קובץ {{count}}: המקום שלו יתפנה בעוד כ-30 יום.",
     "oldKept_other": "Google שמר את הגרסה הישנה של {{count}} קבצים: המקום שלהם יתפנה בעוד כ-30 יום.",
-    "quotaAfter": "מקום בשימוש ב-Google: {{before}} לפני, {{after}} עכשיו (ייתכן ש-Google יחשב מחדש תוך כמה דקות)."
+    "quotaAfter": "מקום בשימוש ב-Google: {{before}} לפני, {{after}} עכשיו (ייתכן ש-Google יחשב מחדש תוך כמה דקות).",
+    "whereTitle": "איפה לשים אותם ב-MyMedia",
+    "albumNeeded": "Google לא מוסר את שם התיקייה: הקלידו את שם האלבום.",
+    "goesTo": "← {{path}}",
+    "movedTo_one": "{{count}} ב-{{path}}",
+    "movedTo_other": "{{count}} ב-{{path}}",
+    "openAlbum": "פתיחת האלבום"
   }
 }
