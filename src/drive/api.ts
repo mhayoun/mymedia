@@ -549,6 +549,36 @@ export async function keepPreviousVersion(id: string): Promise<void> {
   })
 }
 
+/**
+ * Deletes the versions Drive keeps before the current content (the original of a compressed file, once it is
+ * saved elsewhere): its place is freed at once instead of after about 30 days. Returns how many were deleted.
+ */
+export async function deleteOlderVersions(id: string): Promise<number> {
+  const list = (await listRevisions(id)).sort((a, b) => a.modifiedTime.localeCompare(b.modifiedTime))
+  let n = 0
+  for (const r of list.slice(0, -1)) {
+    await request(`${API}/files/${id}/revisions/${r.id}`, { method: 'DELETE' })
+    n++
+  }
+  return n
+}
+
+/**
+ * Moves a file of the user's own Drive into a folder of MyMedia (same file, no copy, no place used), with the
+ * app properties MyMedia keeps (its date…). `fromFolderIds` are the folders it leaves.
+ */
+export async function adoptFile(id: string, toFolderId: string, fromFolderIds: string[], appProperties: Record<string, string>): Promise<DriveFile> {
+  const params = new URLSearchParams({ addParents: toFolderId, supportsAllDrives: 'true', fields: FILE_FIELDS })
+  const from = fromFolderIds.filter((f) => f !== toFolderId)
+  if (from.length) params.set('removeParents', from.join(','))
+  const res = await request(`${API}/files/${id}?${params}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(withPublicProps({ appProperties })),
+  })
+  return mergeProps(await res.json())
+}
+
 /** Finds (or creates) a chain of folders below parentId, e.g. ["_Originals", "Birds", "דוכיפת"]. */
 export async function ensureFolderPath(parentId: string, names: string[]): Promise<string> {
   let current = parentId

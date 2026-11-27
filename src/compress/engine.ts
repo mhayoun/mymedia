@@ -5,7 +5,7 @@
 // The file keeps its Drive id, so album, description and classification stay.
 
 import { db, type MediaRecord } from '../db/db'
-import { copyFile, downloadBlob, downloadRange, ensureFolderPath, keepPreviousVersion, uploadNewContent, type DriveFile } from '../drive/api'
+import { copyFile, deleteOlderVersions, downloadBlob, downloadRange, ensureFolderPath, keepPreviousVersion, uploadNewContent, type DriveFile } from '../drive/api'
 import { isJpegMime, planCompression, type Plan, type PlanInput, type SkipReason } from '../lib/compressPlan'
 import { estimateJpegQuality } from '../lib/jpeg'
 import { placementOf } from '../lib/tree'
@@ -103,8 +103,11 @@ function outputName(rec: MediaRecord): { name: string; mimeType: string } {
   return { name: isJpegMime(rec.mimeType, rec.name) ? rec.name : rec.name.replace(/\.[^.]+$/, '') + '.jpg', mimeType: 'image/jpeg' }
 }
 
-/** Compresses one media. Returns its new size, or null when it was kept unchanged. */
-async function compressOne(rec: MediaRecord, signal: AbortSignal, onFile: (p: number) => void): Promise<number | null> {
+/**
+ * Compresses one media. Returns its new size, or null when it was kept unchanged. `saved`: its original is
+ * already saved elsewhere (on the computer's disk, checked): Drive does not keep it (place freed at once).
+ */
+async function compressOne(rec: MediaRecord, signal: AbortSignal, onFile: (p: number) => void, saved = false): Promise<number | null> {
   const s = app().settings.compress
   let blob: Blob
   if (rec.type === 'photo') {
@@ -122,7 +125,7 @@ async function compressOne(rec: MediaRecord, signal: AbortSignal, onFile: (p: nu
   }
 
   const rootId = app().rootId!
-  if (s.keepOriginal === 'folder') {
+  if (s.keepOriginal === 'folder' && !saved) {
     const folders = new Map((await db().folders.toArray()).map((f) => [f.id, f]))
     const p = placementOf(rec.folderId, folders, rootId)
     const path = [ORIGINALS, ...[p.category, ...(p.album?.split(' / ') ?? [])].filter((x): x is string => !!x)]
@@ -147,7 +150,10 @@ async function compressOne(rec: MediaRecord, signal: AbortSignal, onFile: (p: nu
     (p) => onFile(0.5 + p * 0.5),
     signal,
   )
-  if (s.keepOriginal === 'both') await keepPreviousVersion(rec.id).catch((e) => console.warn('[MyMedia] keep version failed', e))
+  if (saved) {
+    // The original stays on the disk: its old version in Drive is not needed.
+    if (!(await deleteOlderVersions(rec.id).catch((e) => (console.warn('[MyMedia] old version not deleted', rec.name, e), 0)))) oldKept.add(rec.id)
+  } else if (s.keepOriginal === 'both') await keepPreviousVersion(rec.id).catch((e) => console.warn('[MyMedia] keep version failed', e))
 
   // Same picture: carry the fingerprint over to the new version instead of recomputing it.
   const d = db()
@@ -167,10 +173,13 @@ async function compressOne(rec: MediaRecord, signal: AbortSignal, onFile: (p: nu
   return blob.size
 }
 
+/** Compressed with `saved` whose old version Drive refused to delete (kept about 30 days). */
+const oldKept = new Set<string>()
+
 export type Outcome = { status: 'done'; after: number } | { status: 'nogain' } | { status: 'error'; reason?: string } | { status: 'pending' }
 
 /** Runs compressions one after another; each file's outcome is published as it finishes. */
-function runQueue(items: MediaRecord[]): Promise<{ count: number; saved: number }> {
+function runQueue(items: MediaRecord[], savedOriginals: Set<string> = new Set()): Promise<{ count: number; saved: number }> {
   let result = { count: 0, saved: 0 }
   const outcome = (id: string, o: Outcome) => app().set({ compressOutcome: { ...app().compressOutcome, [id]: o } })
   for (const rec of items) outcome(rec.id, { status: 'pending' })
@@ -182,8 +191,11 @@ function runQueue(items: MediaRecord[]): Promise<{ count: number; saved: number 
       if (signal.aborted) break
       app().set({ compressing: { done, total: items.length, name: rec.name, fileProgress: 0, saved: result.saved } })
       try {
-        const after = await compressOne(rec, signal, (p) =>
-          app().set({ compressing: { done, total: items.length, name: rec.name, fileProgress: p, saved: result.saved } }),
+        const after = await compressOne(
+          rec,
+          signal,
+          (p) => app().set({ compressing: { done, total: items.length, name: rec.name, fileProgress: p, saved: result.saved } }),
+          savedOriginals.has(rec.id),
         )
         if (after === null) outcome(rec.id, { status: 'nogain' })
         else {
@@ -252,10 +264,17 @@ export async function decline(ids: string[]) {
   if (ids.length) await markMetaDirty()
 }
 
-/** Compresses the chosen media (after the user saw the list and the estimate). */
-export async function compressNow(planned: Planned[]): Promise<{ count: number; saved: number }> {
+/**
+ * Compresses the chosen media (after the user saw the list and the estimate). `savedOriginals`: those whose
+ * original is saved on the computer's disk (checked): Drive does not keep their old version. `oldKept` then
+ * tells those whose old version Drive kept anyway.
+ */
+export async function compressNow(planned: Planned[], savedOriginals?: Set<string>): Promise<{ count: number; saved: number; oldKept: number }> {
   await recordSkips(planned)
-  return runQueue(planned.filter((p) => p.plan.ok).map((p) => p.rec))
+  const items = planned.filter((p) => p.plan.ok).map((p) => p.rec)
+  for (const r of items) oldKept.delete(r.id)
+  const r = await runQueue(items, savedOriginals)
+  return { ...r, oldKept: items.filter((i) => oldKept.has(i.id)).length }
 }
 
 export function cancelCompression() {

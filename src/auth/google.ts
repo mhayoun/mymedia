@@ -192,6 +192,12 @@ class GoogleAuth {
     return savedDoor(email) ?? 'full'
   }
 
+  /** The Google project of the current token, by its number (the start of its client ID), e.g. for Google's file window. */
+  get projectNumber(): string {
+    const id = this.door === 'free' ? this.clientIds.free : this.project === 'pro' && this.hasProProject ? this.clientIds.pro : this.clientIds.full
+    return id.split('-')[0] ?? ''
+  }
+
   /** MyMedia Pro is set up in config.json (else the full door is always "MyMedia"). */
   get hasProProject(): boolean {
     return !isNative && !!this.clientIds.pro

@@ -1,5 +1,5 @@
-import { ChevronRight, FileText, Folder, Image, Loader2, Video } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { ChevronRight, FileText, Folder, Image, ImagePlus, Loader2, Users, Video } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DriveFile } from '../drive/api'
 import { useFormat } from '../i18n/format'
@@ -9,30 +9,54 @@ import { useApp } from '../store'
 import { albumDirs } from '../lib/folderNames'
 import { Modal } from './Dialog'
 import { FolderTreePicker } from './FolderTreePicker'
+import { MyDriveImport } from './MyDriveImport'
 import { ProGate } from './ProDialog'
 import type { Library } from './useLibrary'
 
 type Phase = 'browse' | 'collect' | 'propose' | 'copy' | 'done'
 
-/** Import → "From Google Drive": files other accounts shared with this one, copied by Google into MyMedia. */
-/** Files of other folders or accounts: only the full Drive access (Pro) sees them. */
+/**
+ * Import → "From Google Drive": "My photos in Google Drive" (chosen in Google's window, moved into MyMedia: any
+ * access, MyMedia Free too), or the files other accounts shared with this one, copied by Google into MyMedia
+ * (only the full Drive access, Pro, sees them).
+ */
 export function DriveImportDialog(props: { lib: Library; destId: string; onClose: () => void }) {
   const { t } = useTranslation()
   const door = useApp((s) => s.door)
-  if (door === 'full') return <DriveImport {...props} />
+  const [source, setSource] = useState<'mine' | 'shared'>('mine')
+  const [destId, setDestId] = useState(props.destId)
+  const [busy, setBusy] = useState(false)
+  const onBusy = useCallback((b: boolean) => setBusy(b), [])
+  if (source === 'shared' && door === 'full') return <DriveImport {...props} onMine={() => setSource('mine')} />
   return (
-    <Modal title={t('driveImport.title')} onClose={props.onClose}>
-      <ProGate feature={t('driveImport.title')} needsFull />
-      <div className="actions">
-        <button className="btn" onClick={props.onClose}>
-          {t('common.close')}
-        </button>
-      </div>
+    <Modal wide title={t('driveImport.title')} onClose={() => !busy && props.onClose()}>
+      {!busy && (
+        <div className="row" role="tablist">
+          <button className={`btn ${source === 'mine' ? 'primary' : 'ghost'} small`} role="tab" aria-selected={source === 'mine'} onClick={() => setSource('mine')}>
+            <ImagePlus size={14} /> {t('myDrive.tab')}
+          </button>
+          <button className={`btn ${source === 'shared' ? 'primary' : 'ghost'} small`} role="tab" aria-selected={source === 'shared'} onClick={() => setSource('shared')}>
+            <Users size={14} /> {t('driveImport.shared')}
+          </button>
+        </div>
+      )}
+      {source === 'mine' ? (
+        <MyDriveImport lib={props.lib} destId={destId} onDestChange={setDestId} onBusy={onBusy} onClose={props.onClose} />
+      ) : (
+        <>
+          <ProGate feature={t('driveImport.title')} needsFull />
+          <div className="actions">
+            <button className="btn" onClick={props.onClose}>
+              {t('common.close')}
+            </button>
+          </div>
+        </>
+      )}
     </Modal>
   )
 }
 
-function DriveImport({ lib, destId: initialDest, onClose }: { lib: Library; destId: string; onClose: () => void }) {
+function DriveImport({ lib, destId: initialDest, onClose, onMine }: { lib: Library; destId: string; onClose: () => void; onMine: () => void }) {
   const { t } = useTranslation()
   const fmt = useFormat()
   const rootId = useApp((s) => s.rootId)!
@@ -138,6 +162,14 @@ function DriveImport({ lib, destId: initialDest, onClose }: { lib: Library; dest
       <div className="modal-scroll">
         {phase === 'browse' && (
           <>
+            <div className="row" role="tablist">
+              <button className="btn ghost small" role="tab" aria-selected={false} onClick={onMine}>
+                <ImagePlus size={14} /> {t('myDrive.tab')}
+              </button>
+              <button className="btn primary small" role="tab" aria-selected>
+                <Users size={14} /> {t('driveImport.shared')}
+              </button>
+            </div>
             <p className="hint" style={{ whiteSpace: 'pre-line' }}>{t('driveImport.hint')}</p>
             <nav className="row" aria-label={t('driveImport.where')}>
               <button className="btn ghost" onClick={() => setPath([])} disabled={!path.length}>
