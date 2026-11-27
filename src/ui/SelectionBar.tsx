@@ -1,10 +1,12 @@
-import { CalendarClock, CheckSquare, FolderInput, FolderPlus, Minimize2, Pencil, RotateCcw, RotateCw, Trash2, UserPlus, X } from 'lucide-react'
+import { CalendarClock, CheckSquare, FolderInput, FolderPlus, HardDriveDownload, Minimize2, Pencil, RotateCcw, RotateCw, Trash2, UserPlus, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { app, useApp } from '../store'
 import { addPersonByHand, setDescription, trashMedia } from '../sync/media'
 import { canRotate, rotateMedia } from '../sync/rotate'
 import { CompressDialog } from './CompressDialog'
+import { DiskBackupDialog } from './DiskBackup'
+import { canWalkFolders } from '../import/folderWalk'
 import { DateDialog } from './DateDialog'
 import { ConfirmDialog, PromptDialog } from './Dialog'
 import { MoveMediaDialog } from './MoveMediaDialog'
@@ -12,7 +14,7 @@ import { NewAlbumDialog } from './NewAlbumDialog'
 import type { Library, LibraryItem } from './useLibrary'
 import type { People } from './usePeople'
 
-type Action = 'move' | 'newAlbum' | 'description' | 'person' | 'compress' | 'date' | 'delete' | null
+type Action = 'move' | 'newAlbum' | 'description' | 'person' | 'compress' | 'backup' | 'date' | 'delete' | null
 
 /** Actions on the selected media (bottom bar). */
 export function SelectionBar({ lib, people, items, parentId }: { lib: Library; people: People; items: LibraryItem[]; parentId: string }) {
@@ -95,6 +97,11 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
             <button className="btn" onClick={() => setAction('compress')}>
               <Minimize2 size={16} /> <span className="only-desktop">{t('compress.button')}</span>
             </button>
+            {canWalkFolders() && (
+              <button className="btn" onClick={() => setAction('backup')} title={t('backup.buttonTitle')}>
+                <HardDriveDownload size={16} /> <span className="only-desktop">{t('backup.button')}</span>
+              </button>
+            )}
             <button className="btn" onClick={() => setAction('date')} title={t('dates.change')}>
               <CalendarClock size={16} /> <span className="only-desktop">{t('dates.change')}</span>
             </button>
@@ -139,6 +146,9 @@ export function SelectionBar({ lib, people, items, parentId }: { lib: Library; p
           }}
           onClose={() => setAction(null)}
         />
+      )}
+      {action === 'backup' && (
+        <DiskBackupDialog title={t('backup.selectionTitle', { count: ids.length })} recs={selectedItems.map((i) => i.rec)} onClose={() => setAction(null)} />
       )}
       {action === 'compress' && (
         <CompressDialog mode="manual" title={t('select.compressTitle', { count: ids.length })} items={selectedItems.map((i) => i.rec)} onClose={() => setAction(null)} />

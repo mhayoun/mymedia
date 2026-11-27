@@ -1585,31 +1585,20 @@
     "files_other": "{{count}} fichiers, {{size}}",
     "album": "Album",
     "albumPlaceholder": "Nom de l'album",
-    "backup": "Sauvegarder d'abord les originaux sur le disque de cet ordinateur",
     "diskChoose": "Choisir le dossier de sauvegarde",
     "diskChange": "Changer de dossier",
     "diskChosen": "Dans « {{name}} », un dossier par album",
     "noDisk": "La sauvegarde sur le disque n'est possible que sur un ordinateur (Chrome ou Edge).",
     "compress": "Compresser après le déplacement (libère de la place sur Google Drive)",
     "quota": "Espace Google utilisé : {{used}} sur {{total}}",
-    "startSave_one": "Sauvegarder {{count}} original",
-    "startSave_other": "Sauvegarder {{count}} originaux",
     "startMove_one": "Déplacer {{count}} fichier dans MyMedia",
     "startMove_other": "Déplacer {{count}} fichiers dans MyMedia",
     "saving": "Sauvegarde et vérification sur le disque… {{done}} / {{total}}",
     "verified_one": "{{count}} sur {{total}} vérifié sur le disque (dossier « {{disk}} »).",
     "verified_other": "{{count}} sur {{total}} vérifiés sur le disque (dossier « {{disk}} »).",
-    "notVerified_one": "{{count}} fichier n'est pas vérifié : il ne sera pas déplacé.",
-    "notVerified_other": "{{count}} fichiers ne sont pas vérifiés : ils ne seront pas déplacés.",
     "mismatch": "la copie sur le disque n'est pas identique",
-    "checkHint": "Vous pouvez ouvrir le dossier « {{disk}} » sur l'ordinateur pour regarder les photos avant de continuer. Rien n'a encore changé dans Google Drive.",
     "retry_one": "Réessayer {{count}} fichier",
     "retry_other": "Réessayer {{count}} fichiers",
-    "stopHere": "S'arrêter là",
-    "transfer_one": "Déplacer {{count}} fichier vérifié dans MyMedia",
-    "transfer_other": "Déplacer {{count}} fichiers vérifiés dans MyMedia",
-    "transferCompress_one": "Déplacer et compresser {{count}} fichier vérifié",
-    "transferCompress_other": "Déplacer et compresser {{count}} fichiers vérifiés",
     "moving": "Déplacement dans MyMedia… {{done}} / {{total}}",
     "compressing": "Compression… {{done}} / {{total}} ({{saved}} gagnés)",
     "moved_one": "{{count}} fichier déplacé dans MyMedia (il n'est plus dans son ancien dossier de Google Drive).",
@@ -1628,7 +1617,6 @@
     "movedTo_other": "{{count}} dans {{path}}",
     "openAlbum": "Ouvrir l'album",
     "step1": "1. Les photos",
-    "step2": "2. Sauvegarde des originaux",
     "short": "Ouvrez un dossier dans la fenêtre de Google, sélectionnez tout (Ctrl+A), puis « Sélectionner ».",
     "nameFromDates": "Nom proposé d'après les dates des photos (Google ne donne pas le nom du dossier).",
     "readFolderName": "Prendre le nom du dossier",
@@ -1638,15 +1626,11 @@
     "help": [
       {
         "title": "Choisir les photos",
-        "text": "Dans la fenêtre de Google, ouvrez un dossier, sélectionnez tout (Ctrl+A ou Maj+clic), puis « Sélectionner ». Recommencez pour d'autres dossiers. Choisir le dossier lui-même ne suffit pas : il faut choisir les photos. La fenêtre montre une liste (nom, date, taille), sans les images : pour les voir, ouvrez le dossier dans Google Drive à côté. Les photos déjà dans MyMedia sont laissées de côté."
+        "text": "Dans la fenêtre de Google, ouvrez un dossier, sélectionnez tout (Ctrl+A ou Maj+clic), puis « Sélectionner ». Recommencez pour d'autres dossiers. Choisir le dossier lui-même ne suffit pas : il faut choisir les photos. La fenêtre montre une liste (nom, date, taille), sans les images : pour les voir, ouvrez le dossier dans Google Drive à côté. Les photos choisies servent aux deux onglets : sauvegarde et import."
       },
       {
-        "title": "Sauvegarder les originaux (conseillé)",
-        "text": "Sur un ordinateur, chaque original est d'abord enregistré dans le dossier choisi sur le disque (un sous-dossier par album), puis relu et comparé à celui de Google (empreinte MD5). La fenêtre s'arrête alors pour que vous regardiez : rien n'a encore changé dans Google Drive. Seules les photos vérifiées sont ensuite déplacées, et une fois compressées, Drive ne garde pas leur ancienne version : la place est libérée tout de suite."
-      },
-      {
-        "title": "Sans sauvegarde",
-        "text": "L'original d'une photo compressée est gardé selon votre réglage de compression : par défaut, comme ancienne version récupérable environ 30 jours (la place n'est libérée qu'ensuite)."
+        "title": "Sauvegarder sur le disque (conseillé)",
+        "text": "Onglet « Sauvegarder sur le disque », sur un ordinateur : chaque original est écrit dans le dossier choisi (un sous-dossier par dossier de Drive), puis relu et comparé à celui de Google (empreinte MD5). Rien ne change dans Google Drive ni dans MyMedia. MyMedia retient sur cet ordinateur les photos vérifiées. Le bouton « Sauvegarder » de la barre du haut fait de même pour un album, une catégorie ou une sélection de MyMedia."
       },
       {
         "title": "Où les mettre",
@@ -1654,12 +1638,44 @@
       },
       {
         "title": "Déplacer",
-        "text": "Les photos sont déplacées dans MyMedia avec leur date : c'est le même fichier, qui change seulement de dossier (aucune place en plus). Il n'est plus dans son ancien dossier de Google Drive."
+        "text": "Les photos sont déplacées dans MyMedia avec leur date : c'est le même fichier, qui change seulement de dossier (aucune place en plus). Il n'est plus dans son ancien dossier de Google Drive. Celles déjà dans MyMedia sont laissées de côté."
       },
       {
         "title": "Compresser",
-        "text": "Après le déplacement, les photos et vidéos sont compressées pour libérer de la place sur Google Drive. Celles qui sont déjà petites ou déjà compressées ne changent pas."
+        "text": "Après le déplacement, les photos et vidéos sont compressées pour libérer de la place sur Google Drive. Celles qui sont sauvegardées et vérifiées sur le disque ne gardent pas leur ancienne version : la place est libérée tout de suite. Les autres gardent leur original selon votre réglage de compression (par défaut environ 30 jours). Celles qui sont déjà petites ou déjà compressées ne changent pas."
       }
-    ]
+    ],
+    "savedTitle": "2. Sauvegarde sur le disque",
+    "allSaved_one": "{{count}} fichier est sauvegardé et vérifié sur le disque (le {{on}}) : Drive ne gardera pas son ancienne version, la place est libérée tout de suite.",
+    "allSaved_other": "Les {{count}} fichiers sont sauvegardés et vérifiés sur le disque (le {{on}}) : Drive ne gardera pas leur ancienne version, la place est libérée tout de suite.",
+    "someSaved_one": "{{count}} sur {{total}} est sauvegardé sur le disque. Pour les autres, l'original sera gardé selon votre réglage de compression (par défaut environ 30 jours dans Drive).",
+    "someSaved_other": "{{count}} sur {{total}} sont sauvegardés sur le disque. Pour les autres, l'original sera gardé selon votre réglage de compression (par défaut environ 30 jours dans Drive).",
+    "noneSaved_one": "Ce fichier n'est pas sauvegardé sur le disque de cet ordinateur. Son original sera gardé selon votre réglage de compression (par défaut environ 30 jours dans Drive).",
+    "noneSaved_other": "Ces {{count}} fichiers ne sont pas sauvegardés sur le disque de cet ordinateur. Leur original sera gardé selon votre réglage de compression (par défaut environ 30 jours dans Drive).",
+    "backupFirst": "Sauvegarder d'abord sur le disque",
+    "startMoveCompress_one": "Déplacer et compresser {{count}} fichier",
+    "startMoveCompress_other": "Déplacer et compresser {{count}} fichiers"
+  },
+  "backup": {
+    "tab": "Sauvegarder sur le disque",
+    "button": "Sauvegarder",
+    "buttonTitle": "Sauvegarder les originaux sur le disque de cet ordinateur",
+    "titleFor": "Sauvegarder « {{name}} » sur le disque",
+    "selectionTitle_one": "Sauvegarder {{count}} élément sur le disque",
+    "selectionTitle_other": "Sauvegarder {{count}} éléments sur le disque",
+    "what_one": "{{count}} photo ou vidéo ({{size}})",
+    "what_other": "{{count}} photos et vidéos ({{size}})",
+    "libraryHint": "Chaque fichier est écrit dans le dossier choisi (un sous-dossier par catégorie et par album), puis relu et vérifié. Pour une photo compressée, MyMedia écrit son original tant que Google Drive le garde, sinon la version compressée.",
+    "namesTitle": "Dossiers sur le disque",
+    "folderName": "Nom du dossier sur le disque",
+    "diskTitle": "Dossier de sauvegarde",
+    "start_one": "Sauvegarder {{count}} fichier",
+    "start_other": "Sauvegarder {{count}} fichiers",
+    "current_one": "{{count}} photo compressée n'a plus son original dans Google Drive : sa version compressée a été sauvegardée.",
+    "current_other": "{{count}} photos compressées n'ont plus leur original dans Google Drive : leur version compressée a été sauvegardée.",
+    "failed_one": "{{count}} fichier n'est pas vérifié :",
+    "failed_other": "{{count}} fichiers ne sont pas vérifiés :",
+    "checkHint": "Vous pouvez ouvrir le dossier « {{disk}} » sur l'ordinateur pour regarder les photos. Rien n'a changé dans Google Drive ni dans MyMedia.",
+    "thenImport": "Importer ces photos dans MyMedia"
   }
 }

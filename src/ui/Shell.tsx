@@ -1,4 +1,4 @@
-import { Brain, Check, ListChecks, ChevronDown, ChevronUp, CircleHelp, Search, Eye, FolderInput, FolderSync, FolderPlus, ImagePlus, Link2, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Settings as SettingsIcon, Store, Trash2, UserPlus, UserRound, X } from 'lucide-react'
+import { Brain, Check, ListChecks, ChevronDown, ChevronUp, CircleHelp, Search, Eye, FolderInput, FolderSync, FolderPlus, HardDriveDownload, ImagePlus, Link2, Loader2, Minimize2, Pause, Menu, Pencil, RefreshCw, Settings as SettingsIcon, Store, Trash2, UserPlus, UserRound, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
@@ -15,6 +15,8 @@ import { findSharedLibraries, openLibrary } from '../sync/library'
 import { cancelSync, syncNow } from '../sync/engine'
 import { ActivityDialog } from './ActivityDialog'
 import { CompressDialog } from './CompressDialog'
+import { DiskBackupDialog } from './DiskBackup'
+import { canWalkFolders } from '../import/folderWalk'
 import { ConfirmDialog, PromptDialog } from './Dialog'
 import { ImportDialog, lastShareDestination, type AlbumTarget } from './ImportDialog'
 import { Gallery } from './Gallery'
@@ -67,6 +69,7 @@ type DialogState =
   | { kind: 'personLink'; id: string; name: string }
   | { kind: 'delete'; id: string; name: string; count: number }
   | { kind: 'compress'; title: string; folderId: string | null }
+  | { kind: 'backup'; title: string; folderId: string | null }
   | { kind: 'import'; destId: string; files?: File[]; fromShare?: boolean; categories?: CategoryChoice; albums?: AlbumTarget[]; diskRoot?: string; yearFirst?: boolean }
   | null
 
@@ -172,6 +175,12 @@ export function Shell() {
         <Minimize2 size={16} />
         <span className="only-desktop">{t('compress.button')}</span>
       </button>
+      {canWalkFolders() && (
+        <button className="btn" onClick={() => setDialog({ kind: 'backup', title: t('backup.titleFor', { name: currentTitle }), folderId: currentFolderId })} title={t('backup.buttonTitle')}>
+          <HardDriveDownload size={16} />
+          <span className="only-desktop">{t('backup.button')}</span>
+        </button>
+      )}
       {canReadComputerFolder() && (
         <button className="btn" onClick={() => setDialog({ kind: 'treeSuggest', sync: true })} title={t('diskSync.toolbarTitle')}>
           <FolderSync size={16} />
@@ -306,6 +315,19 @@ export function Shell() {
           mode="manual"
           title={dialog.title}
           items={(dialog.folderId
+            ? (() => {
+                const ids = subtreeIds(dialog.folderId, lib.folders.values())
+                return lib.items.filter((i) => ids.has(i.rec.folderId))
+              })()
+            : items
+          ).map((i) => i.rec)}
+          onClose={() => setDialog(null)}
+        />
+      )}
+      {dialog?.kind === 'backup' && (
+        <DiskBackupDialog
+          title={dialog.title}
+          recs={(dialog.folderId
             ? (() => {
                 const ids = subtreeIds(dialog.folderId, lib.folders.values())
                 return lib.items.filter((i) => ids.has(i.rec.folderId))

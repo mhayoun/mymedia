@@ -383,6 +383,11 @@ export async function downloadRevisionText(id: string, revisionId: string): Prom
   return (await request(`${API}/files/${id}/revisions/${revisionId}?alt=media`)).text()
 }
 
+/** Downloads an older version of a file (the original of a compressed one, while Drive keeps it). */
+export async function downloadRevisionBlob(id: string, revisionId: string, signal?: AbortSignal): Promise<Blob> {
+  return (await request(`${API}/files/${id}/revisions/${revisionId}?alt=media`, {}, signal)).blob()
+}
+
 export async function downloadText(id: string): Promise<string> {
   return (await request(`${API}/files/${id}?alt=media&supportsAllDrives=true`)).text()
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { diskName, nameFromDates, numbered } from './fromMyDrive'
+import { diskName, numbered } from './diskBackup'
+import { nameFromDates } from './fromMyDrive'
 
 describe('names on the disk', () => {
   it('keeps names Windows accepts', () => {

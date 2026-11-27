@@ -1587,31 +1587,20 @@
     "files_other": "{{count}} files, {{size}}",
     "album": "Album",
     "albumPlaceholder": "Album name",
-    "backup": "First save the originals on this computer's disk",
     "diskChoose": "Choose the backup folder",
     "diskChange": "Change folder",
     "diskChosen": "In “{{name}}”, one folder per album",
     "noDisk": "Saving to the disk is only possible on a computer (Chrome or Edge).",
     "compress": "Compress after the move (frees space on Google Drive)",
     "quota": "Google space used: {{used}} of {{total}}",
-    "startSave_one": "Save {{count}} original",
-    "startSave_other": "Save {{count}} originals",
     "startMove_one": "Move {{count}} file into MyMedia",
     "startMove_other": "Move {{count}} files into MyMedia",
     "saving": "Saving and checking on the disk… {{done}} / {{total}}",
     "verified_one": "{{count}} of {{total}} checked on the disk (folder “{{disk}}”).",
     "verified_other": "{{count}} of {{total}} checked on the disk (folder “{{disk}}”).",
-    "notVerified_one": "{{count}} file is not checked: it will not be moved.",
-    "notVerified_other": "{{count}} files are not checked: they will not be moved.",
     "mismatch": "the copy on the disk is not identical",
-    "checkHint": "You can open the folder “{{disk}}” on the computer to look at the photos before going on. Nothing has changed in Google Drive yet.",
     "retry_one": "Try {{count}} file again",
     "retry_other": "Try {{count}} files again",
-    "stopHere": "Stop here",
-    "transfer_one": "Move {{count}} checked file into MyMedia",
-    "transfer_other": "Move {{count}} checked files into MyMedia",
-    "transferCompress_one": "Move and compress {{count}} checked file",
-    "transferCompress_other": "Move and compress {{count}} checked files",
     "moving": "Moving into MyMedia… {{done}} / {{total}}",
     "compressing": "Compressing… {{done}} / {{total}} ({{saved}} saved)",
     "moved_one": "{{count}} file moved into MyMedia (it is no longer in its old Google Drive folder).",
@@ -1630,7 +1619,6 @@
     "movedTo_other": "{{count}} in {{path}}",
     "openAlbum": "Open the album",
     "step1": "1. The photos",
-    "step2": "2. Backup of the originals",
     "short": "Open a folder in Google's window, select all (Ctrl+A), then “Select”.",
     "nameFromDates": "Name proposed from the photos' dates (Google does not give the folder's name).",
     "readFolderName": "Use the folder's name",
@@ -1640,15 +1628,11 @@
     "help": [
       {
         "title": "Choose the photos",
-        "text": "In Google's window, open a folder, select all (Ctrl+A or Shift+click), then “Select”. Do it again for other folders. Choosing the folder itself is not enough: choose the photos. The window shows a list (name, date, size), without the pictures: to see them, open the folder in Google Drive alongside. Photos already in MyMedia are left out."
+        "text": "In Google's window, open a folder, select all (Ctrl+A or Shift+click), then “Select”. Do it again for other folders. Choosing the folder itself is not enough: choose the photos. The window shows a list (name, date, size), without the pictures: to see them, open the folder in Google Drive alongside. The photos chosen serve both tabs: backup and import."
       },
       {
-        "title": "Save the originals (advised)",
-        "text": "On a computer, each original is first written to the folder chosen on the disk (one sub-folder per album), then read again and compared with Google's (MD5 fingerprint). The window then stops so you can look: nothing has changed in Google Drive yet. Only the checked photos are then moved, and once compressed, Drive does not keep their old version: the space is freed at once."
-      },
-      {
-        "title": "Without a backup",
-        "text": "The original of a compressed photo is kept as your compression setting says: by default, as an old version recoverable for about 30 days (the space is freed only then)."
+        "title": "Save to the disk (advised)",
+        "text": "Tab “Save to the disk”, on a computer: each original is written to the folder chosen (one sub-folder per Drive folder), then read again and compared with Google's (MD5 fingerprint). Nothing changes in Google Drive or in MyMedia. MyMedia remembers on this computer the photos checked. The “Save” button of the top bar does the same for an album, a category or a selection of MyMedia."
       },
       {
         "title": "Where to put them",
@@ -1656,12 +1640,44 @@
       },
       {
         "title": "Move",
-        "text": "The photos are moved into MyMedia with their date: the same file, only its folder changes (no extra space). It is no longer in its old Google Drive folder."
+        "text": "The photos are moved into MyMedia with their date: the same file, only its folder changes (no extra space). It is no longer in its old Google Drive folder. Those already in MyMedia are left out."
       },
       {
         "title": "Compress",
-        "text": "After the move, photos and videos are compressed to free space on Google Drive. Those already small or already compressed do not change."
+        "text": "After the move, photos and videos are compressed to free space on Google Drive. Those saved and checked on the disk do not keep their old version: the space is freed at once. The others keep their original as your compression setting says (by default about 30 days). Those already small or already compressed do not change."
       }
-    ]
+    ],
+    "savedTitle": "2. Backup on the disk",
+    "allSaved_one": "{{count}} file is saved and checked on the disk ({{on}}): Drive will not keep its old version, the space is freed at once.",
+    "allSaved_other": "The {{count}} files are saved and checked on the disk ({{on}}): Drive will not keep their old version, the space is freed at once.",
+    "someSaved_one": "{{count}} of {{total}} is saved on the disk. For the others, the original is kept as your compression setting says (by default about 30 days in Drive).",
+    "someSaved_other": "{{count}} of {{total}} are saved on the disk. For the others, the original is kept as your compression setting says (by default about 30 days in Drive).",
+    "noneSaved_one": "This file is not saved on this computer's disk. Its original will be kept as your compression setting says (by default about 30 days in Drive).",
+    "noneSaved_other": "These {{count}} files are not saved on this computer's disk. Their original will be kept as your compression setting says (by default about 30 days in Drive).",
+    "backupFirst": "Save to the disk first",
+    "startMoveCompress_one": "Move and compress {{count}} file",
+    "startMoveCompress_other": "Move and compress {{count}} files"
+  },
+  "backup": {
+    "tab": "Save to the disk",
+    "button": "Save",
+    "buttonTitle": "Save the originals on this computer's disk",
+    "titleFor": "Save “{{name}}” to the disk",
+    "selectionTitle_one": "Save {{count}} item to the disk",
+    "selectionTitle_other": "Save {{count}} items to the disk",
+    "what_one": "{{count}} photo or video ({{size}})",
+    "what_other": "{{count}} photos and videos ({{size}})",
+    "libraryHint": "Each file is written to the folder chosen (one sub-folder per category and album), then read again and checked. For a compressed photo, MyMedia writes its original while Google Drive keeps it, else the compressed version.",
+    "namesTitle": "Folders on the disk",
+    "folderName": "Folder name on the disk",
+    "diskTitle": "Backup folder",
+    "start_one": "Save {{count}} file",
+    "start_other": "Save {{count}} files",
+    "current_one": "{{count}} compressed photo no longer has its original in Google Drive: its compressed version was saved.",
+    "current_other": "{{count}} compressed photos no longer have their original in Google Drive: their compressed version was saved.",
+    "failed_one": "{{count}} file is not checked:",
+    "failed_other": "{{count}} files are not checked:",
+    "checkHint": "You can open the folder “{{disk}}” on the computer to look at the photos. Nothing changed in Google Drive or in MyMedia.",
+    "thenImport": "Import these photos into MyMedia"
   }
 }

@@ -1,5 +1,5 @@
-import { ChevronRight, CircleHelp, FileText, Folder, Image, ImagePlus, Loader2, Users, Video } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ChevronRight, CircleHelp, FileText, Folder, HardDrive, Image, ImagePlus, Loader2, Users, Video } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DriveFile } from '../drive/api'
 import { useFormat } from '../i18n/format'
@@ -9,7 +9,10 @@ import { useApp } from '../store'
 import { albumDirs } from '../lib/folderNames'
 import { Modal } from './Dialog'
 import { FolderTreePicker } from './FolderTreePicker'
+import { DiskBackup } from './DiskBackup'
+import { GroupName, PickedPhotos, sizeOf, useDrivePick } from './DrivePick'
 import { MyDriveImport } from './MyDriveImport'
+import { driveItems } from '../import/diskBackup'
 import { ProGate } from './ProDialog'
 import type { Library } from './useLibrary'
 
@@ -17,25 +20,34 @@ type Phase = 'browse' | 'collect' | 'propose' | 'copy' | 'done'
 
 /**
  * Import → "From Google Drive": "My photos in Google Drive" (chosen in Google's window, moved into MyMedia: any
- * access, MyMedia Free too), or the files other accounts shared with this one, copied by Google into MyMedia
- * (only the full Drive access, Pro, sees them).
+ * access, MyMedia Free too), "Save to the disk" (the same photos chosen, their originals saved on the computer),
+ * or the files other accounts shared with this one, copied by Google into MyMedia (only the full Drive access,
+ * Pro, sees them).
  */
 export function DriveImportDialog(props: { lib: Library; destId: string; onClose: () => void }) {
   const { t } = useTranslation()
   const door = useApp((s) => s.door)
-  const [source, setSource] = useState<'mine' | 'shared'>('mine')
+  const [source, setSource] = useState<'mine' | 'backup' | 'shared'>('mine')
   const [destId, setDestId] = useState(props.destId)
   const [busy, setBusy] = useState(false)
   const [help, setHelp] = useState(false)
   const onBusy = useCallback((b: boolean) => setBusy(b), [])
+  // Chosen once, for the import and the backup.
+  const pick = useDrivePick()
+  const backupItems = useMemo(() => driveItems(pick.groups), [pick.groups])
   if (source === 'shared' && door === 'full') return <DriveImport {...props} onMine={() => setSource('mine')} />
+  const tab = (id: typeof source, icon: ReactNode, label: string) => (
+    <button className={`btn ${source === id ? 'primary' : 'ghost'} small`} role="tab" aria-selected={source === id} onClick={() => setSource(id)}>
+      {icon} {label}
+    </button>
+  )
   return (
     <Modal
       wide
       title={t('driveImport.title')}
       onClose={() => !busy && props.onClose()}
       titleExtra={
-        source === 'mine' ? (
+        source !== 'shared' ? (
           <button
             className={`icon-btn small ${help ? 'active' : ''}`}
             onClick={() => setHelp((v) => !v)}
@@ -50,17 +62,38 @@ export function DriveImportDialog(props: { lib: Library; destId: string; onClose
     >
       {!busy && (
         <div className="row" role="tablist">
-          <button className={`btn ${source === 'mine' ? 'primary' : 'ghost'} small`} role="tab" aria-selected={source === 'mine'} onClick={() => setSource('mine')}>
-            <ImagePlus size={14} /> {t('myDrive.tab')}
-          </button>
-          <button className={`btn ${source === 'shared' ? 'primary' : 'ghost'} small`} role="tab" aria-selected={source === 'shared'} onClick={() => setSource('shared')}>
-            <Users size={14} /> {t('driveImport.shared')}
-          </button>
+          {tab('mine', <ImagePlus size={14} />, t('myDrive.tab'))}
+          {tab('backup', <HardDrive size={14} />, t('backup.tab'))}
+          {tab('shared', <Users size={14} />, t('driveImport.shared'))}
         </div>
       )}
-      {source === 'mine' ? (
-        <MyDriveImport showHelp={help} onHelpClose={() => setHelp(false)} lib={props.lib} destId={destId} onDestChange={setDestId} onBusy={onBusy} onClose={props.onClose} />
-      ) : (
+      {help && source !== 'shared' && <MyDriveHelp onClose={() => setHelp(false)} />}
+      {source === 'mine' && (
+        <MyDriveImport pick={pick} lib={props.lib} destId={destId} onDestChange={setDestId} onBackup={() => setSource('backup')} onBusy={onBusy} onClose={props.onClose} />
+      )}
+      {source === 'backup' && (
+        <DiskBackup
+          items={backupItems}
+          blocked={pick.groups.some((g) => !g.album.trim())}
+          onBusy={onBusy}
+          onClose={props.onClose}
+          next={{ label: t('backup.thenImport'), run: () => setSource('mine') }}
+          before={
+            <>
+              <PickedPhotos pick={pick} count={backupItems.length} size={sizeOf(pick.groups.flatMap((g) => g.files))} />
+              {pick.groups.length > 0 && (
+                <section className="disk-sync-part">
+                  <h3>{t('backup.namesTitle')}</h3>
+                  {pick.groups.map((g) => (
+                    <GroupName key={g.key} pick={pick} g={g} files={g.files} label={t('backup.folderName')} />
+                  ))}
+                </section>
+              )}
+            </>
+          }
+        />
+      )}
+      {source === 'shared' && (
         <>
           <ProGate feature={t('driveImport.title')} needsFull />
           <div className="actions">
@@ -71,6 +104,28 @@ export function DriveImportDialog(props: { lib: Library; destId: string; onClose
         </>
       )}
     </Modal>
+  )
+}
+
+/** The "?" by the title: how the import and the backup work, step by step. */
+function MyDriveHelp({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation()
+  const v = t('myDrive.help', { returnObjects: true }) as unknown
+  const items = Array.isArray(v) ? (v as { title: string; text: string }[]) : []
+  return (
+    <section className="tree-guide" aria-labelledby="my-drive-help">
+      <h3 id="my-drive-help">{t('myDrive.helpTitle')}</h3>
+      <ol>
+        {items.map((it) => (
+          <li key={it.title}>
+            <strong>{it.title}</strong> — {it.text}
+          </li>
+        ))}
+      </ol>
+      <button className="btn small" onClick={onClose}>
+        {t('common.close')}
+      </button>
+    </section>
   )
 }
 
