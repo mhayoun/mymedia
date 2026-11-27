@@ -38,7 +38,7 @@ interface PickerApi {
   PickerBuilder: new () => PickerBuilder
   DocsView: new (viewId: string) => PickerView
   ViewId: { DOCS_IMAGES_AND_VIDEOS: string }
-  DocsViewMode: { GRID: string }
+  DocsViewMode: { GRID: string; LIST: string }
   Feature: { MULTISELECT_ENABLED: string }
   Action: { PICKED: string; CANCEL: string }
 }
@@ -78,12 +78,15 @@ export interface Picked {
   parentId?: string
 }
 
-/** Opens Google's window on the photos and videos of the user's own Drive; null when it is closed. */
+/**
+ * Opens Google's window on the photos and videos of the user's own Drive; null when it is closed. As a list
+ * (name, date, size): inside MyMedia, Google's window often cannot show its pictures (empty squares).
+ */
 export async function pickMyDriveMedia(apiKey: string, opts: { locale: string; title: string }): Promise<Picked[] | null> {
   await loadPicker()
   const token = await auth.getToken()
   const p = pickerApi()!
-  const view = new p.DocsView(p.ViewId.DOCS_IMAGES_AND_VIDEOS).setOwnedByMe(true).setIncludeFolders(true).setMode(p.DocsViewMode.GRID)
+  const view = new p.DocsView(p.ViewId.DOCS_IMAGES_AND_VIDEOS).setOwnedByMe(true).setIncludeFolders(true).setMode(p.DocsViewMode.LIST)
   return new Promise((resolve) => {
     let b = new p.PickerBuilder()
       .addView(view)

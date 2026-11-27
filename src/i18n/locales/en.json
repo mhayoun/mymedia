@@ -1570,7 +1570,7 @@
   },
   "myDrive": {
     "tab": "My photos in Google Drive",
-    "intro": "Choose photos and videos of your Google Drive in Google's window: open a folder, select all (Ctrl+A), then “Select”. Do it again for other folders.\nThey are moved into MyMedia (the same file, no copy: no extra space), with their date. Choosing a folder is not enough: choose the photos themselves.",
+    "intro": "Choose photos and videos of your Google Drive in Google's window: open a folder, select all (Ctrl+A), then “Select”. Do it again for other folders.\nThey are moved into MyMedia (the same file, no copy: no extra space), with their date. Choosing a folder is not enough: choose the photos themselves.\nGoogle's window shows the list of files (name, date, size): it cannot show the pictures inside MyMedia. To see them, open the folder in Google Drive alongside.",
     "pick": "Choose photos in Google Drive",
     "pickMore": "Choose more photos",
     "pickerTitle": "Open a folder, select the photos (Ctrl+A), then “Select”",

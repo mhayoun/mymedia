@@ -1568,7 +1568,7 @@
   },
   "myDrive": {
     "tab": "Mes photos de Google Drive",
-    "intro": "Choisissez des photos et vidéos de votre Google Drive dans la fenêtre de Google : ouvrez un dossier, sélectionnez tout (Ctrl+A), puis « Sélectionner ». Recommencez pour d'autres dossiers.\nElles sont déplacées dans MyMedia (le même fichier, sans copie : aucune place en plus), avec leur date. Choisir un dossier ne suffit pas : il faut choisir les photos elles-mêmes.",
+    "intro": "Choisissez des photos et vidéos de votre Google Drive dans la fenêtre de Google : ouvrez un dossier, sélectionnez tout (Ctrl+A), puis « Sélectionner ». Recommencez pour d'autres dossiers.\nElles sont déplacées dans MyMedia (le même fichier, sans copie : aucune place en plus), avec leur date. Choisir un dossier ne suffit pas : il faut choisir les photos elles-mêmes.\nLa fenêtre de Google montre la liste des fichiers (nom, date, taille) : elle ne peut pas afficher les images à l'intérieur de MyMedia. Pour les voir, ouvrez le dossier dans Google Drive à côté.",
     "pick": "Choisir des photos dans Google Drive",
     "pickMore": "Choisir d'autres photos",
     "pickerTitle": "Ouvrez un dossier, sélectionnez les photos (Ctrl+A), puis « Sélectionner »",
