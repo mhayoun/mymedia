@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { diskName, numbered } from './diskBackup'
+import { diskName, numbered, withBackupNote } from './diskBackup'
 import { nameFromDates } from './fromMyDrive'
 
 describe('names on the disk', () => {
@@ -22,5 +22,14 @@ describe('album name from the dates', () => {
     expect(nameFromDates(['2025-08-23T08:50:15', '2025-11-02T10:00:00'])).toBe('2025')
     expect(nameFromDates(['2016-01-01T00:00:00', '2014-05-02T10:00:00', '2015-03-03T10:00:00'])).toBe('2014-2016')
     expect(nameFromDates([])).toBe('')
+  })
+})
+
+describe('backup note in the description', () => {
+  it('adds the line below the description, once', () => {
+    const note = 'Original : Sauvegarde/Birds/a.jpg (28/11/2026)'
+    expect(withBackupNote(null, note, 'Sauvegarde/Birds/a.jpg')).toBe(note)
+    expect(withBackupNote('Huppe au jardin', note, 'Sauvegarde/Birds/a.jpg')).toBe(`Huppe au jardin\n${note}`)
+    expect(withBackupNote(`Huppe\n${note}`, 'Original : Sauvegarde/Birds/a.jpg (29/11/2026)', 'Sauvegarde/Birds/a.jpg')).toBe(`Huppe\n${note}`)
   })
 })

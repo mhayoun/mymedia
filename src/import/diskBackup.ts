@@ -9,6 +9,7 @@ import { db, type MediaRecord } from '../db/db'
 import { downloadBlob, downloadRevisionBlob, listRevisions, type DriveFile } from '../drive/api'
 import { localIso } from '../lib/media'
 import { placementOf, type FolderNode } from '../lib/tree'
+import { markMetaDirty } from '../sync/metaStore'
 import type { FsDir } from './folderWalk'
 import { md5Of } from './importer'
 
@@ -187,4 +188,29 @@ export async function backupsOf(md5s: (string | undefined)[]): Promise<Map<strin
   const out = new Map<string, Backup>()
   for (const m of md5s) if (m && cur[m]) out.set(m, cur[m])
   return out
+}
+
+/**
+ * A description with the line telling where the original is on the disk ("Original saved on the disk:
+ * Backup/Birds/DSC_1.jpg (28/11/2026)"), added below what the user wrote; unchanged when it tells that path.
+ */
+export function withBackupNote(description: string | null | undefined, note: string, path: string): string {
+  const cur = (description ?? '').trim()
+  if (cur.includes(path)) return cur
+  return cur ? `${cur}\n${note}` : note
+}
+
+/** Adds that line to the description of the media of MyMedia saved on the disk (those not in MyMedia skipped). */
+export async function noteBackupsInDescriptions(notes: { id: string; note: string; path: string }[]): Promise<void> {
+  const d = db()
+  let changed = false
+  for (const n of notes) {
+    const cur = await d.meta.get(n.id)
+    if (!cur) continue
+    const description = withBackupNote(cur.description, n.note, n.path)
+    if (description === (cur.description ?? '')) continue
+    await d.meta.put({ ...cur, description, updatedAt: Date.now() })
+    changed = true
+  }
+  if (changed) await markMetaDirty()
 }

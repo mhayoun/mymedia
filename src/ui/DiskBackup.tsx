@@ -8,10 +8,11 @@ import { useTranslation } from 'react-i18next'
 import { auth } from '../auth/google'
 import { useFormat } from '../i18n/format'
 import { canWalkFolders, type FsDir } from '../import/folderWalk'
-import { libraryItems, recordBackups, saveItem, type BackupItem, type SaveOutcome } from '../import/diskBackup'
+import { libraryItems, noteBackupsInDescriptions, recordBackups, saveItem, type BackupItem, type SaveOutcome } from '../import/diskBackup'
 import { Modal } from './Dialog'
 import { useLibraryContext } from './libraryContext'
 import type { MediaRecord } from '../db/db'
+import { localIso } from '../lib/media'
 import { useApp } from '../store'
 
 interface Props {
@@ -69,6 +70,9 @@ export function DiskBackup({ items, before, blocked, onBusy, next, onClose }: Pr
     setProgress({ done: 0, total: todo.length })
     const next = new Map(saves)
     const checked: { md5: string; path: string }[] = []
+    // The media of MyMedia saved: where their original is, told in their description.
+    const note = (path: string) => t('backup.note', { path, on: fmt.date(localIso(new Date())) })
+    const notes: { id: string; note: string; path: string }[] = []
     try {
       for (const [k, item] of todo.entries()) {
         if (ctrl.signal.aborted) break
@@ -76,6 +80,7 @@ export function DiskBackup({ items, before, blocked, onBusy, next, onClose }: Pr
         next.set(item.id, r)
         // Only an original counts as saved (not a compressed version).
         if ((r.status === 'saved' || r.status === 'already') && r.md5 && !r.current) checked.push({ md5: r.md5, path: r.path })
+        if ((r.status === 'saved' || r.status === 'already') && !r.current) notes.push({ id: item.id, note: note(r.path), path: r.path })
         setSaves(new Map(next))
         setProgress({ done: k + 1, total: todo.length })
         if (checked.length >= 50) await recordBackups(checked.splice(0))
@@ -84,6 +89,7 @@ export function DiskBackup({ items, before, blocked, onBusy, next, onClose }: Pr
       if (!ctrl.signal.aborted) setError(t('errors.generic', { message: (e as Error).message }))
     }
     await recordBackups(checked)
+    await noteBackupsInDescriptions(notes).catch((e) => console.warn('[MyMedia] backup note failed', e))
     abort.current = null
     setProgress(null)
   }

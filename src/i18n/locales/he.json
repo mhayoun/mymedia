@@ -1786,6 +1786,7 @@
     "startMoveCompress_other": "העברה ודחיסה של {{count}} קבצים"
   },
   "backup": {
+    "note": "המקור נשמר בדיסק: {{path}} ({{on}})",
     "tab": "שמירה בדיסק",
     "button": "שמירה",
     "buttonTitle": "שמירת המקוריים בדיסק של המחשב הזה",

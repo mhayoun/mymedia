@@ -1659,6 +1659,7 @@
     "startMoveCompress_other": "Move and compress {{count}} files"
   },
   "backup": {
+    "note": "Original saved on the disk: {{path}} ({{on}})",
     "tab": "Save to the disk",
     "button": "Save",
     "buttonTitle": "Save the originals on this computer's disk",

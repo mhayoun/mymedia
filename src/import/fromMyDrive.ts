@@ -56,6 +56,8 @@ export async function moveIntoMyMedia(
   destId: string,
   onProgress: (done: number, failed: number) => void,
   signal: AbortSignal,
+  /** By file: its description (where its original was saved on the disk). */
+  descriptions?: ReadonlyMap<string, string>,
 ): Promise<{ moved: string[]; failed: number; reason?: string; albums: { name: string; id: string; count: number }[] }> {
   const d = db()
   const on = localIso(new Date()).slice(0, 10)
@@ -91,6 +93,7 @@ export async function moveIntoMyMedia(
               origin: detected === 'unknown' ? 'import' : detected,
               source: 'folder',
               imported: { from: 'Google Drive', on, ...(album ? { path: album } : {}) },
+              ...(descriptions?.get(file.id) ? { description: descriptions.get(file.id) } : {}),
               updatedAt: Date.now(),
             })
           }

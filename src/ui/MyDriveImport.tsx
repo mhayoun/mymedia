@@ -113,6 +113,13 @@ export function MyDriveImport({ pick, lib, destId, onDestChange, onBackup, onBus
         destId,
         (done, failed) => setProgress({ done: done + failed, total: todoFiles.length }),
         ctrl.signal,
+        // Where each original is on the disk, told in its description.
+        new Map(
+          saved.map((f) => {
+            const b = backups.get(f.md5Checksum!)!
+            return [f.id, t('backup.note', { path: b.path, on: fmt.date(b.on) })]
+          }),
+        ),
       )
       abort.current = null
       let extra: { compressed?: number; saved?: number; oldKept?: number } = {}

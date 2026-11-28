@@ -1657,6 +1657,7 @@
     "startMoveCompress_other": "Déplacer et compresser {{count}} fichiers"
   },
   "backup": {
+    "note": "Original sauvegardé sur le disque : {{path}} (le {{on}})",
     "tab": "Sauvegarder sur le disque",
     "button": "Sauvegarder",
     "buttonTitle": "Sauvegarder les originaux sur le disque de cet ordinateur",
